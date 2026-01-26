@@ -15,7 +15,8 @@ import agentstack_cli.commands.model
 import agentstack_cli.commands.platform
 import agentstack_cli.commands.self
 import agentstack_cli.commands.server
-import agentstack_cli.commands.user
+
+# import agentstack_cli.commands.user
 from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.configuration import Configuration
 
@@ -110,12 +111,13 @@ app.add_typer(
     help="Manage Agent Stack installation.",
     hidden=True,
 )
-app.add_typer(
-    agentstack_cli.commands.user.app,
-    name="user",
-    no_args_is_help=True,
-    help="Manage users. [Admin only]",
-)
+# TODO: Implement keycloak integration
+# app.add_typer(
+#     agentstack_cli.commands.user.app,
+#     name="user",
+#     no_args_is_help=True,
+#     help="Manage users. [Admin only]",
+# )
 
 
 agent_alias = deepcopy(agentstack_cli.commands.agent.app)

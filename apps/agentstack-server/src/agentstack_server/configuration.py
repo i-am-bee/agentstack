@@ -3,6 +3,7 @@
 
 import base64
 import logging
+import os
 import ssl
 from collections import defaultdict
 from datetime import timedelta
@@ -13,13 +14,12 @@ from typing import Any, Literal, cast
 
 from authlib.jose import jwt
 from limits import RateLimitItem, parse_many
-from pydantic import AnyUrl, BaseModel, Field, Secret, ValidationError, field_validator, model_validator
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl, Secret, ValidationError, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from agentstack_server.domain.models.registry import RegistryLocation
-from agentstack_server.domain.models.user import UserRole
 
 logger = logging.getLogger(__name__)
 
@@ -75,47 +75,57 @@ class AgentRegistryConfiguration(BaseModel):
 class OidcProvider(BaseModel):
     name: str
     issuer: AnyUrl
+    external_issuer: AnyUrl
     client_id: str
     client_secret: Secret[str]
 
     def __hash__(self):
-        return hash(self.name + str(self.issuer) + self.client_id)  # Enables auth caching per provider
+        return hash(
+            self.name + str(self.issuer) + str(self.external_issuer) + self.client_id
+        )  # Enables auth caching per provider
 
 
 class OidcConfiguration(BaseModel):
-    enabled: bool = False
-    default_new_user_role: UserRole = UserRole.USER
-    admin_emails: list[str] = Field(default_factory=list)
-    providers: list[OidcProvider] = Field(default_factory=list)
+    # enabled: bool = False  <-- Removed
+
+    # Flattened configuration allows setting a single provider via environment variables
+    # e.g., AGENTSTACK__AUTH__OIDC__NAME="Keycloak"
+    name: str = "Keycloak"
+    issuer: AnyUrl = HttpUrl("http://keycloak:8336/realms/agentstack")
+    external_issuer: AnyUrl = HttpUrl("http://localhost:8336/realms/agentstack")
+    client_id: str = "agentstack-server"
+    client_secret: Secret[str] = Secret("agentstack-server-secret")
+    insecure_transport: bool = False
+
     scope: list[str] = ["openid", "email", "profile"]
     validate_audience: bool = True
 
-    @field_validator("admin_emails")
-    @classmethod
-    def make_emails_lowercase(cls, v):
-        return [email.lower() for email in v]
+    @property
+    def provider(self) -> OidcProvider:
+        return OidcProvider(
+            name=self.name,
+            issuer=self.issuer,
+            external_issuer=self.external_issuer,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+        )
 
     @model_validator(mode="after")
     def validate_auth(self):
-        if not self.enabled:
-            logger.critical("Oauth Authentication is disabled! This is suitable only for local development.")
-            return self
-        if not self.providers:
-            raise ValueError("At least one OIDC provider must be configured if OIDC is enabled")
+        if self.insecure_transport:
+            if self.issuer.scheme != "http" or self.issuer.host != "keycloak":
+                raise ValueError("Insecure transport is only allowed for internal keycloak!")
+
+            os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
+            logger.warning(
+                "Oauth Authentication is enabled with insecure transport! "
+                + "Using mTLS (using istio service mesh) or exposing keycloak publicly is highly recommended!"
+            )
         return self
 
 
 class BasicAuthConfiguration(BaseModel):
-    enabled: bool = False
-    admin_password: Secret[str] | None = None
-
-    @model_validator(mode="after")
-    def validate_auth(self):
-        if not self.enabled:
-            return self
-        if not self.admin_password:
-            raise ValueError("Admin password must be provided if basic authentication is enabled")
-        return self
+    enabled: bool = True
 
 
 class AuthConfiguration(BaseModel):
@@ -124,14 +134,6 @@ class AuthConfiguration(BaseModel):
     disable_auth: bool = False
     oidc: OidcConfiguration = Field(default_factory=OidcConfiguration)
     basic: BasicAuthConfiguration = Field(default_factory=BasicAuthConfiguration)
-
-    @model_validator(mode="after")
-    def validate_auth(self):
-        if self.disable_auth:
-            return self
-        if not self.basic.enabled and not self.oidc.enabled:
-            raise ValueError("If auth is enabled, either basic or oidc must be enabled")
-        return self
 
     @model_validator(mode="after")
     def set_default_jwt_keys(self):

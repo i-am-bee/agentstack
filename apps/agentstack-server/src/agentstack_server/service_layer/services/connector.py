@@ -124,7 +124,7 @@ class ConnectorService:
             await self._external_mcp.bootstrap_auth(
                 connector=connector, callback_url=callback_uri, redirect_url=redirect_url
             )
-            connector.state = ConnectorState.auth_required
+            connector.transition(state=ConnectorState.auth_required)
         elif isinstance(err, httpx.HTTPStatusError):
             logger.error("Connector failed", exc_info=True)
             try:
@@ -166,8 +166,7 @@ class ConnectorService:
 
         try:
             await self.probe_connector(connector=connector)
-            connector.state = ConnectorState.connected
-            connector.disconnect_reason = None
+            connector.transition(state=ConnectorState.connected)
         except Exception as err:
             await self._handle_connection_error(err, connector, callback_uri, redirect_url)
 
@@ -190,8 +189,9 @@ class ConnectorService:
 
         if connector.auth:
             connector.auth.flow = None
-        connector.state = ConnectorState.disconnected
-        connector.disconnect_reason = "Client request"
+        connector.transition(
+            state=ConnectorState.disconnected, disconnect_reason="Client request", disconnect_permanent=True
+        )
 
         if self._managed_mcp.is_managed(connector=connector):
             await self._managed_mcp.undeploy(connector=connector)
@@ -205,20 +205,30 @@ class ConnectorService:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
 
-        if connector.state not in (ConnectorState.connected, ConnectorState.disconnected):
+        if not connector.refreshable:
             return
 
         try:
             await self.probe_connector(connector=connector)
-            connector.state = ConnectorState.connected
-            connector.disconnect_reason = None
+            connector.transition(state=ConnectorState.connected)
         except Exception as err:
-            if isinstance(err, httpx.HTTPStatusError) and err.response.status_code == status.HTTP_401_UNAUTHORIZED:
-                await self._external_mcp.revoke_token(connector=connector)
-                if connector.auth:
-                    connector.auth.flow = None
-            connector.state = ConnectorState.disconnected
-            connector.disconnect_reason = str(err)
+            if isinstance(err, httpx.HTTPStatusError):
+                if err.response.status_code >= 400 and err.response.status_code < 500:
+                    if err.response.status_code == status.HTTP_401_UNAUTHORIZED:
+                        await self._external_mcp.revoke_token(connector=connector)
+                        if connector.auth:
+                            connector.auth.flow = None
+                    connector.transition(
+                        state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=True
+                    )
+                else:
+                    connector.transition(
+                        state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=False
+                    )
+            else:
+                connector.transition(
+                    state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=False
+                )
         finally:
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)
@@ -230,14 +240,13 @@ class ConnectorService:
     def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
         return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
-    async def probe_connector(self, *, connector: Connector):
+    async def probe_connector(self, *, connector: Connector, max_retries: int = 5):
         def client_factory(headers=None, timeout=None, auth=None):
             assert auth is None
             return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
 
         # For managed MCP servers, retry if connection fails as service might not be immediately ready
         is_managed = self._managed_mcp.is_managed(connector=connector)
-        max_retries = 5 if is_managed else 1
         retry_delay = 2.0
 
         last_error = None

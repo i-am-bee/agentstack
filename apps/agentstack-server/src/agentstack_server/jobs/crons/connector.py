@@ -20,4 +20,5 @@ blueprint = Blueprint()
 async def refresh_connectors(timestamp: int, service: ConnectorService):
     async with asyncio.TaskGroup() as tg:
         for connector in await service.list_connectors():
-            tg.create_task(service.refresh_connector(connector_id=connector.id))
+            if connector.refreshable:
+                tg.create_task(service.refresh_connector(connector_id=connector.id))

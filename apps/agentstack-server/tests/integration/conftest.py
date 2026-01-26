@@ -36,12 +36,10 @@ async def agentstack_server() -> Callable[[Container | None], TestClient]:
 
 
 @pytest.fixture
-async def admin_user(db_transaction: AsyncConnection) -> uuid.UUID:
+async def normal_user(db_transaction: AsyncConnection) -> uuid.UUID:
     uid = uuid.uuid4()
     await db_transaction.execute(
-        text("INSERT INTO users (id, email, created_at, role) VALUES (:id, :email, :created_at, :role)"),
-        [
-            {"id": uid, "email": "dummy@beeai.dev", "created_at": utc_now(), "role": "admin"},
-        ],
+        text("INSERT INTO users (id, email, created_at) VALUES (:id, :email, :created_at)"),
+        [{"id": uid, "email": "dummy@beeai.dev", "created_at": utc_now()}],
     )
     return uid

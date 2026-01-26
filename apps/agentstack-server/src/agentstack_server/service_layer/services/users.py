@@ -7,12 +7,10 @@ from uuid import UUID
 from kink import inject
 
 from agentstack_server.configuration import Configuration
-from agentstack_server.domain.models.common import PaginatedResult
-from agentstack_server.domain.models.user import User, UserRole
+from agentstack_server.domain.models.user import User
 from agentstack_server.domain.repositories.env import EnvStoreEntity
-from agentstack_server.exceptions import PlatformError, UsageLimitExceededError
+from agentstack_server.exceptions import UsageLimitExceededError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from agentstack_server.utils.utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +21,9 @@ class UserService:
         self._uow = uow
         self._config = configuration
 
-    async def create_user(self, *, email: str, role: UserRole = UserRole.USER) -> User:
+    async def create_user(self, *, email: str) -> User:
         async with self._uow() as uow:
-            user = User(email=email, role=role)
+            user = User(email=email)
             await uow.users.create(user=user)
             await uow.commit()
             return user
@@ -60,31 +58,3 @@ class UserService:
         async with self._uow() as uow:
             env = await uow.env.get_all(parent_entity=EnvStoreEntity.USER, parent_entity_ids=[user.id])
             return env[user.id]
-
-    async def list_users(
-        self,
-        *,
-        limit: int = 40,
-        page_token: UUID | None = None,
-        email: str | None = None,
-    ) -> PaginatedResult[User]:
-        async with self._uow() as uow:
-            return await uow.users.list(
-                limit=limit,
-                page_token=page_token,
-                email=email,
-            )
-
-    async def change_role(self, user_id: UUID, new_role: UserRole) -> User:
-        async with self._uow() as uow:
-            user = await uow.users.get(user_id=user_id)
-
-            if user.role == new_role:
-                raise PlatformError("User already has this role", status_code=400)
-
-            user.role = new_role
-            user.role_updated_at = utc_now()
-
-            await uow.users.update(user=user)
-            await uow.commit()
-            return user

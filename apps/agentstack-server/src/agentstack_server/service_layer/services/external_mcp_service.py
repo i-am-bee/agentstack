@@ -192,11 +192,12 @@ class ExternalMcpService:
             await self.fetch_token_from_callback(connector=connector, callback_url=callback_url)
             try:
                 await probe_fn(connector)
-                connector.state = ConnectorState.connected
+                connector.transition(state=ConnectorState.connected)
             except Exception as err:
                 logger.error("Failed to probe resource with a valid token", exc_info=True)
-                connector.state = ConnectorState.disconnected
-                connector.disconnect_reason = str(err)
+                connector.transition(
+                    state=ConnectorState.disconnected, disconnect_reason=str(err), disconnect_permanent=True
+                )
 
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)

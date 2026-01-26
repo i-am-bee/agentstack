@@ -16,6 +16,13 @@
             ],
         },
         {
+            "name": "debug-file",
+            "type": "debugpy",
+            "justMyCode": false,
+            "request": "launch",
+            "program": "${file}",
+        },
+        {
             "name": "Python: Debug Tests",
             "type": "debugpy",
             "request": "launch",

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from datetime import UTC, datetime
 from typing import Annotated, Final
 from uuid import UUID
 
@@ -16,6 +15,7 @@ from agentstack_server.api.auth.auth import (
     ROLE_PERMISSIONS,
     extract_oauth_token,
     get_user_info,
+    validate_basic_auth,
     validate_oauth_access_token,
     verify_internal_jwt,
 )
@@ -75,16 +75,24 @@ async def authenticate_oauth_user(
             detail=f"Invalid Authorization header: {e}",
         ) from e
 
-    expected_audience = (
-        create_resource_uri(request.url.replace(path="/")) if configuration.auth.oidc.validate_audience else None
-    )
+    expected_aud: set[str] = set()
+    if configuration.auth.oidc.validate_audience:
+        base_url = request.url.replace(path="/")
+        expected_aud.add(create_resource_uri(base_url))
+        if base_url.hostname in {"localhost", "127.0.0.1"}:  # make localhost and 127.0.0.1 interchangeable
+            expected_aud |= {
+                create_resource_uri(base_url.replace(hostname="localhost")),
+                create_resource_uri(base_url.replace(hostname="127.0.0.1")),
+            }
 
     try:
-        claims, provider = await validate_oauth_access_token(
-            token=token, aud=expected_audience, configuration=configuration
-        )
+        claims, provider = await validate_oauth_access_token(token=token, aud=expected_aud, configuration=configuration)
     except Exception as e:
+        logger.warning(f"Token validation failed: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token validation failed") from e
+
+    realm_access = claims.get("realm_access", {}) if claims else {}
+    realm_roles = realm_access.get("roles", []) if realm_access else []
 
     try:
         claims = (
@@ -99,14 +107,18 @@ async def authenticate_oauth_user(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Verified email not found") from e
 
-    is_admin = email.lower() in configuration.auth.oidc.admin_emails
+    calculated_role = UserRole.USER
+    if "agentstack-admin" in realm_roles:
+        calculated_role = UserRole.ADMIN
+    elif "agentstack-developer" in realm_roles:
+        calculated_role = UserRole.DEVELOPER
 
     try:
         user = await user_service.get_user_by_email(email=email)
     except EntityNotFoundError:
-        role = UserRole.ADMIN if is_admin else configuration.auth.oidc.default_new_user_role
-        user = await user_service.create_user(email=email, role=role)
+        user = await user_service.create_user(email=email)
 
+    user.role = calculated_role
     return AuthorizedUser(
         user=user,
         global_permissions=ROLE_PERMISSIONS[user.role],
@@ -121,6 +133,7 @@ async def authorized_user(
     bearer_auth: Annotated[HTTPAuthorizationCredentials | None, Depends(HTTPBearer(auto_error=False))],
     request: Request,
 ) -> AuthorizedUser:
+    # 1. Check internal JWT
     if bearer_auth:
         # Check Context token first - locally this allows for "checking permissions" for development purposes
         # even if auth is disabled (requests that would pass with no header may not pass with context token header)
@@ -128,55 +141,38 @@ async def authorized_user(
             parsed_token = verify_internal_jwt(bearer_auth.credentials, configuration=configuration)
             user = await user_service.get_user(parsed_token.user_id)
 
-            iat_dt = datetime.fromtimestamp(parsed_token.iat, tz=UTC)
-            if user.role_updated_at and iat_dt < user.role_updated_at:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token invalidated due to role change",
-                )
-
-            token = AuthorizedUser(
+            return AuthorizedUser(
                 user=user,
                 global_permissions=parsed_token.global_permissions,
                 context_permissions=parsed_token.context_permissions,
                 token_context_id=parsed_token.context_id,
             )
-            return token
-        except Exception:
-            if configuration.auth.oidc.enabled:
-                return await authenticate_oauth_user(bearer_auth, user_service, configuration, request)
-            # TODO: update agents
-            logger.warning("Bearer token is invalid, agent is not probably not using llm extension correctly")
+        except Exception as e:
+            if configuration.auth.disable_auth:
+                logger.warning(f"Context token validation failed: {e}")
 
-    if configuration.auth.oidc.enabled:
-        if not bearer_auth:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Bearer token not found")
-        return await authenticate_oauth_user(bearer_auth, user_service, configuration, request)
-
-    if configuration.auth.basic.enabled:
-        assert configuration.auth.basic.admin_password is not None
-        if basic_auth and basic_auth.password == configuration.auth.basic.admin_password.get_secret_value():
-            user = await user_service.get_user_by_email("admin@beeai.dev")
-            return AuthorizedUser(
-                user=user,
-                global_permissions=ROLE_PERMISSIONS[user.role],
-                context_permissions=ROLE_PERMISSIONS[user.role],
-            )
-        else:
-            user = await user_service.get_user_by_email("user@beeai.dev")
-            return AuthorizedUser(
-                user=user,
-                global_permissions=ROLE_PERMISSIONS[user.role],
-                context_permissions=ROLE_PERMISSIONS[user.role],
-            )
-
+    # 2. Return admin user if auth is disabled
     if configuration.auth.disable_auth:
         user = await user_service.get_user_by_email("admin@beeai.dev")
+        user.role = UserRole.ADMIN
         return AuthorizedUser(
             user=user,
             global_permissions=ROLE_PERMISSIONS[user.role],
             context_permissions=ROLE_PERMISSIONS[user.role],
         )
+
+    # 3. Check basic auth header
+    if configuration.auth.basic.enabled and basic_auth:
+        try:  # get access_token and continue with bearer_auth
+            access_token = await validate_basic_auth(basic_auth.username, basic_auth.password, configuration)
+            bearer_auth = HTTPAuthorizationCredentials(scheme="Bearer", credentials=access_token)
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials") from e
+
+    # 4. Check OIDC token
+    if bearer_auth:
+        return await authenticate_oauth_user(bearer_auth, user_service, configuration, request)
+
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
 

@@ -162,16 +162,27 @@ arg "[cli_args]..."
 '''
 run = """
 #!/bin/bash
+
 set -e
-VM_NAME="${usage_vm_name?}"
+VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
 eval "cli_args=(${usage_cli_args})"
 {{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
+    --no-wait-for-platform \
     --set externalRegistries=null \
     "${cli_args[@]}"
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
+"""
+
+["agentstack-server:dev:reload"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = """
+#!/bin/bash
+{{ mise_bin }} run --force helm:build
+{{ mise_bin }} run --force agentstack-cli:build:copy-helm-chart
+{{ mise_bin }} run agentstack-server:dev:start --skip-pull {{arg(name="cli-args", var=true, default="--")}}
 """
 
 ["agentstack-server:dev:stop"]
@@ -243,24 +254,45 @@ run = """
 #!/bin/bash
 VM_NAME=e2e-test-run
 
+export AGENTSTACK__USERNAME=admin
+export AGENTSTACK__PASSWORD=admin
+
 NO_CLEAN="${usage_no_clean:-false}"
 if [ "$NO_CLEAN" != "true" ]; then
     {{ mise_bin }} run agentstack:stop-all
     {{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME}
+    curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 fi
-curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
 
-{{ mise_bin }} run agentstack:start \
-    --vm-name=${VM_NAME} \
-    --set externalRegistries=null \
-    --set ui.enabled=false \
-    --set auth.enabled="true" \
-    --set auth.basic.enabled="true" \
-    --set auth.basic.adminPassword="test-password" \
-    --set docling.enabled=true \
-    --set connector.presets[0].url=mcp+stdio://test \
-    --set connector.presets[0].stdio.image=mcp/aws-documentation \
-    --set connector.presets[0].metadata.name="Test MCP Server"
+CONFIG_FILE="/tmp/config_e2e_test_$(date +%s).yaml"
+
+echo '
+externalRegistries: null
+ui:
+  enabled: false
+auth:
+  enabled: true
+docling:
+  enabled: true
+connector:
+  presets:
+    - url: mcp+stdio://test
+      stdio:
+        image: mcp/aws-documentation
+      metadata:
+        name: Test MCP Server
+keycloak:
+  auth:
+    seedAgentstackUsers:
+      - username: admin
+        password: admin
+        firstName: Admin
+        lastName: User
+        email: admin@beeai.dev
+        roles: ["agentstack-admin"]
+' > "$CONFIG_FILE"
+
+{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} --skip-restart-deployments -f "$CONFIG_FILE"
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
@@ -273,10 +305,8 @@ if [ -z "${TEST_AGENT_IMAGE}" ]; then
 fi
 export TEST_AGENT_IMAGE
 
-export SERVER_URL="http://localhost:8333"
 export DB_URL="postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack"
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
-export OIDC__DISABLE_OIDC=true
 
 echo "Waiting for agentstack-server deployment to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/agentstack-server
@@ -299,6 +329,8 @@ else
     {{ mise_bin }} run agentstack-cli:run -- platform stop --vm-name=${VM_NAME}
 fi
 
+rm -f "$CONFIG_FILE"
+
 kill %1
 exit $result
 """
@@ -318,7 +350,6 @@ VM_NAME=integration-test-run
     --set ui.enabled=false
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
-export OIDC__DISABLE_OIDC=True
 
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 

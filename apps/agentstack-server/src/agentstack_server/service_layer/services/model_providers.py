@@ -12,7 +12,6 @@ from uuid import UUID
 
 import openai.types.chat
 from cachetools import TTLCache
-from httpx import HTTPError
 from kink import inject
 from pydantic import HttpUrl
 
@@ -118,7 +117,7 @@ class ModelProviderService:
                     provider=provider, api_key=api_key
                 )
             return self._provider_models[provider.id]
-        except HTTPError as ex:
+        except Exception as ex:
             if raise_error:
                 raise ModelLoadFailedError(provider=provider, exception=ex) from ex
             logger.warning(f"Failed to load models for {provider.type} provider {provider.id}: {ex}")

@@ -82,88 +82,48 @@ By default, authentication and authorization are disabled.
 Starting the platform with OIDC enabled:
 
 ```bash
-mise agentstack:start --set auth.oidc.enabled=true --set auth.oidc.validate_audience=false --set auth.enabled=true
+mise agentstack:start --set auth.enabled=true
 ```
 
-This does the following:
+This will setup keycloak (with no platform users out of the box).
 
-* Installs Istio in ambient mode.
-* Creates a gateway and routes for `https://agentstack.localhost:8336/`.
-* Installs the Kiali console.
+You can add users at <http://localhost:8336>, by loggin in with the admin user (admin:admin in dev)
+and going to "Manage realms" -> "Users".
 
-**Why TLS is used:**  
-OAuth tokens are returned to the browser only over HTTPS to avoid leakage over plain HTTP. Always access the UI via
-`https://agentstack.localhost:8336/`.
+You can promote users by assigning `agentstack-admin` or `agentstack-developer` roles to them. Make sure to add a
+password in the "Credentials" tab and set their email to verified.
 
-**Istio details:**  
-The default namespace is labeled `istio.io/dataplane-mode=ambient`. This ensures all intra-pod traffic is routed through
-`ztunnel`.
-
-**Available endpoints:**
-
-| Service              | HTTPS                                           | HTTP                                |
-|----------------------|-------------------------------------------------|-------------------------------------|
-| Kiali Console        | –                                               | `http://localhost:20001`            |
-| Agent Stack UI       | `https://agentstack.localhost:8336`             | `http://localhost:8334`             |
-| Agent Stack API Docs | `https://agentstack.localhost:8336/api/v1/docs` | `http://localhost:8333/api/v1/docs` |
-
-**OIDC configuration:**
-
-* Update OIDC provider credentials and settings helm/values.yaml under:
-
-```YAML
-oidc:
-  enabled: false
-  default_new_user_role: "user"
-  admin_emails:
-    - admin@example.com
-  nextauth_trust_host: true
-  nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-  nextauth_url: "http://localhost:8336"
-  validate_audience: false
-  nextauth_providers: [
-    {
-      "name": "IBM",
-      "id": "sso-provisioned",
-      "provider_type": "custom",
-      "client_id": "<oidc_client_id>",
-      "client_secret": "<oidc_client_secret>",
-      "issuer": "<oidc_issuer>"
-    }
-  ]
-```
-
-* When debugging the ui component (See debugging individual components), copy the env.example as .env and update the
-  following oidc specific values:
-
-```JavaScript
-OIDC_PROVIDERS='[{"id":"w3id","name":"w3id","provider_type":"custom","client_id":"<your_client_id>","client_secret":"<your_client_secret>","issuer":"<your_issuer>"}]'
-NEXTAUTH_SECRET = "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-NEXTAUTH_URL = "http://localhost:3000"
-OIDC_ENABLED = true
-```
-
-Optionally add:
-
-```JavaScript
-NEXTAUTH_DEBUG = "true"
-```
-
-**To deploy the helm chart to OpenShift:**
-
-* Update values.yaml so that auth.enabled and auth.oidc.enabled are true. e.g.:
+You can also automate this by creating a file `config.yaml`:
 
 ```yaml
 auth:
   enabled: true
-  ...
-  odic:
-    enabled: true
+keycloak:
+  auth:
+    seedAgentstackUsers:
+      - username: admin
+        password: admin
+        firstName: Admin
+        lastName: User
+        email: admin@beeai.dev
+        roles: ["agentstack-admin"]
+        enabled: true
 ```
 
-* Update values.yaml so that the `nextauth_url` and the `nextauth_redirect_proxy_url` values reflect the URL for the
-  route created for the `agentstack-ui-svc`.
-* Ensure that the oidc.nextauth_providers array entries in values.yaml have valid/appropriate values
+Then run `mise run agentstack:start -f config.yaml`
+
+**Available endpoints:**
+
+| Service              | HTTP                                |
+|----------------------|-------------------------------------|
+| Keycloak             | `http://localhost:8336`             |
+| Agent Stack UI       | `http://localhost:8334`             |
+| Agent Stack API Docs | `http://localhost:8333/api/v1/docs` |
+
+**OIDC configuration:**
+
+* UI: follow `template.env` in `apps/agentstack-ui` directory (copy to `apps/agentstack-ui/.env`).
+* Server: follow `template.env` in `apps/agentstack-server` directory (copy to `apps/agentstack-server/.env`).
 
 ### Running and debugging individual components
 
@@ -226,8 +186,9 @@ mise run agentstack-server:dev:delete
 To run and develop agentstack-server tests locally use `mise run agentstack-server:dev:start` from above.
 
 > Note:
-> - Some tests require additional settings (e.g. enabling authentication), see section for tests in `template.env` for more details.
-> - Tests will drop your database - you may need to add agents again or reconfigure model
+>
+> * Some tests require additional settings (e.g. enabling authentication), see section for tests in `template.env` for more details.
+> * Tests will drop your database - you may need to add agents again or reconfigure model
 
 Locally, the default model for tests is configured in `apps/agentstack-server/tests/conftest.py` (`llama3.1:8b` from ollama).
 Make sure to have this model running locally.

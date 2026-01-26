@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import status
-from httpx import HTTPError
 from tenacity import retry_base, retry_if_exception
 
 from agentstack_server.domain.models.model_provider import ModelProvider
@@ -94,7 +93,7 @@ class StorageCapacityExceededError(PlatformError):
 
 class ModelLoadFailedError(PlatformError):
     def __init__(
-        self, provider: ModelProvider, exception: HTTPError, status_code: int = status.HTTP_424_FAILED_DEPENDENCY
+        self, provider: ModelProvider, exception: Exception, status_code: int = status.HTTP_424_FAILED_DEPENDENCY
     ):
         from agentstack_server.utils.utils import extract_messages
 

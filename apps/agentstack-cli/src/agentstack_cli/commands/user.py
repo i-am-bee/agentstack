@@ -43,21 +43,18 @@ async def list_users(
         Column("Email"),
         Column("Role"),
         Column("Created"),
-        Column("Role Updated"),
         no_wrap=True,
     ) as table:
         for user in items:
             role_display = ROLE_DISPLAY.get(user.role, user.role)
 
             created_at = _format_date(user.created_at)
-            role_updated_at = _format_date(user.role_updated_at) if user.role_updated_at else "-"
 
             table.add_row(
                 user.id,
                 user.email,
                 role_display,
                 created_at,
-                role_updated_at,
             )
 
     console.print()

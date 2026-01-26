@@ -1,0 +1,133 @@
+{{- if .Values.auth.enabled }}
+apiVersion: apps/v1
+# Use a stateful setup to ensure that for a rolling update Pods are restarted with a rolling strategy one-by-one.
+# This prevents losing in-memory information stored redundantly in two Pods.
+kind: StatefulSet
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+    {{- include "agentstack.labels" . | nindent 4 }}
+spec:
+  serviceName: keycloak-discovery
+  # Run with one replica to save resources, or with two replicas to allow for rolling updates for configuration changes
+  replicas: {{ .Values.keycloak.replicaCount }}
+  selector:
+    matchLabels:
+      app: keycloak
+      {{- include "agentstack.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: keycloak
+        {{- include "agentstack.labels" . | nindent 8 }}
+      annotations:
+        checksum/keycloak-theme: {{ include (print $.Template.BasePath "/keycloak/theme-configmap.yaml") . | sha256sum }}
+    spec:
+      initContainers:
+        - name: init-schema
+          image: "{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              export PGPASSWORD=$KC_DB_PASSWORD
+              until pg_isready -h $KC_DB_URL_HOST -p $KC_DB_URL_PORT -U $KC_DB_USERNAME; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+              psql -h $KC_DB_URL_HOST -p $KC_DB_URL_PORT -U $KC_DB_USERNAME -d $KC_DB_URL_DATABASE -c "CREATE SCHEMA IF NOT EXISTS \"$KC_DB_SCHEMA\" AUTHORIZATION \"$KC_DB_USERNAME\";"
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: {{ .Values.keycloak.auth.adminUser | quote }}
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: admin-password
+            {{- include "agentstack.keycloak.dbEnvVars" . | nindent 12 }}
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          args: ["start"]
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: {{ .Values.keycloak.auth.adminUser | quote }}
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: admin-password
+            # In a production environment, add a TLS certificate to Keycloak to either end-to-end encrypt the traffic between
+            # the client or Keycloak, or to encrypt the traffic between your proxy and Keycloak.
+            # Respect the proxy headers forwarded by the reverse proxy
+            # In a production environment, verify which proxy type you are using, and restrict access to Keycloak
+            # from other sources than your proxy if you continue to use proxy headers.
+            - name: KC_PROXY_HEADERS
+              value: "xforwarded"
+            - name: KC_HTTP_ENABLED
+              value: {{ hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl | quote }}
+            # Keycloak Hostname Configuration
+            - name: KC_HOSTNAME
+              value: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336"{{ else }}{{ .Values.auth.keycloakIssuerUrl | quote }}{{ end }}
+            - name: KC_HOSTNAME_STRICT
+              value: "true"
+            - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
+              value: "true"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: 'KC_CACHE'
+              value: 'ispn'
+            # Passing the Pod's IP primary address to the JGroups clustering as this is required in IPv6 only setups
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            # Instruct JGroups which DNS hostname to use to discover other Keycloak nodes
+            # Needs to be unique for each Keycloak cluster
+            - name: KC_CACHE_EMBEDDED_NETWORK_BIND_ADDRESS
+              value: '$(POD_IP)'
+            
+            # DATABASE CONFIGURATION
+            {{- include "agentstack.keycloak.dbEnvVars" . | nindent 12 }}
+
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: jgroups
+              containerPort: 7800
+            - name: jgroups-fd
+              containerPort: 57800
+          volumeMounts:
+            {{- range $path, $_ := .Files.Glob "keycloak-theme/**" }}
+            - name: keycloak-theme
+              mountPath: /opt/keycloak/themes/carbon/{{ $path | replace "keycloak-theme/" "" }}
+              subPath: {{ $path | replace "keycloak-theme/" "" | replace "/" "_" }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /health/started
+              port: 9000
+            periodSeconds: 1
+            failureThreshold: 600              
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            periodSeconds: 10
+            failureThreshold: 3              
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: 10
+            failureThreshold: 3              
+          resources:
+            {{- toYaml .Values.keycloak.resources | nindent 12 }}
+      volumes:
+        - name: keycloak-theme
+          configMap:
+            name: keycloak-theme
+{{- end }}

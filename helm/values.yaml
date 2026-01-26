@@ -2,6 +2,11 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Global Helm hooks configuration
+# If true, creating/updating resources will use Helm hooks (post-install, post-upgrade, etc.)
+# If false, resources will be created as standard Kubernetes resources
+useHelmHooks: true
+
 features:
   # UI only features
   uiLocalSetup: false
@@ -20,7 +25,7 @@ a2aProxyRequestsExpireAfterDays: 14
 # Context resource expiration
 #   Includes entities bound to context (=conversation) like files, vector stores, etc.
 #   If <= 0, context expiration is disabled, resources are deleted when context is deleted
-contextResourcesExpireAfterDays: 0 
+contextResourcesExpireAfterDays: 0
 
 # Prompt template for generating conversation titles (Jinja2 format)
 generateConversationTitle:
@@ -31,7 +36,7 @@ generateConversationTitle:
   # - files: list of files attached to the user message
   # - titleHint: hint for the title extracted from DataPart
   # - rawMessage: entire user message object, WARNING: may contain secrets in metadata, be careful not to send them to the LLM
-  
+
   prompt: |
     YOUR INSTRUCTIONS:
     Write a short descriptive title for the conversation (max 100 characters).
@@ -108,38 +113,27 @@ agentRegistrySyncPeriodCron: "*/30 * * * * *"
 
 encryptionKey: ""
 auth:
-  enabled: false # Warning, disable only for local deployments
+  # This URL is used by server to validate tokens from keycloak
+  # WARNING: if the keycloak URL is internal, the server is configured to allow insecure issuer (http)
+  # CHANGE TO A PUBLIC KEYCLOAK URL FOR PRODUCTION
+  keycloakIssuerUrl: "http://keycloak:8336/realms/agentstack"
+
+  enabled: true # Warning, disable only for local deployments
+  basic:
+    enabled: true # Disable basic auth for enhanced security
+
   jwtPrivateKey: "" # If empty, a key pair will be auto-generated
   jwtPublicKey: "" # If empty, a key pair will be auto-generated
-  basic:
-    enabled: false
-    adminPassword: ""
-  oidc:
-    enabled: false
-    default_new_user_role: "user"
-    admin_emails:
-      - example.admin@ibm.com
-    nextauth_trust_host: true
-    nextauth_secret: "<To generate a random string, you can use the Auth.js CLI: npx auth secret>"
-    nextauth_url: "https://agentstack.localhost:8336"
-    validate_audience: true
-    providers: [
-        {
-          "name": "IBMiD-PKCE",
-          "id": "ibmid-pkce",
-          "type": "oidc",
-          "client_id": "<oidc_client_id>",
-          "client_secret": "", # empty string for public client
-          "issuer": "<oidc_issuer>",
-        },
-        {
-          "name": "w3id",
-          "id": "w3id",
-          "client_id": "<oidc_client_id>",
-          "client_secret": "<oidc_client_secret>",
-          "issuer": "<oidc_issuer>",
-        },
-      ]
+
+  validateAudience: true
+
+  # Next.js settings, make sure to change nextauthUrl
+  nextauthSecret: "" # If empty, a random string will be generated
+
+  # These are important for audience validation, make sure to change them to your public URLs
+  nextauthUrl: "http://localhost:8334"
+  nextauthDevUrl: ""
+  apiUrl: "http://localhost:8333"
 
 # In agentstack-server this is used to determine the request origin and dynamically create agent card.
 # For example https://agentstack.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
@@ -330,7 +324,6 @@ rateLimit:
       openai_chat_completion_tokens: []
       openai_chat_completion_requests: []
       openai_embedding_inputs: []
-
 
 connector:
   presets:
@@ -648,11 +641,11 @@ externalRedis:
   existingSecret: ""
   existingSecretPasswordKey: "redis-password"
 
-docling: 
-  enabled: false 
+docling:
+  enabled: false
   podAnnotations: {}
   podSecurityContext: {}
-  podLabels: {} 
+  podLabels: {}
   resources: {}
   livenessProbe: {}
   # Unfortunately, docling does not handle IO properly and does not respond to health requests while processing file
@@ -672,9 +665,54 @@ docling:
   service:
     port: 15001
     type: ClusterIP
-  maxSyncWait: 300  # 5 minutes in seconds
+  maxSyncWait: 300 # 5 minutes in seconds
   imagePullPolicy: IfNotPresent
   image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0"
+
+## Keycloak Configuration
+# Keycloak is an integral part of the application, it is deployed automatically when auth.enabled is set to true
+keycloak:
+  replicaCount: 1
+  auth:
+    adminUser: admin
+    # a random password will be generated if empty, you can get it using
+    # kubectl get secret keycloak-secret -o jsonpath="{.data.admin-password}" | base64 -d
+    adminPassword: ""
+    seedAgentstackUsers:
+      # - username: admin
+      #   password: admin
+      #   firstName: Admin
+      #   lastName: User
+      #   email: admin@beeai.dev
+      #   roles: ["agentstack-admin"]
+      #   enabled: true
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: 26.5.0
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8336
+  uiClientSecret: ""
+  serverClientSecret: ""
+  persistence:
+    useDedicatedDatabase: false # Default to false (implies useSharedDatabase=true)
+    dedicatedDatabaseConfig:
+      host: ""
+      port: 5432
+      user: keycloak
+      password: ""
+      database: keycloak
+      schema: public
+      existingSecret: ""
+      ssl: true
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2000Mi
+    requests:
+      cpu: 500m
+      memory: 1700Mi
 
 # This is to override the chart name.
 nameOverride: ""

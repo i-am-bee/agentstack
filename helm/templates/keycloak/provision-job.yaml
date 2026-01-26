@@ -1,0 +1,207 @@
+{{- if .Values.auth.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: keycloak-provision
+  labels:
+    app: keycloak-provision
+    {{- include "agentstack.labels" . | nindent 4 }}
+  annotations:
+    {{- if .Values.useHelmHooks }}
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    {{- end }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: keycloak-provision
+        {{- include "agentstack.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: keycloak-provision
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloak.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              # Wait for Keycloak to be ready by attempting login
+              echo "Waiting for Keycloak to be ready..."
+              until /opt/keycloak/bin/kcadm.sh config credentials --server http://keycloak:{{ .Values.keycloak.service.port }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD; do
+                echo "Keycloak not ready or login failed... retrying in 5s"
+                sleep 5
+              done
+              
+              echo "Keycloak is ready and logged in. Configuring..."
+              
+              # Create Realm
+              echo "Creating Realm 'agentstack'..."
+              if /opt/keycloak/bin/kcadm.sh get realms/agentstack; then
+                echo "Realm exists."
+              else
+                /opt/keycloak/bin/kcadm.sh create realms -s realm=agentstack -s enabled=true
+              fi
+
+              # Set Login Theme
+              echo "Setting login theme to 'carbon'..."
+              /opt/keycloak/bin/kcadm.sh update realms/agentstack -s loginTheme=carbon
+
+              # Create Roles
+              echo "Creating Roles..."
+              if ! /opt/keycloak/bin/kcadm.sh get roles/agentstack-admin -r agentstack > /dev/null 2>&1; then
+                /opt/keycloak/bin/kcadm.sh create roles -r agentstack -s name=agentstack-admin
+              fi
+              if ! /opt/keycloak/bin/kcadm.sh get roles/agentstack-developer -r agentstack > /dev/null 2>&1; then
+                /opt/keycloak/bin/kcadm.sh create roles -r agentstack -s name=agentstack-developer
+              fi
+              
+              # Create/Update Server Client
+              echo "Configuring Server Client..."
+              CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=agentstack-server --fields id --format csv --noquotes)
+              if [ -z "$CID" ]; then
+                /opt/keycloak/bin/kcadm.sh create clients -r agentstack -s clientId=agentstack-server -s enabled=true -s clientAuthenticatorType=client-secret -s secret=$SERVER_CLIENT_SECRET -s serviceAccountsEnabled=true -s directAccessGrantsEnabled=true -s standardFlowEnabled=false
+              else
+                /opt/keycloak/bin/kcadm.sh update clients/$CID -r agentstack -s secret=$SERVER_CLIENT_SECRET -s enabled=true
+              fi
+
+              # Create/Update UI Client
+              {{- if and .Values.ui.enabled }}
+              echo "Configuring UI Client..."
+              CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=agentstack-ui --fields id --format csv --noquotes)
+              if [ -z "$CID" ]; then
+                /opt/keycloak/bin/kcadm.sh create clients -r agentstack -s clientId=agentstack-ui -s enabled=true -s clientAuthenticatorType=client-secret -s secret=$UI_CLIENT_SECRET -s serviceAccountsEnabled=false -s directAccessGrantsEnabled=true -s standardFlowEnabled=true -s "redirectUris=[\"*\",\"$UI_URL/*\"]" -s "webOrigins=[\"*\"]" -s publicClient=false
+                # Refresh CID
+                CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=agentstack-ui --fields id --format csv --noquotes)
+              else
+                /opt/keycloak/bin/kcadm.sh update clients/$CID -r agentstack -s secret=$UI_CLIENT_SECRET -s enabled=true -s "redirectUris=[\"*\",\"$UI_URL/*\"]"
+              fi
+              {{- end }}
+
+              # Create/Update CLI Client
+              echo "Configuring CLI Client..."
+              CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=agentstack-cli --fields id --format csv --noquotes)
+              if [ -z "$CID" ]; then
+                /opt/keycloak/bin/kcadm.sh create clients -r agentstack -s clientId=agentstack-cli -s enabled=true -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s "redirectUris=[\"http://localhost:9001/callback\"]" -s "webOrigins=[\"+\"]"
+              else
+                /opt/keycloak/bin/kcadm.sh update clients/$CID -r agentstack -s enabled=true -s publicClient=true -s "redirectUris=[\"http://localhost:9001/callback\"]"
+              fi
+
+              declare -a AUDIENCES=(
+                "agentstack-ui|agentstack-ui-audience|$UI_URL"
+                "agentstack-cli|agentstack-cli-audience|$API_URL"
+                "agentstack-server|agentstack-server-audience|$API_URL"
+              )
+
+              if [ -n "$UI_DEV_URL" ]; then
+                AUDIENCES+=("agentstack-ui|agentstack-ui-dev-audience|$UI_DEV_URL")
+              fi
+
+              for AUDIENCE_MAPPING in "${AUDIENCES[@]}"; do
+                IFS='|' read -r CLIENT_ID SCOPE_NAME AUDIENCE_URL <<< "$AUDIENCE_MAPPING"
+
+                if [ -n "$AUDIENCE_URL" ]; then
+                   echo "Configuring audience '$SCOPE_NAME' for client '$CLIENT_ID' with URL '$AUDIENCE_URL'..."
+                   
+                   # Create/Get Client Scope
+                   SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes -r agentstack --fields id,name --format csv --noquotes | grep ",$SCOPE_NAME$" | cut -d, -f1 || true)
+                   if [ -z "$SCOPE_ID" ]; then
+                     SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh create client-scopes -r agentstack -s name=$SCOPE_NAME -s protocol=openid-connect -i)
+                   fi
+
+                   # Configure Mapper
+                   MAPPER_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes/$SCOPE_ID/protocol-mappers/models -r agentstack --fields id,name --format csv --noquotes | grep ",audience-mapper$" | cut -d, -f1 || true)
+                   if [ -z "$MAPPER_ID" ]; then
+                     /opt/keycloak/bin/kcadm.sh create client-scopes/$SCOPE_ID/protocol-mappers/models -r agentstack \
+                       -s name=audience-mapper \
+                       -s protocol=openid-connect \
+                       -s protocolMapper=oidc-audience-mapper \
+                       -s config.\"included.custom.audience\"="$AUDIENCE_URL" \
+                       -s config.\"id.token.claim\"="false" \
+                       -s config.\"access.token.claim\"="true"
+                   else
+                     /opt/keycloak/bin/kcadm.sh update client-scopes/$SCOPE_ID/protocol-mappers/models/$MAPPER_ID -r agentstack \
+                       -s config.\"included.client.audience\"="$AUDIENCE_URL"
+                   fi
+                   
+                   # Assign Scope to Client
+                   CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=$CLIENT_ID --fields id --format csv --noquotes)
+                   if [ -n "$CID" ]; then
+                      /opt/keycloak/bin/kcadm.sh update clients/$CID/default-client-scopes/$SCOPE_ID -r agentstack
+                   else
+                      echo "Warning: Client '$CLIENT_ID' not found, skipping scope assignment."
+                   fi
+                fi
+              done
+
+              # Seed Users
+              {{- range .Values.keycloak.auth.seedAgentstackUsers }}
+              {{- $username := .username }}
+              echo "Seeding user {{ $username }}..."
+              USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r agentstack -q username={{ $username }} --fields id --format csv --noquotes)
+              if [ -z "$USER_ID" ]; then
+                echo "Creating user {{ $username }}..."
+                USER_ID=$(/opt/keycloak/bin/kcadm.sh create users -r agentstack \
+                  -s username={{ $username }} \
+                  -s enabled={{ .enabled | default true }} \
+                  -s email={{ .email }} \
+                  -s firstName={{ .firstName }} \
+                  -s lastName={{ .lastName }} \
+                  -s emailVerified=true \
+                  -i)
+              else
+                echo "User {{ $username }} exists, updating..."
+                /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r agentstack \
+                  -s enabled={{ .enabled | default true }} \
+                  -s email={{ .email }} \
+                  -s firstName={{ .firstName }} \
+                  -s lastName={{ .lastName }} \
+                  -s emailVerified=true
+              fi
+              
+              # Set Password
+              /opt/keycloak/bin/kcadm.sh set-password -r agentstack --username {{ $username }} --new-password {{ .password }} --temporary=false
+
+              # Assign Roles
+              {{- if .roles }}
+              echo "Assigning roles for {{ $username }}..."
+              {{- range .roles }}
+              ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get roles/{{ . }} -r agentstack --fields id --format csv --noquotes)
+              if [ -n "$ROLE_ID" ]; then
+                 /opt/keycloak/bin/kcadm.sh add-roles -r agentstack --uusername {{ $username }} --rolename {{ . }}
+              else
+                 echo "Warning: Role {{ . }} not found."
+              fi
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              
+              echo "Provisioning complete."
+          env:
+            - name: KC_ADMIN_USER
+              value: {{ .Values.keycloak.auth.adminUser | quote }}
+            - name: KC_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: admin-password
+            - name: SERVER_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: agentstack-secret
+                  key: agentstackServerClientSecret
+            - name: API_URL
+              value: {{ .Values.auth.apiUrl | quote }}
+            {{- if and .Values.ui.enabled }}
+            - name: UI_URL
+              value: {{ .Values.auth.nextauthUrl | quote }}
+            - name: UI_DEV_URL
+              value: {{ .Values.auth.nextauthDevUrl | quote }}
+            - name: UI_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: agentstack-ui-secret
+                  key: agentstackUiClientSecret
+            {{- end }}
+{{- end }}

@@ -1,0 +1,15 @@
+{{- if .Values.auth.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-theme
+  labels:
+    app: keycloak
+    {{- include "agentstack.labels" . | nindent 4 }}
+
+data:
+{{- range $path, $_ := .Files.Glob "keycloak-theme/**" }}
+  {{ $path | replace "keycloak-theme/" "" | replace "/" "_" }}: |-
+{{ $.Files.Get $path | indent 4 }}
+{{- end }}
+{{- end }}

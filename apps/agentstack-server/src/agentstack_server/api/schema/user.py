@@ -19,13 +19,3 @@ class UserResponse(BaseModel):
     email: EmailStr
     role: UserRole
     created_at: AwareDatetime
-    role_updated_at: AwareDatetime | None
-
-
-class ChangeRoleRequest(BaseModel):
-    new_role: UserRole
-
-
-class ChangeRoleResponse(BaseModel):
-    user_id: UUID
-    new_role: UserRole

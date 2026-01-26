@@ -8,8 +8,8 @@ Once you've wrapped your agent with the Agent Stack server, you need to containe
 ## Prerequisites
 
 - Docker installed and running (or use GitHub Actions via template)
-- Agent wrapped with Agent Stack SDK ([Wrap Existing Agents](/deploy/wrap-existing-agents) or [Build New Agent](/introduction/start-building-agents))
-- Agent Stack installed ([Quickstart](/introduction/quickstart))
+- Agent wrapped with Agent Stack SDK ([Wrap Existing Agents](/stable/deploy-agents/wrap-existing-agents) or [Build New Agent](/stable/deploy-agents/building-agents))
+- Agent Stack installed ([Quickstart](/stable/introduction/quickstart))
 
 ## Containerize Your Agent
 
@@ -175,19 +175,19 @@ agentstack build . --dockerfile=./deploy/Containerfile --import
 Now that your agent is deployed, enhance it with extensions:
 
 <CardGroup cols={2}>
-<Card title="LLM Service" icon="rotate" href="/extensions/llm-proxy-service">
+<Card title="LLM Service" icon="rotate" href="/stable/agent-integration/llm-proxy-service">
 Change your agent's LLM at runtime and manage model connections dynamically
 </Card>
 
-<Card title="Agent Trajectory Visualization" icon="list" href="/extensions/trajectory">
+<Card title="Agent Trajectory Visualization" icon="list" href="/stable/agent-integration/trajectory">
 Visualize your agent’s decision-making and interactions over time in the UI
 </Card>
 
-<Card title="Citations & Source Linking" icon="link" href="/extensions/citations">
+<Card title="Citations & Source Linking" icon="link" href="/stable/agent-integration/citations">
 Display references and link sources for transparency, directly in the UI
 </Card>
 
-<Card title="Structured Inputs (Forms)" icon="square-poll-horizontal" href="/extensions/forms">
+<Card title="Structured Inputs (Forms)" icon="square-poll-horizontal" href="/stable/agent-integration/forms">
 Guide your users to provide consistent information with the form extension
 </Card>
 </CardGroup>

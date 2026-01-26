@@ -18,23 +18,67 @@ Getting started:
   echo http://$SERVICE_IP:{{ .Values.service.port }}
 {{- else if contains "ClusterIP" .Values.service.type }}
 
-    # port-forward the API
-    kubectl port-forward svc/agentstack-server-svc 8333:{{.Values.service.port}} &
+  # port-forward the API
+  kubectl port-forward svc/agentstack-server-svc 8333:{{.Values.service.port}} &
 
-    # use the agentstack CLI to setup the environment
-    {{- if .Values.auth.enabled }}
-    AGENTSTACK__ADMIN_PASSWORD={{.Values.auth.adminPassword}} agentstack model setup
-    {{- else}}
-    agentstack model setup
-    {{- end}}
-    {{- if .Values.ui.enabled }}
+  {{- if .Values.ui.enabled }}
+  # port-forward the UI
+  kubectl port-forward svc/agentstack-ui-svc 8334:{{.Values.ui.service.port}} &
+  {{- end }}
 
-    # port-forward the UI
-    kubectl port-forward svc/agentstack-ui-svc 8334:{{.Values.ui.service.port}} &
+  {{- if .Values.auth.enabled }}
+  # port-forward the Keycloak UI
+  kubectl port-forward svc/keycloak 8336:{{ .Values.keycloak.service.port }} &
+  echo "Keycloak UI available at http://localhost:8336"
+  {{- end }}
 
-    # Open the UI in the browser
-    agentstack ui
-    {{- end }}
+{{- end }}
+
+{{- if .Values.auth.enabled }}
+
+{{- if or (hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl) (hasPrefix "http://localhost" .Values.auth.nextauthUrl) (hasPrefix "http://localhost" .Values.auth.apiUrl) }}
+
+⚠️ IMPORTANT!
+  It is important to expose the following endpoints publicly and configure the values:
+  values:
+    auth:
+      keycloakIssuerUrl: "https://keycloak.myapp.com/realms/agentstack"
+      nextauthUrl: "https://myapp.com"
+      apiUrl: "https://api.myapp.com"
+
+  Use
+  - ingress: https://kubernetes.io/docs/concepts/services-networking/ingress
+  - gateway API: https://kubernetes.io/docs/concepts/services-networking/gateway
+  - openshift routes: https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/ingress_and_load_balancing/routes
+  - or other tools to expose the services.
+
+  Failure to configure these endpints with proper https may leave your application vulnerable.
+  See more details in the deployment guide: https://agentstack.beeai.dev/stable/deploy-agent-stack/deployment-guide
+{{- end}}
+
+# Get Keycloak admin credentials:
+  Username: {{ .Values.keycloak.auth.adminUser }}
+  Password:
+    kubectl get secret --namespace {{ .Release.Namespace }} keycloak-secret -o jsonpath="{.data.admin-password}" | base64 -d
+
+# Setup users
+  Open keycloak UI: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336"{{ else }}{{ .Values.auth.keycloakIssuerUrl | quote }}{{ end }}
+
+  1. Go to "Manage realms" -> "agentstack", create users under "Users" menu
+  2. Assign "agentstack-admin" role to your admin user
+  (optionally use .Values.keycloak.auth.seedAgentstackUsers to automate this)
+
+# Login to agentstack server using CLI
+  agentstack server login {{ .Values.auth.apiUrl }}
+{{- end}}
+
+# Setup models
+  agentstack model setup
+
+{{- if .Values.ui.enabled }}
+
+# Open the UI in the browser
+  agentstack ui
 {{- end }}
 
 📄 See the documentation for more details and troubleshooting steps: https://agentstack.beeai.dev/how-to/deployment-guide

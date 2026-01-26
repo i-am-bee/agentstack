@@ -6,7 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from kink import inject
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Row, String, Table, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Row, String, Table, UniqueConstraint
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncConnection
@@ -30,6 +30,8 @@ connectors = Table(
     Column("metadata", JSON, nullable=True),
     # Duplicate to allow indexing
     Column("auth_state", String(256), nullable=True, unique=True, index=True),
+    Column("disconnect_reason", String, nullable=True),
+    Column("disconnect_permanent", Boolean, nullable=True),
     UniqueConstraint("url", "created_by", name="uk_url"),
 )
 
@@ -95,6 +97,8 @@ class SqlAlchemyConnectorRepository(IConnectorRepository):
             "auth_state": connector.auth.flow.state
             if connector.auth and connector.auth.flow and connector.auth.flow.type == "code"
             else None,
+            "disconnect_reason": connector.disconnect_reason,
+            "disconnect_permanent": connector.disconnect_permanent,
         }
 
     def _to_connector(self, row: Row):
@@ -108,5 +112,7 @@ class SqlAlchemyConnectorRepository(IConnectorRepository):
                 "state": row.state,
                 "auth": row.auth,
                 "metadata": row.metadata,
+                "disconnect_reason": row.disconnect_reason,
+                "disconnect_permanent": row.disconnect_permanent,
             }
         )

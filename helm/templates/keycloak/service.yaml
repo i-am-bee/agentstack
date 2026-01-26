@@ -1,0 +1,33 @@
+{{- if .Values.auth.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+    {{- include "agentstack.labels" . | nindent 4 }}
+spec:
+  ports:
+    - protocol: TCP
+      port: {{ .Values.keycloak.service.port }}
+      targetPort: http
+      name: http
+  selector:
+    app: keycloak
+    {{- include "agentstack.selectorLabels" . | nindent 4 }}
+  type: {{ .Values.keycloak.service.type }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: keycloak
+    {{- include "agentstack.labels" . | nindent 4 }}
+  name: keycloak-discovery
+spec:
+  selector:
+    app: keycloak
+    {{- include "agentstack.selectorLabels" . | nindent 4 }}
+  clusterIP: None
+  type: ClusterIP
+{{- end }}

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from typing import Any
 
 from kink import inject
 
@@ -15,14 +16,16 @@ class AuthService:
     def __init__(self, configuration: Configuration):
         self._config = configuration
 
-    def protected_resource_metadata(self, *, resource: str) -> dict:
+    def protected_resource_metadata(self, *, resource: str) -> dict[str, Any]:
+        if self._config.auth.disable_auth:
+            return {"resource": resource, "authorization_servers": [], "client_data": [], "scopes_supported": []}
+
+        provider = self._config.auth.oidc.provider
         return {
             "resource": resource,
-            "authorization_servers": [str(p.issuer) for p in self._config.auth.oidc.providers if p.issuer is not None],
+            "authorization_servers": [str(provider.external_issuer)],
             "client_data": [
-                {"server": str(p.issuer), "client_id": p.client_id, "name": p.name}
-                for p in self._config.auth.oidc.providers
-                if p.issuer is not None
+                {"server": str(provider.external_issuer), "client_id": provider.client_id, "name": provider.name},
             ],
             "scopes_supported": list(self._config.auth.oidc.scope),
         }

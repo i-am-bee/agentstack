@@ -38,6 +38,7 @@ Create chart name and version as used by the chart label.
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+
 {{/*
 Common labels
 */}}
@@ -66,6 +67,57 @@ Create the name of the service account to use
 {{- default (include "agentstack.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Keycloak Database Environment Variables
+*/}}
+{{- define "agentstack.keycloak.dbEnvVars" -}}
+{{- if not .Values.keycloak.persistence.useDedicatedDatabase }}
+# SHARED DATABASE
+- name: KC_DB
+  value: postgres
+- name: KC_DB_SCHEMA
+  value: keycloak
+- name: 'KC_DB_URL_HOST'
+  value: {{ include "agentstack.databaseHost" . | quote }}
+- name: 'KC_DB_URL_PORT'
+  value: {{ include "agentstack.databasePort" . | quote }}
+- name: 'KC_DB_URL_DATABASE'
+  value: {{ include "agentstack.databaseName" . | quote }}
+- name: 'KC_DB_USERNAME'
+  value: {{ include "agentstack.databaseUser" . | quote }}
+- name: 'KC_DB_PASSWORD'
+  valueFrom:
+    secretKeyRef:
+      name: keycloak-secret
+      key: db-password
+{{- else }}
+# DEDICATED DATABASE
+- name: KC_DB
+  value: postgres
+- name: KC_DB_SCHEMA
+  value: {{ .Values.keycloak.persistence.dedicatedDatabaseConfig.schema | default "keycloak" | quote }}
+- name: 'KC_DB_URL_HOST'
+  value: {{ .Values.keycloak.persistence.dedicatedDatabaseConfig.host | quote }}
+- name: 'KC_DB_URL_PORT'
+  value: {{ .Values.keycloak.persistence.dedicatedDatabaseConfig.port | quote }}
+- name: 'KC_DB_URL_DATABASE'
+  value: {{ .Values.keycloak.persistence.dedicatedDatabaseConfig.database | quote }}
+- name: 'KC_DB_USERNAME'
+  value: {{ .Values.keycloak.persistence.dedicatedDatabaseConfig.user | quote }}
+- name: 'KC_DB_PASSWORD'
+  valueFrom:
+    secretKeyRef:
+      name: keycloak-secret
+      key: db-password
+{{- if .Values.keycloak.persistence.dedicatedDatabaseConfig.ssl }}
+- name: PGSSLMODE
+  value: "require"
+- name: KC_DB_URL_PROPERTIES
+  value: "?sslmode=require"
+{{- end }}
 {{- end }}
 {{- end }}
 

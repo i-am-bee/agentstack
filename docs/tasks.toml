@@ -53,3 +53,9 @@ uv pip install --quiet \
 
 pyright "$TMPDIR/snippets"
 """
+
+["docs:check:links"]
+dir = "{{config_root}}/docs"
+run = "pnpm mintlify broken-links"
+sources = ["**/*.mdx"]
+outputs = { auto = true }

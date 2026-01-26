@@ -7,7 +7,15 @@ depends = ["agentstack-ui:check:*"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
 run = "pnpm prettier --log-level silent --check src"
-sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
+sources = [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.html",
+    "src/**/*.css",
+    "src/**/*.scss",
+]
 outputs = { auto = true }
 
 ["agentstack-ui:check:eslint"]
@@ -40,7 +48,15 @@ depends = ["agentstack-ui:fix:*"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
 run = "pnpm prettier --log-level silent --write src"
-sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
+sources = [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.html",
+    "src/**/*.css",
+    "src/**/*.scss",
+]
 outputs = { auto = true }
 
 ["agentstack-ui:fix:next"]
@@ -83,7 +99,15 @@ depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
 dir = "{{config_root}}/apps/agentstack-ui"
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 run = "pnpm next build"
-sources = ["*.json", "*.js", "*.mjs", "*.ts", "public/**/*", "src/**/*"]
+sources = [
+    "*.json",
+    "*.js",
+    "*.mjs",
+    "*.ts",
+    "public/**/*",
+    "src/**/*",
+    ".next/**/*",
+]
 outputs = { auto = true }
 
 # schema

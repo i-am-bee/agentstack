@@ -73,21 +73,31 @@ spec:
               value: {{ toJson .Values.contextTokenPermissions | quote }}
             - name: TRUST_PROXY_HEADERS
               value: {{ .Values.trustProxyHeaders | quote }}
-          {{- if and .Values.auth.enabled .Values.auth.oidc.enabled }}
+          {{- if .Values.auth.enabled }}
             - name: NEXTAUTH_URL
-              value: {{ .Values.auth.oidc.nextauth_url }}
+              value: {{ .Values.auth.nextauthUrl }}
             - name: NEXTAUTH_SECRET
               valueFrom:
                 secretKeyRef:
                   key: authSecret
-                  name: agentstack-next-auth
+                  name: agentstack-ui-secret
             - name: OIDC_ENABLED
               value: "true"
-            - name: OIDC_PROVIDERS
+            - name: OIDC_PROVIDER_NAME
+              value: "Keycloak"
+            - name: OIDC_PROVIDER_ID
+              value: "keycloak"
+            - name: OIDC_PROVIDER_CLIENT_ID
+              value: "agentstack-ui"
+            - name: OIDC_PROVIDER_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  key: providers.json
-                  name: agentstack-oidc-providers
+                  key: agentstackUiClientSecret
+                  name: agentstack-ui-secret
+            - name: OIDC_PROVIDER_ISSUER
+              value: {{ .Values.auth.keycloakIssuerUrl }}
+            - name: OIDC_PROVIDER_EXTERNAL_ISSUER
+              value: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336/realms/agentstack"{{ else }}{{ .Values.auth.keycloakIssuerUrl | quote }}{{ end }}
           {{- else}}
             - name: OIDC_ENABLED
               value: "false"

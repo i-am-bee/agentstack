@@ -64,9 +64,37 @@ class Connector(BaseModel):
 
     auth: Authorization | None = None
     disconnect_reason: str | None = None
+    disconnect_permanent: bool | None = None
 
     created_at: AwareDatetime = Field(default_factory=utc_now)
     updated_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
 
     metadata: Metadata | None = None
+
+    @property
+    def refreshable(self) -> bool:
+        return self.state == ConnectorState.connected or (
+            self.state == ConnectorState.disconnected and not self.disconnect_permanent
+        )
+
+    def transition(
+        self,
+        *,
+        state: ConnectorState,
+        disconnect_reason: str | None = None,
+        disconnect_permanent: bool | None = None,
+    ) -> None:
+        if state == ConnectorState.created:
+            raise ValueError("Created state can't be transitioned to")
+
+        if state == ConnectorState.disconnected:
+            if disconnect_reason is None or disconnect_permanent is None:
+                raise ValueError("Disconnect arguments are required when transitioning to disconnected state")
+        else:
+            if disconnect_reason is not None or disconnect_permanent is not None:
+                raise ValueError("Disconnect arguments can only be specified when transitioning to disconnected state")
+
+        self.state = state
+        self.disconnect_reason = disconnect_reason
+        self.disconnect_permanent = disconnect_permanent
