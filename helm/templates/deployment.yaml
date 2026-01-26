@@ -342,6 +342,16 @@ spec:
                   name: agentstack-connectors-secret
             - name: UVICORN_TIMEOUT_KEEP_ALIVE
               value: {{ .Values.uvicornTimeoutKeepAlive | quote }}
+            {{- if include "agentstack.phoenix.enabled" . }}
+            - name: TELEMETRY__PHOENIX_URL
+              value: {{ include "agentstack.phoenix.url" . | quote }}
+            {{- $phoenixApiKey := include "agentstack.phoenix.apiKey" . }}
+            {{- if $phoenixApiKey }}
+            - name: TELEMETRY__PHOENIX_API_KEY
+              value: {{ $phoenixApiKey | quote }}
+            {{- end }}
+            {{- end }}
+
           volumeMounts:
             {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
             - name: provider-build-external-kubeconfig

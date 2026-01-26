@@ -45,6 +45,7 @@ from agentstack_server.exceptions import (
 )
 from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
+from agentstack_server.service_layer.services.user_feedback import UserFeedbackService
 from agentstack_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
 
 logger = logging.getLogger(__name__)
@@ -199,11 +200,12 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
 
     @asynccontextmanager
     @inject
-    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App):
+    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, user_feedback: UserFeedbackService):
         try:
             register_telemetry()
             async with (
                 procrastinate_app.open_async(),
+                user_feedback,
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
                 with suppress(AlreadyEnqueued):
