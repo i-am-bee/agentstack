@@ -452,3 +452,40 @@ true
 false
 {{- end -}}
 {{- end -}}
+
+{{- define "agentstack.phoenix.fullname" -}}
+{{- include "common.names.dependency.fullname" (dict "chartName" "phoenix" "chartValues" .Values.phoenix "context" $) -}}
+{{- end -}}
+
+{{/*
+Return if Redis is enabled
+*/}}
+{{- define "agentstack.phoenix.enabled" -}}
+{{- if or .Values.phoenix.enabled .Values.externalPhoenix.url -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Phoenix URL
+*/}}
+{{- define "agentstack.phoenix.url" -}}
+{{- if .Values.phoenix.enabled }}
+    {{- print (include "agentstack.phoenix.fullname" .) -}}
+{{- else -}}
+    {{- print .Values.externalPhoenix.url -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Phoenix API KEY
+*/}}
+{{- define "agentstack.phoenix.apiKey" -}}
+{{- if .Values.phoenix.enabled }}
+    {{- print "" -}}
+{{- else -}}
+    {{- print .Values.externalPhoenix.apiKey -}}
+{{- end -}}
+{{- end -}}
