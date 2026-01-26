@@ -216,7 +216,7 @@ class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
 
     phoenix_url: AnyUrl | None = None
-    phoenix_api_key: str | None = None
+    phoenix_api_key: Secret[str] | None = None
 
 
 class GithubAppConfiguration(BaseModel):

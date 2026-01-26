@@ -22,8 +22,7 @@ class UserFeedbackService:
     def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
         self._uow = uow
 
-        self._phoenix_url = configuration.telemetry.phoenix_url
-        self._phoenix_api_key = configuration.telemetry.phoenix_api_key
+        self._configuration = configuration
 
     async def create_user_feedback(
         self,
@@ -83,13 +82,15 @@ class UserFeedbackService:
             return feedback_list, total, has_more
 
     async def _try_send_to_phoenix(self, *, user_feedback: UserFeedback) -> None:
-        if self._phoenix_url is None or user_feedback.trace_id is None:
+        if self._configuration.telemetry.phoenix_url is None or user_feedback.trace_id is None:
             return
 
         try:
             async with httpx.AsyncClient(
-                base_url=str(self._phoenix_url),
-                headers={"authorization": f"Bearer {self._phoenix_api_key}"} if self._phoenix_api_key else None,
+                base_url=str(self._configuration.telemetry.phoenix_url),
+                headers={"authorization": f"Bearer {self._configuration.telemetry.phoenix_api_key.get_secret_value()}"}
+                if self._configuration.telemetry.phoenix_api_key
+                else None,
             ) as client:
                 response = await client.post(
                     "/graphql",
