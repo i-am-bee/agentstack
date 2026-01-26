@@ -108,10 +108,16 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
     log_in_message = "No authentication tokens found for this server. Proceeding to log in."
 
     if server_data := config.auth_manager.get_server(server):
-        console.info("Switching to an already logged in server.")
+        console.info("Logging in to an already logged in server.")
         auth_server = None
         auth_servers = list(server_data.authorization_servers.keys())
-        if len(auth_servers) == 1:
+        if not auth_servers:
+            # Known server with no auth servers - save and exit
+            config.auth_manager.active_server = server
+            config.auth_manager.active_auth_server = auth_server
+            console.success(f"Logged in to [cyan]{server}[/cyan].")
+            return
+        elif len(auth_servers) == 1:
             auth_server = auth_servers[0]
         elif len(auth_servers) > 1:
             auth_server = await inquirer.select(  #  type: ignore

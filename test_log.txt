@@ -1,0 +1,1743 @@
+Successfully packaged chart and saved it to: dist/agentstack-0.6.1.tgz
+❗ WARNING: Using external Lima from /Users/janjeliga/.local/share/mise/installs/asdf-crouching-muppet-asdf-lima/1.2.1/bin/limactl
+Looking for existing Agent Stack platform in Lima [DONE]
+Stopping Agent Stack VM [DONE]
+✅ SUCCESS: Agent Stack platform stopped successfully.
+❗ WARNING: Using external Lima from /Users/janjeliga/.local/share/mise/installs/asdf-crouching-muppet-asdf-lima/1.2.1/bin/limactl
+Deleting Agent Stack platform [DONE]
+✅ SUCCESS: Agent Stack platform deleted successfully.
+Using agents from: https://github.com/i-am-bee/agentstack@v0.5.2#path=agent-registry.yaml
+  use --set externalRegistry=<null|github-url> to override this.
+   ▲ Next.js 15.5.7
+   - Experiments (use with caution):
+     ⨯ cssChunking
+     · optimizePackageImports
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 9.4s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/7) ...
+   Generating static pages (1/7) 
+   Generating static pages (3/7) 
+   Generating static pages (5/7) 
+ ✓ Generating static pages (7/7)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                    2.89 kB         261 kB
+├ ƒ /_not-found                            149 B         104 kB
+├ ƒ /agent                                 149 B         104 kB
+├ ƒ /agent/[providerId]                    196 B         653 kB
+├ ƒ /agent/[providerId]/about            7.77 kB         408 kB
+├ ƒ /agent/[providerId]/c/[contextId]      196 B         653 kB
+├ ƒ /agent/[providerId]/global-settings    179 B         419 kB
+├ ƒ /agent/[providerId]/settings         4.07 kB         514 kB
+├ ƒ /api/[...path]                         149 B         104 kB
+├ ƒ /api/auth/[...nextauth]                149 B         104 kB
+├ ƒ /oauth-callback                        292 B         104 kB
+├ ƒ /run/[providerId]                      149 B         104 kB
+├ ƒ /run/[providerId]/c/[contextId]        149 B         104 kB
+├ ƒ /settings                              178 B         419 kB
+└ ƒ /signin                                837 B         104 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/06a35766-4e4747c4378d5df7.js  54.2 kB
+  ├ chunks/2108-2e8e759697206194.js      46.3 kB
+  └ other shared chunks (total)          2.96 kB
+
+
+ƒ Middleware                              213 kB
+
+ƒ  (Dynamic)  server-rendered on demand
+
+❗ WARNING: Using external Lima from /Users/janjeliga/.local/share/mise/installs/asdf-crouching-muppet-asdf-lima/1.2.1/bin/limactl
+Looking for existing Agent Stack platform in Lima [DONE]
+Cleaning up remains of previous instance [DONE]
+Cleaning up remains of legacy instance [DONE]
+Creating a Lima VM [DONE]
+Configuring k3s registry [DONE]
+Installing k3s [DONE]
+Installing Helm [DONE]
+Preparing Helm chart [DONE]
+Preparing Helm values [DONE]
+Listing necessary images [DONE]
+Pulling image ghcr.io/i-am-bee/library/registry:3 on host [DONE]
+Pulling image ghcr.io/i-am-bee/chrislusf/seaweedfs:4.02 on host [DONE]
+Pulling image ghcr.io/i-am-bee/alpine/crane:0.20.6 on host [DONE]
+Pulling image ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim on host [DONE]
+Pulling image quay.io/keycloak/keycloak:26.5.0 on host [DONE]
+Pulling image ghcr.io/i-am-bee/alpine/git:v2.49.1 on host [DONE]
+Pulling image ghcr.io/docling-project/docling-serve-cpu:v1.5.0 on host [DONE]
+Pulling image ghcr.io/i-am-bee/bitnami/postgresql-pgvector:17.6.0 on host [DONE]
+Pulling image ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1 on host [DONE]
+Exporting images ghcr.io/i-am-bee/library/registry:3, ghcr.io/i-am-bee/chrislusf/seaweedfs:4.02, ghcr.io/i-am-bee/alpine/crane:0.20.6, ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim, 
+quay.io/keycloak/keycloak:26.5.0, ghcr.io/i-am-bee/alpine/git:v2.49.1, ghcr.io/docling-project/docling-serve-cpu:v1.5.0, ghcr.io/i-am-bee/bitnami/postgresql-pgvector:17.6.0, 
+ghcr.io/i-am-bee/agentstack/agentstack-server:local, ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1 from Docker [DONE]
+Importing images ghcr.io/i-am-bee/library/registry:3, ghcr.io/i-am-bee/chrislusf/seaweedfs:4.02, ghcr.io/i-am-bee/alpine/crane:0.20.6, ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim, 
+quay.io/keycloak/keycloak:26.5.0, ghcr.io/i-am-bee/alpine/git:v2.49.1, ghcr.io/docling-project/docling-serve-cpu:v1.5.0, ghcr.io/i-am-bee/bitnami/postgresql-pgvector:17.6.0, 
+ghcr.io/i-am-bee/agentstack/agentstack-server:local, ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1 into Agent Stack platform [DONE]
+Copying kubeconfig from Agent Stack platform [DONE]
+Deploying Agent Stack platform with Helm [DONE]
+✅ SUCCESS: Agent Stack platform started successfully!
+📝 INFO: Switching to an already logged in server.
+📝 INFO: No authentication tokens found for this server. Proceeding to log in.
+📝 INFO: no parsable json response.
+❗ WARNING:  Dynamic client registration failed. Proceed with manual input.  Client error '400 Bad Request' for url 'http://localhost:8336/realms/agentstack/clients-registrations/openid-connect'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400
+? Enter Client ID: (Redirect URI: http://localhost:9001/callback) 
+
+
+
+
+
+
+                                                                   ? Enter Client ID: 
+Activating environment for 'e2e-test-run'...
+Building test agent...
+Checking docker...
+Checking docker [DONE]
+Building agent image...
+Waiting for agentstack-server deployment to be ready...
+deployment.apps/agentstack-server condition met
+
+
+Running with configuration:
+{'db_url': 'postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack',
+ 'keycloak_url': 'http://localhost:8336',
+ 'kubeconfig': PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml'),
+ 'llm_api_base': Secret('**********'),
+ 'llm_api_key': Secret('**********'),
+ 'llm_model': 'other:llama3.1:8b',
+ 'llm_provider_type': <ModelProviderType.OTHER: 'other'>,
+ 'server_url': 'http://localhost:8333',
+ 'test_agent_build_repo': 'https://github.com/i-am-bee/agentstack-starter',
+ 'test_agent_image': 'agentstack-registry-svc.default:5001/chat-test:latest'}
+
+============================= test session starts ==============================
+platform darwin -- Python 3.13.9, pytest-9.0.2, pluggy-1.6.0 -- /Users/janjeliga/Code/ibm/agentstack/apps/agentstack-server/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/janjeliga/Code/ibm/agentstack/apps/agentstack-server
+configfile: pyproject.toml
+plugins: httpx-0.36.0, anyio-4.12.0, asyncio-1.3.0, env-1.2.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 241 items / 168 deselected / 73 selected
+
+tests/e2e/agents/test_agent_builds.py::test_remote_agent_build_and_start SUBPASSED[preview build] [  1%]
+tests/e2e/agents/test_agent_builds.py::test_remote_agent_build_and_start SUBPASSED[build example agent] [  1%]
+tests/e2e/agents/test_agent_builds.py::test_remote_agent_build_and_start SUBPASSED[run example agent] [  1%]
+tests/e2e/agents/test_agent_builds.py::test_remote_agent_build_and_start PASSED [  1%]
+tests/e2e/agents/test_agent_starts.py::test_imported_agent SUBFAILED[add chat agent] [  2%]
+tests/e2e/agents/test_agent_starts.py::test_imported_agent FAILED        [  2%]
+tests/e2e/agents/test_context_store.py::test_agent_history SUBPASSED[history repeats itself] [  4%]
+tests/e2e/agents/test_context_store.py::test_agent_history SUBPASSED[other context id does not mix history] [  4%]
+tests/e2e/agents/test_context_store.py::test_agent_history PASSED        [  4%]
+tests/e2e/agents/test_platform_extensions.py::test_platform_api_extension[permissions0-False] PASSED [  5%]
+tests/e2e/agents/test_platform_extensions.py::test_platform_api_extension[permissions1-True] PASSED [  6%]
+tests/e2e/agents/test_platform_extensions.py::test_self_registration_with_variables SUBPASSED[register provider] [  8%]
+tests/e2e/agents/test_platform_extensions.py::test_self_registration_with_variables SUBPASSED[update provider variables] [  8%]
+tests/e2e/agents/test_platform_extensions.py::test_self_registration_with_variables SUBPASSED[remove provider variable] [  8%]
+tests/e2e/agents/test_platform_extensions.py::test_self_registration_with_variables PASSED [  8%]
+tests/e2e/routes/test_a2a_proxy.py::test_agent_card_endpoint PASSED      [  9%]
+tests/e2e/routes/test_a2a_proxy.py::test_authenticated_extended_agent_card_endpoint_not_supported PASSED [ 10%]
+tests/e2e/routes/test_a2a_proxy.py::test_authenticated_extended_agent_card_endpoint_not_supported_fastapi PASSED [ 12%]
+tests/e2e/routes/test_a2a_proxy.py::test_authenticated_extended_agent_card_endpoint_supported_with_specific_extended_card_starlette SKIPPED [ 13%]
+tests/e2e/routes/test_a2a_proxy.py::test_authenticated_extended_agent_card_endpoint_supported_with_specific_extended_card_fastapi SKIPPED [ 15%]
+tests/e2e/routes/test_a2a_proxy.py::test_agent_card_custom_url SKIPPED   [ 16%]
+tests/e2e/routes/test_a2a_proxy.py::test_starlette_rpc_endpoint_custom_url SKIPPED [ 17%]
+tests/e2e/routes/test_a2a_proxy.py::test_fastapi_rpc_endpoint_custom_url SKIPPED [ 19%]
+tests/e2e/routes/test_a2a_proxy.py::test_starlette_build_with_extra_routes SKIPPED [ 20%]
+tests/e2e/routes/test_a2a_proxy.py::test_fastapi_build_with_extra_routes SKIPPED [ 21%]
+tests/e2e/routes/test_a2a_proxy.py::test_send_message PASSED             [ 23%]
+tests/e2e/routes/test_a2a_proxy.py::test_cancel_task PASSED              [ 24%]
+tests/e2e/routes/test_a2a_proxy.py::test_get_task PASSED                 [ 26%]
+tests/e2e/routes/test_a2a_proxy.py::test_set_push_notification_config PASSED [ 27%]
+tests/e2e/routes/test_a2a_proxy.py::test_get_push_notification_config PASSED [ 28%]
+tests/e2e/routes/test_a2a_proxy.py::test_server_auth PASSED              [ 30%]
+tests/e2e/routes/test_a2a_proxy.py::test_message_send_stream PASSED      [ 31%]
+tests/e2e/routes/test_a2a_proxy.py::test_task_resubscription PASSED      [ 32%]
+tests/e2e/routes/test_a2a_proxy.py::test_invalid_json PASSED             [ 34%]
+tests/e2e/routes/test_a2a_proxy.py::test_invalid_request_structure PASSED [ 35%]
+tests/e2e/routes/test_a2a_proxy.py::test_method_not_implemented PASSED   [ 36%]
+tests/e2e/routes/test_a2a_proxy.py::test_unknown_method PASSED           [ 38%]
+tests/e2e/routes/test_a2a_proxy.py::test_validation_error PASSED         [ 39%]
+tests/e2e/routes/test_a2a_proxy.py::test_unhandled_exception PASSED      [ 41%]
+tests/e2e/routes/test_a2a_proxy.py::test_get_method_to_rpc_endpoint PASSED [ 42%]
+tests/e2e/routes/test_a2a_proxy.py::test_non_dict_json PASSED            [ 43%]
+tests/e2e/routes/test_a2a_proxy.py::test_task_ownership_different_user_cannot_access_task PASSED [ 45%]
+tests/e2e/routes/test_a2a_proxy.py::test_unknown_task_raises_error PASSED [ 46%]
+tests/e2e/routes/test_a2a_proxy.py::test_task_ownership_new_task_creation_via_message_send PASSED [ 47%]
+tests/e2e/routes/test_a2a_proxy.py::test_context_ownership_cannot_be_claimed_by_different_user PASSED [ 49%]
+tests/e2e/routes/test_a2a_proxy.py::test_task_update_last_accessed_at PASSED [ 50%]
+tests/e2e/routes/test_a2a_proxy.py::test_task_and_context_both_specified_single_query PASSED [ 52%]
+tests/e2e/routes/test_a2a_proxy.py::test_invalid_request_raises_a2a_error PASSED [ 53%]
+tests/e2e/routes/test_configurations.py::test_system_configuration SUBPASSED[get system configuration] [ 54%]
+tests/e2e/routes/test_configurations.py::test_system_configuration SUBPASSED[update system configuration - llm model only] [ 54%]
+tests/e2e/routes/test_configurations.py::test_system_configuration SUBPASSED[update system configuration - reset model] [ 54%]
+tests/e2e/routes/test_configurations.py::test_system_configuration PASSED [ 54%]
+tests/e2e/routes/test_connectors.py::test_list_connector_presets PASSED  [ 56%]
+tests/e2e/routes/test_connectors.py::test_stdio_connector_happy_path PASSED [ 57%]
+tests/e2e/routes/test_contexts.py::test_context_pagination SUBPASSED[create multiple contexts] [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_pagination SUBPASSED[test default pagination (no cursor)] [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_pagination SUBPASSED[test pagination with limit] [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_pagination SUBPASSED[test cursor-based pagination] [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_pagination SUBPASSED[test ascending order] [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_pagination SUBPASSED[test nonexistent cursor] [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_pagination PASSED        [ 58%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination SUBPASSED[add multiple history items] [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination SUBPASSED[test default pagination (first page)] [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination SUBPASSED[test pagination with custom limit] [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination SUBPASSED[test cursor-based pagination] [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination SUBPASSED[test ascending order] [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination SUBPASSED[test list_all_history method] [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_history_pagination PASSED [ 60%]
+tests/e2e/routes/test_contexts.py::test_context_empty_filtering SUBPASSED[create contexts with and without history] [ 61%]
+tests/e2e/routes/test_contexts.py::test_context_empty_filtering SUBPASSED[include_empty=True returns all contexts] [ 61%]
+tests/e2e/routes/test_contexts.py::test_context_empty_filtering SUBPASSED[include_empty=False returns only contexts with history] [ 61%]
+tests/e2e/routes/test_contexts.py::test_context_empty_filtering PASSED   [ 61%]
+tests/e2e/routes/test_contexts.py::test_context_update_and_patch SUBPASSED[create context with initial metadata] [ 63%]
+tests/e2e/routes/test_contexts.py::test_context_update_and_patch SUBPASSED[update context metadata] [ 63%]
+tests/e2e/routes/test_contexts.py::test_context_update_and_patch SUBPASSED[patch context metadata] [ 63%]
+tests/e2e/routes/test_contexts.py::test_context_update_and_patch SUBPASSED[exceed metadata size] [ 63%]
+tests/e2e/routes/test_contexts.py::test_context_update_and_patch PASSED  [ 63%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[create dummy providers] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[create contexts with and without provider_id] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[list all contexts without filter] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[filter contexts by provider1] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[filter contexts by provider2] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[filter by non-existent provider returns empty list] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering SUBPASSED[get context includes provider_id] [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_provider_filtering PASSED [ 64%]
+tests/e2e/routes/test_contexts.py::test_context_delete_context_history_from_id SUBPASSED[create context and add multiple history items] [ 65%]
+tests/e2e/routes/test_contexts.py::test_context_delete_context_history_from_id SUBPASSED[delete history from a middle item onwards] [ 65%]
+tests/e2e/routes/test_contexts.py::test_context_delete_context_history_from_id SUBPASSED[delete with nonexistent item_id raises error] [ 65%]
+tests/e2e/routes/test_contexts.py::test_context_delete_context_history_from_id SUBPASSED[delete from first item deletes all] [ 65%]
+tests/e2e/routes/test_contexts.py::test_context_delete_context_history_from_id PASSED [ 65%]
+tests/e2e/routes/test_files.py::test_files SUBPASSED[upload file]        [ 67%]
+tests/e2e/routes/test_files.py::test_files SUBPASSED[get file metadata]  [ 67%]
+tests/e2e/routes/test_files.py::test_files SUBPASSED[get file content]   [ 67%]
+tests/e2e/routes/test_files.py::test_files SUBPASSED[delete file]        [ 67%]
+tests/e2e/routes/test_files.py::test_files PASSED                        [ 67%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[upload PDF file] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[create text extraction] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[check extraction status] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[verify extracted files] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[verify extracted text content] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[delete extraction] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[verify extraction deleted] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[verify markdown file deleted] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow SUBPASSED[verify vendor specific json file deleted] [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_pdf_workflow PASSED [ 68%]
+tests/e2e/routes/test_files.py::test_text_extraction_plain_text_workflow SUBPASSED[upload text file] [ 69%]
+tests/e2e/routes/test_files.py::test_text_extraction_plain_text_workflow SUBPASSED[create text extraction for plain text] [ 69%]
+tests/e2e/routes/test_files.py::test_text_extraction_plain_text_workflow SUBPASSED[check extraction status] [ 69%]
+tests/e2e/routes/test_files.py::test_text_extraction_plain_text_workflow SUBPASSED[delete file should also delete extractions] [ 69%]
+tests/e2e/routes/test_files.py::test_text_extraction_plain_text_workflow SUBPASSED[verify file deleted] [ 69%]
+tests/e2e/routes/test_files.py::test_text_extraction_plain_text_workflow PASSED [ 69%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[create two different contexts] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[generate context tokens] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[upload file in context 1] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[upload file in context 2] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[access file within own context 1] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[cannot access context 1 file using context 2 client] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[cannot access context 1 file content using context 2 client] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[cannot delete context 1 file using context 2 client] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[cannot access context 2 file using context 1 client] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[cannot use wrong context_id with context 1 client] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[cannot use wrong context_id with context 2 client] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[clean up - delete context 1 file] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access SUBPASSED[clean up - delete context 2 file] [ 71%]
+tests/e2e/routes/test_files.py::test_context_scoped_file_access PASSED   [ 71%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[create contexts and tokens] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[upload text file in context 1] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[create extraction in context 1] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[access extraction in context 1] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[access text content in context 1] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[cannot access extraction from context 2] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[cannot access text content from context 2] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[cannot create extraction from context 2] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[cannot delete extraction from context 2] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[clean up - delete extraction] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation SUBPASSED[clean up - delete file] [ 72%]
+tests/e2e/routes/test_files.py::test_file_extraction_context_isolation PASSED [ 72%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[create test files] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[list all files] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[filter by filename_search] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[filter by content_type - text/plain] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[filter by content_type - application/json] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[pagination with limit] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[pagination with page_token] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[order by filename ascending] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[order by filename descending] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[order by created_at ascending] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[order by created_at descending] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[order by file_size_bytes descending] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[filter by context_id] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list SUBPASSED[combine multiple filters] [ 73%]
+tests/e2e/routes/test_files.py::test_files_list PASSED                   [ 73%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[create global user files (no context)] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[create contexts] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[generate context tokens] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[create files in context 1] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[create files in context 2] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[list all user files (context_id=None)] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[list files in context 1 only] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[list files in context 2 only] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[list all user files with filename filter] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped SUBPASSED[list all user files ordered by filename desc] [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_global_and_context_scoped PASSED [ 75%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[upload files as admin user] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[upload files as regular user] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[admin user lists files - should only see own files] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[regular user lists files - should only see own files] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[admin user filters by filename - only sees own matching files] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[clean up - delete admin files] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation SUBPASSED[clean up - delete user files] [ 76%]
+tests/e2e/routes/test_files.py::test_files_list_user_isolation PASSED    [ 76%]
+tests/e2e/routes/test_model_providers.py::test_setup_real_llm_creates_provider PASSED [ 78%]
+tests/e2e/routes/test_openai.py::test_llm_permission_enforcement_with_context_token SUBPASSED[LLM request denied with insufficient global permissions] [ 79%]
+tests/e2e/routes/test_openai.py::test_llm_permission_enforcement_with_context_token SUBPASSED[LLM request succeeds with sufficient global permissions] [ 79%]
+tests/e2e/routes/test_openai.py::test_llm_permission_enforcement_with_context_token PASSED [ 79%]
+tests/e2e/routes/test_openai.py::test_models_endpoint SUBPASSED[models endpoint returns default model] [ 80%]
+tests/e2e/routes/test_openai.py::test_models_endpoint PASSED             [ 80%]
+tests/e2e/routes/test_provider_variables.py::test_provider_variables FAILED [ 82%]
+tests/e2e/routes/test_providers.py::test_provider_crud SUBFAILED[add provider] [ 83%]
+tests/e2e/routes/test_providers.py::test_provider_crud SUBFAILED[patch provider] [ 83%]
+tests/e2e/routes/test_providers.py::test_provider_crud SUBFAILED[change provider variables] [ 83%]
+tests/e2e/routes/test_providers.py::test_provider_crud SUBFAILED[test user_owned filtering] [ 83%]
+tests/e2e/routes/test_providers.py::test_provider_crud SUBFAILED[delete provider] [ 83%]
+tests/e2e/routes/test_providers.py::test_provider_crud FAILED            [ 83%]
+tests/e2e/routes/test_user.py::test_get_user PASSED                      [ 84%]
+tests/e2e/routes/test_variables.py::test_user_variables SUBPASSED[save user variables] [ 86%]
+tests/e2e/routes/test_variables.py::test_user_variables SUBPASSED[load user variables] [ 86%]
+tests/e2e/routes/test_variables.py::test_user_variables SUBPASSED[update specific user variables] [ 86%]
+tests/e2e/routes/test_variables.py::test_user_variables SUBPASSED[remove user variables] [ 86%]
+tests/e2e/routes/test_variables.py::test_user_variables SUBPASSED[clear all variables] [ 86%]
+tests/e2e/routes/test_variables.py::test_user_variables PASSED           [ 86%]
+tests/e2e/routes/test_vector_stores.py::test_vector_stores SUBPASSED[create a vector store] [ 87%]
+tests/e2e/routes/test_vector_stores.py::test_vector_stores SUBPASSED[upload vectors] [ 87%]
+tests/e2e/routes/test_vector_stores.py::test_vector_stores SUBPASSED[verify usage_bytes updated after upload] [ 87%]
+tests/e2e/routes/test_vector_stores.py::test_vector_stores SUBPASSED[search vectors] [ 87%]
+tests/e2e/routes/test_vector_stores.py::test_vector_stores PASSED        [ 87%]
+tests/e2e/routes/test_vector_stores.py::test_vector_store_deletion SUBPASSED[create vector store for deletion test] [ 89%]
+tests/e2e/routes/test_vector_stores.py::test_vector_store_deletion SUBPASSED[add items to vector store] [ 89%]
+tests/e2e/routes/test_vector_stores.py::test_vector_store_deletion SUBPASSED[verify vector store exists before deletion] [ 89%]
+tests/e2e/routes/test_vector_stores.py::test_vector_store_deletion SUBPASSED[delete vector store] [ 89%]
+tests/e2e/routes/test_vector_stores.py::test_vector_store_deletion SUBPASSED[verify vector store is deleted] [ 89%]
+tests/e2e/routes/test_vector_stores.py::test_vector_store_deletion PASSED [ 89%]
+tests/e2e/routes/test_vector_stores.py::test_document_deletion SUBPASSED[create vector store] [ 90%]
+tests/e2e/routes/test_vector_stores.py::test_document_deletion SUBPASSED[add initial documents] [ 90%]
+tests/e2e/routes/test_vector_stores.py::test_document_deletion SUBPASSED[verify all documents exist via search and track usage_bytes] [ 90%]
+tests/e2e/routes/test_vector_stores.py::test_document_deletion SUBPASSED[delete specific document] [ 90%]
+tests/e2e/routes/test_vector_stores.py::test_document_deletion SUBPASSED[verify document was deleted and usage_bytes decreased] [ 90%]
+tests/e2e/routes/test_vector_stores.py::test_document_deletion PASSED    [ 90%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[create vector store] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[verify initial vector store usage_bytes is 0] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[add initial items] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[verify initial items count and usage_bytes updated] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[add additional items to existing and new documents] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[verify all items are present and usage_bytes increased] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[verify document 1 has multiple items] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents SUBPASSED[verify new document was created] [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_adding_items_to_existing_documents PASSED [ 91%]
+tests/e2e/routes/test_vector_stores.py::test_document_listing SUBPASSED[create vector store] [ 93%]
+tests/e2e/routes/test_vector_stores.py::test_document_listing SUBPASSED[add items to vector store] [ 93%]
+tests/e2e/routes/test_vector_stores.py::test_document_listing SUBPASSED[list documents in vector store] [ 93%]
+tests/e2e/routes/test_vector_stores.py::test_document_listing PASSED     [ 93%]
+tests/e2e/sdk/test_connectors_sdk.py::test_list_connector_presets_sdk PASSED [ 94%]
+tests/e2e/sdk/test_connectors_sdk.py::test_stdio_connector_lifecycle_sdk PASSED [ 95%]
+tests/e2e/test_auth.py::test_basic_auth_success SUBPASSED[valid credentials] [ 97%]
+tests/e2e/test_auth.py::test_basic_auth_success SUBPASSED[invalid credentials] [ 97%]
+tests/e2e/test_auth.py::test_basic_auth_success PASSED                   [ 97%]
+tests/e2e/test_auth.py::test_oidc_bearer_auth SUBPASSED[valid credentials] [ 98%]
+tests/e2e/test_auth.py::test_oidc_bearer_auth SUBPASSED[invalid credentials] [ 98%]
+tests/e2e/test_auth.py::test_oidc_bearer_auth PASSED                     [ 98%]
+tests/e2e/test_auth.py::test_user_sync_on_login PASSED                   [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_imported_agent [add chat agent] _____________________
+
+subtests = <_pytest.subtests.Subtests object at 0x11d9c9090>
+a2a_client_factory = <function a2a_client_factory.<locals>.a2a_client_factory at 0x11e12f420>
+get_final_task_from_stream = <function get_final_task_from_stream.<locals>.fn at 0x11d942e80>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+kr8s_client = <kr8s._api.Api object at 0x11d9e5a90>
+
+    @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
+    async def test_imported_agent(
+        subtests, a2a_client_factory, get_final_task_from_stream, test_configuration, kr8s_client: kr8s.Api
+    ):
+        agent_image = test_configuration.test_agent_image
+        with subtests.test("add chat agent"):
+>           _ = await Provider.create(location=agent_image)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/e2e/agents/test_agent_starts.py:32: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../agentstack-sdk-py/src/agentstack_sdk/platform/provider.py:80: in create
+    .raise_for_status()
+     ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [404 Not Found]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '404 Not Found' for url 'http://localhost:8333/api/v1/providers'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+
+.venv/lib/python3.13/site-packages/httpx/_models.py:829: HTTPStatusError
+--------------------------- Captured stdout teardown ---------------------------
+Cleaned up
+--------------------------- Captured stderr teardown ---------------------------
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mselect pg_catalog.version()                                           [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[raw sql] ()                                                          [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mselect current_schema()                                               [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[raw sql] ()                                                          [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mshow standard_conforming_strings                                      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[raw sql] ()                                                          [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mBEGIN (implicit)                                                      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE        [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00012s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE       [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00009s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE     [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00015s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00008s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00010s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00011s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00007s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00006s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00008s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE             [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00009s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."files" RESTART IDENTITY CASCADE                [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00012s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE     [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00009s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE        [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00011s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00013s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE           [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00008s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE    [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00006s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mSELECT tablename from pg_tables where schemaname = 'vector_db'        [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00006s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mCOMMIT                                                                [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00009s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00015s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00010s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00011s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00009s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00009s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00011s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+_____________________________ test_imported_agent ______________________________
+
+subtests = <_pytest.subtests.Subtests object at 0x11d9c9090>
+a2a_client_factory = <function a2a_client_factory.<locals>.a2a_client_factory at 0x11e12f420>
+get_final_task_from_stream = <function get_final_task_from_stream.<locals>.fn at 0x11d942e80>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+kr8s_client = <kr8s._api.Api object at 0x11d9e5a90>
+
+    @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
+    async def test_imported_agent(
+        subtests, a2a_client_factory, get_final_task_from_stream, test_configuration, kr8s_client: kr8s.Api
+    ):
+        agent_image = test_configuration.test_agent_image
+        with subtests.test("add chat agent"):
+            _ = await Provider.create(location=agent_image)
+            providers = await Provider.list()
+            context = await Context.create()
+            context_token = await context.generate_token(
+                providers=providers,
+                grant_global_permissions=Permissions(llm={"*"}),
+                grant_context_permissions=ContextPermissions(context_data={"*"}),
+            )
+            assert len(providers) == 1
+            assert providers[0].source == agent_image
+            assert providers[0].agent_card
+    
+>       async with a2a_client_factory(providers[0].agent_card, context_token) as a2a_client:
+                                      ^^^^^^^^^
+E       UnboundLocalError: cannot access local variable 'providers' where it is not associated with a value
+
+tests/e2e/agents/test_agent_starts.py:44: UnboundLocalError
+--------------------------- Captured stdout teardown ---------------------------
+Cleaned up
+--------------------------- Captured stderr teardown ---------------------------
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mselect pg_catalog.version()                                           [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[raw sql] ()                                                          [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mselect current_schema()                                               [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[raw sql] ()                                                          [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mshow standard_conforming_strings                                      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[raw sql] ()                                                          [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mBEGIN (implicit)                                                      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE        [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00012s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE       [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00009s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE     [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00015s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00008s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00010s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00011s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE      [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00007s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00006s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00008s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE             [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00009s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."files" RESTART IDENTITY CASCADE                [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00012s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE     [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00009s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE        [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00011s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00013s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE           [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00008s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mTRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE    [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00006s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mSELECT tablename from pg_tables where schemaname = 'vector_db'        [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1m[generated in 0.00006s] ()                                            [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+[2m2026-01-26 10:55:21[0m [[32m[1minfo     [0m] [1mCOMMIT                                                                [0m [[0m[1m[34msqlalchemy.engine.Engine[0m][0m
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00009s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00015s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00010s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00011s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00009s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00009s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00011s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+___________________________ test_provider_variables ____________________________
+
+subtests = <_pytest.subtests.Subtests object at 0x16800f380>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+
+    @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+    async def test_provider_variables(subtests, test_configuration: Configuration):
+        """Test provider environment variables operations."""
+    
+        # First create a real test provider
+>       provider = await Provider.create(
+            location=test_configuration.test_agent_image,
+            agent_card=AgentCard(
+                capabilities=AgentCapabilities(),
+                default_input_modes=[],
+                default_output_modes=[],
+                name="test_agent",
+                skills=[],
+                description="test agent",
+                url="http://localhost:8000",
+                version="0.0.1",
+            ),
+        )
+
+tests/e2e/routes/test_provider_variables.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../agentstack-sdk-py/src/agentstack_sdk/platform/provider.py:80: in create
+    .raise_for_status()
+     ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [404 Not Found]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '404 Not Found' for url 'http://localhost:8333/api/v1/providers'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+
+.venv/lib/python3.13/site-packages/httpx/_models.py:829: HTTPStatusError
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00003s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00003s] ()[0m
+[32m2026-01-26 11:56:53 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00003s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00003s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+______________________ test_provider_crud [add provider] _______________________
+
+subtests = <_pytest.subtests.Subtests object at 0x1682227d0>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+
+    @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+    async def test_provider_crud(subtests, test_configuration):
+        with subtests.test("add provider"):
+            variables = {"test": "var"}
+>           provider = await Provider.create(location=test_configuration.test_agent_image, variables=variables)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/e2e/routes/test_providers.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../agentstack-sdk-py/src/agentstack_sdk/platform/provider.py:80: in create
+    .raise_for_status()
+     ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Response [404 Not Found]>
+
+    def raise_for_status(self) -> Response:
+        """
+        Raise the `HTTPStatusError` if one occurred.
+        """
+        request = self._request
+        if request is None:
+            raise RuntimeError(
+                "Cannot call `raise_for_status` as the request "
+                "instance has not been set on this response."
+            )
+    
+        if self.is_success:
+            return self
+    
+        if self.has_redirect_location:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "Redirect location: '{0.headers[location]}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+        else:
+            message = (
+                "{error_type} '{0.status_code} {0.reason_phrase}' for url '{0.url}'\n"
+                "For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{0.status_code}"
+            )
+    
+        status_class = self.status_code // 100
+        error_types = {
+            1: "Informational response",
+            3: "Redirect response",
+            4: "Client error",
+            5: "Server error",
+        }
+        error_type = error_types.get(status_class, "Invalid status code")
+        message = message.format(self, error_type=error_type)
+>       raise HTTPStatusError(message, request=request, response=self)
+E       httpx.HTTPStatusError: Client error '404 Not Found' for url 'http://localhost:8333/api/v1/providers'
+E       For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+
+.venv/lib/python3.13/site-packages/httpx/_models.py:829: HTTPStatusError
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00007s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+_____________________ test_provider_crud [patch provider] ______________________
+
+subtests = <_pytest.subtests.Subtests object at 0x1682227d0>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+
+    @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+    async def test_provider_crud(subtests, test_configuration):
+        with subtests.test("add provider"):
+            variables = {"test": "var"}
+            provider = await Provider.create(location=test_configuration.test_agent_image, variables=variables)
+            assert await provider.list_variables() == variables
+    
+        with subtests.test("patch provider"):
+            new_source = test_configuration.test_agent_image
+            new_agent_card = AgentCard(
+                name="test",
+                description="test",
+                url="http://localhost:8000/",
+                version="1.0.0",
+                default_input_modes=["text"],
+                default_output_modes=["text"],
+                capabilities=AgentCapabilities(),
+                skills=[],
+            )
+>           provider = await provider.patch(location=new_source, agent_card=new_agent_card)
+                             ^^^^^^^^
+E           UnboundLocalError: cannot access local variable 'provider' where it is not associated with a value
+
+tests/e2e/routes/test_providers.py:34: UnboundLocalError
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00007s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+________________ test_provider_crud [change provider variables] ________________
+
+subtests = <_pytest.subtests.Subtests object at 0x1682227d0>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+
+    @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+    async def test_provider_crud(subtests, test_configuration):
+        with subtests.test("add provider"):
+            variables = {"test": "var"}
+            provider = await Provider.create(location=test_configuration.test_agent_image, variables=variables)
+            assert await provider.list_variables() == variables
+    
+        with subtests.test("patch provider"):
+            new_source = test_configuration.test_agent_image
+            new_agent_card = AgentCard(
+                name="test",
+                description="test",
+                url="http://localhost:8000/",
+                version="1.0.0",
+                default_input_modes=["text"],
+                default_output_modes=["text"],
+                capabilities=AgentCapabilities(),
+                skills=[],
+            )
+            provider = await provider.patch(location=new_source, agent_card=new_agent_card)
+            assert provider.agent_card.name == new_agent_card.name
+            assert provider.source == new_source
+            assert await provider.list_variables() == variables  # variables haven't changed
+    
+        with subtests.test("change provider variables"):
+            new_variables = {"other": "var"}
+>           provider = await provider.patch(variables=new_variables)
+                             ^^^^^^^^
+E           UnboundLocalError: cannot access local variable 'provider' where it is not associated with a value
+
+tests/e2e/routes/test_providers.py:41: UnboundLocalError
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00007s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+________________ test_provider_crud [test user_owned filtering] ________________
+
+subtests = <_pytest.subtests.Subtests object at 0x1682227d0>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+
+    @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+    async def test_provider_crud(subtests, test_configuration):
+        with subtests.test("add provider"):
+            variables = {"test": "var"}
+            provider = await Provider.create(location=test_configuration.test_agent_image, variables=variables)
+            assert await provider.list_variables() == variables
+    
+        with subtests.test("patch provider"):
+            new_source = test_configuration.test_agent_image
+            new_agent_card = AgentCard(
+                name="test",
+                description="test",
+                url="http://localhost:8000/",
+                version="1.0.0",
+                default_input_modes=["text"],
+                default_output_modes=["text"],
+                capabilities=AgentCapabilities(),
+                skills=[],
+            )
+            provider = await provider.patch(location=new_source, agent_card=new_agent_card)
+            assert provider.agent_card.name == new_agent_card.name
+            assert provider.source == new_source
+            assert await provider.list_variables() == variables  # variables haven't changed
+    
+        with subtests.test("change provider variables"):
+            new_variables = {"other": "var"}
+            provider = await provider.patch(variables=new_variables)
+            assert await provider.list_variables() == new_variables
+    
+            provider = await provider.patch(variables={})
+            assert await provider.list_variables() == {}
+    
+        with subtests.test("test user_owned filtering"):
+            # Test user_owned=True (should see exactly 1 provider - admin's)
+            admin_providers = await Provider.list(user_owned=True)
+>           assert len(admin_providers) == 1
+E           assert 0 == 1
+E            +  where 0 = len([])
+
+tests/e2e/routes/test_providers.py:50: AssertionError
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00007s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+_____________________ test_provider_crud [delete provider] _____________________
+
+subtests = <_pytest.subtests.Subtests object at 0x1682227d0>
+test_configuration = Configuration(kubeconfig=PosixPath('/Users/janjeliga/.agentstack/lima/e2e-test-run/copied-from-guest/kubeconfig.yaml')...localhost:5432/agentstack', keycloak_url='http://localhost:8336', llm_provider_type=<ModelProviderType.OTHER: 'other'>)
+
+    @pytest.mark.usefixtures("clean_up", "setup_platform_client")
+    async def test_provider_crud(subtests, test_configuration):
+        with subtests.test("add provider"):
+            variables = {"test": "var"}
+            provider = await Provider.create(location=test_configuration.test_agent_image, variables=variables)
+            assert await provider.list_variables() == variables
+    
+        with subtests.test("patch provider"):
+            new_source = test_configuration.test_agent_image
+            new_agent_card = AgentCard(
+                name="test",
+                description="test",
+                url="http://localhost:8000/",
+                version="1.0.0",
+                default_input_modes=["text"],
+                default_output_modes=["text"],
+                capabilities=AgentCapabilities(),
+                skills=[],
+            )
+            provider = await provider.patch(location=new_source, agent_card=new_agent_card)
+            assert provider.agent_card.name == new_agent_card.name
+            assert provider.source == new_source
+            assert await provider.list_variables() == variables  # variables haven't changed
+    
+        with subtests.test("change provider variables"):
+            new_variables = {"other": "var"}
+            provider = await provider.patch(variables=new_variables)
+            assert await provider.list_variables() == new_variables
+    
+            provider = await provider.patch(variables={})
+            assert await provider.list_variables() == {}
+    
+        with subtests.test("test user_owned filtering"):
+            # Test user_owned=True (should see exactly 1 provider - admin's)
+            admin_providers = await Provider.list(user_owned=True)
+            assert len(admin_providers) == 1
+            assert admin_providers[0].id == provider.id
+    
+            # Test user_owned=False (should see 0 providers - no other users' providers)
+            others_providers = await Provider.list(user_owned=False)
+            assert len(others_providers) == 0
+    
+            # Test user_owned=None (should see exactly 1 provider - all providers)
+            all_providers = await Provider.list(user_owned=None)
+            assert len(all_providers) == 1
+            assert all_providers[0].id == provider.id
+    
+        with subtests.test("delete provider"):
+>           await provider.delete()
+                  ^^^^^^^^
+E           UnboundLocalError: cannot access local variable 'provider' where it is not associated with a value
+
+tests/e2e/routes/test_providers.py:63: UnboundLocalError
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00007s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+______________________________ test_provider_crud ______________________________
+contains 5 failed subtests
+--------------------------- Captured stdout teardown ---------------------------
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select pg_catalog.version()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | select current_schema()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | show standard_conforming_strings[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [raw sql] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | BEGIN (implicit)[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00007s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00008s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00006s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00004s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | SELECT tablename from pg_tables where schemaname = 'vector_db'[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | [generated in 0.00005s] ()[0m
+[32m2026-01-26 11:56:54 | INFO     | sqlalchemy.engine.Engine | COMMIT[0m
+Cleaned up
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:1846 select pg_catalog.version()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 select current_schema()
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 show standard_conforming_strings
+INFO     sqlalchemy.engine.Engine:base.py:1846 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:2710 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_stores" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."configurations" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."extraction_files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00007s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."model_providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."context_history" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."vector_store_documents" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."provider_builds" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."providers" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."contexts" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."files" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00008s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."text_extractions" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00006s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."user_feedback" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."variables" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00004s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."connectors" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 TRUNCATE TABLE public."a2a_request_tasks" RESTART IDENTITY CASCADE
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1846 SELECT tablename from pg_tables where schemaname = 'vector_db'
+INFO     sqlalchemy.engine.Engine:base.py:1846 [generated in 0.00005s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2716 COMMIT
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/a2a/server/apps/jsonrpc/fastapi_app.py:21
+  /Users/janjeliga/Code/ibm/agentstack/apps/agentstack-server/.venv/lib/python3.13/site-packages/a2a/server/apps/jsonrpc/fastapi_app.py:21: DeprecationWarning: 'HTTP_413_REQUEST_ENTITY_TOO_LARGE' is deprecated. Use 'HTTP_413_CONTENT_TOO_LARGE' instead.
+    from a2a.server.apps.jsonrpc.jsonrpc_app import (
+
+tests/e2e/agents/test_context_store.py::test_agent_history
+  /Users/janjeliga/Code/ibm/agentstack/apps/agentstack-server/.venv/lib/python3.13/site-packages/websockets/legacy/__init__.py:6: DeprecationWarning: websockets.legacy is deprecated; see https://websockets.readthedocs.io/en/stable/howto/upgrade.html for upgrade instructions
+    warnings.warn(  # deprecated in 14.0 - 2024-11-09
+
+tests/e2e/agents/test_context_store.py::test_agent_history
+  /Users/janjeliga/Code/ibm/agentstack/apps/agentstack-server/.venv/lib/python3.13/site-packages/uvicorn/protocols/websockets/websockets_impl.py:17: DeprecationWarning: websockets.server.WebSocketServerProtocol is deprecated
+    from websockets.server import WebSocketServerProtocol
+
+tests/e2e/routes/test_a2a_proxy.py: 12 warnings
+  <sys>:0: SAWarning: transaction already deassociated from connection
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SUBFAILED[add chat agent] tests/e2e/agents/test_agent_starts.py::test_imported_agent
+FAILED tests/e2e/agents/test_agent_starts.py::test_imported_agent - UnboundLo...
+FAILED tests/e2e/routes/test_provider_variables.py::test_provider_variables
+SUBFAILED[add provider] tests/e2e/routes/test_providers.py::test_provider_crud
+SUBFAILED[patch provider] tests/e2e/routes/test_providers.py::test_provider_crud
+SUBFAILED[change provider variables] tests/e2e/routes/test_providers.py::test_provider_crud
+SUBFAILED[test user_owned filtering] tests/e2e/routes/test_providers.py::test_provider_crud
+SUBFAILED[delete provider] tests/e2e/routes/test_providers.py::test_provider_crud
+FAILED tests/e2e/routes/test_providers.py::test_provider_crud - contains 5 fa...
+= 9 failed, 63 passed, 7 skipped, 168 deselected, 15 warnings, 151 subtests passed in 166.38s (0:02:46) =
+Tests failed. Checking pod status...
+------------- pods --------------
+NAME                                                   READY   STATUS        RESTARTS   AGE
+agentstack-registry-75c678dbfb-9m48h                   1/1     Running       0          5m29s
+agentstack-server-6bf9d56f7f-z2xxk                     1/1     Running       0          5m29s
+docling-serve-68c7948d88-sc2cj                         1/1     Running       0          5m29s
+keycloak-0                                             1/1     Running       0          5m29s
+keycloak-provision-j446s                               0/1     Completed     0          4m49s
+managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5   1/1     Terminating   0          10s
+otel-collector-75c85f9cb5-lz66m                        1/1     Running       0          5m29s
+postgresql-0                                           1/1     Running       0          5m29s
+seaweedfs-all-in-one-747f64cdd7-qcz6l                  1/1     Running       0          5m29s
+------------ events -------------
+LAST SEEN   TYPE      REASON                           OBJECT                                                                                  MESSAGE
+2m44s       Normal    Scheduled                        pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Successfully assigned default/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9 to lima-e2e-test-run
+2m45s       Normal    Pulled                           pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Container image "ghcr.io/i-am-bee/alpine/git:v2.49.1" already present on machine
+2m45s       Normal    Created                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Created container: git-clone
+2m45s       Normal    Started                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Started container git-clone
+2m43s       Normal    Pulled                           pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Container image "ghcr.io/kaniko-build/dist/chainguard-dev-kaniko/executor:v1.25.2-slim" already present on machine
+2m43s       Normal    Created                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Created container: kaniko-build
+2m43s       Normal    Started                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Started container kaniko-build
+2m3s        Normal    Pulled                           pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Container image "ghcr.io/i-am-bee/alpine/crane:0.20.6" already present on machine
+2m3s        Normal    Created                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Created container: crane-push
+2m3s        Normal    Started                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Started container crane-push
+2m2s        Normal    Pulling                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Pulling image "agentstack-registry-svc.default:5001/i-am-bee/agentstack-starter/agent:2d29237ebd265ea0f491414fc601525b2dabb06b"
+2m1s        Normal    Pulled                           pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Successfully pulled image "agentstack-registry-svc.default:5001/i-am-bee/agentstack-starter/agent:2d29237ebd265ea0f491414fc601525b2dabb06b" in 913ms (913ms including waiting). Image size: 76781652 bytes.
+2m1s        Normal    Created                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Created container: run-agent
+2m1s        Normal    Started                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Started container run-agent
+2m1s        Normal    Pulled                           pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Container image "ghcr.io/i-am-bee/alpine/crane:0.20.6" already present on machine
+2m1s        Normal    Created                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Created container: mutate
+2m1s        Normal    Started                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Started container mutate
+119s        Normal    Killing                          pod/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9                         Stopping container run-agent
+2m45s       Normal    SuccessfulCreate                 job/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f                               Created pod: agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f-fmbw9
+115s        Normal    Completed                        job/agentstack-build-f4d462dc-3292-4203-9e92-2bcaf46b672f                               Job completed
+111s        Normal    SuccessfulCreate                 replicaset/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-deploy-6d958d5c6b   Created pod: agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh
+111s        Normal    ScalingReplicaSet                deployment/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-deploy              Scaled up replica set agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-deploy-6d958d5c6b from 0 to 1
+111s        Normal    Scheduled                        pod/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh                     Successfully assigned default/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh to lima-e2e-test-run
+111s        Normal    Pulled                           pod/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh                     Container image "agentstack-registry-svc.default:5001/i-am-bee/agentstack-starter/agent:2d29237ebd265ea0f491414fc601525b2dabb06b" already present on machine
+111s        Normal    Created                          pod/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh                     Created container: agent-container
+111s        Normal    Started                          pod/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh                     Started container agent-container
+107s        Normal    Killing                          pod/agentstack-provider-870977a8-72f8-5cfd-c623-8305fa788e85-dfv4gh                     Stopping container agent-container
+5m28s       Normal    Scheduled                        pod/agentstack-registry-75c678dbfb-9m48h                                                Successfully assigned default/agentstack-registry-75c678dbfb-9m48h to lima-e2e-test-run
+5m29s       Normal    Pulled                           pod/agentstack-registry-75c678dbfb-9m48h                                                Container image "ghcr.io/i-am-bee/library/registry:3" already present on machine
+5m29s       Normal    Created                          pod/agentstack-registry-75c678dbfb-9m48h                                                Created container: registry
+5m29s       Normal    Started                          pod/agentstack-registry-75c678dbfb-9m48h                                                Started container registry
+5m29s       Normal    SuccessfulCreate                 replicaset/agentstack-registry-75c678dbfb                                               Created pod: agentstack-registry-75c678dbfb-9m48h
+5m29s       Normal    ScalingReplicaSet                deployment/agentstack-registry                                                          Scaled up replica set agentstack-registry-75c678dbfb from 0 to 1
+5m28s       Normal    Scheduled                        pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Successfully assigned default/agentstack-server-6bf9d56f7f-z2xxk to lima-e2e-test-run
+5m29s       Normal    Pulled                           pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Container image "ghcr.io/i-am-bee/agentstack/agentstack-server:local" already present on machine
+5m29s       Normal    Created                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Created container: create-pgvector-extension
+5m29s       Normal    Started                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Started container create-pgvector-extension
+5m9s        Normal    Pulled                           pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Container image "ghcr.io/i-am-bee/agentstack/agentstack-server:local" already present on machine
+5m9s        Normal    Created                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Created container: run-migrations
+5m9s        Normal    Started                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Started container run-migrations
+5m6s        Normal    Pulled                           pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Container image "ghcr.io/i-am-bee/agentstack/agentstack-server:local" already present on machine
+5m6s        Normal    Created                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Created container: create-buckets
+5m6s        Normal    Started                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Started container create-buckets
+4m57s       Normal    Pulled                           pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Container image "ghcr.io/i-am-bee/agentstack/agentstack-server:local" already present on machine
+4m57s       Normal    Created                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Created container: agentstack
+4m57s       Normal    Started                          pod/agentstack-server-6bf9d56f7f-z2xxk                                                  Started container agentstack
+5m29s       Normal    SuccessfulCreate                 replicaset/agentstack-server-6bf9d56f7f                                                 Created pod: agentstack-server-6bf9d56f7f-z2xxk
+5m29s       Normal    EnsuringLoadBalancer             service/agentstack-server-svc                                                           Ensuring load balancer
+5m29s       Normal    AppliedDaemonSet                 service/agentstack-server-svc                                                           Applied LoadBalancer DaemonSet kube-system/svclb-agentstack-server-svc-0e910166
+5m29s       Normal    UpdatedLoadBalancer              service/agentstack-server-svc                                                           Updated LoadBalancer with new IPs: [] -> [192.168.5.15]
+4m50s       Normal    UpdatedLoadBalancer              service/agentstack-server-svc                                                           Updated LoadBalancer with new IPs: [192.168.5.15] -> [192.168.5.15]
+5m29s       Normal    ScalingReplicaSet                deployment/agentstack-server                                                            Scaled up replica set agentstack-server-6bf9d56f7f from 0 to 1
+5m29s       Normal    WaitForFirstConsumer             persistentvolumeclaim/data-postgresql-0                                                 waiting for first consumer to be created before binding
+5m29s       Normal    Provisioning                     persistentvolumeclaim/data-postgresql-0                                                 External provisioner is provisioning volume for claim "default/data-postgresql-0"
+5m29s       Normal    ExternalProvisioning             persistentvolumeclaim/data-postgresql-0                                                 Waiting for a volume to be created either by the external provisioner 'rancher.io/local-path' or manually by the system administrator. If volume creation is delayed, please verify that the provisioner is running and correctly registered.
+5m23s       Normal    ProvisioningSucceeded            persistentvolumeclaim/data-postgresql-0                                                 Successfully provisioned volume pvc-17ef5ad0-fb51-424c-bd53-14884a6f329a
+5m28s       Normal    Scheduled                        pod/docling-serve-68c7948d88-sc2cj                                                      Successfully assigned default/docling-serve-68c7948d88-sc2cj to lima-e2e-test-run
+5m29s       Normal    Pulled                           pod/docling-serve-68c7948d88-sc2cj                                                      Container image "ghcr.io/docling-project/docling-serve-cpu:v1.5.0" already present on machine
+5m29s       Normal    Created                          pod/docling-serve-68c7948d88-sc2cj                                                      Created container: api
+5m29s       Normal    Started                          pod/docling-serve-68c7948d88-sc2cj                                                      Started container api
+5m23s       Warning   Unhealthy                        pod/docling-serve-68c7948d88-sc2cj                                                      Readiness probe failed: Get "http://10.42.0.19:15001/health": dial tcp 10.42.0.19:15001: connect: connection refused
+5m29s       Normal    SuccessfulCreate                 replicaset/docling-serve-68c7948d88                                                     Created pod: docling-serve-68c7948d88-sc2cj
+5m29s       Normal    EnsuringLoadBalancer             service/docling-serve                                                                   Ensuring load balancer
+5m29s       Normal    AppliedDaemonSet                 service/docling-serve                                                                   Applied LoadBalancer DaemonSet kube-system/svclb-docling-serve-1602efb9
+5m29s       Normal    ScalingReplicaSet                deployment/docling-serve                                                                Scaled up replica set docling-serve-68c7948d88 from 0 to 1
+5m29s       Normal    UpdatedLoadBalancer              service/docling-serve                                                                   Updated LoadBalancer with new IPs: [] -> [192.168.5.15]
+5m21s       Normal    UpdatedLoadBalancer              service/docling-serve                                                                   Updated LoadBalancer with new IPs: [192.168.5.15] -> [192.168.5.15]
+5m28s       Normal    Scheduled                        pod/keycloak-0                                                                          Successfully assigned default/keycloak-0 to lima-e2e-test-run
+5m29s       Normal    Pulled                           pod/keycloak-0                                                                          Container image "ghcr.io/i-am-bee/bitnami/postgresql-pgvector:17.6.0" already present on machine
+5m29s       Normal    Created                          pod/keycloak-0                                                                          Created container: init-schema
+5m29s       Normal    Started                          pod/keycloak-0                                                                          Started container init-schema
+5m10s       Normal    Pulled                           pod/keycloak-0                                                                          Container image "quay.io/keycloak/keycloak:26.5.0" already present on machine
+5m10s       Normal    Created                          pod/keycloak-0                                                                          Created container: keycloak
+5m10s       Normal    Started                          pod/keycloak-0                                                                          Started container keycloak
+4m57s       Warning   Unhealthy                        pod/keycloak-0                                                                          Startup probe failed: Get "http://10.42.0.13:9000/health/started": dial tcp 10.42.0.13:9000: connect: connection refused
+4m48s       Normal    Scheduled                        pod/keycloak-provision-j446s                                                            Successfully assigned default/keycloak-provision-j446s to lima-e2e-test-run
+4m49s       Normal    Pulled                           pod/keycloak-provision-j446s                                                            Container image "quay.io/keycloak/keycloak:26.5.0" already present on machine
+4m49s       Normal    Created                          pod/keycloak-provision-j446s                                                            Created container: keycloak-provision
+4m49s       Normal    Started                          pod/keycloak-provision-j446s                                                            Started container keycloak-provision
+4m49s       Normal    SuccessfulCreate                 job/keycloak-provision                                                                  Created pod: keycloak-provision-j446s
+4m34s       Normal    Completed                        job/keycloak-provision                                                                  Job completed
+5m29s       Normal    EnsuringLoadBalancer             service/keycloak                                                                        Ensuring load balancer
+5m29s       Normal    AppliedDaemonSet                 service/keycloak                                                                        Applied LoadBalancer DaemonSet kube-system/svclb-keycloak-904328ce
+5m29s       Normal    SuccessfulCreate                 statefulset/keycloak                                                                    create Pod keycloak-0 in StatefulSet keycloak successful
+5m29s       Normal    UpdatedLoadBalancer              service/keycloak                                                                        Updated LoadBalancer with new IPs: [] -> [192.168.5.15]
+4m56s       Normal    UpdatedLoadBalancer              service/keycloak                                                                        Updated LoadBalancer with new IPs: [192.168.5.15] -> [192.168.5.15]
+8m9s        Normal    CertificateExpirationOK          node/lima-e2e-test-run                                                                  Node and Certificate Authority certificates managed by k3s are OK
+8m9s        Normal    Starting                         node/lima-e2e-test-run                                                                  Starting kubelet.
+8m9s        Warning   InvalidDiskCapacity              node/lima-e2e-test-run                                                                  invalid capacity 0 on image filesystem
+8m9s        Normal    NodeHasSufficientMemory          node/lima-e2e-test-run                                                                  Node lima-e2e-test-run status is now: NodeHasSufficientMemory
+8m9s        Normal    NodeHasNoDiskPressure            node/lima-e2e-test-run                                                                  Node lima-e2e-test-run status is now: NodeHasNoDiskPressure
+8m9s        Normal    NodeHasSufficientPID             node/lima-e2e-test-run                                                                  Node lima-e2e-test-run status is now: NodeHasSufficientPID
+8m9s        Normal    NodeAllocatableEnforced          node/lima-e2e-test-run                                                                  Updated Node Allocatable limit across pods
+8m9s        Normal    NodeReady                        node/lima-e2e-test-run                                                                  Node lima-e2e-test-run status is now: NodeReady
+8m7s        Normal    Starting                         node/lima-e2e-test-run                                                                  
+8m6s        Normal    NodePasswordValidationComplete   node/lima-e2e-test-run                                                                  Deferred node password secret validation complete
+8m5s        Normal    Synced                           node/lima-e2e-test-run                                                                  Node synced successfully
+8m4s        Normal    RegisteredNode                   node/lima-e2e-test-run                                                                  Node lima-e2e-test-run event: Registered Node lima-e2e-test-run in Controller
+75s         Normal    Scheduled                        pod/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99                                Successfully assigned default/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99 to lima-e2e-test-run
+76s         Normal    Pulling                          pod/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99                                Pulling image "mcp/aws-documentation"
+55s         Normal    Pulled                           pod/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99                                Successfully pulled image "mcp/aws-documentation" in 20.807s (20.807s including waiting). Image size: 31085293 bytes.
+55s         Normal    Created                          pod/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99                                Created container: mcp-server
+55s         Normal    Started                          pod/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99                                Started container mcp-server
+42s         Normal    Killing                          pod/managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99                                Stopping container mcp-server
+76s         Normal    SuccessfulCreate                 replicaset/managed-mcp-server-2a8f60991f924322-6766bdc944                               Created pod: managed-mcp-server-2a8f60991f924322-6766bdc944-hqp99
+76s         Normal    ScalingReplicaSet                deployment/managed-mcp-server-2a8f60991f924322                                          Scaled up replica set managed-mcp-server-2a8f60991f924322-6766bdc944 from 0 to 1
+9s          Normal    Scheduled                        pod/managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5                                Successfully assigned default/managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5 to lima-e2e-test-run
+10s         Normal    Pulled                           pod/managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5                                Container image "mcp/aws-documentation" already present on machine
+9s          Normal    Created                          pod/managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5                                Created container: mcp-server
+9s          Normal    Started                          pod/managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5                                Started container mcp-server
+2s          Normal    Killing                          pod/managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5                                Stopping container mcp-server
+10s         Normal    SuccessfulCreate                 replicaset/managed-mcp-server-8ebb18194b254483-748dcc955f                               Created pod: managed-mcp-server-8ebb18194b254483-748dcc955f-47mc5
+10s         Normal    ScalingReplicaSet                deployment/managed-mcp-server-8ebb18194b254483                                          Scaled up replica set managed-mcp-server-8ebb18194b254483-748dcc955f from 0 to 1
+75s         Normal    Scheduled                        pod/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5                          Successfully assigned default/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5 to lima-e2e-test-run
+76s         Normal    Pulling                          pod/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5                          Pulling image "ghcr.io/i-am-bee/agentstack/supergateway:latest"
+49s         Normal    Pulled                           pod/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5                          Successfully pulled image "ghcr.io/i-am-bee/agentstack/supergateway:latest" in 26.842s (26.842s including waiting). Image size: 86241352 bytes.
+49s         Normal    Created                          pod/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5                          Created container: supergateway
+49s         Normal    Started                          pod/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5                          Started container supergateway
+42s         Normal    Killing                          pod/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5                          Stopping container supergateway
+76s         Normal    SuccessfulCreate                 replicaset/managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b                         Created pod: managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b-csbl5
+76s         Normal    ScalingReplicaSet                deployment/managed-mcp-supergateway-2a8f60991f924322                                    Scaled up replica set managed-mcp-supergateway-2a8f60991f924322-5fbd445b4b from 0 to 1
+9s          Normal    Scheduled                        pod/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89                           Successfully assigned default/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89 to lima-e2e-test-run
+9s          Normal    Pulled                           pod/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89                           Container image "ghcr.io/i-am-bee/agentstack/supergateway:latest" already present on machine
+9s          Normal    Created                          pod/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89                           Created container: supergateway
+9s          Normal    Started                          pod/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89                           Started container supergateway
+2s          Normal    Killing                          pod/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89                           Stopping container supergateway
+10s         Normal    SuccessfulCreate                 replicaset/managed-mcp-supergateway-8ebb18194b254483-8bd85fb64                          Created pod: managed-mcp-supergateway-8ebb18194b254483-8bd85fb64-g6d89
+10s         Normal    ScalingReplicaSet                deployment/managed-mcp-supergateway-8ebb18194b254483                                    Scaled up replica set managed-mcp-supergateway-8ebb18194b254483-8bd85fb64 from 0 to 1
+5m28s       Normal    Scheduled                        pod/otel-collector-75c85f9cb5-lz66m                                                     Successfully assigned default/otel-collector-75c85f9cb5-lz66m to lima-e2e-test-run
+5m29s       Normal    Pulled                           pod/otel-collector-75c85f9cb5-lz66m                                                     Container image "ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1" already present on machine
+5m29s       Normal    Created                          pod/otel-collector-75c85f9cb5-lz66m                                                     Created container: agent-container
+5m29s       Normal    Started                          pod/otel-collector-75c85f9cb5-lz66m                                                     Started container agent-container
+5m29s       Normal    SuccessfulCreate                 replicaset/otel-collector-75c85f9cb5                                                    Created pod: otel-collector-75c85f9cb5-lz66m
+5m29s       Normal    EnsuringLoadBalancer             service/otel-collector-svc                                                              Ensuring load balancer
+5m29s       Normal    AppliedDaemonSet                 service/otel-collector-svc                                                              Applied LoadBalancer DaemonSet kube-system/svclb-otel-collector-svc-87d6dbf3
+5m29s       Normal    UpdatedLoadBalancer              service/otel-collector-svc                                                              Updated LoadBalancer with new IPs: [] -> [192.168.5.15]
+5m28s       Normal    UpdatedLoadBalancer              service/otel-collector-svc                                                              Updated LoadBalancer with new IPs: [192.168.5.15] -> [192.168.5.15]
+5m29s       Normal    ScalingReplicaSet                deployment/otel-collector                                                               Scaled up replica set otel-collector-75c85f9cb5 from 0 to 1
+5m21s       Normal    Scheduled                        pod/postgresql-0                                                                        Successfully assigned default/postgresql-0 to lima-e2e-test-run
+5m22s       Normal    Pulled                           pod/postgresql-0                                                                        Container image "ghcr.io/i-am-bee/bitnami/postgresql-pgvector:17.6.0" already present on machine
+5m22s       Normal    Created                          pod/postgresql-0                                                                        Created container: postgresql
+5m22s       Normal    Started                          pod/postgresql-0                                                                        Started container postgresql
+5m29s       Normal    NoPods                           poddisruptionbudget/postgresql                                                          No matching pods found
+5m29s       Normal    SuccessfulCreate                 statefulset/postgresql                                                                  create Claim data-postgresql-0 Pod postgresql-0 in StatefulSet postgresql success
+5m29s       Normal    SuccessfulCreate                 statefulset/postgresql                                                                  create Pod postgresql-0 in StatefulSet postgresql successful
+5m21s       Normal    Scheduled                        pod/seaweedfs-all-in-one-747f64cdd7-qcz6l                                               Successfully assigned default/seaweedfs-all-in-one-747f64cdd7-qcz6l to lima-e2e-test-run
+5m22s       Normal    Pulled                           pod/seaweedfs-all-in-one-747f64cdd7-qcz6l                                               Container image "ghcr.io/i-am-bee/chrislusf/seaweedfs:4.02" already present on machine
+5m22s       Normal    Created                          pod/seaweedfs-all-in-one-747f64cdd7-qcz6l                                               Created container: seaweedfs
+5m22s       Normal    Started                          pod/seaweedfs-all-in-one-747f64cdd7-qcz6l                                               Started container seaweedfs
+5m29s       Normal    SuccessfulCreate                 replicaset/seaweedfs-all-in-one-747f64cdd7                                              Created pod: seaweedfs-all-in-one-747f64cdd7-qcz6l
+5m29s       Normal    WaitForFirstConsumer             persistentvolumeclaim/seaweedfs-all-in-one-data                                         waiting for first consumer to be created before binding
+5m29s       Normal    ExternalProvisioning             persistentvolumeclaim/seaweedfs-all-in-one-data                                         Waiting for a volume to be created either by the external provisioner 'rancher.io/local-path' or manually by the system administrator. If volume creation is delayed, please verify that the provisioner is running and correctly registered.
+5m29s       Normal    Provisioning                     persistentvolumeclaim/seaweedfs-all-in-one-data                                         External provisioner is provisioning volume for claim "default/seaweedfs-all-in-one-data"
+5m23s       Normal    ProvisioningSucceeded            persistentvolumeclaim/seaweedfs-all-in-one-data                                         Successfully provisioned volume pvc-cd95532f-6a34-4a20-92d3-161d9c0a4549
+5m29s       Normal    ScalingReplicaSet                deployment/seaweedfs-all-in-one                                                         Scaled up replica set seaweedfs-all-in-one-747f64cdd7 from 0 to 1
+❗ WARNING: Using external Lima from /Users/janjeliga/.local/share/mise/installs/asdf-crouching-muppet-asdf-lima/1.2.1/bin/limactl
+Deleting Agent Stack platform [DONE]
+✅ SUCCESS: Agent Stack platform deleted successfully.
