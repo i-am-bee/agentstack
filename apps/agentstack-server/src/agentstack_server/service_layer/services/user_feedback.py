@@ -114,12 +114,15 @@ class UserFeedbackService:
             data = response.json()
             if "errors" in data:
                 raise ValueError(data["errors"])
-            elif "data" not in data or "getTraceByOtelId" not in data["data"]:
-                raise ValueError("Invalid response")
 
-            span_id = data["data"]["getTraceByOtelId"]["spans"]["edges"][0]["node"]["spanId"]
-            if span_id is None:
+            if (trace := data["data"]["getTraceByOtelId"]) is None:
+                raise ValueError("Trace not found")
+
+            edges = trace["spans"]["edges"]
+            if not edges:
                 raise ValueError("No span found")
+
+            span_id = edges[0]["node"]["spanId"]
 
             response = await self._phoenix_client.post(
                 "/v1/span_annotations",
