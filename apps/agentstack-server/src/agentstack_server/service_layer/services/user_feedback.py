@@ -1,11 +1,14 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import asyncio
 import logging
 from uuid import UUID
 
+import httpx
 from kink import inject
 
+from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.models.user_feedback import UserFeedback
 from agentstack_server.exceptions import EntityNotFoundError
@@ -16,8 +19,11 @@ logger = logging.getLogger(__name__)
 
 @inject
 class UserFeedbackService:
-    def __init__(self, uow: IUnitOfWorkFactory):
+    def __init__(self, uow: IUnitOfWorkFactory, configuration: Configuration):
         self._uow = uow
+
+        self._phoenix_url = configuration.telemetry.phoenix_url
+        self._phoenix_api_key = configuration.telemetry.phoenix_api_key
 
     async def create_user_feedback(
         self,
@@ -51,6 +57,7 @@ class UserFeedbackService:
             )
             await uow.user_feedback.create(user_feedback=user_feedback)
             await uow.commit()
+            asyncio.create_task(self._try_send_to_phoenix(user_feedback=user_feedback))  # noqa: RUF006
             return user_feedback
 
     async def list_user_feedback(
@@ -74,3 +81,51 @@ class UserFeedbackService:
                 after_cursor=after_cursor,
             )
             return feedback_list, total, has_more
+
+    async def _try_send_to_phoenix(self, *, user_feedback: UserFeedback) -> None:
+        if self._phoenix_url is None or user_feedback.trace_id is None:
+            return
+
+        try:
+            async with httpx.AsyncClient(
+                base_url=str(self._phoenix_url),
+                headers={"authorization": f"Bearer {self._phoenix_api_key}"} if self._phoenix_api_key else None,
+            ) as client:
+                response = await client.post(
+                    "/graphql",
+                    json={
+                        "query": "query GetTraceByOtelId($traceId: String!) { getTraceByOtelId(traceId: $traceId) { rootSpan { id } }}",
+                        "variables": {"traceId": user_feedback.trace_id},
+                    },
+                )
+                response.raise_for_status()
+                data = response.json()
+                if "errors" in data:
+                    raise ValueError(data["errors"])
+                elif "rootSpan" not in data or "getTraceByOtelId" not in data["rootSpan"]:
+                    raise ValueError("Invalid response")
+
+                root_span = data["rootSpan"]["getTraceByOtelId"]
+                if root_span is None:
+                    raise ValueError("No root span found")
+
+                response = await client.post(
+                    "/v1/span_annotations",
+                    json={
+                        "data": [
+                            {
+                                "name": "Feedback",
+                                "annotator_kind": "HUMAN",
+                                "span_id": root_span["id"],
+                                "result": {
+                                    "label": None,
+                                    "score": user_feedback.rating,
+                                    "explanation": user_feedback.comment,
+                                },
+                            }
+                        ]
+                    },
+                )
+                response.raise_for_status()
+        except Exception:
+            logger.warning("Failed to send user feedback to Phoenix", exc_info=True)
