@@ -9,62 +9,35 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
-      contents: read
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Get PR body
-        id: get_pr
+      - name: Check docs requirements
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            const body = context.payload.pull_request.body || "";
-            fs.writeFileSync('pr_body.txt', body, 'utf8');
-            core.setOutput("body", body);
-
-      - name: Check for No Docs Needed checkbox
-        id: skip
-        run: |
-          if grep -Eiq '\[x\].*no docs needed' pr_body.txt; then
-            echo "🟡 'No Docs Needed' checked — skipping docs enforcement."
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get changed files
-        run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }}
-          if git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD > changed_files.txt 2>/dev/null; then
-            echo "✅ Found changed files"
-          else
-            echo "⚠️ Could not determine changed files, using empty list"
-            echo "" > changed_files.txt
-          fi
-          cat changed_files.txt
-
-      - name: Check for changes in stable docs
-        run: |
-          if grep -qE '^docs/stable/' changed_files.txt; then
-            echo "❌ Changes to 'stable' documentation are not allowed in this PR."
-            echo "   Please make changes in the 'development' directory instead."
-            exit 1
-          else
-            echo "✅ No changes found in 'stable' docs."
-          fi
-
-      - name: Enforce docs update in development
-        run: |
-          if [ "${{ steps.skip.outputs.skip }}" = "true" ]; then
-            echo "🟡 Skipping docs check (No Docs Needed checked)."
-            exit 0
-          fi
-
-          if grep -qE '^(docs/development/|docs/docs.json$|docs/package.json$|docs/tasks.toml$|CONTRIBUTING\.md$|README\.md$|CODE_OF_CONDUCT\.md$)' changed_files.txt; then
-            echo "✅ Docs updated."
-          else
-            echo "❌ No docs changes found and 'No Docs Needed' not checked."
-            exit 1
-          fi
+            if (/\[x\].*no docs needed/i.test(context.payload.pull_request.body || '')) {
+              core.info('🟡 "No Docs Needed" checked — skipping docs enforcement.');
+              return;
+            }
+            
+            if (context.payload.pull_request.user.login === 'dependabot[bot]') {
+              core.info('🤖 Dependabot PR detected — skipping docs enforcement.');
+              return;
+            }
+            
+            const filenames = (await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            })).data.map(f => f.filename);
+            
+            if (filenames.some(f => f.startsWith('docs/stable/'))) {
+              core.setFailed('❌ Changes to "stable" documentation are not allowed. Please make changes in the "development" directory instead.');
+              return;
+            }
+            
+            if (filenames.some(f => /^\.mdx?$/.test(f))) {
+              core.info('✅ Docs updated.');
+            } else {
+              core.setFailed('❌ No docs changes found and "No Docs Needed" not checked.');
+            }
