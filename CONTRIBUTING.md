@@ -307,18 +307,18 @@ In addition to publishing the stable version, this action also ensures that the 
 * **Storage Location:** All new or updated documentation files must be located in the `docs/development` folder. The `docs/stable` is only to be updated if changes are urgent and can't wait until the next release. Reasoning for changes made to `docs/stable` must be explicitly called out in your PR description.
 * **Exemption Policy:** If a PR does not require documentation (e.g., internal refactoring, bug fixes with no API changes, or test updates), you must explicitly note this in your PR description: *"No documentation updates required."*
 
-#### 2. Technical Validation & Automation
+### 2. Technical Validation & Automation
 * **Clean Environment Test:** Every code snippet must be verified from a **fresh install** of Agent Stack in a clean virtual environment to ensure all dependencies are correctly accounted for.
 * **CLI Documentation:** Do not manually edit CLI reference pages. You must run the following command to ensure the reference stays in sync with the code:
   `mise run agentstack-cli:docs`
 * **CI/CD Integration:** A GitHub workflow automatically checks that documentation requirements are met. Ensure your build passes before requesting a review.
 
-#### 3. Content & Experience Standards
+### 3. Content & Experience Standards
 * **Prerequisites:** Explicitly list any external dependencies (e.g., API keys, Docker, or Mise) needed to run the examples on that page.
 * **Snippet Reliability:** Use `os.getenv` or the Agent Stack `secrets` utility for credentials—never hardcode strings or placeholders.
 * **Structural Consistency:** Each page should include a brief explanation of the feature's value, a prerequisites block, step-by-step instructions, and a troubleshooting section for common errors.
 
-#### Mintlify Preview for Live Changes
+### Mintlify Preview for Live Changes
 To verify the visual layout and formatting of your changes before submitting:
 1. **Prerequisites:** Ensure you have **Node.js version 19 or higher**.
 2. **Setup:** `cd` to the `docs` folder in the repo. 
