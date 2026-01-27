@@ -1,11 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
 import logging
 from uuid import UUID
 
 import httpx
+from fastapi import BackgroundTasks
 from kink import inject
 
 from agentstack_server.configuration import Configuration
@@ -52,6 +52,7 @@ class UserFeedbackService:
         task_id: UUID,
         context_id: UUID,
         user: User,
+        background_tasks: BackgroundTasks,
     ):
         async with self._uow() as uow:
             try:
@@ -73,7 +74,7 @@ class UserFeedbackService:
             )
             await uow.user_feedback.create(user_feedback=user_feedback)
             await uow.commit()
-            asyncio.create_task(self._try_send_to_phoenix(user_feedback=user_feedback))  # noqa: RUF006
+            background_tasks.add_task(self._try_send_to_phoenix, user_feedback=user_feedback)
             return user_feedback
 
     async def list_user_feedback(
