@@ -319,14 +319,14 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         if not token:
             raise RuntimeError("Login timed out or not successful.")
 
-        config.auth_manager.save_auth_token(
-            server=server,
-            auth_server=auth_server,
-            client_id=client_id,
-            client_secret=client_secret,
-            token=token,
-            registration_token=registration_token,
-        )
+    config.auth_manager.save_auth_info(
+        server=server,
+        auth_server=auth_server,
+        client_id=client_id,
+        client_secret=client_secret,
+        token=token,
+        registration_token=registration_token,
+    )
 
     config.auth_manager.active_server = server
     config.auth_manager.active_auth_server = auth_server

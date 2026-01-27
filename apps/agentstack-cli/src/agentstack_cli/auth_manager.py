@@ -80,7 +80,7 @@ class AuthManager:
             # Authlib calls this automatically when tokens are refreshed
             # kwargs may include refresh_token and access_token but we don't need them
             auth_config = self._auth.servers[server].authorization_servers[auth_server]
-            self.save_auth_token(
+            self.save_auth_info(
                 server=server,
                 auth_server=auth_server,
                 client_id=auth_config.client_id,
@@ -114,7 +114,7 @@ class AuthManager:
 
         return client
 
-    def save_auth_token(
+    def save_auth_info(
         self,
         server: str,
         auth_server: str | None = None,
