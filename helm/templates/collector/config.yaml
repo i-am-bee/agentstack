@@ -55,7 +55,7 @@ data:
     service:
       extensions: [ health_check ]
       pipelines:
-        {{- if .Values.phoenix.enabled }}
+        {{- if include "agentstack.phoenix.enabled" . }}
         traces/phoenix:
           receivers: [ otlp ]
           processors: [ memory_limiter, filter/phoenix, batch ]
