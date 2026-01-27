@@ -37,14 +37,21 @@ export function FormRenderer({
 
   const defaultValues = getDefaultValues(fields);
 
-  const form = useForm<RunFormValues>({ defaultValues });
+  const form = useForm<RunFormValues>({
+    mode: 'onChange',
+    defaultValues,
+  });
+  const {
+    handleSubmit,
+    formState: { isValid },
+  } = form;
 
   const showHeading = showHeadingProp && isNotNull(heading);
   const showHeader = showHeading || Boolean(description);
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <fieldset disabled={isDisabled} className={classes.root}>
           {showHeader && (
             <AgentRunHeader heading={showHeading ? heading : undefined}>
@@ -56,8 +63,9 @@ export function FormRenderer({
 
           <FormActionBar
             submitLabel={submit_label ?? 'Submit'}
+            submitDisabled={!isValid}
+            showSubmit={!isDisabled}
             showRunSettings={showRunSettings}
-            showSubmitButton={!isDisabled}
           />
         </fieldset>
       </form>

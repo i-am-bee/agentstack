@@ -13,12 +13,13 @@ import { useRunSettingsDialog } from '#modules/runs/settings/useRunSettingsDialo
 import classes from './FormActionBar.module.scss';
 
 interface Props {
-  showSubmitButton?: boolean;
   submitLabel: string;
+  submitDisabled?: boolean;
+  showSubmit?: boolean;
   showRunSettings?: boolean;
 }
 
-export function FormActionBar({ showSubmitButton = true, submitLabel, showRunSettings }: Props) {
+export function FormActionBar({ submitLabel, submitDisabled, showSubmit = true, showRunSettings }: Props) {
   const modelsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const settingsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const formRefs = useMergeRefs([modelsDialog.refs.setPositionReference, settingsDialog.refs.setPositionReference]);
@@ -32,9 +33,10 @@ export function FormActionBar({ showSubmitButton = true, submitLabel, showRunSet
           <RunModels dialog={modelsDialog} iconOnly={false} />
         </div>
       )}
-      {showSubmitButton && (
+
+      {showSubmit && (
         <div className={classes.buttons}>
-          <Button type="submit" size="md">
+          <Button type="submit" size="md" disabled={submitDisabled}>
             {submitLabel}
           </Button>
         </div>

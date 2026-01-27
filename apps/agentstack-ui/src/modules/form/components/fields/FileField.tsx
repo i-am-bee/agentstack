@@ -9,6 +9,7 @@ import type { FileField } from 'agentstack-sdk';
 import { useEffect } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
+import { FormRequirement } from '#components/FormRequirement/FormRequirement.tsx';
 import { FileCard } from '#modules/files/components/FileCard.tsx';
 import { FileCardsList } from '#modules/files/components/FileCardsList.tsx';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
@@ -17,6 +18,7 @@ import type { ValuesOfField } from '#modules/form/types.ts';
 import { convertFileToFileFieldValue } from '#modules/form/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
+import { REQUIRED_ERROR_MESSAGE } from './constants';
 import classes from './FileField.module.scss';
 
 interface Props {
@@ -32,13 +34,23 @@ export function FileField({ field }: Props) {
 }
 
 export function FileFieldComponent({ field }: Props) {
-  const { id, label } = field;
+  const { id, label, required } = field;
 
-  const { dropzone, isDisabled, files, removeFile } = useFileUpload();
-  const { control } = useFormContext<ValuesOfField<FileField>>();
+  const { dropzone, isDisabled, isPending, files, removeFile } = useFileUpload();
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<ValuesOfField<FileField>>();
   const {
     field: { onChange },
-  } = useController({ control, name: `${id}.value` });
+  } = useController({
+    control,
+    name: `${id}.value`,
+    rules: { required: Boolean(required) && REQUIRED_ERROR_MESSAGE },
+  });
+  const error = errors[id];
+  const invalid = Boolean(error) && !isPending;
+  const invalidText = error?.value?.message;
 
   const hasFiles = files.length > 0;
 
@@ -54,7 +66,7 @@ export function FileFieldComponent({ field }: Props) {
 
   return (
     <FormGroup {...dropzone.getRootProps()} legendText={label}>
-      <input type="file" {...dropzone.getInputProps()} />
+      <input type="file" {...dropzone.getInputProps()} data-invalid={invalid} />
 
       {hasFiles ? (
         <FileCardsList className={classes.files}>
@@ -76,6 +88,8 @@ export function FileFieldComponent({ field }: Props) {
           Upload
         </Button>
       )}
+
+      {invalid && <FormRequirement>{invalidText}</FormRequirement>}
     </FormGroup>
   );
 }

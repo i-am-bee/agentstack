@@ -19,6 +19,7 @@ import type {
   formValuesSchema,
   multiSelectFieldSchema,
   multiSelectFieldValueSchema,
+  selectFieldOptionSchema,
   singleSelectFieldSchema,
   singleSelectFieldValueSchema,
   textFieldSchema,
@@ -28,6 +29,7 @@ import type {
 export type TextField = z.infer<typeof textFieldSchema>;
 export type DateField = z.infer<typeof dateFieldSchema>;
 export type FileField = z.infer<typeof fileFieldSchema>;
+export type SelectFieldOption = z.infer<typeof selectFieldOptionSchema>;
 export type SingleSelectField = z.infer<typeof singleSelectFieldSchema>;
 export type MultiSelectField = z.infer<typeof multiSelectFieldSchema>;
 export type CheckboxField = z.infer<typeof checkboxFieldSchema>;

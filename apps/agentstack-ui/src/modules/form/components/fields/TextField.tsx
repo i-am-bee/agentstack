@@ -7,10 +7,12 @@ import { TextInput } from '@carbon/react';
 import type { TextField } from 'agentstack-sdk';
 import { useFormContext } from 'react-hook-form';
 
+import { FormRequirement } from '#components/FormRequirement/FormRequirement.tsx';
 import { TextAreaAutoHeight } from '#components/TextAreaAutoHeight/TextAreaAutoHeight.tsx';
 import type { ValuesOfField } from '#modules/form/types.ts';
 
 import { FormLabel } from '../FormLabel';
+import { REQUIRED_ERROR_MESSAGE } from './constants';
 
 interface Props {
   field: TextField;
@@ -19,26 +21,31 @@ interface Props {
 export function TextField({ field }: Props) {
   const { id, label, placeholder, required, auto_resize } = field;
 
-  const { register } = useFormContext<ValuesOfField<TextField>>();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<ValuesOfField<TextField>>();
+  const error = errors[id];
 
-  const inputProps = register(`${id}.value`, { required: Boolean(required) });
+  const { invalidText, ...inputProps } = {
+    id,
+    placeholder: placeholder ?? undefined,
+    invalid: Boolean(error),
+    invalidText: error?.value?.message,
+    ...register(`${id}.value`, { required: Boolean(required) && REQUIRED_ERROR_MESSAGE }),
+  };
 
   if (auto_resize) {
     return (
       <div>
         <FormLabel htmlFor={id}>{label}</FormLabel>
 
-        <TextAreaAutoHeight
-          id={id}
-          size="lg"
-          rows={1}
-          placeholder={placeholder ?? undefined}
-          maxRows={8}
-          {...inputProps}
-        />
+        <TextAreaAutoHeight className="cds--text-input__field-wrapper" size="lg" rows={1} maxRows={8} {...inputProps} />
+
+        {inputProps.invalid && <FormRequirement>{invalidText}</FormRequirement>}
       </div>
     );
   }
 
-  return <TextInput id={id} size="lg" labelText={label} placeholder={placeholder ?? undefined} {...inputProps} />;
+  return <TextInput size="lg" labelText={label} invalidText={invalidText} {...inputProps} />;
 }
