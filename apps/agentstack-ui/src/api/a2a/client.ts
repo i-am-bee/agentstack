@@ -163,6 +163,16 @@ export const buildA2AClient = async <UIGenericPart = never>({
               const parts = handleArtifactUpdate(event);
 
               messageSubject.next({ type: RunResultType.Parts, parts, taskId });
+            })
+            .with({ kind: 'message' }, (message) => {
+              const resolvedTaskId = message.taskId ?? taskId ?? message.messageId;
+              taskId = resolvedTaskId;
+
+              const metadataParts = processMessageMetadata(message);
+              const contentParts = processParts(message.parts);
+              const parts = [...metadataParts, ...contentParts];
+
+              messageSubject.next({ type: RunResultType.Parts, parts, taskId: resolvedTaskId });
             });
         }
       } catch (error) {
