@@ -27,8 +27,11 @@ The Agent Stack server wraps your existing agent code and exposes it through the
 ### 1. Install the SDK
 
 ```bash
-pip install agentstack-sdk
+uv add agentstack-sdk
 ```
+<Tip>
+  If you are starting a new `uv` project, run `uv init` to set up the project structure before adding packages.
+</Tip>
 
 ### 2. Create a Server Wrapper
 
@@ -74,7 +77,7 @@ if __name__ == "__main__":
 ### 3. Run Your Server
 
 ```bash
-python server.py
+uv run server.py
 ```
 
 Your agent will automatically register with Agent Stack!
@@ -86,7 +89,7 @@ uv run watchfiles agentstack_agents.agent.run
 ```
 </Tip>
 
-## Integration Patterns
+## Advanced Implementations
 
 ### Streaming Responses
 
