@@ -32,7 +32,7 @@ jobs:
         uses: easimon/maximize-build-space@master
         with:
           root-reserve-mb: 15360
-          temp-reserve-mb: 2048
+          temp-reserve-mb: 1024
           swap-size-mb: 1024
           remove-dotnet: 'true'
       - uses: actions/checkout@v4
