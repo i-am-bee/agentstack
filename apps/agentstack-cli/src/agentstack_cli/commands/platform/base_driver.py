@@ -245,8 +245,10 @@ class BaseDriver(abc.ABC):
             "Deploying Agent Stack platform with Helm",
         )
 
-        shas_guest_after = await self._grab_image_shas(mode="guest")
-        if replaced_digests := set(shas_guest_before.values()) - set(shas_guest_after.values()):
+        if shas_guest_before and (
+            replaced_digests := set(shas_guest_before.values())
+            - set((await self._grab_image_shas(mode="guest")).values())
+        ):
             for pod in dict.get(
                 json.loads(
                     (

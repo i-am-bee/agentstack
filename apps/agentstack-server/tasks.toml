@@ -169,6 +169,7 @@ eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
 eval "cli_args=(${usage_cli_args})"
+export SKIP_PULL
 {{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
     --no-wait-for-platform \
     --set externalRegistries=null \
@@ -186,7 +187,7 @@ run = """
 eval "cli_args=(${usage_cli_args})"
 {{ mise_bin }} run --force helm:build
 {{ mise_bin }} run --force agentstack-cli:build:copy-helm-chart
-{{ mise_bin }} run agentstack-server:dev:start "${cli_args[@]}"
+SKIP_PULL=true {{ mise_bin }} run agentstack-server:dev:start "${cli_args[@]}"
 """
 
 ["agentstack-server:dev:stop"]

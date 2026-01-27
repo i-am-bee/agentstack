@@ -113,6 +113,8 @@ fi
 
 if [[ -n "$CI" ]]; then
   PULL_MODE="hybrid"
+elif [[ -n "$SKIP_PULL" ]]; then
+  PULL_MODE="skip"
 else
   PULL_MODE="host"
 fi
