@@ -6,14 +6,13 @@
 'use client';
 
 import { Button, InlineNotification } from '@carbon/react';
+import { signOut } from 'next-auth/react';
+
+import { routes } from '#utils/router.ts';
 
 import classes from './AuthErrorPage.module.scss';
 
-interface Props {
-  signIn: () => Promise<void>;
-}
-
-export function AuthErrorPage({ signIn }: Props) {
+export function AuthErrorPage() {
   return (
     <div className={classes.root}>
       <InlineNotification
@@ -23,7 +22,7 @@ export function AuthErrorPage({ signIn }: Props) {
         hideCloseButton
         lowContrast
       />
-      <Button kind="primary" onClick={() => void signIn()}>
+      <Button kind="primary" onClick={() => signOut({ redirectTo: routes.signIn() })}>
         Sign in again
       </Button>
     </div>

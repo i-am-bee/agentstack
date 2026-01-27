@@ -27,7 +27,7 @@ export async function SignInProviders({ callbackUrl: redirectTo = routes.home() 
   const hasExistingToken = session?.user != null;
 
   if (hasExistingToken) {
-    return <AuthErrorPage signIn={handleSignIn.bind(null, { providerId: authProvider.id, redirectTo })} />;
+    return <AuthErrorPage />;
   }
 
   return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: authProvider.id, redirectTo })} />;
