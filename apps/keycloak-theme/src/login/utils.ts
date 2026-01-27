@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { InfoMessage, Provider } from "./types";
+import { APP_NAME } from "../constants";
+import type { InfoMessage, Provider, Realm } from "./types";
 
 export function isIbmProvider({
   alias,
@@ -24,4 +25,10 @@ export function stripHtmlFromInfoMessage(message: InfoMessage): InfoMessage {
       .replace(/<br\s*\/?>/gi, "\n")
       .replace(/<\/?[^>]+(>|$)/g, ""),
   };
+}
+
+export function getAppName(realm: Realm): string {
+  // Keycloak uses the realm name as a fallback if no display name is set, we dont want to show that
+  const hasDisplayName = realm.displayName && realm.displayName !== realm.name;
+  return hasDisplayName ? realm.displayName : APP_NAME;
 }

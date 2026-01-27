@@ -10,7 +10,6 @@
 
 .notification {
   margin-block-end: $spacing-05;
-  color: $text-inverse;
 
   &:global(
       .cds--inline-notification--low-contrast.cds--inline-notification--success

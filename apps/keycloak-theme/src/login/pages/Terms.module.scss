@@ -4,18 +4,7 @@
  */
 
 .root {
-  display: flex;
-  align-items: center;
-  min-block-size: 100vh;
-}
-
-.container {
-  margin-inline: auto;
-  padding-inline: $spacing-05;
-  inline-size: 100%;
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-06;
+  justify-content: center;
 }
 
 .content {
@@ -26,10 +15,8 @@
 }
 
 .termsText {
-  padding: $spacing-05;
-  background-color: $layer-01;
-  border-radius: 4px;
-  max-block-size: 400px;
+  @include scrollbar();
+  max-block-size: rem(400px);
   overflow-y: auto;
   margin-block-end: $spacing-05;
 }

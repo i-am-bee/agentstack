@@ -3,21 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
-  display: flex;
-  align-items: center;
-  min-block-size: 100vh;
-}
-
-.container {
-  margin-inline: auto;
-  padding-inline: $spacing-05;
-  inline-size: 100%;
-  display: flex;
-  flex-direction: column;
-  row-gap: $spacing-06;
-}
-
 .content {
   inline-size: 100%;
 }
@@ -61,10 +46,4 @@
 
 .registration {
   margin-block-start: $spacing-07;
-}
-
-@include breakpoint-up(md) {
-  .root {
-    padding-inline: $spacing-08;
-  }
 }

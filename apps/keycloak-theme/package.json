@@ -11,17 +11,16 @@
   "keywords": [],
   "dependencies": {
     "@carbon/icons-react": "catalog:",
-    "@carbon/layout": "^11.44.0",
+    "@carbon/layout": "catalog:",
     "@carbon/react": "catalog:",
     "@carbon/styles": "catalog:",
-    "@ibm/plex": "^6.4.1",
+    "@ibm/plex": "catalog:",
     "clsx": "catalog:",
     "keycloakify": "^11.14.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "storybook": "^8.1.10",
     "@i-am-bee/lint-config": "workspace:*",
     "@storybook/react": "^8.1.10",
     "@storybook/react-vite": "^8.1.10",
@@ -35,6 +34,7 @@
     "globals": "^15.12.0",
     "prettier": "3.3.1",
     "sass-embedded": "catalog:",
+    "storybook": "^8.1.10",
     "stylelint": "catalog:",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.15.0",

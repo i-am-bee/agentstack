@@ -11,6 +11,11 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import svgr from "vite-plugin-svgr";
 
 export default defineConfig({
+  define: {
+    "import.meta.env.VITE_APP_NAME": JSON.stringify(
+      process.env.APP_NAME || "Agent Stack",
+    ),
+  },
   plugins: [
     react(),
     svgr(),
@@ -31,6 +36,9 @@ export default defineConfig({
     }),
   ],
   css: {
+    modules: {
+      generateScopedName: "[name]__[local]__[hash:base64:5]",
+    },
     preprocessorOptions: {
       scss: {
         api: "modern",

@@ -9,12 +9,18 @@ catalogs:
     '@carbon/icons-react':
       specifier: ^11.71.0
       version: 11.71.0
+    '@carbon/layout':
+      specifier: ^11.44.0
+      version: 11.44.0
     '@carbon/react':
       specifier: ^1.97.0
       version: 1.97.0
     '@carbon/styles':
       specifier: ^1.96.0
       version: 1.96.0
+    '@ibm/plex':
+      specifier: ^6.4.1
+      version: 6.4.1
     '@svgr/webpack':
       specifier: ^8.1.0
       version: 8.1.0
@@ -109,7 +115,7 @@ importers:
         specifier: 'catalog:'
         version: 11.71.0(react@19.2.1)
       '@carbon/layout':
-        specifier: ^11.44.0
+        specifier: 'catalog:'
         version: 11.44.0
       '@carbon/motion':
         specifier: ^11.38.0
@@ -127,7 +133,7 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.68.0(react@19.2.1))
       '@ibm/plex':
-        specifier: ^6.4.1
+        specifier: 'catalog:'
         version: 6.4.1
       '@next/bundle-analyzer':
         specifier: 16.1.3
@@ -429,7 +435,7 @@ importers:
         specifier: 'catalog:'
         version: 11.71.0(react@18.3.1)
       '@carbon/layout':
-        specifier: ^11.44.0
+        specifier: 'catalog:'
         version: 11.44.0
       '@carbon/react':
         specifier: 'catalog:'
@@ -438,7 +444,7 @@ importers:
         specifier: 'catalog:'
         version: 1.96.0(sass@1.95.1)
       '@ibm/plex':
-        specifier: ^6.4.1
+        specifier: 'catalog:'
         version: 6.4.1
       clsx:
         specifier: 'catalog:'

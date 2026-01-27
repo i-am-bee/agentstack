@@ -7,9 +7,9 @@ import type { ReactNode } from "react";
 
 import classes from "./PageHeading.module.scss";
 
-type PageHeadingProps = {
+interface PageHeadingProps {
   children: ReactNode;
-};
+}
 
 export function PageHeading({ children }: PageHeadingProps) {
   return <h1 className={classes.heading}>{children}</h1>;

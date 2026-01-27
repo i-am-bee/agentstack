@@ -10,9 +10,11 @@ import type { JSX } from "keycloakify/tools/JSX";
 import type { LazyOrNot } from "keycloakify/tools/LazyOrNot";
 import { useLayoutEffect, useRef, useState } from "react";
 
-import { PageHeading } from "../components/PageHeading";
+import { Container } from "../components/Container/Container";
+import { PageHeading } from "../components/PageHeading/PageHeading";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../KcContext";
+import { getAppName } from "../utils";
 import classes from "./Register.module.scss";
 
 declare global {
@@ -54,7 +56,7 @@ export default function Register(props: RegisterProps) {
   } = kcContext;
 
   const { msg, msgStr, advancedMsg } = i18n;
-  const appName = realm.displayName || realm.name;
+  const appName = getAppName(realm);
 
   const [isFormSubmittable, setIsFormSubmittable] = useState(false);
   const [areTermsAccepted, setAreTermsAccepted] = useState(false);
@@ -71,95 +73,93 @@ export default function Register(props: RegisterProps) {
   }, []);
 
   return (
-    <div className={classes.root}>
-      <div className={classes.container}>
-        <Template
-          kcContext={kcContext}
-          i18n={i18n}
-          doUseDefaultCss={doUseDefaultCss}
-          headerNode={
-            messageHeader !== undefined ? (
-              advancedMsg(messageHeader)
-            ) : (
-              <PageHeading>
-                <>
-                  Register to <strong>{appName}</strong>
-                </>
-              </PageHeading>
-            )
-          }
-          displayMessage={messagesPerField.exists("global")}
-        >
-          <div className={classes.content}>
-            <form
-              ref={formRef}
-              className={classes.form}
-              action={url.registrationAction}
-              method="post"
-            >
-              <UserProfileFormFields
-                kcContext={kcContext}
+    <Container>
+      <Template
+        kcContext={kcContext}
+        i18n={i18n}
+        doUseDefaultCss={doUseDefaultCss}
+        headerNode={
+          messageHeader !== undefined ? (
+            advancedMsg(messageHeader)
+          ) : (
+            <PageHeading>
+              <>
+                Register to <strong>{appName}</strong>
+              </>
+            </PageHeading>
+          )
+        }
+        displayMessage={messagesPerField.exists("global")}
+      >
+        <div className={classes.content}>
+          <form
+            ref={formRef}
+            className={classes.form}
+            action={url.registrationAction}
+            method="post"
+          >
+            <UserProfileFormFields
+              kcContext={kcContext}
+              i18n={i18n}
+              kcClsx={() => ""}
+              onIsFormSubmittableValueChange={setIsFormSubmittable}
+              doMakeUserConfirmPassword={doMakeUserConfirmPassword}
+            />
+
+            {termsAcceptanceRequired && (
+              <TermsAcceptance
                 i18n={i18n}
-                kcClsx={() => ""}
-                onIsFormSubmittableValueChange={setIsFormSubmittable}
-                doMakeUserConfirmPassword={doMakeUserConfirmPassword}
+                messagesPerField={messagesPerField}
+                areTermsAccepted={areTermsAccepted}
+                onAreTermsAcceptedValueChange={setAreTermsAccepted}
               />
+            )}
 
-              {termsAcceptanceRequired && (
-                <TermsAcceptance
-                  i18n={i18n}
-                  messagesPerField={messagesPerField}
-                  areTermsAccepted={areTermsAccepted}
-                  onAreTermsAcceptedValueChange={setAreTermsAccepted}
-                />
+            {recaptchaRequired &&
+              (recaptchaVisible || recaptchaAction === undefined) && (
+                <div className={classes.recaptcha}>
+                  <div
+                    className="g-recaptcha"
+                    data-size="compact"
+                    data-sitekey={recaptchaSiteKey}
+                    data-action={recaptchaAction}
+                  ></div>
+                </div>
               )}
 
-              {recaptchaRequired &&
-                (recaptchaVisible || recaptchaAction === undefined) && (
-                  <div className={classes.recaptcha}>
-                    <div
-                      className="g-recaptcha"
-                      data-size="compact"
-                      data-sitekey={recaptchaSiteKey}
-                      data-action={recaptchaAction}
-                    ></div>
-                  </div>
-                )}
+            <div className={classes.formOptions}>
+              <Link href={url.loginUrl}>{msg("backToLogin")}</Link>
+            </div>
 
-              <div className={classes.formOptions}>
-                <Link href={url.loginUrl}>{msg("backToLogin")}</Link>
-              </div>
-
-              {recaptchaRequired &&
-              !recaptchaVisible &&
-              recaptchaAction !== undefined ? (
-                <Button
-                  className="g-recaptcha"
-                  data-sitekey={recaptchaSiteKey}
-                  data-callback="onSubmitRecaptcha"
-                  data-action={recaptchaAction}
-                  type="submit"
-                  kind="primary"
-                >
-                  {msg("doRegister")}
-                </Button>
-              ) : (
-                <Button
-                  type="submit"
-                  kind="primary"
-                  disabled={
-                    !isFormSubmittable ||
-                    (termsAcceptanceRequired && !areTermsAccepted)
-                  }
-                >
-                  {msgStr("doRegister")}
-                </Button>
-              )}
-            </form>
-          </div>
-        </Template>
-      </div>
-    </div>
+            {recaptchaRequired &&
+            !recaptchaVisible &&
+            recaptchaAction !== undefined ? (
+              <Button
+                className="g-recaptcha"
+                data-sitekey={recaptchaSiteKey}
+                data-callback="onSubmitRecaptcha"
+                data-action={recaptchaAction}
+                type="submit"
+                kind="primary"
+              >
+                {msg("doRegister")}
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                kind="primary"
+                disabled={
+                  !isFormSubmittable ||
+                  (termsAcceptanceRequired && !areTermsAccepted)
+                }
+              >
+                {msgStr("doRegister")}
+              </Button>
+            )}
+          </form>
+        </div>
+      </Template>
+    </Container>
   );
 }
 

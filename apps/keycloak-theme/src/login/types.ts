@@ -11,3 +11,5 @@ export type InfoMessage = NonNullable<LoginPageContext["message"]>;
 export type Provider = NonNullable<
   NonNullable<LoginPageContext["social"]>["providers"]
 >[number];
+
+export type Realm = KcContext["realm"];
