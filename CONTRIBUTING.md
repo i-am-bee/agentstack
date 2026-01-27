@@ -322,7 +322,7 @@ In addition to publishing the stable version, this action also ensures that the 
 To verify the visual layout and formatting of your changes before submitting:
 1. **Prerequisites:** Ensure you have **Node.js version 19 or higher**.
 2. **Setup:** `cd` to the `docs` folder in the repo. 
-3. **Installation:** Run `npm install`. As long as the folder has a `package.json`, this installs the same version of Mintlify used in the repository.
+3. **Installation:** Run `pnpm install`. As long as the folder has a `package.json`, this installs the same version of Mintlify used in the repository.
 4. **Execution:** Run `npx mintlify dev` to spin up a preview of the docs in your browser. Default is on port 3000: `http://localhost:3000`. 
 </br>
 
