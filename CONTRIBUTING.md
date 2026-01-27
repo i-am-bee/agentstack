@@ -300,10 +300,30 @@ mise run release:publish-stable
 
 In addition to publishing the stable version, this action also ensures that the docs in `main` branch are updated to reflect the new version by moving the `docs/development` folder from the release branch to `docs/stable` on `main`.
 
-## Documentation
+## Documentation Contribution Guidelines
 
-All changes that modify existing features or introduce new functionality must include documentation updates as part of the pull request. Documentation files should be added or updated in the `docs/development` folder.
+### 1. Process & PR Compliance
+* **Documentation-First PRs:** Any change modifying existing features or introducing new functionality **must** include documentation updates within the same Pull Request.
+* **Storage Location:** All new or updated documentation files must be located in the `docs/development` folder. The `docs/stable` is only to be updated if changes are urgent and can't wait until the next release. Reasoning for changes made to `docs/stable` must be explicitly called out in your PR description.
+* **Exemption Policy:** If a PR does not require documentation (e.g., internal refactoring, bug fixes with no API changes, or test updates), you must explicitly note this in your PR description: *"No documentation updates required."*
 
-The documentation for the CLI is auto-generated. Run `mise run agentstack-cli:docs` to generate it.
+#### 2. Technical Validation & Automation
+* **Clean Environment Test:** Every code snippet must be verified from a **fresh install** of Agent Stack in a clean virtual environment to ensure all dependencies are correctly accounted for.
+* **CLI Documentation:** Do not manually edit CLI reference pages. You must run the following command to ensure the reference stays in sync with the code:
+  `mise run agentstack-cli:docs`
+* **CI/CD Integration:** A GitHub workflow automatically checks that documentation requirements are met. Ensure your build passes before requesting a review.
 
-A GitHub workflow automatically checks that documentation requirements are met. If your change does not require documentation updates (e.g., bug fixes that don't change behavior, internal refactoring, or test-only changes), you must explicitly note this in your PR description.
+#### 3. Content & Experience Standards
+* **Prerequisites:** Explicitly list any external dependencies (e.g., API keys, Docker, or Mise) needed to run the examples on that page.
+* **Snippet Reliability:** Use `os.getenv` or the Agent Stack `secrets` utility for credentials—never hardcode strings or placeholders.
+* **Structural Consistency:** Each page should include a brief explanation of the feature's value, a prerequisites block, step-by-step instructions, and a troubleshooting section for common errors.
+
+#### Mintlify Preview for Live Changes
+To verify the visual layout and formatting of your changes before submitting:
+1. **Prerequisites:** Ensure you have **Node.js version 19 or higher**.
+2. **Setup:** `cd` to the `docs` folder in the repo. 
+3. **Installation:** Run `npm install`. As long as the folder has a `package.json`, this installs the same version of Mintlify used in the repository.
+4. **Execution:** Run `npx mintlify dev` to spin up a preview of the docs in your browser. Default is on port 3000: `http://localhost:3000`. 
+</br>
+
+ **Auto-Refresh:** The development server will watch for changes to your `.mdx` files and any edits will automatically refresh in the browser. You must save the changes in your IDE for them to be visible on the browser preview.
