@@ -247,9 +247,6 @@ spec:
               value: /app/db.crt
             {{- end }}
             {{- end }}
-            {{- if .Values.auth.enabled }}
-            - name: AUTH__DISABLE_AUTH
-              value: "false"
             - name: AUTH__JWT_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
@@ -260,9 +257,11 @@ spec:
                 secretKeyRef:
                   key: jwtPublicKey
                   name: agentstack-secret
+            {{- if .Values.auth.enabled }}
+            - name: AUTH__DISABLE_AUTH
+              value: "false"
             - name: AUTH__BASIC__ENABLED
               value: {{ .Values.auth.basic.enabled | quote }}
-            {{- if .Values.auth.enabled}}
             - name: AUTH__OIDC__ENABLED
               value: "true"
             - name: AUTH__OIDC__VALIDATE_AUDIENCE
@@ -282,7 +281,6 @@ spec:
                 secretKeyRef:
                   key: agentstackServerClientSecret
                   name: agentstack-secret
-            {{- end }}
             {{- else }}
             - name: AUTH__DISABLE_AUTH
               value: "true"
