@@ -163,6 +163,15 @@ Keycloak is deployed automatically when `auth.enabled` is `true`.
 2.  Navigate to **Identity Providers**.
 3.  Add your external provider (e.g., GitHub, Google).
 
+<Warning>
+**Email Verification Required:** Agent Stack requires the `email_verified` claim to be `true` in JWT tokens. When configuring external identity providers in Keycloak, ensure that:
+- Users verify their email addresses before authenticating
+- The `email_verified` claim is mapped to the token (this is included by default in the `email` scope)
+- External providers pass the email verification status correctly
+
+Without verified emails, authentication will fail with "Verified email not found" error.
+</Warning>
+
 <details>
 <summary>Keycloak Architecture & Roles</summary>
 
