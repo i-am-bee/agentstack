@@ -38,7 +38,7 @@
     "lodash": "catalog:",
     "mermaid": "^11.12.2",
     "next": "catalog:",
-    "next-auth": "5.0.0-beta.29",
+    "next-auth": "5.0.0-beta.30",
     "openid-client": "^6.8.1",
     "pluralize": "^8.0.0",
     "promise-coalesce": "1.5.0",
