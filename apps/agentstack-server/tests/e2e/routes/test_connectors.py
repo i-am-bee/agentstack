@@ -13,12 +13,8 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.usefixtures("clean_up")
-async def test_list_connector_presets(test_configuration):
-    async with httpx.AsyncClient(
-        base_url=test_configuration.server_url,
-        auth=("admin", "test-password"),
-        timeout=30.0,
-    ) as client:
+async def test_list_connector_presets(test_configuration, test_admin):
+    async with httpx.AsyncClient(base_url=test_configuration.server_url, auth=test_admin, timeout=30.0) as client:
         response = await client.get("/api/v1/connectors/presets")
         assert response.status_code == 200, f"Failed to list presets: {response.text}"
 
@@ -36,12 +32,8 @@ async def test_list_connector_presets(test_configuration):
 
 
 @pytest.mark.usefixtures("clean_up")
-async def test_stdio_connector_happy_path(test_configuration):
-    async with httpx.AsyncClient(
-        base_url=test_configuration.server_url,
-        auth=("admin", "test-password"),
-        timeout=120.0,
-    ) as client:
+async def test_stdio_connector_happy_path(test_configuration, test_admin):
+    async with httpx.AsyncClient(base_url=test_configuration.server_url, auth=test_admin, timeout=120.0) as client:
         logger.info("Creating stdio connector with URL mcp+stdio://test")
         create_response = await client.post(
             "/api/v1/connectors",

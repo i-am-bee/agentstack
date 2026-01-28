@@ -81,7 +81,7 @@ jobs:
     environment: release
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      HELM_EXPERIMENTAL_OCI: '1'
+      HELM_EXPERIMENTAL_OCI: "1"
     steps:
       - uses: actions/checkout@v4
       - id: version
@@ -137,9 +137,26 @@ jobs:
           file: ./apps/supergateway/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/${{ github.repository }}/supergateway:latest
+          tags: ghcr.io/${{ github.repository }}/supergateway:${{ github.sha }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/supergateway:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/supergateway:cache,mode=max
+
+      - run: mise run 'keycloak-theme:build:*'
+      - id: keycloak-version
+        run: |
+          KEYCLOAK_VERSION=$(grep -oP 'FROM quay.io/keycloak/keycloak:\K[0-9.]+' ./apps/keycloak-theme/Dockerfile)
+          echo "version=$KEYCLOAK_VERSION" >> $GITHUB_OUTPUT
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./apps/keycloak-theme
+          file: ./apps/keycloak-theme/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ github.repository }}/keycloak-themed:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/keycloak-themed:${{ steps.keycloak-version.outputs.version }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/keycloak-themed:cache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/keycloak-themed:cache,mode=max
 
       - run: mise run 'agentstack-ui:build:*'
       - uses: docker/build-push-action@v6
@@ -178,5 +195,5 @@ jobs:
           git fetch origin
           git checkout -B install origin/main
           git push --force --set-upstream origin install
-      
+
       - run: uv cache prune --ci

@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: restricted-access-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: test-client
+  
+  policyTypes:
+    - Egress
+  
+  egress:
+    # Rule 1: Allow DNS in kube-system namespace
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    
+    # Rule 2: Allow ONLY agentstack-server in specific namespace
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: default
+          podSelector:
+            matchLabels:
+              app: agentstack-server
+      ports:
+        - protocol: TCP
+          port: 8333
+    
+    # Rule 3: Allow external internet ONLY
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+              - 127.0.0.0/8
+              - 224.0.0.0/4
+              - 240.0.0.0/4
+              - 100.64.0.0/10
+              - 198.18.0.0/15

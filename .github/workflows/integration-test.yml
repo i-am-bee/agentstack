@@ -24,14 +24,14 @@ jobs:
     timeout-minutes: 25
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: ./.github/actions/maximize-build-space
         with:
           root-reserve-mb: 15360
           temp-reserve-mb: 2048
           swap-size-mb: 1024
           remove-dotnet: 'true'
-      - uses: actions/checkout@v4
       - name: "Set up Lima"
         uses: lima-vm/lima-actions/setup@v1
         id: lima-actions-setup
@@ -40,13 +40,14 @@ jobs:
         with:
           path: ~/.cache/lima
           key: lima-${{ steps.lima-actions-setup.outputs.version }}
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: mise run agentstack-server:test:integration
         env:
           LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
-          LLM_MODEL: "${{ secrets.OPENAI_MODEL }}"
+          LLM_MODEL: "${{ vars.OPENAI_MODEL }}"
           LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
           # LLM_API_BASE: "https://api.groq.com/openai/v1"
           # LLM_MODEL: "groq:meta-llama/llama-4-maverick-17b-128e-instruct"

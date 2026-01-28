@@ -14,17 +14,19 @@ import typing
 
 import httpx
 import typer
-from agentstack_sdk.platform import Provider
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from agentstack_cli.async_typer import AsyncTyper
-from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.commands.platform.base_driver import BaseDriver, ImagePullMode
 from agentstack_cli.commands.platform.lima_driver import LimaDriver
 from agentstack_cli.commands.platform.wsl_driver import WSLDriver
+from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console
 from agentstack_cli.utils import verbosity
 
 app = AsyncTyper()
+
+configuration = Configuration()
 
 
 @functools.cache
@@ -62,24 +64,28 @@ async def start(
     set_values_list: typing.Annotated[
         list[str], typer.Option("--set", help="Set Helm chart values using <key>=<value> syntax", default_factory=list)
     ],
-    import_images: typing.Annotated[
-        list[str],
+    image_pull_mode: typing.Annotated[
+        ImagePullMode,
         typer.Option(
-            "--import", help="Import an image from a local Docker CLI into Agent Stack platform", default_factory=list
+            "--image-pull-mode",
+            help=textwrap.dedent(
+                """\
+                guest = pull all images inside VM
+                host = pull unavailable images on host, then import all
+                hybrid = import available images from host, pull the rest in VM
+                skip = skip explicit pull step (Kubernetes will attempt to pull missing images)
+                """
+            ),
         ),
-    ],
-    pull_on_host: typing.Annotated[
-        bool,
-        typer.Option(
-            "--pull-on-host",
-            help="Pull images on host Docker daemon and import them instead of pulling inside the VM. Acts as a pull cache layer.",
-        ),
-    ] = False,
+    ] = ImagePullMode.guest,
     values_file: typing.Annotated[
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+    skip_pull: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    skip_restart_deployments: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    no_wait_for_platform: typing.Annotated[bool, typer.Option(hidden=True)] = False,
 ):
     import agentstack_cli.commands.server
 
@@ -96,25 +102,27 @@ async def start(
         await driver.deploy(
             set_values_list=set_values_list,
             values_file=values_file_path,
-            import_images=import_images,
-            pull_on_host=pull_on_host,
+            image_pull_mode=image_pull_mode,
         )
 
-        with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
-            timeout = datetime.timedelta(minutes=20)
-            try:
-                async for attempt in AsyncRetrying(
-                    stop=stop_after_delay(timeout),
-                    wait=wait_fixed(datetime.timedelta(seconds=1)),
-                    retry=retry_if_exception_type((httpx.HTTPError, ConnectionError)),
-                    reraise=True,
-                ):
-                    with attempt:
-                        await Provider.list()
-            except Exception as ex:
-                raise ConnectionError(
-                    f"Server did not start in {timeout}. Please check your internet connection."
-                ) from ex
+        if not no_wait_for_platform:
+            with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
+                timeout = datetime.timedelta(minutes=20)
+                async with httpx.AsyncClient() as client:
+                    try:
+                        async for attempt in AsyncRetrying(
+                            stop=stop_after_delay(timeout),
+                            wait=wait_fixed(datetime.timedelta(seconds=1)),
+                            retry=retry_if_exception_type((httpx.HTTPError, ConnectionError)),
+                            reraise=True,
+                        ):
+                            with attempt:
+                                resp = await client.get("http://localhost:8333/healthcheck")
+                                resp.raise_for_status()
+                    except Exception as ex:
+                        raise ConnectionError(
+                            f"Server did not start in {timeout}. Please check your internet connection."
+                        ) from ex
 
         console.success("Agent Stack platform started successfully!")
 

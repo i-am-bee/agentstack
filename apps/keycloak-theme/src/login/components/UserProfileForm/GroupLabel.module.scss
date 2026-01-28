@@ -1,0 +1,19 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.group {
+  margin-block-end: $spacing-05;
+}
+
+.header {
+  @include type-style("heading-compact-01");
+  margin-block-end: $spacing-02;
+}
+
+.description {
+  @include type-style("body-compact-01");
+  color: $text-secondary;
+  margin-block-end: 0;
+}

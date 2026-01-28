@@ -13,10 +13,7 @@
       "view",
       "chatgpt",
       "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "perplexity"
     ]
   },
   "favicon": "/favicon.svg",
@@ -141,7 +138,8 @@
               "development/agent-integration/mcp",
               "development/agent-integration/env-variables",
               "development/agent-integration/error",
-              "development/agent-integration/tool-calls"
+              "development/agent-integration/tool-calls",
+              "development/agent-integration/canvas"
             ]
           },
           {

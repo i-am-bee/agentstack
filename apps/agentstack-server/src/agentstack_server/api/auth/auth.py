@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 import httpx
@@ -230,7 +231,7 @@ def extract_oauth_token(
 
 
 @alru_cache(ttl=timedelta(seconds=5).seconds)
-async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = None) -> JWTClaims | Exception:
+async def validate_jwt(token: str, *, provider: OidcProvider, aud: Iterable[str]) -> JWTClaims | Exception:
     keyset = await discover_jwks(provider)
     try:
         claims = jwt.decode(  # pyright: ignore[reportUnknownMemberType]
@@ -239,9 +240,9 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = 
             claims_options={
                 "sub": {"essential": True},
                 "exp": {"essential": True},
-                "iss": {"essential": True, "value": str(provider.issuer)},
-            }
-            | ({"aud": {"essential": True, "value": aud}} if aud is not None else {}),
+                "iss": {"essential": True, "values": {str(provider.external_issuer), str(provider.issuer)}},
+                "aud": {"essential": True, "values": aud},
+            },
         )
         claims.validate()  # pyright: ignore[reportUnknownMemberType]
         return claims
@@ -250,7 +251,7 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: str | None = 
 
 
 @alru_cache(ttl=timedelta(seconds=15).seconds)
-async def introspect_token(token: str, *, provider: OidcProvider, aud: str | None = None) -> JWTClaims | Exception:
+async def introspect_token(token: str, *, provider: OidcProvider, aud: Iterable[str]) -> JWTClaims | Exception:
     """Call OAuth2 introspect endpoint to validate opaque token"""
 
     async with httpx.AsyncClient() as client:
@@ -271,10 +272,7 @@ async def introspect_token(token: str, *, provider: OidcProvider, aud: str | Non
                 claims = JWTClaims(
                     token,
                     header={},
-                    options={
-                        "iss": {"value": str(provider.issuer)},
-                    }
-                    | ({"aud": {"value": aud}} if aud is not None else {}),
+                    options={"iss": {"value": str(provider.issuer)}, "aud": {"values": aud}},
                 )
                 claims.validate()
                 return claims
@@ -288,34 +286,26 @@ async def introspect_token(token: str, *, provider: OidcProvider, aud: str | Non
 
 
 async def validate_oauth_access_token(
-    configuration: Configuration, token: str, aud: str | None = None
+    configuration: Configuration, token: str, aud: Iterable[str]
 ) -> tuple[JWTClaims | None, OidcProvider]:
-    exceptions: list[Exception] = []
+    provider = configuration.auth.oidc.provider
 
-    for provider in configuration.auth.oidc.providers:
-        try:
-            claims_or_exc = await validate_jwt(token, provider=provider, aud=aud)
-            if isinstance(claims_or_exc, Exception):
-                raise claims_or_exc
-            return claims_or_exc, provider
-        except DecodeError:
-            break  # Not a JWT
-        except KeyMismatchError:
-            continue  # None of the keys match for the issuer
-        except JWKSDiscoveryError:
-            break  # JWKS validation is non-functioning
+    try:
+        claims_or_exc = await validate_jwt(token, provider=provider, aud=frozenset(aud))
+        if isinstance(claims_or_exc, Exception):
+            raise claims_or_exc
+        return claims_or_exc, provider
+    except (
+        DecodeError,  # Not a JWT
+        KeyMismatchError,  # None of the keys match for the issuer
+        JWKSDiscoveryError,  # JWKS validation is not working
+    ):
+        pass
 
-    for provider in configuration.auth.oidc.providers:
-        try:
-            claims_or_exc = await introspect_token(token, provider=provider, aud=aud)
-            if isinstance(claims_or_exc, Exception):
-                raise claims_or_exc
-            return claims_or_exc, provider
-        except Exception as e:
-            exceptions.append(e)
-            continue
-
-    raise ExceptionGroup("Token validation failed for all providers", exceptions)
+    claims_or_exc = await introspect_token(token, provider=provider, aud=aud)
+    if isinstance(claims_or_exc, Exception):
+        raise claims_or_exc
+    return claims_or_exc, provider
 
 
 @alru_cache(ttl=timedelta(seconds=15).seconds)
@@ -335,3 +325,39 @@ async def get_user_info(token: str, *, provider: OidcProvider) -> dict:
     except Exception as e:
         logger.warning(f"UserInfo discovery failed for provider {provider.issuer}: {e}")
         raise UserInfoDiscoveryError(f"UserInfo discovery failed for provider {provider.issuer}: {e}") from e
+
+
+async def validate_basic_auth(username: str, password: str, configuration: Configuration) -> str:
+    """
+    Validate basic auth credentials against the OIDC provider using the Resource Owner Password Credentials Grant.
+    """
+    provider = configuration.auth.oidc.provider
+    issuer = await discover_issuer(provider)
+    token_endpoint = issuer.get("token_endpoint")
+    if not isinstance(token_endpoint, str):
+        raise IssuerDiscoveryError(f"Provider {provider.issuer} does not support token endpoint discovery")
+
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(
+                token_endpoint,
+                data={
+                    "grant_type": "password",
+                    "username": username,
+                    "password": password,
+                    "client_id": provider.client_id,
+                    "client_secret": provider.client_secret.get_secret_value(),
+                    "scope": "openid email profile",  # Request standard scopes
+                },
+            )
+            access_token: str = cast(str, resp.raise_for_status().json()["access_token"])
+            return access_token
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 401:
+                # Invalid credentials
+                raise ValueError("Invalid credentials") from e
+            logger.warning(f"Basic auth validation failed for user {username}: {e}")
+            raise ValueError(f"Basic auth validation failed: {e}") from e
+        except Exception as e:
+            logger.warning(f"Basic auth validation unexpected error for user {username}: {e}")
+            raise ValueError(f"Basic auth validation failed: {e}") from e

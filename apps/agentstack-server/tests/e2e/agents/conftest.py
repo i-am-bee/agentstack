@@ -22,6 +22,7 @@ from tests.conftest import Configuration
 async def run_server(
     server: Server,
     port: int,
+    test_admin: tuple[str, str],
     a2a_client_factory: Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]],
     context_token: ContextToken,
     context_store: ContextStore | None = None,
@@ -31,7 +32,7 @@ async def run_server(
             asyncio.to_thread(
                 server.run,
                 port=port,
-                self_registration_client_factory=lambda: PlatformClient(auth=("admin", "test-password")),
+                self_registration_client_factory=lambda: PlatformClient(auth=test_admin),
                 context_store=context_store,
             )
         )
@@ -55,6 +56,7 @@ def create_server_with_agent(
     test_configuration: Configuration,
     a2a_client_factory,
     setup_platform_client,
+    test_admin,
 ):
     """Factory fixture that creates a server with the given agent function."""
 
@@ -72,6 +74,7 @@ def create_server_with_agent(
             a2a_client_factory=a2a_client_factory,
             context_store=context_store,
             context_token=context_token,
+            test_admin=test_admin,
         ) as (server, client):
             yield server, client
 

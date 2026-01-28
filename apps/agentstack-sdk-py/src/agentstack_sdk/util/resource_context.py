@@ -1,8 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 import contextlib
 import contextvars
+import re
 import typing
 
 
@@ -28,7 +28,14 @@ def resource_context(
             try:
                 yield resource
             finally:
-                contextvar.reset(token)
+                try:
+                    contextvar.reset(token)
+                except ValueError as e:
+                    if re.match(r"<Token var=.+ was created in a different Context", str(e)):
+                        # Ignore contextvar reset errors when the contextvar was created in a different Context
+                        pass
+                    else:
+                        raise
 
         return manager()
 

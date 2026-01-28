@@ -20,7 +20,7 @@ interface OIDCProviderOptions {
 
 export async function jwtWithRefresh(
   token: JWT,
-  providers: ProviderWithId[],
+  tokenProvider: ProviderWithId,
   proactiveTokenRefresh: boolean = false,
 ): Promise<JWT> {
   const triggerProactiveRefresh =
@@ -30,15 +30,10 @@ export async function jwtWithRefresh(
     // Subsequent requests, `accessToken` is still valid
     return token;
   } else {
-    const { refreshToken, provider } = token;
+    const { refreshToken } = token;
     // Subsequent requests, `accessToken` has expired, try to refresh it
     if (!refreshToken) {
       throw new TypeError('Missing refreshToken');
-    }
-
-    const tokenProvider = providers.find(({ id }) => id === provider);
-    if (!tokenProvider) {
-      throw new TypeError('No matching provider found');
     }
 
     // Type assertion to ensure we have the OIDC options
@@ -50,7 +45,10 @@ export async function jwtWithRefresh(
 
     const { clientId, clientSecret, issuer: issuerUrl } = providerOptions;
 
-    const refreshTokenUrl = await getTokenEndpoint(issuerUrl, clientId, clientSecret);
+    // OIDC_PROVIDER_ISSUER should point to the internal endpoint, while issuerUrl might be external url
+    // e.g. http://keycloak:8336/realms/agentstack (internal) vs https://localhost:8336/realms/agentstack (external)
+    const issuer = process.env.OIDC_PROVIDER_ISSUER ?? issuerUrl;
+    const refreshTokenUrl = await getTokenEndpoint(issuer, clientId, clientSecret);
 
     const newTokens = await cache.getOrSet<RefreshTokenResult>(
       await cacheKeys.refreshToken(refreshToken),

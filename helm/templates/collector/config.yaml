@@ -16,12 +16,14 @@ data:
 
     exporters:
       nop:
-      {{- if .Values.phoenix.enabled }}
-      otlp/phoenix:
-        endpoint: phoenix-svc:8335
-        compression: gzip
-        tls:
-          insecure: true
+      {{- if include "agentstack.phoenix.enabled" . }}
+      otlphttp/phoenix:
+        endpoint: {{ include "agentstack.phoenix.url" . | quote }}
+      {{- $phoenixApiKey := include "agentstack.phoenix.apiKey" . }}
+      {{- if $phoenixApiKey }}
+        headers:
+          Authorization: Bearer {{ $phoenixApiKey }}
+      {{- end }}
       {{- end }}
       {{- if .Values.collector.exporters }}
       {{ toYaml .Values.collector.exporters | nindent 6 }}
@@ -53,11 +55,11 @@ data:
     service:
       extensions: [ health_check ]
       pipelines:
-        {{- if .Values.phoenix.enabled }}
+        {{- if include "agentstack.phoenix.enabled" . }}
         traces/phoenix:
           receivers: [ otlp ]
           processors: [ memory_limiter, filter/phoenix, batch ]
-          exporters: [ otlp/phoenix ]
+          exporters: [ otlphttp/phoenix ]
         {{ else }}
         traces/nop:
           receivers: [ otlp ]

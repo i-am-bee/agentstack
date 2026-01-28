@@ -7,8 +7,8 @@ from agentstack_sdk.platform.user import User
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.usefixtures("setup_platform_client")
-async def test_get_user():
+@pytest.mark.usefixtures("setup_platform_client", "test_admin")
+async def test_get_user(test_admin):
     user = await User.get()
-    assert user.email == "admin@beeai.dev"
+    assert user.email == f"{test_admin[0]}@beeai.dev"
     assert user.role == "admin"

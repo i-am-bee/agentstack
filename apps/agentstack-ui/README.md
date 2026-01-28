@@ -2,7 +2,7 @@
 
 ## ENV
 
-See [`.env.example`](./.env.example).
+See [`template.env`](./template.env).
 
 ## Feature flags
 

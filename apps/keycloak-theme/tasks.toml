@@ -1,0 +1,103 @@
+# build 
+
+["keycloak-theme:build"]
+depends = ["keycloak-theme:build:*"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "docker build -t ghcr.io/i-am-bee/agentstack/keycloak-themed:local ."
+
+["keycloak-theme:build:jar"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+sources = ["src/**/*", "public/*", "dist_keycloak/*"]
+run = "npm run build && npx keycloakify build"
+
+# run
+
+["keycloak-theme:run"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "npx keycloakify start-keycloak -p ./"
+
+# keycloak dev
+
+["keycloak-theme:eject-page"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "npx keycloakify eject-page"
+
+["keycloak-theme:add-story"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "npx keycloakify add-story"
+
+["keycloak-theme:storybook"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "npx storybook dev -p 6006"
+
+# check
+
+["keycloak-theme:check"]
+depends = ["keycloak-theme:check:*"]
+
+["keycloak-theme:check:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm prettier --log-level silent --check src"
+sources = [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.scss",
+]
+outputs = { auto = true }
+
+["keycloak-theme:check:eslint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm eslint ./src"
+sources = ["src/**/*.ts", "src/**/*.tsx"]
+outputs = { auto = true }
+
+["keycloak-theme:check:tsc"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm tsc --noEmit"
+sources = ["src/**/*.ts", "src/**/*.tsx"]
+outputs = { auto = true }
+
+["keycloak-theme:check:stylelint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm stylelint \"src/**/*.scss\""
+sources = ["src/**/*.scss"]
+outputs = { auto = true }
+
+# fix
+
+["keycloak-theme:fix"]
+depends = ["keycloak-theme:fix:*"]
+
+["keycloak-theme:fix:prettier"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm prettier --log-level silent --write src"
+sources = [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.scss",
+]
+outputs = { auto = true }
+
+["keycloak-theme:fix:eslint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm eslint ./src --fix"
+sources = ["src/**/*.ts", "src/**/*.tsx"]
+outputs = { auto = true }
+
+["keycloak-theme:fix:stylelint"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/apps/keycloak-theme"
+run = "pnpm stylelint --fix \"src/**/*.scss\""
+sources = ["src/**/*.scss"]
+outputs = { auto = true }

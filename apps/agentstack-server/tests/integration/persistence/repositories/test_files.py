@@ -18,13 +18,8 @@ pytestmark = pytest.mark.integration
 
 async def create_user(db_transaction: AsyncConnection, user_id: uuid.UUID):
     await db_transaction.execute(
-        text("INSERT INTO users (id, email, created_at, role) VALUES (:id, :email, :created_at, :role)"),
-        {
-            "id": user_id,
-            "email": f"test-{user_id}@example.com",
-            "role": "user",
-            "created_at": utc_now(),
-        },
+        text("INSERT INTO users (id, email, created_at) VALUES (:id, :email, :created_at)"),
+        {"id": user_id, "email": f"test-{user_id}@example.com", "created_at": utc_now()},
     )
 
 

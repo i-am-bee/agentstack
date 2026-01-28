@@ -28,14 +28,14 @@ jobs:
     env:
       AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
     steps:
+      - uses: actions/checkout@v4
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: ./.github/actions/maximize-build-space
         with:
           root-reserve-mb: 15360
           temp-reserve-mb: 2048
           swap-size-mb: 1024
           remove-dotnet: 'true'
-      - uses: actions/checkout@v4
       - name: "Set up Lima"
         uses: lima-vm/lima-actions/setup@v1
         id: lima-actions-setup
@@ -44,6 +44,7 @@ jobs:
         with:
           path: ~/.cache/lima
           key: lima-${{ steps.lima-actions-setup.outputs.version }}
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

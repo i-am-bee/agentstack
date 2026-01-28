@@ -1,0 +1,16 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-03;
+}
+
+.checkboxes {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-02;
+}

@@ -53,3 +53,17 @@ uv pip install --quiet \
 
 pyright "$TMPDIR/snippets"
 """
+
+["docs:check:links"]
+dir = "{{config_root}}/docs"
+sources = ["**/*.mdx"]
+outputs = { auto = true }
+run = "pnpm mintlify broken-links"
+
+## manual check
+
+["docs:manual-check:external-links"]
+dir = "{{config_root}}/docs"
+sources = ["**/*.mdx"]
+outputs = { auto = true }
+run = "lychee --base-url=http://localhost --exclude-all-private --exclude '^https://www\\.npmjs\\.com' ." # npmjs.com is behind CloudFlare

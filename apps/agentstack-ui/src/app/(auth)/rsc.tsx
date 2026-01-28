@@ -14,7 +14,7 @@ import { logErrorDetails } from '#api/utils.ts';
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
 import { routes } from '#utils/router.ts';
 
-import { auth, AUTH_COOKIE_NAME } from './auth';
+import { auth, AUTH_COOKIE_NAME, AUTH_SECRET } from './auth';
 
 export async function ensureToken(request: Request) {
   const { isAuthEnabled } = runtimeConfig;
@@ -34,7 +34,7 @@ export async function ensureToken(request: Request) {
     request.headers.set('cookie', cookieStore.toString());
   }
 
-  const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({ req: request, cookieName: AUTH_COOKIE_NAME, secret: AUTH_SECRET });
 
   return token;
 }

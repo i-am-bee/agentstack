@@ -27,7 +27,6 @@ class User(pydantic.BaseModel):
     role: UserRole
     email: str
     created_at: pydantic.AwareDatetime
-    role_updated_at: pydantic.AwareDatetime | None = None
 
     @staticmethod
     async def get(*, client: PlatformClient | None = None) -> User:

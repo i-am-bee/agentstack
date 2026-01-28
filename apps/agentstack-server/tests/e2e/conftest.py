@@ -13,6 +13,7 @@ from a2a.client import Client, ClientConfig, ClientEvent, ClientFactory
 from a2a.types import AgentCard, Message, Task
 from agentstack_sdk.platform import ModelProvider, SystemConfiguration, use_platform_client
 from agentstack_sdk.platform.context import ContextToken
+from keycloak import KeycloakAdmin
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +46,8 @@ async def a2a_client_factory() -> Callable[[AgentCard | dict[str, Any], ContextT
 
 
 @pytest.fixture()
-async def setup_platform_client(test_configuration) -> AsyncIterator[None]:
-    async with use_platform_client(
-        base_url=test_configuration.server_url, timeout=None, auth=("admin", "test-password")
-    ):
+async def setup_platform_client(test_configuration, test_admin) -> AsyncIterator[None]:
+    async with use_platform_client(base_url=test_configuration.server_url, timeout=None, auth=test_admin):
         yield None
 
 
@@ -73,3 +72,74 @@ async def setup_real_llm(test_configuration, setup_platform_client):
             ex = Exception(str(f"Failed to setup LLM - {ex}\n{json.dumps(ex.response.text, indent=2)}"))
         raise ex
     await SystemConfiguration.update(default_llm_model=test_configuration.llm_model)
+
+
+@pytest.fixture(scope="session")
+def keycloak_admin(test_configuration) -> KeycloakAdmin:
+    """Keycloak Admin Client"""
+    return KeycloakAdmin(
+        server_url=test_configuration.keycloak_url,
+        username="admin",
+        password="admin",
+        realm_name="agentstack",
+        user_realm_name="master",
+        verify=True,
+    )
+
+
+def _create_test_user(keycloak_admin: KeycloakAdmin, username: str, role: str | None = None):
+    # Check if user exists
+    user_id = keycloak_admin.get_user_id(username)
+    if user_id:
+        keycloak_admin.delete_user(user_id)
+
+    # Create user with credentials
+    new_user_id = keycloak_admin.create_user(
+        {
+            "email": f"{username}@beeai.dev",
+            "username": username,
+            "enabled": True,
+            "emailVerified": True,
+            "credentials": [{"type": "password", "value": f"{username}-password", "temporary": False}],
+            "firstName": "Test",
+            "lastName": "User",
+        }
+    )
+    keycloak_admin.set_user_password(new_user_id, f"{username}-password", temporary=False)
+    if role:
+        [role] = [r for r in keycloak_admin.get_realm_roles() if r["name"] == role]
+        keycloak_admin.assign_realm_roles(new_user_id, role)
+    return keycloak_admin.get_user(new_user_id)
+
+
+@pytest.fixture(scope="session")
+def test_admin(keycloak_admin) -> tuple[str, str]:
+    username = "testadmin"
+    _create_test_user(keycloak_admin, username, "agentstack-admin")
+    try:
+        yield username, f"{username}-password"
+    finally:
+        if user_id := keycloak_admin.get_user_id(username):
+            keycloak_admin.delete_user(user_id)
+
+
+@pytest.fixture(scope="session")
+def test_user(keycloak_admin) -> tuple[str, str]:
+    username = "testuser"
+    _create_test_user(keycloak_admin, username)
+    try:
+        yield username, f"{username}-password"
+    finally:
+        if user_id := keycloak_admin.get_user_id(username):
+            keycloak_admin.delete_user(user_id)
+
+
+@pytest.fixture(scope="session")
+def test_second_user(keycloak_admin) -> tuple[str, str]:
+    username = "testuser2"
+    _create_test_user(keycloak_admin, username)
+    try:
+        yield username, f"{username}-password"
+    finally:
+        if user_id := keycloak_admin.get_user_id(username):
+            keycloak_admin.delete_user(user_id)

@@ -10,6 +10,7 @@ from importlib.metadata import PackageNotFoundError, version
 import procrastinate
 from fastapi import APIRouter, FastAPI, HTTPException, Request
 from fastapi.exception_handlers import http_exception_handler
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, ORJSONResponse
@@ -46,6 +47,7 @@ from agentstack_server.exceptions import (
 )
 from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
+from agentstack_server.service_layer.services.user_feedback import UserFeedbackService
 from agentstack_server.telemetry import INSTRUMENTATION_NAME, shutdown_telemetry
 
 logger = logging.getLogger(__name__)
@@ -201,11 +203,12 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
 
     @asynccontextmanager
     @inject
-    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App):
+    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, user_feedback: UserFeedbackService):
         try:
             register_telemetry()
             async with (
                 procrastinate_app.open_async(),
+                user_feedback,
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
                 with suppress(AlreadyEnqueued):
@@ -231,6 +234,14 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     mount_routes(app)
 
     # Execution order is important here: https://fastapi.tiangolo.com/tutorial/middleware/#multiple-middleware-execution-order
+    if configuration.cors.enabled:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=configuration.cors.allow_origins,
+            allow_credentials=configuration.cors.allow_credentials,
+            allow_methods=configuration.cors.allow_methods,
+            allow_headers=configuration.cors.allow_headers,
+        )
     app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
 

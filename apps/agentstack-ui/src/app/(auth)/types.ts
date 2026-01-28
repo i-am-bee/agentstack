@@ -13,26 +13,19 @@ const baseProviderConfigSchema = z.object({
   client_id: z.string(),
   client_secret: z.string(),
   issuer: z.string(),
+  external_issuer: z.string().optional(),
 });
 
 const customProviderConfigSchema = baseProviderConfigSchema.extend({
   provider_type: z.literal('custom').optional(),
 });
 
-const auth0ProviderConfigSchema = baseProviderConfigSchema.extend({
-  provider_type: z.literal('auth0'),
-  audience: z.string(),
-});
-
-export const providerConfigSchema = z.preprocess(
-  (val) => {
-    if (typeof val === 'object' && val !== null && !('provider_type' in val)) {
-      return { ...val, provider_type: 'custom' };
-    }
-    return val;
-  },
-  z.discriminatedUnion('provider_type', [auth0ProviderConfigSchema, customProviderConfigSchema]),
-);
+export const providerConfigSchema = z.preprocess((val) => {
+  if (typeof val === 'object' && val !== null && !('provider_type' in val)) {
+    return { ...val, provider_type: 'custom' };
+  }
+  return val;
+}, customProviderConfigSchema);
 
 export type ProviderConfig = z.infer<typeof providerConfigSchema>;
 

@@ -1,75 +1,76 @@
 {
-    "folders": [
-        {
-            "name": "root",
-            "path": "."
-        },
-        {
-            "name": "agentstack-server",
-            "path": "apps/agentstack-server"
-        },
-        {
-            "name": "agentstack-sdk-py",
-            "path": "apps/agentstack-sdk-py"
-        },
-        {
-            "name": "agentstack-sdk-ts",
-            "path": "apps/agentstack-sdk-ts"
-        },
-        {
-            "name": "agentstack-cli",
-            "path": "apps/agentstack-cli"
-        },
-        {
-            "name": "agentstack-ui",
-            "path": "apps/agentstack-ui",
-        },
-        {
-            "name": "beeai-web",
-            "path": "apps/beeai-web",
-        },
-        {
-            "name": "agent-chat",
-            "path": "agents/chat"
-        },
-        {
-            "name": "agent-form",
-            "path": "agents/form"
-        },
-        {
-            "name": "agent-rag",
-            "path": "agents/rag"
-        },
-        {
-            "name": "agent-canvas",
-            "path": "agents/canvas"
-        },
-        {
-            "name": "helm",
-            "path": "helm"
-        }
-    ],
-    "settings": {
-        "python.analysis.extraPaths": [
-            "${workspaceFolder}/apps/agentstack-sdk-py/src"
-        ],
-        "python.analysis.diagnosticMode": "openFilesOnly",
-        "python.analysis.typeCheckingMode": "basic",
-        "files.associations": {
-            "**/helm/templates/**/*.yaml": "helm",
-            "**/helm/templates/**/*.tpl": "helm"
-        },
-        "basedpyright.analysis.diagnosticMode": "openFilesOnly",
-        "cursorpyright.analysis.diagnosticMode": "openFilesOnly",
-        "cursorpyright.analysis.extraPaths": [
-            "${workspaceFolder}/apps/agentstack-sdk-py/src"
-        ],
-        "cursorpyright.analysis.typeCheckingMode": "basic"
+  "folders": [
+    {
+      "name": "root",
+      "path": ".",
     },
-    "extensions": {
-        "recommendations": [
-            "detachhead.basedpyright",
-            "charliermarsh.ruff"
-        ]
-    }
+    {
+      "name": "agentstack-server",
+      "path": "apps/agentstack-server",
+    },
+    {
+      "name": "agentstack-sdk-py",
+      "path": "apps/agentstack-sdk-py",
+    },
+    {
+      "name": "agentstack-sdk-ts",
+      "path": "apps/agentstack-sdk-ts",
+    },
+    {
+      "name": "agentstack-cli",
+      "path": "apps/agentstack-cli",
+    },
+    {
+      "name": "agentstack-ui",
+      "path": "apps/agentstack-ui",
+    },
+    {
+      "name": "beeai-web",
+      "path": "apps/beeai-web",
+    },
+    {
+      "name": "keycloak-theme",
+      "path": "apps/keycloak-theme",
+    },
+    {
+      "name": "agent-chat",
+      "path": "agents/chat",
+    },
+    {
+      "name": "agent-form",
+      "path": "agents/form",
+    },
+    {
+      "name": "agent-rag",
+      "path": "agents/rag",
+    },
+    {
+      "name": "agent-canvas",
+      "path": "agents/canvas",
+    },
+    {
+      "name": "helm",
+      "path": "helm",
+    },
+  ],
+  "settings": {
+    "python.analysis.extraPaths": [
+      "${workspaceFolder}/apps/agentstack-sdk-py/src",
+    ],
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.analysis.typeCheckingMode": "basic",
+    "files.associations": {
+      "**/helm/templates/**/*.yaml": "helm",
+      "**/helm/templates/**/*.tpl": "helm",
+    },
+    "basedpyright.analysis.diagnosticMode": "openFilesOnly",
+    "cursorpyright.analysis.diagnosticMode": "openFilesOnly",
+    "cursorpyright.analysis.extraPaths": [
+      "${workspaceFolder}/apps/agentstack-sdk-py/src",
+    ],
+    "cursorpyright.analysis.typeCheckingMode": "basic",
+  },
+  "extensions": {
+    "recommendations": ["detachhead.basedpyright", "charliermarsh.ruff"],
+  },
 }

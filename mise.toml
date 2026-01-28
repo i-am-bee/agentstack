@@ -9,6 +9,10 @@ uv = "0.9.5"
 nodejs = "22"
 pnpm = "10.15.1"
 
+# Java
+java = "21"
+maven = "3.9.12"
+
 # Kubernetes
 helm = "latest"
 kubeconform = "latest"
@@ -20,6 +24,7 @@ yq = "latest"
 fd = "latest"
 "github:google/addlicense" = "latest"
 gum = "latest"
+lychee = "latest"
 
 [settings]
 experimental = true # for python.uv_venv_auto
@@ -49,6 +54,7 @@ includes = [
     "apps/agentstack-sdk-py/tasks.toml",
     "apps/agentstack-server/tasks.toml",
     "apps/agentstack-ui/tasks.toml",
+    "apps/keycloak-theme/tasks.toml",
     "apps/beeai-web/tasks.toml",
     "apps/agentstack-sdk-ts/tasks.toml",
     "apps/supergateway/tasks.toml",

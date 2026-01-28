@@ -42,7 +42,7 @@ telemetry = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.5.3"
+version = "0.6.1"
 source = { editable = "../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -50,6 +50,7 @@ dependencies = [
     { name = "async-lru" },
     { name = "asyncclick" },
     { name = "authlib" },
+    { name = "cachetools" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "janus" },
@@ -72,6 +73,7 @@ requires-dist = [
     { name = "async-lru", specifier = ">=2.0.4" },
     { name = "asyncclick", specifier = ">=8.1.8" },
     { name = "authlib", specifier = ">=1.3.0" },
+    { name = "cachetools", specifier = ">=6.2.3" },
     { name = "fastapi", specifier = ">=0.116.1" },
     { name = "httpx" },
     { name = "janus", specifier = ">=2.0.0" },
@@ -89,7 +91,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.75" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.76" },
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
@@ -244,7 +246,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.75"
+version = "0.1.76"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -258,9 +260,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/59/42693afbd87dd692a2fb353a47941b8c773df7174fc1ff44e273d3af6162/beeai_framework-0.1.75.tar.gz", hash = "sha256:b8e0a6709088539b0683636f6b0c418a8ed77e14cbb7648c3b01db8227ac85a9", size = 189965, upload-time = "2026-01-08T15:25:37.286Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/62/9d0b1bf0c583e8b97ac208530140f77a26a4696faf6d67a6d67005eb6287/beeai_framework-0.1.76.tar.gz", hash = "sha256:adc188bcf9e98fff3d8583acdddf6a248f61a08677877f1abbd4f4b16645b0cc", size = 191628, upload-time = "2026-01-20T10:37:01.878Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/00/dedb7e5037dc7022f711cded4ddf297150231b6d294ec489f2d8c5f7f378/beeai_framework-0.1.75-py3-none-any.whl", hash = "sha256:e1930465e3650a3da4ab086053338b3b996712bdc2831c0fc3e39ca0b369b76f", size = 348832, upload-time = "2026-01-08T15:25:35.597Z" },
+    { url = "https://files.pythonhosted.org/packages/d9/52/b173e81fb6db6a42cfde1062a5d3f243d348c8080b7e6014f73a9c65f186/beeai_framework-0.1.76-py3-none-any.whl", hash = "sha256:38afbc0b3ebe090d63c4b9257103cb41c5421c10af2056261fff890fe357cdd8", size = 352647, upload-time = "2026-01-20T10:37:00.24Z" },
 ]
 
 [package.optional-dependencies]
@@ -402,7 +404,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.75" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.76" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "openai", specifier = ">=1.107.1" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.14" },
@@ -567,11 +569,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.20.2"
+version = "3.20.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c1/e0/a75dbe4bca1e7d41307323dad5ea2efdd95408f74ab2de8bd7dba9b51a1a/filelock-3.20.2.tar.gz", hash = "sha256:a2241ff4ddde2a7cebddf78e39832509cb045d18ec1a09d7248d6bfc6bfbbe64", size = 19510, upload-time = "2026-01-02T15:33:32.582Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/65/ce7f1b70157833bf3cb851b556a37d4547ceafc158aa9b34b36782f23696/filelock-3.20.3.tar.gz", hash = "sha256:18c57ee915c7ec61cff0ecf7f0f869936c7c30191bb0cf406f1341778d0834e1", size = 19485, upload-time = "2026-01-09T17:55:05.421Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/30/ab407e2ec752aa541704ed8f93c11e2a5d92c168b8a755d818b74a3c5c2d/filelock-3.20.2-py3-none-any.whl", hash = "sha256:fbba7237d6ea277175a32c54bb71ef814a8546d8601269e1bfc388de333974e8", size = 16697, upload-time = "2026-01-02T15:33:31.133Z" },
+    { url = "https://files.pythonhosted.org/packages/b5/36/7fb70f04bf00bc646cd5bb45aa9eddb15e19437a28b8fb2b4a5249fac770/filelock-3.20.3-py3-none-any.whl", hash = "sha256:4b0dda527ee31078689fc205ec4f1c1bf7d56cf88b6dc9426c4f230e46c2dce1", size = 16701, upload-time = "2026-01-09T17:55:04.334Z" },
 ]
 
 [[package]]
@@ -1429,11 +1431,11 @@ wheels = [
 
 [[package]]
 name = "pyasn1"
-version = "0.6.1"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ba/e9/01f1a64245b89f039897cb0130016d79f77d52669aae6ee7b159a6c4c018/pyasn1-0.6.1.tar.gz", hash = "sha256:6f580d2bdd84365380830acf45550f2511469f673cb4a5ae3857a3170128b034", size = 145322, upload-time = "2024-09-10T22:41:42.55Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/b6/6e630dff89739fcd427e3f72b3d905ce0acb85a45d4ec3e2678718a3487f/pyasn1-0.6.2.tar.gz", hash = "sha256:9b59a2b25ba7e4f8197db7686c09fb33e658b98339fadb826e9512629017833b", size = 146586, upload-time = "2026-01-16T18:04:18.534Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c8/f1/d6a797abb14f6283c0ddff96bbdd46937f64122b8c925cab503dd37f8214/pyasn1-0.6.1-py3-none-any.whl", hash = "sha256:0d632f46f2ba09143da3a8afe9e33fb6f92fa2320ab7e886e2d0f7672af84629", size = 83135, upload-time = "2024-09-11T16:00:36.122Z" },
+    { url = "https://files.pythonhosted.org/packages/44/b5/a96872e5184f354da9c84ae119971a0a4c221fe9b27a4d94bd43f2596727/pyasn1-0.6.2-py3-none-any.whl", hash = "sha256:1eb26d860996a18e9b6ed05e7aae0e9fc21619fcee6af91cca9bad4fbea224bf", size = 83371, upload-time = "2026-01-16T18:04:17.174Z" },
 ]
 
 [[package]]
@@ -1536,11 +1538,11 @@ wheels = [
 
 [[package]]
 name = "python-multipart"
-version = "0.0.21"
+version = "0.0.22"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/78/96/804520d0850c7db98e5ccb70282e29208723f0964e88ffd9d0da2f52ea09/python_multipart-0.0.21.tar.gz", hash = "sha256:7137ebd4d3bbf70ea1622998f902b97a29434a9e8dc40eb203bbcf7c2a2cba92", size = 37196, upload-time = "2025-12-17T09:24:22.446Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/01/979e98d542a70714b0cb2b6728ed0b7c46792b695e3eaec3e20711271ca3/python_multipart-0.0.22.tar.gz", hash = "sha256:7340bef99a7e0032613f56dc36027b959fd3b30a787ed62d310e951f7c3a3a58", size = 37612, upload-time = "2026-01-25T10:15:56.219Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/76/03af049af4dcee5d27442f71b6924f01f3efb5d2bd34f23fcd563f2cc5f5/python_multipart-0.0.21-py3-none-any.whl", hash = "sha256:cf7a6713e01c87aa35387f4774e812c4361150938d20d232800f75ffcf266090", size = 24541, upload-time = "2025-12-17T09:24:21.153Z" },
+    { url = "https://files.pythonhosted.org/packages/1b/d0/397f9626e711ff749a95d96b7af99b9c566a9bb5129b8e4c10fc4d100304/python_multipart-0.0.22-py3-none-any.whl", hash = "sha256:2b2cd894c83d21bf49d702499531c7bafd057d730c201782048f7945d82de155", size = 24579, upload-time = "2026-01-25T10:15:54.811Z" },
 ]
 
 [[package]]

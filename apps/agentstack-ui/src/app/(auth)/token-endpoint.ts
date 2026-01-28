@@ -28,7 +28,7 @@ export async function getTokenEndpoint(issuerUrl: string, clientId: string, clie
     return tokenEndpoint;
   } catch (discoveryError) {
     // Fallback: construct the token endpoint URL manually for OIDC
-    const fallbackUrl = `${issuerUrl.replace(/\/$/, '')}/token`;
+    const fallbackUrl = `${issuerUrl.replace(/\/$/, '')}/protocol/openid-connect/token`;
     console.error(`OIDC discovery failed for ${issuerUrl}, using fallback:`, discoveryError);
 
     return fallbackUrl;

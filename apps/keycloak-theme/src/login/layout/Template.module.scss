@@ -1,0 +1,23 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  max-inline-size: rem(400px);
+  inline-size: 100%;
+}
+
+.notification {
+  margin-block-end: $spacing-05;
+
+  &:global(
+      .cds--inline-notification--low-contrast.cds--inline-notification--success
+    ) {
+    color: $text-inverse;
+  }
+}
+
+.infoBox {
+  margin-block: $spacing-04;
+}
