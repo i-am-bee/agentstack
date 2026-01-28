@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import debounce from 'lodash/debounce';
 import { useEffect } from 'react';
 
 export interface TextSelectionInfo {
@@ -24,39 +25,41 @@ export function useTextSelection({ containerRef, onSelectionChange }: Props) {
       return;
     }
 
-    const handleMouseUp = () => {
-      // Use requestAnimationFrame to ensure selection is updated
-      requestAnimationFrame(() => {
-        const selection = window.getSelection();
-        const selectedText = selection?.toString().trim();
+    const processSelection = () => {
+      const selection = window.getSelection();
+      const selectedText = selection?.toString().trim();
 
-        if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
-          onSelectionChange(null);
-          return;
-        }
+      if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
+        onSelectionChange(null);
+        return;
+      }
 
-        const range = selection.getRangeAt(0);
-        if (!container.contains(range.commonAncestorContainer)) {
-          onSelectionChange(null);
-          return;
-        }
+      const range = selection.getRangeAt(0);
 
-        const rects = Array.from(range.getClientRects());
-        const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
+      if (!container.contains(range.commonAncestorContainer)) {
+        onSelectionChange(null);
+        return;
+      }
 
-        onSelectionChange({
-          text: selectedText,
-          range,
-          rects,
-          firstVisibleRect,
-        });
+      const rects = Array.from(range.getClientRects());
+      const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
+
+      onSelectionChange({
+        text: selectedText,
+        range,
+        rects,
+        firstVisibleRect,
       });
     };
 
-    container.addEventListener('mouseup', handleMouseUp);
+    const debouncedProcessSelection = debounce(processSelection, SELECTION_DEBOUNCE_MS);
+
+    document.addEventListener('selectionchange', debouncedProcessSelection);
 
     return () => {
-      container.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('selectionchange', debouncedProcessSelection);
     };
   }, [containerRef, onSelectionChange]);
 }
+
+const SELECTION_DEBOUNCE_MS = 100;
