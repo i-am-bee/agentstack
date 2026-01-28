@@ -49,8 +49,6 @@ export function convertFileToFileFieldValue(file: FileEntity) {
   return value;
 }
 
-export function getNormalizedField(field: FormField) {
-  return {
-    ...field,
-  };
+export function getFieldName(field: FormField) {
+  return `${field.id}.value` as const;
 }

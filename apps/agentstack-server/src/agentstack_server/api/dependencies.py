@@ -34,6 +34,7 @@ from agentstack_server.service_layer.services.external_mcp_service import Extern
 from agentstack_server.service_layer.services.files import FileService
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 from agentstack_server.service_layer.services.provider_build import ProviderBuildService
+from agentstack_server.service_layer.services.provider_discovery import ProviderDiscoveryService
 from agentstack_server.service_layer.services.providers import ProviderService
 from agentstack_server.service_layer.services.user_feedback import UserFeedbackService
 from agentstack_server.service_layer.services.users import UserService
@@ -42,6 +43,7 @@ from agentstack_server.service_layer.services.vector_stores import VectorStoreSe
 ConfigurationDependency = Annotated[Configuration, Depends(lambda: di[Configuration])]
 ProviderServiceDependency = Annotated[ProviderService, Depends(lambda: di[ProviderService])]
 ProviderBuildServiceDependency = Annotated[ProviderBuildService, Depends(lambda: di[ProviderBuildService])]
+ProviderDiscoveryServiceDependency = Annotated[ProviderDiscoveryService, Depends(lambda: di[ProviderDiscoveryService])]
 A2AProxyServiceDependency = Annotated[A2AProxyService, Depends(lambda: di[A2AProxyService])]
 ContextServiceDependency = Annotated[ContextService, Depends(lambda: di[ContextService])]
 ConfigurationServiceDependency = Annotated[ConfigurationService, Depends(lambda: di[ConfigurationService])]

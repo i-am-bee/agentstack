@@ -8,15 +8,18 @@ import json
 import logging
 import uuid
 from collections.abc import AsyncIterator, Callable
+from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
-from a2a.types import AgentCard
+from a2a.types import AgentCard, AgentExtension
+from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import HTTPException
+from httpx import AsyncClient
 from kink import inject
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_422_UNPROCESSABLE_CONTENT
 
-from agentstack_server.domain.constants import SELF_REGISTRATION_EXTENSION_URI
+from agentstack_server.domain.constants import AGENT_DETAIL_EXTENSION_URI, SELF_REGISTRATION_EXTENSION_URI
 from agentstack_server.domain.models.provider import (
     DockerImageProviderLocation,
     Provider,
@@ -28,7 +31,7 @@ from agentstack_server.domain.models.provider import (
 from agentstack_server.domain.models.registry import RegistryLocation
 from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.repositories.env import EnvStoreEntity
-from agentstack_server.exceptions import InvalidProviderUpgradeError, ManifestLoadError
+from agentstack_server.exceptions import InvalidProviderUpgradeError, ManifestLoadError, MissingAgentCardLabelError
 from agentstack_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
@@ -81,6 +84,10 @@ class ProviderService:
 
         except ValueError as ex:
             raise ManifestLoadError(location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST) from ex
+        except MissingAgentCardLabelError as ex:
+            raise ManifestLoadError(
+                location=location, message=str(ex), status_code=HTTP_422_UNPROCESSABLE_CONTENT
+            ) from ex
         except Exception as ex:
             raise ManifestLoadError(location=location, message=str(ex)) from ex
 
@@ -93,6 +100,57 @@ class ProviderService:
             await uow.commit()
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
+
+    async def _fetch_agent_card_from_container(self, location: DockerImageProviderLocation) -> AgentCard:
+        from a2a.types import AgentCapabilities
+
+        placeholder_card = AgentCard(
+            name="discovery",
+            description="",
+            url="",
+            version="",
+            capabilities=AgentCapabilities(),
+            default_input_modes=["text"],
+            default_output_modes=["text"],
+            skills=[],
+        )
+        temp_provider = Provider(
+            source=location,
+            origin=str(location.root),
+            created_by=uuid.UUID("00000000-0000-0000-0000-000000000000"),
+            agent_card=placeholder_card,
+        )
+        try:
+            await self._deployment_manager.create_or_replace(provider=temp_provider)
+            await self._deployment_manager.wait_for_startup(provider_id=temp_provider.id, timeout=timedelta(minutes=1))
+            url = await self._deployment_manager.get_provider_url(provider_id=temp_provider.id)
+            async with AsyncClient(base_url=str(url)) as client:
+                response = await client.get(AGENT_CARD_WELL_KNOWN_PATH, timeout=10)
+                response.raise_for_status()
+                agent_card = AgentCard.model_validate(response.json())
+                return self._inject_default_agent_detail_extension(agent_card, location)
+        finally:
+            with suppress(Exception):
+                await self._deployment_manager.delete(provider_id=temp_provider.id)
+
+    def _inject_default_agent_detail_extension(
+        self, agent_card: AgentCard, location: DockerImageProviderLocation
+    ) -> AgentCard:
+        if get_extension(agent_card, AGENT_DETAIL_EXTENSION_URI):
+            return agent_card
+
+        default_extension = AgentExtension(
+            uri=AGENT_DETAIL_EXTENSION_URI,
+            params={
+                "interaction_mode": "multi-turn",
+                "container_image_url": str(location.root),
+            },
+        )
+
+        extensions = list(agent_card.capabilities.extensions or [])
+        extensions.append(default_extension)
+        agent_card.capabilities.extensions = extensions
+        return agent_card
 
     async def patch_provider(
         self,

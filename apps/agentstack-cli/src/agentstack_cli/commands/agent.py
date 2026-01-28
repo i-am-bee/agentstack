@@ -180,6 +180,37 @@ processing_messages = [
 
 configuration = Configuration()
 
+DISCOVERY_TIMEOUT_SEC = 180
+DISCOVERY_POLL_INTERVAL_SEC = 2
+
+
+async def _discover_agent_card(docker_image: str) -> None:
+    from agentstack_sdk.platform.provider_discovery import DiscoveryState, ProviderDiscovery
+
+    console.info("Image missing agent card label, starting discovery...")
+
+    async with configuration.use_platform_client():
+        with status("Creating discovery task"):
+            discovery = await ProviderDiscovery.create(docker_image=docker_image)
+
+        start = asyncio.get_event_loop().time()
+        with status("Discovering agent card (this may take a while)"):
+            while discovery.status in (DiscoveryState.PENDING, DiscoveryState.IN_PROGRESS):
+                if asyncio.get_event_loop().time() - start > DISCOVERY_TIMEOUT_SEC:
+                    raise RuntimeError("Discovery timed out after 3 minutes")
+                await asyncio.sleep(DISCOVERY_POLL_INTERVAL_SEC)
+                await discovery.get()
+
+        if discovery.status == DiscoveryState.FAILED:
+            raise RuntimeError(f"Discovery failed: {discovery.error_message}")
+
+        card = discovery.agent_card
+        if not card:
+            raise RuntimeError("Discovery completed but no agent card was returned")
+
+        with status("Registering agent with discovered card"):
+            await Provider.create(location=docker_image, agent_card=card)
+
 
 @app.command("add")
 async def add_agent(
@@ -256,9 +287,15 @@ async def add_agent(
             if dockerfile:
                 raise ValueError("Dockerfile can be specified only if location is a GitHub url")
             console.info(f"Assuming public docker image or network address, attempting to add {location}")
-            with status("Registering agent to platform"):
-                async with configuration.use_platform_client():
-                    await Provider.create(location=location)
+            try:
+                with status("Registering agent to platform"):
+                    async with configuration.use_platform_client():
+                        await Provider.create(location=location)
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 422 and "beeai.dev.agent.json" in str(e.response.text):
+                    await _discover_agent_card(location)
+                    return
+                raise
         console.success(f"Agent [bold]{location}[/bold] added to platform")
         await list_agents()
 

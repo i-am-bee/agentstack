@@ -130,7 +130,7 @@ async def install(
             ).execute_async()
         ):
             try:
-                await agentstack_cli.commands.platform.start(set_values_list=[], import_images=[], verbose=verbose)
+                await agentstack_cli.commands.platform.start(set_values_list=[], verbose=verbose)
                 already_started = True
                 console.print()
             except Exception:
@@ -190,7 +190,7 @@ async def upgrade(
             "Upgrading agentstack-cli",
             env={"PATH": _path()},
         )
-        await agentstack_cli.commands.platform.start(set_values_list=[], import_images=[], verbose=verbose)
+        await agentstack_cli.commands.platform.start(set_values_list=[], verbose=verbose)
         await version(verbose=verbose)
 
 

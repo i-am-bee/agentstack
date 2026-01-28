@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { WarningFilled } from '@carbon/icons-react';
 import clsx from 'clsx';
 import type { ChangeEvent, CSSProperties, TextareaHTMLAttributes } from 'react';
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
@@ -15,10 +16,11 @@ type Props = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value'> & {
   maxRows?: number;
   resizable?: boolean;
   size?: 'lg';
+  invalid?: boolean;
 };
 
 export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(function TextAreaAutoHeight(
-  { className, resizable, maxRows, size, onChange, ...rest },
+  { className, resizable, maxRows, size, invalid, onChange, ...rest },
   ref,
 ) {
   const [value, setValue] = useState(rest.defaultValue ?? '');
@@ -68,10 +70,18 @@ export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(functio
       className={clsx(classes.root, className, sizeClassName, {
         [classes.resized]: Boolean(manualHeight),
       })}
+      data-invalid={invalid}
       data-replicated-value={value}
       style={maxRows ? ({ '--max-rows': `${maxRows}` } as CSSProperties) : undefined}
     >
-      <textarea ref={mergeRefs([ref, textareaRef])} {...rest} onChange={handleChange} />
+      <textarea
+        ref={mergeRefs([ref, textareaRef])}
+        {...rest}
+        className={clsx({ 'cds--text-input--invalid': invalid })}
+        onChange={handleChange}
+      />
+
+      {invalid && <WarningFilled className="cds--text-input__invalid-icon" />}
     </div>
   );
 

@@ -3,9 +3,11 @@
 
 import abc
 import importlib.resources
+import json
 import pathlib
 import shlex
 import typing
+from enum import StrEnum
 from subprocess import CompletedProcess
 from textwrap import dedent
 
@@ -15,6 +17,13 @@ from tenacity import AsyncRetrying, stop_after_attempt
 
 from agentstack_cli.configuration import Configuration
 from agentstack_cli.utils import merge, run_command
+
+
+class ImagePullMode(StrEnum):
+    guest = "guest"
+    host = "host"
+    hybrid = "hybrid"
+    skip = "skip"
 
 
 class BaseDriver(abc.ABC):
@@ -53,6 +62,34 @@ class BaseDriver(abc.ABC):
 
     @abc.abstractmethod
     async def exec(self, command: list[str]) -> None: ...
+
+    def _canonify(self, tag: str) -> str:
+        return tag if "." in tag.split("/")[0] else f"docker.io/{tag}"
+
+    async def _grab_image_shas(
+        self,
+        *,
+        mode: typing.Literal["guest", "host"],
+    ) -> dict[str, str]:
+        return {
+            tag: sha
+            for line in (
+                await run_command(
+                    ["docker", "images", "--digests"],
+                    "Listing host images",
+                )
+                if mode == "host"
+                else await self.run_in_vm(
+                    ["k3s", "ctr", "image", "ls"],
+                    "Listing guest images",
+                )
+            )
+            .stdout.decode()
+            .splitlines()[1:]
+            if (x := line.split())
+            and (sha := x[2])
+            and ((tag := self._canonify((x[0] + ":" + x[1]) if mode == "host" else x[0])) in self.loaded_images)
+        }
 
     async def install_tools(self) -> None:
         # Configure k3s registry for local registry access
@@ -103,10 +140,7 @@ class BaseDriver(abc.ABC):
         self,
         set_values_list: list[str],
         values_file: pathlib.Path | None = None,
-        import_images: list[str] | None = None,
-        pull_on_host: bool = False,
-        skip_pull: bool = False,
-        skip_restart_deployments: bool = False,
+        image_pull_mode: ImagePullMode = ImagePullMode.guest,
     ) -> None:
         _ = await self.run_in_vm(
             ["sh", "-c", "mkdir -p /tmp/agentstack && cat >/tmp/agentstack/chart.tgz"],
@@ -138,37 +172,42 @@ class BaseDriver(abc.ABC):
             input=yaml.dump(values).encode("utf-8"),
         )
 
-        images_str = (
-            await self.run_in_vm(
-                [
-                    "/bin/bash",
-                    "-c",
-                    "helm template agentstack /tmp/agentstack/chart.tgz --values=/tmp/agentstack/values.yaml "
-                    + " ".join(shlex.quote(f"--set={value}") for value in set_values_list)
-                    + " | sed -n '/^\\s*image:/{ /{{/!{ s/.*image:\\s*//p } }'",
-                ],
-                "Listing necessary images",
+        self.loaded_images = {
+            self._canonify(typing.cast(str, yaml.safe_load(line)))
+            for line in (
+                await self.run_in_vm(
+                    [
+                        "/bin/bash",
+                        "-c",
+                        "helm template agentstack /tmp/agentstack/chart.tgz --values=/tmp/agentstack/values.yaml "
+                        + " ".join(shlex.quote(f"--set={value}") for value in set_values_list)
+                        + " | sed -n '/^\\s*image:/{ /{{/!{ s/.*image:\\s*//p } }'",
+                    ],
+                    "Listing necessary images",
+                )
             )
-        ).stdout.decode()
+            .stdout.decode()
+            .splitlines()
+        }
 
-        def canonify(tag: str) -> str:
-            return tag if "." in tag.split("/")[0] else f"docker.io/{tag}"
+        images_to_import_from_host = set[str]()
+        shas_guest_before = dict[str, str]()
 
-        required_images = {canonify(typing.cast(str, yaml.safe_load(line))) for line in images_str.splitlines()}
-        images_to_import = {canonify(tag) for tag in import_images or []}
-        images_to_pull = required_images - images_to_import
-
-        if not skip_pull:
-            if pull_on_host:
+        if image_pull_mode in {ImagePullMode.host, ImagePullMode.hybrid}:
+            shas_guest_before = await self._grab_image_shas(mode="guest")
+            shas_host = await self._grab_image_shas(mode="host")
+            if image_pull_mode == ImagePullMode.host and (images_to_pull := self.loaded_images - shas_host.keys()):
                 for image in images_to_pull:
-                    await run_command(["docker", "pull", image], f"Pulling image {image} on host")
-                images_to_import = required_images
-                images_to_pull = set[str]()
+                    await run_command(
+                        ["docker", "pull", image],
+                        f"Pulling image {image} on host",
+                    )
+                shas_host = await self._grab_image_shas(mode="host")
+            images_to_import_from_host = dict(shas_host.items() - shas_guest_before.items()).keys() & self.loaded_images
+            await self.import_images(*images_to_import_from_host)
 
-            if images_to_import:
-                await self.import_images(*images_to_import)
-
-            for image in images_to_pull:
+        if image_pull_mode in {ImagePullMode.guest, ImagePullMode.hybrid}:
+            for image in self.loaded_images - images_to_import_from_host:
                 async for attempt in AsyncRetrying(stop=stop_after_attempt(5)):
                     with attempt:
                         attempt_num = attempt.retry_state.attempt_number
@@ -176,10 +215,6 @@ class BaseDriver(abc.ABC):
                             ["k3s", "ctr", "image", "pull", image],
                             f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
                         )
-        elif images_to_import:
-            await self.import_images(*images_to_import)
-
-        self.loaded_images = required_images
 
         kubeconfig_path = anyio.Path(Configuration().lima_home) / self.vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_path.parent.mkdir(parents=True, exist_ok=True)
@@ -210,8 +245,35 @@ class BaseDriver(abc.ABC):
             "Deploying Agent Stack platform with Helm",
         )
 
-        if import_images and not skip_restart_deployments:
-            await self.run_in_vm(
-                ["k3s", "kubectl", "rollout", "restart", "deployment"],
-                "Restarting deployments to load imported images",
-            )
+        if shas_guest_before and (
+            replaced_digests := set(shas_guest_before.values())
+            - set((await self._grab_image_shas(mode="guest")).values())
+        ):
+            for pod in dict.get(
+                json.loads(
+                    (
+                        await self.run_in_vm(
+                            ["k3s", "kubectl", "get", "pods", "-o", "json", "--all-namespaces"],
+                            "Getting pods",
+                        )
+                    ).stdout
+                ),
+                "items",
+                [],
+            ):
+                if any(
+                    container_status.get("imageID", "") in replaced_digests
+                    for container_status in pod.get("status", {}).get("containerStatuses", [])
+                ):
+                    await self.run_in_vm(
+                        [
+                            "k3s",
+                            "kubectl",
+                            "delete",
+                            "pod",
+                            pod["metadata"]["name"],
+                            "-n",
+                            pod["metadata"]["namespace"],
+                        ],
+                        f"Removing pod with obsolete image {pod['metadata']['namespace']}/{pod['metadata']['name']}",
+                    )

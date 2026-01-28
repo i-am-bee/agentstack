@@ -23,7 +23,7 @@ dependencies:
     name: phoenix-helm
     alias: phoenix
     repository: oci://registry-1.docker.io/arizephoenix
-    version: 2.x.x
+    version: 4.x.x
   - condition: redis.enabled
     name: redis
     repository: oci://registry-1.docker.io/cloudpirates

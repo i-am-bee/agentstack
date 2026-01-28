@@ -164,11 +164,12 @@ run = """
 #!/bin/bash
 
 set -e
-VM_NAME='{{option(name="vm-name", default="agentstack-local-dev")}}'
+VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:disconnect --vm-name="$VM_NAME"
 {{ mise_bin }} run agentstack:stop-all --except "$VM_NAME"
 eval "cli_args=(${usage_cli_args})"
+export SKIP_PULL
 {{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
     --no-wait-for-platform \
     --set externalRegistries=null \
@@ -178,11 +179,15 @@ eval "cli_args=(${usage_cli_args})"
 
 ["agentstack-server:dev:reload"]
 dir = "{{config_root}}/apps/agentstack-server"
+usage = '''
+arg "[cli_args]..."
+'''
 run = """
 #!/bin/bash
+eval "cli_args=(${usage_cli_args})"
 {{ mise_bin }} run --force helm:build
 {{ mise_bin }} run --force agentstack-cli:build:copy-helm-chart
-{{ mise_bin }} run agentstack-server:dev:start --skip-pull {{arg(name="cli-args", var=true, default="--")}}
+SKIP_PULL=true {{ mise_bin }} run agentstack-server:dev:start "${cli_args[@]}"
 """
 
 ["agentstack-server:dev:stop"]
@@ -292,7 +297,7 @@ keycloak:
         roles: ["agentstack-admin"]
 ' > "$CONFIG_FILE"
 
-{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} --skip-restart-deployments -f "$CONFIG_FILE"
+{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} -f "$CONFIG_FILE"
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"

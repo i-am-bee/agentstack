@@ -78,3 +78,4 @@ force-exclude = true
 ignore = ["tests/**", "examples/cli.py"]
 venvPath = "."
 venv = ".venv"
+reportUnusedCallResult = false

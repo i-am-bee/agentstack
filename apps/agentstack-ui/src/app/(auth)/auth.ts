@@ -7,7 +7,6 @@ import NextAuth from 'next-auth';
 import type { OIDCConfig } from 'next-auth/providers';
 
 import { runtimeConfig } from '#contexts/App/runtime-config.ts';
-import type { AuthProvider } from '#modules/auth/types.ts';
 import { routes } from '#utils/router.ts';
 
 import type { ProviderConfig, ProviderWithId } from './types';
@@ -17,14 +16,6 @@ import { getTokenRefreshSchedule, jwtWithRefresh, RefreshTokenError } from './ut
 export const AUTH_COOKIE_NAME = 'agentstack';
 
 const { isAuthEnabled } = runtimeConfig;
-
-export function getAuthProviders(): AuthProvider[] {
-  return getProviders()
-    .filter((provider) => provider.id !== 'credentials')
-    .map((provider) => {
-      return { id: provider.id, name: provider.name };
-    });
-}
 
 function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
   const options = {
@@ -53,11 +44,11 @@ function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
   };
 }
 
-function getProviders(): ProviderWithId[] {
+export function getProvider(): ProviderWithId | null {
   const { isAuthEnabled } = runtimeConfig;
 
   if (!isAuthEnabled) {
-    return [];
+    return null;
   }
 
   try {
@@ -86,25 +77,27 @@ function getProviders(): ProviderWithId[] {
     // Validate using the schema
     const validatedConfig = providerConfigSchema.parse(providerConfig);
 
-    return [createOIDCProvider(validatedConfig)];
+    return createOIDCProvider(validatedConfig);
   } catch (err) {
     console.error('Unable to parse OIDC provider configuration environment variables.', err);
 
-    return [];
+    return null;
   }
 }
 
-const providers = getProviders();
+const provider = getProvider();
+
+// Prevents nextauth errors when authentication is disabled and NEXTAUTH_SECRET is not provided
+export const AUTH_SECRET = isAuthEnabled ? process.env.NEXTAUTH_SECRET : 'dummy_secret';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers,
+  providers: provider ? [provider] : [],
   pages: {
     signIn: routes.signIn(),
   },
   session: { strategy: 'jwt' },
   trustHost: true,
-  // Prevents nextauth errors when authentication is disabled and NEXTAUTH_SECRET is not provided
-  secret: isAuthEnabled ? process.env.NEXTAUTH_SECRET : 'dummy_secret',
+  secret: AUTH_SECRET,
   cookies: {
     sessionToken: {
       name: AUTH_COOKIE_NAME,
@@ -135,8 +128,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       try {
+        if (!provider) {
+          return null;
+        }
+
         const proactiveTokenRefresh = trigger === 'update' && Boolean(session?.proactiveTokenRefresh);
-        return await jwtWithRefresh(token, providers, proactiveTokenRefresh);
+        return await jwtWithRefresh(token, provider, proactiveTokenRefresh);
       } catch (error) {
         console.error('Error while refreshing jwt token:', error);
 
@@ -163,10 +160,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const clientSecret = process.env.OIDC_PROVIDER_CLIENT_SECRET;
 
         if (refreshToken && issuer && clientId && clientSecret) {
-          const params = new URLSearchParams();
-          params.append('client_id', clientId);
-          params.append('client_secret', clientSecret);
-          params.append('refresh_token', refreshToken as string);
+          const params = new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            refresh_token: refreshToken,
+          });
 
           try {
             await fetch(`${issuer}/protocol/openid-connect/logout`, {

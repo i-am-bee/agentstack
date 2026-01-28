@@ -14,6 +14,7 @@ class Queues(StrEnum):
     TEXT_EXTRACTION = "text_extraction"
     TOOLKIT_DELETION = "toolkit_deletion"
     BUILD_PROVIDER = "build_provider"
+    PROVIDER_DISCOVERY = "provider_discovery"
 
     @staticmethod
     def all() -> set[str]:

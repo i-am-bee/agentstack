@@ -35,7 +35,7 @@ from agentstack_server.domain.constants import (
 )
 from agentstack_server.domain.models.registry import RegistryLocation
 from agentstack_server.domain.utils import bridge_k8s_to_localhost, bridge_localhost_to_k8s
-from agentstack_server.exceptions import MissingConfigurationError, VersionResolveError
+from agentstack_server.exceptions import MissingAgentCardLabelError, MissingConfigurationError, VersionResolveError
 from agentstack_server.utils.a2a import get_extension
 from agentstack_server.utils.docker import DockerImageID, ResolvedDockerImageID
 from agentstack_server.utils.github import ResolvedGithubUrl
@@ -85,7 +85,7 @@ class DockerImageProviderLocation(RootModel):
         resolved_version = await self.get_resolved_version()
         labels = await resolved_version.get_labels()
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
-            raise ValueError(f"Docker image labels must contain 'beeai.dev.agent.json': {self.root!s}")
+            raise MissingAgentCardLabelError(str(self.root))
         return AgentCard.model_validate(json.loads(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME])))
 
 

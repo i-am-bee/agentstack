@@ -28,6 +28,7 @@ class LoggingConfiguration(BaseModel):
     level: int = logging.INFO
     level_uvicorn: int = Field(default=logging.FATAL, validate_default=True)
     level_sqlalchemy: int = Field(default=None, validate_default=True)
+    level_procrastinate: int = Field(default=logging.INFO, validate_default=True)
 
     @model_validator(mode="after")
     def level_uvicorn_validator(self):
@@ -42,7 +43,7 @@ class LoggingConfiguration(BaseModel):
             return cls.validate_level(v)
         return logging.INFO if cls.validate_level(info.data["level"]) == logging.DEBUG else logging.WARNING
 
-    @field_validator("level", "level_uvicorn", mode="before")
+    @field_validator("level", "level_uvicorn", "level_procrastinate", mode="before")
     @classmethod
     def validate_level(cls, v: str | int | None):
         return v if isinstance(v, int) else logging.getLevelNamesMapping()[v.upper()]
@@ -216,6 +217,9 @@ class VectorStoresConfiguration(BaseModel):
 
 class TelemetryConfiguration(BaseModel):
     collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
+
+    phoenix_url: AnyUrl | None = None
+    phoenix_api_key: Secret[str] | None = None
 
 
 class GithubAppConfiguration(BaseModel):

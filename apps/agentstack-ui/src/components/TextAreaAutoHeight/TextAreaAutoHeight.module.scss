@@ -68,6 +68,13 @@ $padding-inline: $spacing-05;
     border-radius: $border-radius;
   }
 
+  &[data-invalid] {
+    &::after,
+    > textarea {
+      padding-inline-end: $spacing-08;
+    }
+  }
+
   &.lg {
     --padding-top: #{rem(14px)};
     --padding-bottom: #{rem(14px)};

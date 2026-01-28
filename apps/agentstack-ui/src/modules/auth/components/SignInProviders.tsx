@@ -6,20 +6,31 @@
 import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 
-import { getAuthProviders, signIn } from '#app/(auth)/auth.ts';
+import { auth, getProvider, signIn } from '#app/(auth)/auth.ts';
 import { routes } from '#utils/router.ts';
 
+import { AuthErrorPage } from './AuthErrorPage';
 import { AutoSignIn } from './AutoSignIn';
 
 interface Props {
   callbackUrl?: string;
 }
 
-const authProviders = getAuthProviders();
-const providers = Object.values(authProviders);
+const authProvider = getProvider();
 
-export function SignInProviders({ callbackUrl: redirectTo = routes.home() }: Props) {
-  return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: providers[0].id, redirectTo })} />;
+export async function SignInProviders({ callbackUrl: redirectTo = routes.home() }: Props) {
+  if (!authProvider) {
+    return null;
+  }
+
+  const session = await auth();
+  const hasExistingToken = session?.user != null;
+
+  if (hasExistingToken) {
+    return <AuthErrorPage />;
+  }
+
+  return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: authProvider.id, redirectTo })} />;
 }
 
 async function handleSignIn({ providerId, redirectTo }: { providerId: string; redirectTo: string }) {
@@ -34,8 +45,6 @@ async function handleSignIn({ providerId, redirectTo }: { providerId: string; re
       return redirect(routes.error({ error }));
     }
 
-    // Otherwise if a redirect happens Next.js can handle it so you can just re-thrown the error and let Next.js handle it.
-    // https://nextjs.org/docs/app/api-reference/functions/redirect#server-component
     throw error;
   }
 }

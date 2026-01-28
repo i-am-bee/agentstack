@@ -8,6 +8,7 @@ from procrastinate import Blueprint, JobContext, builtin_tasks
 from agentstack_server.jobs.queues import Queues
 from agentstack_server.service_layer.services.a2a import A2AProxyService
 from agentstack_server.service_layer.services.contexts import ContextService
+from agentstack_server.service_layer.services.provider_discovery import ProviderDiscoveryService
 
 blueprint = Blueprint()
 
@@ -30,6 +31,15 @@ async def cleanup_expired_a2a_tasks(timestamp: int, a2a_proxy: A2AProxyService) 
     """Delete tracked request objects that haven't been used for several days."""
     deleted_stats = await a2a_proxy.expire_requests()
     logger.info(f"Deleted: {deleted_stats}")
+
+
+@blueprint.periodic(cron="15 * * * *")
+@blueprint.task(queueing_lock="cleanup_expired_provider_discoveries", queue=str(Queues.CRON_CLEANUP))
+@inject
+async def cleanup_expired_provider_discoveries(timestamp: int, service: ProviderDiscoveryService) -> None:
+    """Delete provider discovery records older than 1 day."""
+    deleted_count = await service.expire_discoveries()
+    logger.info(f"Deleted {deleted_count} expired provider discoveries")
 
 
 @blueprint.periodic(cron="*/10 * * * *")

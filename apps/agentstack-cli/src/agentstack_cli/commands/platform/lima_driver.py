@@ -181,6 +181,8 @@ class LimaDriver(BaseDriver):
 
     @typing.override
     async def import_images(self, *tags: str):
+        if not tags:
+            return
         image_dir = anyio.Path("/tmp/agentstack")
         await image_dir.mkdir(exist_ok=True, parents=True)
         image_file = str(uuid.uuid4())

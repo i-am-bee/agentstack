@@ -180,3 +180,12 @@ def retry_if_exception_grp_type(*exception_types: type[BaseException]) -> retry_
 class GatewayError(PlatformError):
     def __init__(self, message: str | None = None, status_code: int = status.HTTP_502_BAD_GATEWAY):
         super().__init__(message, status_code)
+
+
+class MissingAgentCardLabelError(PlatformError):
+    def __init__(self, image: str):
+        self.image = image
+        super().__init__(
+            f"Docker image labels must contain 'beeai.dev.agent.json': {image}",
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )

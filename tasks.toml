@@ -94,7 +94,7 @@ run = "true" # Empty tests in case there are no tests
 # platform tasks
 
 ["agentstack:start"]
-depends = ["agentstack-server:build", "supergateway:build"]
+depends = ["agentstack-server:build", "supergateway:build", "keycloak-theme:build" ]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
@@ -106,25 +106,24 @@ if [[ "$*" != *"--set externalRegistry="* ]]; then
   echo "Using agents from: $AGENTSTACK__AGENT_REGISTRY\n  use --set externalRegistry=<null|github-url> to override this."
 fi
 
-UI_IMPORT=""
-UI_TAG=""
-
 if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
     {{ mise_bin }} run agentstack-ui:build
-    UI_IMPORT="--import ghcr.io/i-am-bee/agentstack/agentstack-ui:local"
     UI_TAG="--set ui.image.tag=local"
 fi
 
-PULL_ON_HOST_FLAG=""
-if [[ "$CI" != "true" ]]; then PULL_ON_HOST_FLAG="--pull-on-host"; fi
+if [[ -n "$CI" ]]; then
+  PULL_MODE="hybrid"
+elif [[ -n "$SKIP_PULL" ]]; then
+  PULL_MODE="skip"
+else
+  PULL_MODE="host"
+fi
 
 {{ mise_bin }} run agentstack-cli:run -- platform start \
-    $PULL_ON_HOST_FLAG \
-    --import "ghcr.io/i-am-bee/agentstack/agentstack-server:local" \
-    --import "ghcr.io/i-am-bee/agentstack/supergateway:latest" \
-    $UI_IMPORT \
+    --image-pull-mode="$PULL_MODE" \
     --set auth.nextauthDevUrl="http://localhost:3000" \
     --set image.tag=local \
+    --set keycloak.image.tag=local \
     $UI_TAG "$@"
 """
 

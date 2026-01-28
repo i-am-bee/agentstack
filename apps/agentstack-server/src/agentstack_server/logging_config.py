@@ -125,6 +125,7 @@ def configure_logging(configuration: LoggingConfiguration | None = None) -> None
                     "propagate": True,
                 },
                 "httpx": {"level": logging.WARNING},
+                "procrastinate": {"level": configuration.level_procrastinate},
                 "uvicorn.error": {"level": configuration.level_uvicorn},
                 "sqlalchemy.engine": {"level": configuration.level_sqlalchemy},
             },

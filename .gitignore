@@ -222,3 +222,6 @@ mise.local.toml
 
 # Github Copilot
 .github/copilot-instructions.md
+
+# Claude
+.claude/tasks

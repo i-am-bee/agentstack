@@ -42,9 +42,9 @@ Getting started:
   It is important to expose the following endpoints publicly and configure the values:
   values:
     auth:
-      keycloakIssuerUrl: "https://keycloak.myapp.com/realms/agentstack"
-      nextauthUrl: "https://myapp.com"
-      apiUrl: "https://api.myapp.com"
+      keycloakIssuerUrl: "https://keycloak.example.com/realms/agentstack"
+      nextauthUrl: "https://example.com"
+      apiUrl: "https://api.example.com"
 
   Use
   - ingress: https://kubernetes.io/docs/concepts/services-networking/ingress

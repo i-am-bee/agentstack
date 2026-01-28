@@ -106,9 +106,8 @@ sources = [
     "*.ts",
     "public/**/*",
     "src/**/*",
-    ".next/**/*",
 ]
-outputs = { auto = true }
+outputs = [".next/standalone/**/*"]
 
 # schema
 

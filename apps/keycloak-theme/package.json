@@ -1,0 +1,48 @@
+{
+  "name": "@i-am-bee/agentstack-keycloak-theme",
+  "version": "0.0.0",
+  "description": "Keycloak theme for AgentStack UI",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && npx vite build",
+    "build-keycloak-theme": "npm run build && keycloakify build"
+  },
+  "license": "MIT",
+  "keywords": [],
+  "dependencies": {
+    "@carbon/icons-react": "catalog:",
+    "@carbon/layout": "catalog:",
+    "@carbon/react": "catalog:",
+    "@carbon/styles": "catalog:",
+    "@ibm/plex": "catalog:",
+    "clsx": "catalog:",
+    "keycloakify": "^11.14.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@i-am-bee/lint-config": "workspace:*",
+    "@storybook/react": "^8.1.10",
+    "@storybook/react-vite": "^8.1.10",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "catalog:",
+    "eslint-plugin-storybook": "^0.11.1",
+    "globals": "^15.12.0",
+    "prettier": "3.3.1",
+    "sass-embedded": "catalog:",
+    "storybook": "^8.1.10",
+    "stylelint": "catalog:",
+    "typescript": "^5.2.2",
+    "typescript-eslint": "^8.15.0",
+    "vite": "^5.0.8",
+    "vite-plugin-static-copy": "^2.1.0",
+    "vite-plugin-svgr": "^4.3.0"
+  },
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0"
+  }
+}

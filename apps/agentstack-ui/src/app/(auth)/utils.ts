@@ -20,7 +20,7 @@ interface OIDCProviderOptions {
 
 export async function jwtWithRefresh(
   token: JWT,
-  providers: ProviderWithId[],
+  tokenProvider: ProviderWithId,
   proactiveTokenRefresh: boolean = false,
 ): Promise<JWT> {
   const triggerProactiveRefresh =
@@ -30,15 +30,10 @@ export async function jwtWithRefresh(
     // Subsequent requests, `accessToken` is still valid
     return token;
   } else {
-    const { refreshToken, provider } = token;
+    const { refreshToken } = token;
     // Subsequent requests, `accessToken` has expired, try to refresh it
     if (!refreshToken) {
       throw new TypeError('Missing refreshToken');
-    }
-
-    const tokenProvider = providers.find(({ id }) => id === provider);
-    if (!tokenProvider) {
-      throw new TypeError('No matching provider found');
     }
 
     // Type assertion to ensure we have the OIDC options

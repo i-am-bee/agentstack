@@ -10,8 +10,8 @@ spec:
   ports:
     - protocol: TCP
       port: {{ .Values.keycloak.service.port }}
-      targetPort: http
-      name: http
+      targetPort: {{ ternary "http" "https" .Values.keycloak.httpEnabled }}
+      name: {{ ternary "http" "https" .Values.keycloak.httpEnabled }}
   selector:
     app: keycloak
     {{- include "agentstack.selectorLabels" . | nindent 4 }}

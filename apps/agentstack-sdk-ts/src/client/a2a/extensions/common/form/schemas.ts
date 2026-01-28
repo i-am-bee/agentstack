@@ -8,7 +8,7 @@ import z from 'zod';
 export const baseFieldSchema = z.object({
   id: z.string().nonempty(),
   label: z.string().nonempty(),
-  required: z.boolean(),
+  required: z.boolean().nullish(),
   col_span: z.int().min(1).max(4).nullish(),
 });
 
@@ -30,36 +30,27 @@ export const fileFieldSchema = baseFieldSchema.extend({
   accept: z.array(z.string()),
 });
 
+export const selectFieldOptionSchema = z.object({
+  id: z.string().nonempty(),
+  label: z.string().nonempty(),
+});
+
 export const singleSelectFieldSchema = baseFieldSchema.extend({
   type: z.literal('singleselect'),
-  options: z
-    .array(
-      z.object({
-        id: z.string().nonempty(),
-        label: z.string().nonempty(),
-      }),
-    )
-    .nonempty(),
+  options: z.array(selectFieldOptionSchema).nonempty(),
   default_value: z.string().nullish(),
 });
 
 export const multiSelectFieldSchema = baseFieldSchema.extend({
   type: z.literal('multiselect'),
-  options: z
-    .array(
-      z.object({
-        id: z.string().nonempty(),
-        label: z.string().nonempty(),
-      }),
-    )
-    .nonempty(),
+  options: z.array(selectFieldOptionSchema).nonempty(),
   default_value: z.array(z.string()).nullish(),
 });
 
 export const checkboxFieldSchema = baseFieldSchema.extend({
   type: z.literal('checkbox'),
   content: z.string(),
-  default_value: z.boolean(),
+  default_value: z.boolean().nullish(),
 });
 
 export const formFieldSchema = z.discriminatedUnion('type', [
@@ -119,11 +110,11 @@ export const formFieldValueSchema = z.discriminatedUnion('type', [
 ]);
 
 export const formRenderSchema = z.object({
+  fields: z.array(formFieldSchema).nonempty(),
   title: z.string().nullish(),
   description: z.string().nullish(),
   columns: z.int().min(1).max(4).nullish(),
   submit_label: z.string().nullish(),
-  fields: z.array(formFieldSchema).nonempty(),
 });
 
 export const formValuesSchema = z.record(z.string(), formFieldValueSchema);

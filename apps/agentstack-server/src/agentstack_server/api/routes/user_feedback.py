@@ -5,7 +5,7 @@ from typing import Annotated
 from uuid import UUID
 
 import fastapi
-from fastapi import Depends, Query
+from fastapi import BackgroundTasks, Depends, Query
 
 from agentstack_server.api.dependencies import (
     RequiresPermissions,
@@ -26,6 +26,7 @@ async def user_feedback(
     request: InsertUserFeedbackRequest,
     user_feedback_service: UserFeedbackServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(feedback={"write"}))],
+    background_tasks: BackgroundTasks,
 ) -> None:
     await user_feedback_service.create_user_feedback(
         provider_id=request.provider_id,
@@ -36,6 +37,7 @@ async def user_feedback(
         comment_tags=request.comment_tags,
         message=request.message,
         user=user.user,
+        background_tasks=background_tasks,
     )
 
 

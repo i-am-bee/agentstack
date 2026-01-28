@@ -102,19 +102,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get'];
     trace?: never;
   };
   '/api/v1/a2a/{provider_id}/http/{path}': {
@@ -125,19 +125,19 @@ export interface paths {
       cookie?: never;
     };
     /** A2A Proxy Http Transport */
-    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    get: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    put: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    post: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    delete: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    options: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    head: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     /** A2A Proxy Http Transport */
-    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete'];
+    patch: operations['a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get'];
     trace?: never;
   };
   '/api/v1/configurations/system': {
@@ -329,7 +329,8 @@ export interface paths {
     put?: never;
     /** Add Context History Item */
     post: operations['add_context_history_item_api_v1_contexts__context_id__history_post'];
-    delete?: never;
+    /** Delete Context History From Id */
+    delete: operations['delete_context_history_from_id_api_v1_contexts__context_id__history_delete'];
     options?: never;
     head?: never;
     patch?: never;
@@ -458,129 +459,6 @@ export interface paths {
     };
     /** Get Text File Content */
     get: operations['get_text_file_content_api_v1_files__file_id__text_content_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Mcp */
-    get: operations['mcp_api_v1_mcp_get'];
-    put?: never;
-    /** Mcp */
-    post: operations['mcp_api_v1_mcp_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp/providers': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Providers */
-    get: operations['list_providers_api_v1_mcp_providers_get'];
-    put?: never;
-    /** Create Provider */
-    post: operations['create_provider_api_v1_mcp_providers_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp/providers/{provider_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Read Provider */
-    get: operations['read_provider_api_v1_mcp_providers__provider_id__get'];
-    put?: never;
-    post?: never;
-    /** Delete Provider */
-    delete: operations['delete_provider_api_v1_mcp_providers__provider_id__delete'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp/toolkits': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** Create Toolkit */
-    post: operations['create_toolkit_api_v1_mcp_toolkits_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp/toolkits/{toolkit_id}/mcp': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Mcp Toolkit */
-    get: operations['mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_get'];
-    put?: never;
-    /** Mcp Toolkit */
-    post: operations['mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_post'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp/tools': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** List Tools */
-    get: operations['list_tools_api_v1_mcp_tools_get'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/api/v1/mcp/tools/{tool_id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** Read Tool */
-    get: operations['read_tool_api_v1_mcp_tools__tool_id__get'];
     put?: never;
     post?: never;
     delete?: never;
@@ -852,6 +730,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/v1/providers/discovery': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Provider Discovery */
+    post: operations['create_provider_discovery_api_v1_providers_discovery_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/providers/discovery/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get Provider Discovery */
+    get: operations['get_provider_discovery_api_v1_providers_discovery__id__get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/v1/providers/preview': {
     parameters: {
       query?: never;
@@ -893,10 +805,45 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    get?: never;
+    /** List User Feedback */
+    get: operations['list_user_feedback_api_v1_user_feedback_get'];
     put?: never;
     /** User Feedback */
     post: operations['user_feedback_api_v1_user_feedback_post'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/users': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List Users */
+    get: operations['list_users_api_v1_users_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/users/{user_id}/role': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Change User Role */
+    put: operations['change_user_role_api_v1_users__user_id__role_put'];
+    post?: never;
     delete?: never;
     options?: never;
     head?: never;
@@ -1682,36 +1629,6 @@ export interface components {
       /** Parent File Id */
       parent_file_id?: string | null;
     };
-    /** FileResponse */
-    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9: {
-      /** Content Type */
-      content_type: string;
-      /** Context Id */
-      context_id?: string | null;
-      /**
-       * Created At
-       * Format: date-time
-       */
-      created_at?: string;
-      /**
-       * Created By
-       * Format: uuid
-       */
-      created_by: string;
-      /** File Size Bytes */
-      file_size_bytes?: number | null;
-      /** @default user_upload */
-      file_type: components['schemas']['FileType'];
-      /** Filename */
-      filename: string;
-      /**
-       * Id
-       * Format: uuid
-       */
-      id: string;
-      /** Parent File Id */
-      parent_file_id?: string | null;
-    };
     /** TextExtractionResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__10: {
       /**
@@ -1773,6 +1690,40 @@ export interface components {
       started_at?: string | null;
       /** @default pending */
       status: components['schemas']['ExtractionStatus'];
+    };
+    /** ContextResponse */
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Last Active At
+       * Format: date-time
+       */
+      last_active_at?: string;
+      /** Metadata */
+      metadata?: {
+        [key: string]: string;
+      } | null;
+      /** Provider Id */
+      provider_id?: string | null;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at?: string;
     };
     /** ContextResponse */
     agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__13: {
@@ -1909,7 +1860,7 @@ export interface components {
       stats?: components['schemas']['VectorStoreStats'] | null;
     };
     /** VectorStoreResponse */
-    'agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput': {
+    agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__17: {
       /** Context Id */
       context_id?: string | null;
       /**
@@ -1939,6 +1890,36 @@ export interface components {
       /** Name */
       name?: string | null;
       stats?: components['schemas']['VectorStoreStats'] | null;
+    };
+    /** FileResponse */
+    'agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput': {
+      /** Content Type */
+      content_type: string;
+      /** Context Id */
+      context_id?: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** File Size Bytes */
+      file_size_bytes?: number | null;
+      /** @default user_upload */
+      file_type: components['schemas']['FileType'];
+      /** Filename */
+      filename: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Parent File Id */
+      parent_file_id?: string | null;
     };
     /**
      * APIKeySecurityScheme
@@ -2056,6 +2037,19 @@ export interface components {
      * @enum {string}
      */
     BuildState: 'missing' | 'in_progress' | 'build_completed' | 'completed' | 'failed';
+    /** ChangeRoleRequest */
+    ChangeRoleRequest: {
+      new_role: components['schemas']['UserRole'];
+    };
+    /** ChangeRoleResponse */
+    ChangeRoleResponse: {
+      new_role: components['schemas']['UserRole'];
+      /**
+       * User Id
+       * Format: uuid
+       */
+      user_id: string;
+    };
     /**
      * ChatCompletionAllowedToolChoiceParam
      * @description Constrains the tools available to the model to a pre-defined set.
@@ -2576,6 +2570,16 @@ export interface components {
     ConnectorResponse: {
       /** Auth Request */
       auth_request: components['schemas']['AuthorizationCodeRequest'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
       /** Disconnect Reason */
       disconnect_reason: string | null;
       /**
@@ -2588,6 +2592,11 @@ export interface components {
         [key: string]: string;
       } | null;
       state: components['schemas']['ConnectorState'];
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
       /**
        * Url
        * Format: uri
@@ -2725,12 +2734,10 @@ export interface components {
         [key: string]: string;
       } | null;
     };
-    /** CreateMcpProviderRequest */
-    CreateMcpProviderRequest: {
-      location: components['schemas']['McpProviderLocation'];
-      /** Name */
-      name: string;
-      transport: components['schemas']['McpProviderTransport'];
+    /** CreateDiscoveryRequest */
+    CreateDiscoveryRequest: {
+      /** Docker Image */
+      docker_image: string;
     };
     /** CreateModelProviderRequest */
     CreateModelProviderRequest: {
@@ -2777,11 +2784,6 @@ export interface components {
         [key: string]: string;
       } | null;
     };
-    /** CreateToolkitRequest */
-    CreateToolkitRequest: {
-      /** Tools */
-      tools: string[];
-    };
     /**
      * CreateVectorStoreRequest
      * @description Request to create a new vector store.
@@ -2820,6 +2822,11 @@ export interface components {
         [key: string]: unknown;
       } | null;
     };
+    /**
+     * DiscoveryState
+     * @enum {string}
+     */
+    DiscoveryState: 'pending' | 'in_progress' | 'completed' | 'failed';
     /** DockerImageID */
     DockerImageID: string;
     /** DockerImageProviderLocation */
@@ -3047,7 +3054,7 @@ export interface components {
     /** GlobalPermissionGrant */
     GlobalPermissionGrant: {
       /** A2A Proxy */
-      a2a_proxy?: ('*' | string)[];
+      a2a_proxy?: '*'[] | string[];
       /** Connectors */
       connectors?: ('read' | 'write' | 'proxy' | '*')[];
       /** Context Data */
@@ -3062,12 +3069,6 @@ export interface components {
       files?: ('read' | 'write' | 'extract' | '*')[];
       /** Llm */
       llm?: ('*' | string)[];
-      /** Mcp Providers */
-      mcp_providers?: ('read' | 'write' | '*')[];
-      /** Mcp Proxy */
-      mcp_proxy?: '*'[];
-      /** Mcp Tools */
-      mcp_tools?: ('read' | '*')[];
       /** Model Providers */
       model_providers?: ('read' | 'write' | '*')[];
       /** Provider Variables */
@@ -3206,31 +3207,6 @@ export interface components {
       /** Suggested Models */
       suggested_models?: string[] | null;
     };
-    /** McpProvider */
-    McpProvider: {
-      /** Id */
-      id: string;
-      location: components['schemas']['McpProviderLocation'];
-      /** Name */
-      name: string;
-      state: components['schemas']['McpProviderUnmanagedState'];
-      transport: components['schemas']['McpProviderTransport'];
-    };
-    /**
-     * McpProviderLocation
-     * Format: uri
-     */
-    McpProviderLocation: string;
-    /**
-     * McpProviderTransport
-     * @enum {string}
-     */
-    McpProviderTransport: 'sse' | 'streamable_http';
-    /**
-     * McpProviderUnmanagedState
-     * @enum {string}
-     */
-    McpProviderUnmanagedState: 'online' | 'offline';
     /**
      * Message
      * @description Represents a single message in the conversation between a user and an agent.
@@ -3666,6 +3642,34 @@ export interface components {
       /** Total Count */
       total_count: number;
     };
+    /** PaginatedResult[UserFeedbackResponse] */
+    PaginatedResult_UserFeedbackResponse_: {
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
+      /** Items */
+      items: components['schemas']['UserFeedbackResponse'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
+      /** Total Count */
+      total_count: number;
+    };
+    /** PaginatedResult[UserResponse] */
+    PaginatedResult_UserResponse_: {
+      /**
+       * Has More
+       * @default false
+       */
+      has_more: boolean;
+      /** Items */
+      items: components['schemas']['UserResponse'][];
+      /** Next Page Token */
+      readonly next_page_token: string | null;
+      /** Total Count */
+      total_count: number;
+    };
     /** PaginatedResult[VectorStoreDocument] */
     PaginatedResult_VectorStoreDocument_: {
       /**
@@ -3783,6 +3787,30 @@ export interface components {
      * @enum {string}
      */
     ProviderDeploymentState: 'missing' | 'starting' | 'ready' | 'running' | 'error';
+    /** ProviderDiscovery */
+    ProviderDiscovery: {
+      agent_card?: components['schemas']['AgentCard-Output'] | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at?: string;
+      /**
+       * Created By
+       * Format: uuid
+       */
+      created_by: string;
+      /** Docker Image */
+      docker_image: string;
+      /** Error Message */
+      error_message?: string | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id?: string;
+      status: components['schemas']['DiscoveryState'];
+    };
     /** ProviderErrorMessage */
     ProviderErrorMessage: {
       /** Message */
@@ -3992,27 +4020,6 @@ export interface components {
       /** Text */
       text: string;
     };
-    /** Tool */
-    Tool: {
-      /** Description */
-      description?: string | null;
-      /** Id */
-      id: string;
-      /** Name */
-      name: string;
-    };
-    /** Toolkit */
-    Toolkit: {
-      /**
-       * Expires At
-       * Format: date-time
-       */
-      expires_at: string;
-      /** Id */
-      id: string;
-      location: components['schemas']['McpProviderLocation'];
-      transport: components['schemas']['McpProviderTransport'];
-    };
     /**
      * UnmanagedState
      * @enum {string}
@@ -4068,6 +4075,67 @@ export interface components {
       id?: string;
       /** @default user */
       role: components['schemas']['UserRole'];
+      /** Role Updated At */
+      role_updated_at?: string | null;
+    };
+    /** UserFeedbackResponse */
+    UserFeedbackResponse: {
+      /** Agent Name */
+      agent_name: string;
+      /** Comment */
+      comment?: string | null;
+      /** Comment Tags */
+      comment_tags?: string[] | null;
+      /**
+       * Context Id
+       * Format: uuid
+       */
+      context_id: string;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Message */
+      message: string;
+      /**
+       * Provider Id
+       * Format: uuid
+       */
+      provider_id: string;
+      /** Rating */
+      rating: number;
+      /**
+       * Task Id
+       * Format: uuid
+       */
+      task_id: string;
+    };
+    /** UserResponse */
+    UserResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Email
+       * Format: email
+       */
+      email: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      role: components['schemas']['UserRole'];
+      /** Role Updated At */
+      role_updated_at: string | null;
     };
     /**
      * UserRole
@@ -4343,7 +4411,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4376,7 +4444,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4409,7 +4477,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4442,7 +4510,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4475,7 +4543,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4508,7 +4576,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4541,7 +4609,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http_get: {
     parameters: {
       query?: {
         path?: string;
@@ -4574,7 +4642,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4606,7 +4674,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4638,7 +4706,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4670,7 +4738,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4702,7 +4770,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4734,7 +4802,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -4766,7 +4834,7 @@ export interface operations {
       };
     };
   };
-  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__delete: {
+  a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__get: {
     parameters: {
       query?: never;
       header?: never;
@@ -5200,7 +5268,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__12'];
         };
       };
       /** @description Validation Error */
@@ -5380,6 +5448,37 @@ export interface operations {
       };
     };
   };
+  delete_context_history_from_id_api_v1_contexts__context_id__history_delete: {
+    parameters: {
+      query: {
+        from_id: string;
+      };
+      header?: never;
+      path: {
+        context_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   patch_context_metadata_api_v1_contexts__context_id__metadata_patch: {
     parameters: {
       query?: never;
@@ -5536,7 +5635,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__9'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
         };
       };
       /** @description Validation Error */
@@ -5735,305 +5834,6 @@ export interface operations {
         };
         content: {
           'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  mcp_api_v1_mcp_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  mcp_api_v1_mcp_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-    };
-  };
-  list_providers_api_v1_mcp_providers_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['McpProvider'][];
-        };
-      };
-    };
-  };
-  create_provider_api_v1_mcp_providers_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateMcpProviderRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['McpProvider'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  read_provider_api_v1_mcp_providers__provider_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        provider_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['McpProvider'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  delete_provider_api_v1_mcp_providers__provider_id__delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        provider_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  create_toolkit_api_v1_mcp_toolkits_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateToolkitRequest'];
-      };
-    };
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Toolkit'];
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        toolkit_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  mcp_toolkit_api_v1_mcp_toolkits__toolkit_id__mcp_post: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        toolkit_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Validation Error */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['HTTPValidationError'];
-        };
-      };
-    };
-  };
-  list_tools_api_v1_mcp_tools_get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Tool'][];
-        };
-      };
-    };
-  };
-  read_tool_api_v1_mcp_tools__tool_id__get: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        tool_id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Successful Response */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['Tool'];
         };
       };
       /** @description Validation Error */
@@ -6760,6 +6560,70 @@ export interface operations {
       };
     };
   };
+  create_provider_discovery_api_v1_providers_discovery_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CreateDiscoveryRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderDiscovery'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  get_provider_discovery_api_v1_providers_discovery__id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ProviderDiscovery'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   preview_provider_api_v1_providers_preview_post: {
     parameters: {
       query?: never;
@@ -6813,6 +6677,39 @@ export interface operations {
       };
     };
   };
+  list_user_feedback_api_v1_user_feedback_get: {
+    parameters: {
+      query?: {
+        after_cursor?: string | null;
+        limit?: number;
+        provider_id?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResult_UserFeedbackResponse_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
   user_feedback_api_v1_user_feedback_post: {
     parameters: {
       query?: never;
@@ -6833,6 +6730,75 @@ export interface operations {
         };
         content: {
           'application/json': unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  list_users_api_v1_users_get: {
+    parameters: {
+      query?: {
+        /** @description Filter by email (case-insensitive partial match) */
+        email?: string | null;
+        limit?: number;
+        page_token?: string | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PaginatedResult_UserResponse_'];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['HTTPValidationError'];
+        };
+      };
+    };
+  };
+  change_user_role_api_v1_users__user_id__role_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        user_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ChangeRoleRequest'];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ChangeRoleResponse'];
         };
       };
       /** @description Validation Error */
@@ -6953,7 +6919,7 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem____<locals>__ModelOutput'];
+          'application/json': components['schemas']['agentstack_server__api__schema__common__EntityModel____class_getitem_____locals___ModelOutput__17'];
         };
       };
       /** @description Validation Error */

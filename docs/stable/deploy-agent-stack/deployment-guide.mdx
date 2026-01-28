@@ -149,7 +149,7 @@ auth:
   enabled: true
   oidc:
     # Important: redirect URIs must be configured correctly in your provider:
-    #  - UI endpoint: "https://your-public-url/api/auth/callback"
+    #  - UI endpoint: "https://example.com/api/auth/callback"
     #  - CLI endpoint: "http://localhost:9001/callback"
     enabled: true
     default_new_user_role: "user" # valid options: [user, developer]. Developers can deploy and configure their agents.
@@ -490,7 +490,7 @@ kubectl get events --sort-by=.lastTimestamp
 
 Make sure you have configured your OIDC provider correctly:
 
-- redirect URI should be the public URL + `/api/auth/callback` (e.g. `https://your-public-url.com/api/auth/callback`)
+- redirect URI should be the public URL + `/api/auth/callback` (e.g. `https://example.com.com/api/auth/callback`)
 - for CLI, the redirect URI should be `http://localhost:9001/callback`
 - consider creating a separate public OIDC application for the CLI
 - `audience` claim should be the public URL of your application without a trailing slash (e.g. `https://example.com`)

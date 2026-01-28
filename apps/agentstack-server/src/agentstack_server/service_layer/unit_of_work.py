@@ -12,6 +12,7 @@ from agentstack_server.domain.repositories.file import IFileRepository
 from agentstack_server.domain.repositories.model_provider import IModelProviderRepository
 from agentstack_server.domain.repositories.provider import IProviderRepository
 from agentstack_server.domain.repositories.provider_build import IProviderBuildRepository
+from agentstack_server.domain.repositories.provider_discovery import IProviderDiscoveryRepository
 from agentstack_server.domain.repositories.user import IUserRepository
 from agentstack_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from agentstack_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
@@ -20,6 +21,7 @@ from agentstack_server.domain.repositories.vector_store import IVectorDatabaseRe
 class IUnitOfWork(Protocol):
     providers: IProviderRepository
     provider_builds: IProviderBuildRepository
+    provider_discoveries: IProviderDiscoveryRepository
     a2a_requests: IA2ARequestRepository
     contexts: IContextRepository
     files: IFileRepository

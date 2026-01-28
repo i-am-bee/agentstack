@@ -27,14 +27,14 @@ The fulfillment process works like dependency injection: the agent declares what
 
 UI extensions add extra metadata to messages, enabling your custom UI to render advanced interactive components beyond standard text responses:
 
-- **Forms**: Collect structured user input through interactive forms
-- **Citations**: Display source references with clickable inline links
-- **Trajectory**: Visualize agent reasoning steps with execution traces
-- **Canvas**: Handle visual editing and canvas-based interactions
-- **Agent Detail**: Display agent-specific information and metadata
-- **Error**: Render structured error messages
+- **[Forms](/development/agent-integration/forms)**: Collect structured user input through interactive forms
+- **[Citations](/development/agent-integration/citations)**: Display source references with clickable inline links
+- **[Trajectory](/development/agent-integration/trajectory)**: Visualize agent reasoning steps with execution traces
+- **[Canvas](/development/agent-integration/canvas)**: Handle visual editing and canvas-based interactions
+- **[Agent Detail](/development/agent-integration/agent-details)**: Display agent-specific information and metadata
+- **[Error](/development/agent-integration/error)**: Render structured error messages
+- **[Settings](/development/agent-integration/agent-settings)**: Display and manage agent settings
 - **OAuth**: Handle OAuth authentication flows
-- **Settings**: Display and manage agent settings
 - **Approval**: Request user approval before executing actions (e.g., tool calls)
 
 These extensions enhance messages with metadata that your UI interprets to create rich, interactive experiences. The SDK provides type-safe parsers to extract this metadata from agent messages and task status updates.
