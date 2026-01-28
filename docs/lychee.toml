@@ -1,0 +1,42 @@
+# Lychee configuration for link checking
+# See: https://lychee.cli.rs/#/usage/config
+
+# Base URL or website root directory to check relative URLs.
+# We skip these (use mintlify), but need this to pass URL parsing.
+base_url = "https://localhost"
+
+# Uncomment to use verbose info to see redirects
+# verbose = "info"
+
+# Exclude patterns
+exclude = [
+  # Local development URLs
+  '^https?://localhost',
+  '^https?://127\.0\.0\.1',
+  # If we don't skip npmjs then we need to accept 403
+  '^https://www\.npmjs\.com',
+  # Example domains
+  '^https://your-public-url\.',
+  '^https://api\.agentstack\.example\.com',
+  '^https://api\.myapp\.com',
+  '^https://keycloak\.myapp\.com',
+]
+
+# GitHub API token to avoid github warning
+github_token = "secret"
+
+# Exclude paths
+exclude_path = ["node_modules"]
+
+# Accept status codes
+accept = [200, 206, 302, 307]
+
+# Timeout for requests
+timeout = 20
+
+# Retry settings
+max_retries = 5
+retry_wait_time = 2
+
+# Ignore code block examples
+include_verbatim = false

@@ -24,6 +24,7 @@ yq = "latest"
 fd = "latest"
 "github:google/addlicense" = "latest"
 gum = "latest"
+lychee = "latest"
 
 [settings]
 experimental = true # for python.uv_venv_auto

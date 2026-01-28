@@ -33,6 +33,13 @@ backend = "core:java"
 version = "0.7.0"
 backend = "aqua:yannh/kubeconform"
 
+[[tools.lychee]]
+version = "0.22.0"
+backend = "aqua:lycheeverse/lychee"
+
+[[tools.lychee.checksums]]
+"lychee-arm64-macos.dmg" = "sha256:197bf8b7aafd190e38ec8e931a16e38a2d1d2b1e9fa13aa4874d004ba09c4d05"
+
 [[tools.maven]]
 version = "3.9.12"
 backend = "aqua:apache/maven"
