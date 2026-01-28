@@ -13,14 +13,6 @@ dependencies = [
     "uvicorn>=0.35.0",
 ]
 
-[tool.uv]
-override-dependencies = [
-    # overrides for beeai-framework dependency (first version with musl arm64 wheel)
-    # should be fine as the agent does not use grpc-related features
-    "grpcio==1.72.1",
-    "grpcio-tools==1.72.1",
-]
-
 [tool.ruff]
 line-length = 120
 
