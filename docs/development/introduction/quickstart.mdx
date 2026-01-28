@@ -48,17 +48,23 @@ The Agent Stack interactive script handles the environment configuration and pla
   </Card>
 </CardGroup>
 
+<Info> 
+The installer sets up uv and the agentstack-cli on your host machine. For details on what happens under the hood, refer to the Manual Install section below.
+</Info>
+
 <Accordion title="Manual Install">
+
+Agent Stack uses a Virtual Machine (managed via a bundled Lima binary) to keep your host machine clean. Components like k3s, Helm, and PostgreSQL live entirely inside the VM and do not touch your host directly.
 
 <Steps>
 <Step title="Install uv">
 
-Follow the [installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+Follow the [installation instructions](https://docs.astral.sh/uv/getting-started/installation/). Agent Stack uses `uv` to manage its own internal Python environment.
 
 </Step>
 <Step title="Linux only: Install QEMU">
 
-Install QEMU via package manager ([instructions](https://www.qemu.org/download/)).
+On Linux, Lima requires QEMU. Install it via these ([instructions](https://www.qemu.org/download/)).
 
 </Step>
 <Step title="Install Agent Stack">
@@ -69,7 +75,7 @@ Open a new terminal and run:
 uv python install --quiet --python-preference=only-managed --no-bin 3.13 && uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
 ```
 
-Follow the interactive prompts to finish installation and setup.
+Follow the interactive prompts to finish setup. This starts the VM.
 
 </Step>
 </Steps>
