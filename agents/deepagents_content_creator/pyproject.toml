@@ -8,12 +8,15 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "agentstack-sdk",
+    "cachetools>=6.2.5",
     "deepagents>=0.3.5",
     "google-genai>=1.0.0",
+    "langchain-openai>=1.1.7",
     "pillow>=10.0.0",
     "pyyaml>=6.0.0",
     "rich>=13.0.0",
     "tavily-python>=0.5.0",
+    "wcmatch>=10.1"
 ]
 
 [dependency-groups]
