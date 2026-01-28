@@ -7,42 +7,39 @@ import { DatePicker, DatePickerInput } from '@carbon/react';
 import type { DateField } from 'agentstack-sdk';
 import { Controller, useFormContext } from 'react-hook-form';
 
+import { useFormFieldValidation } from '#modules/form/hooks/useFormFieldValidation.ts';
 import type { ValuesOfField } from '#modules/form/types.ts';
-
-import { REQUIRED_ERROR_MESSAGE } from './constants';
+import { getFieldName } from '#modules/form/utils.ts';
 
 interface Props {
   field: DateField;
 }
 
 export function DateField({ field }: Props) {
-  const { id, label, placeholder, required } = field;
+  const { id, label, placeholder } = field;
 
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext<ValuesOfField<DateField>>();
-  const error = errors[id];
+  const { control, formState } = useFormContext<ValuesOfField<DateField>>();
+  const { rules, invalid, invalidText } = useFormFieldValidation({ field, formState });
 
   return (
     <Controller
-      name={`${id}.value`}
+      name={getFieldName(field)}
       control={control}
-      rules={{ required: Boolean(required) && REQUIRED_ERROR_MESSAGE }}
+      rules={rules}
       render={({ field: { value, onChange } }) => (
         <DatePicker
           datePickerType="single"
           value={value ?? undefined}
           onChange={(_, currentDateString) => onChange(currentDateString)}
           allowInput
-          invalid={Boolean(error)}
+          invalid={invalid}
         >
           <DatePickerInput
             id={id}
             size="lg"
             labelText={label}
             placeholder={placeholder ?? undefined}
-            invalidText={error?.value?.message}
+            invalidText={invalidText}
           />
         </DatePicker>
       )}

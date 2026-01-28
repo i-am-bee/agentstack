@@ -10,15 +10,16 @@ import { useEffect } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
 import { FormRequirement } from '#components/FormRequirement/FormRequirement.tsx';
+import { usePrevious } from '#hooks/usePrevious.ts';
 import { FileCard } from '#modules/files/components/FileCard.tsx';
 import { FileCardsList } from '#modules/files/components/FileCardsList.tsx';
 import { FileUploadProvider } from '#modules/files/contexts/FileUploadProvider.tsx';
 import { useFileUpload } from '#modules/files/contexts/index.ts';
+import { useFormFieldValidation } from '#modules/form/hooks/useFormFieldValidation.ts';
 import type { ValuesOfField } from '#modules/form/types.ts';
-import { convertFileToFileFieldValue } from '#modules/form/utils.ts';
+import { convertFileToFileFieldValue, getFieldName } from '#modules/form/utils.ts';
 import { isNotNull } from '#utils/helpers.ts';
 
-import { REQUIRED_ERROR_MESSAGE } from './constants';
 import classes from './FileField.module.scss';
 
 interface Props {
@@ -34,31 +35,33 @@ export function FileField({ field }: Props) {
 }
 
 export function FileFieldComponent({ field }: Props) {
-  const { id, label, required } = field;
+  const { label } = field;
 
   const { dropzone, isDisabled, isPending, files, removeFile } = useFileUpload();
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext<ValuesOfField<FileField>>();
+  const { control, formState } = useFormContext<ValuesOfField<FileField>>();
+  const { rules, invalid: invalidState, invalidText } = useFormFieldValidation({ field, formState });
   const {
     field: { onChange },
-  } = useController({
-    control,
-    name: `${id}.value`,
-    rules: { required: Boolean(required) && REQUIRED_ERROR_MESSAGE },
-  });
-  const error = errors[id];
-  const invalid = Boolean(error) && !isPending;
-  const invalidText = error?.value?.message;
+  } = useController({ control, name: getFieldName(field), rules });
+
+  const invalid = invalidState && !isPending;
 
   const hasFiles = files.length > 0;
+  const filesKey = files
+    .map(({ uploadFile }) => (uploadFile ? uploadFile.id : null))
+    .filter(isNotNull)
+    .join('|');
+  const prevFilesKey = usePrevious(filesKey);
 
   useEffect(() => {
+    if (prevFilesKey === filesKey) {
+      return;
+    }
+
     const newValue = files.map(convertFileToFileFieldValue).filter(isNotNull);
 
     onChange(newValue);
-  }, [files, onChange]);
+  }, [filesKey, prevFilesKey, files, onChange]);
 
   if (!dropzone) {
     return null;

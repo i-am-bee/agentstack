@@ -31,8 +31,8 @@ export const fileFieldSchema = baseFieldSchema.extend({
 });
 
 export const selectFieldOptionSchema = z.object({
-        id: z.string().nonempty(),
-        label: z.string().nonempty(),
+  id: z.string().nonempty(),
+  label: z.string().nonempty(),
 });
 
 export const singleSelectFieldSchema = baseFieldSchema.extend({
@@ -51,7 +51,6 @@ export const checkboxFieldSchema = baseFieldSchema.extend({
   type: z.literal('checkbox'),
   content: z.string(),
   default_value: z.boolean().nullish(),
-});
 });
 
 export const formFieldSchema = z.discriminatedUnion('type', [

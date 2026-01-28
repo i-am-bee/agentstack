@@ -7,21 +7,24 @@ import { Select, SelectItem } from '@carbon/react';
 import type { SingleSelectField } from 'agentstack-sdk';
 import { useFormContext } from 'react-hook-form';
 
+import { useFormFieldValidation } from '#modules/form/hooks/useFormFieldValidation.ts';
 import type { ValuesOfField } from '#modules/form/types.ts';
+import { getFieldName } from '#modules/form/utils.ts';
 
 interface Props {
   field: SingleSelectField;
 }
 
 export function SingleSelectField({ field }: Props) {
-  const { id, label, required, options } = field;
+  const { id, label, options } = field;
 
-  const { register } = useFormContext<ValuesOfField<SingleSelectField>>();
+  const { register, formState } = useFormContext<ValuesOfField<SingleSelectField>>();
+  const { rules, invalid, invalidText } = useFormFieldValidation({ field, formState });
 
-  const inputProps = register(`${id}.value`, { required: Boolean(required) });
+  const inputProps = register(getFieldName(field), rules);
 
   return (
-    <Select id={id} size="lg" labelText={label} {...inputProps}>
+    <Select id={id} size="lg" labelText={label} invalid={invalid} invalidText={invalidText} {...inputProps}>
       {options.map(({ id, label }) => (
         <SelectItem key={id} text={label} value={id} />
       ))}
