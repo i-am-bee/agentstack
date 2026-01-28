@@ -88,19 +88,19 @@ importers:
         specifier: workspace:*
         version: link:../lint-config
       eslint:
-        specifier: 'catalog:'
+        specifier: ^9.39.1
         version: 9.39.1(jiti@1.21.7)
       microbundle:
         specifier: ^0.15.1
         version: 0.15.1(@types/babel__core@7.20.5)
       prettier:
-        specifier: 'catalog:'
+        specifier: ^3.7.4
         version: 3.7.4
       rimraf:
         specifier: ^6.0.1
         version: 6.0.1
       typescript:
-        specifier: 'catalog:'
+        specifier: ^5.9.3
         version: 5.9.3
 
   apps/agentstack-ui:
