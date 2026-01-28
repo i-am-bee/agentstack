@@ -41,10 +41,11 @@ from content_creator.tools import web_search
 DEFAULT_MODEL = "anthropic:claude-sonnet-4-5-20250929"
 AVAILABLE_SUBAGENTS = load_subagents(config_path=Path("./subagents.yaml"), tools={"web_search": web_search})
 LLM_BY_AGENT = {
-    "default": LLMDemand(suggested=tuple(DEFAULT_MODEL), description="Default LLM for the root agent"),
+    "default": LLMDemand(suggested=(DEFAULT_MODEL,), description="Default LLM for the root agent"),
     **{
-        agent.name: LLMDemand(suggested=tuple(agent.model), description=f"LLM for subagent '{agent.name}'")
+        agent.name: LLMDemand(suggested=(agent.model,), description=f"LLM for subagent '{agent.name}'")
         for agent in AVAILABLE_SUBAGENTS
+        if agent.model
     },
 }
 
