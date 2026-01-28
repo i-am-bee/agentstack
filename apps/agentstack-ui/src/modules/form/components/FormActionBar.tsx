@@ -14,12 +14,11 @@ import classes from './FormActionBar.module.scss';
 
 interface Props {
   submitLabel: string;
-  submitDisabled?: boolean;
   showSubmit?: boolean;
   showRunSettings?: boolean;
 }
 
-export function FormActionBar({ submitLabel, submitDisabled, showSubmit = true, showRunSettings }: Props) {
+export function FormActionBar({ submitLabel, showSubmit = true, showRunSettings }: Props) {
   const modelsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const settingsDialog = useRunSettingsDialog({ blockOffset: 8 });
   const formRefs = useMergeRefs([modelsDialog.refs.setPositionReference, settingsDialog.refs.setPositionReference]);
@@ -36,7 +35,7 @@ export function FormActionBar({ submitLabel, submitDisabled, showSubmit = true, 
 
       {showSubmit && (
         <div className={classes.buttons}>
-          <Button type="submit" size="md" disabled={submitDisabled}>
+          <Button type="submit" size="md">
             {submitLabel}
           </Button>
         </div>

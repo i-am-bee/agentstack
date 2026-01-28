@@ -41,10 +41,7 @@ export function FormRenderer({
     mode: 'onChange',
     defaultValues,
   });
-  const {
-    handleSubmit,
-    formState: { isValid },
-  } = form;
+  const { handleSubmit } = form;
 
   const showHeading = showHeadingProp && isNotNull(heading);
   const showHeader = showHeading || Boolean(description);
@@ -63,7 +60,6 @@ export function FormRenderer({
 
           <FormActionBar
             submitLabel={submit_label ?? 'Submit'}
-            submitDisabled={!isValid}
             showSubmit={!isDisabled}
             showRunSettings={showRunSettings}
           />
