@@ -43,6 +43,10 @@
   overflow-y: auto;
 }
 
+.submitButton {
+  min-inline-size: rem(200px);
+}
+
 .loginLink {
   margin-block-start: $spacing-07;
 }

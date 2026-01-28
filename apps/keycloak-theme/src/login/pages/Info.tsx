@@ -64,7 +64,7 @@ export default function Info(props: CustomPageProps<{ pageId: "info.ftl" }>) {
   })();
 
   return (
-    <Layout i18n={i18n} contentClassname={classes.layout}>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
@@ -80,9 +80,13 @@ export default function Info(props: CustomPageProps<{ pageId: "info.ftl" }>) {
             }}
           />
         }
+        centered
       >
         <div className={classes.root}>
-          <p dangerouslySetInnerHTML={{ __html: kcSanitize(messageHtml) }} />
+          <p
+            className={classes.message}
+            dangerouslySetInnerHTML={{ __html: kcSanitize(messageHtml) }}
+          />
           {backLink && <Button href={backLink.href}>{backLink.label}</Button>}
         </div>
       </Template>

@@ -7,6 +7,7 @@ import { FlatCompat } from '@eslint/eslintrc';
 import eslint from '@eslint/js';
 import { defineConfig } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
+import cssModules from 'eslint-plugin-css-modules';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
 import typescriptEslint from 'typescript-eslint';
 
@@ -34,7 +35,14 @@ const config = [
   typescriptEslint.configs.recommended,
   eslintConfigPrettier,
   {
-    plugins: { 'simple-import-sort': simpleImportSort },
+    plugins: {
+      'simple-import-sort': simpleImportSort,
+      'css-modules': cssModules,
+    },
+    rules: {
+      'css-modules/no-unused-class': 'off',
+      'css-modules/no-undef-class': 'error',
+    },
   },
 ];
 
@@ -42,14 +50,16 @@ const config = [
 const nextConfig = [
   ...base,
   ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier'),
-  ...compat.plugins('simple-import-sort'),
-  ...compat.config({
-    plugins: ['css-modules'],
+  {
+    plugins: {
+      'simple-import-sort': simpleImportSort,
+      'css-modules': cssModules,
+    },
     rules: {
       'css-modules/no-unused-class': 'off',
       'css-modules/no-undef-class': 'error',
     },
-  }),
+  },
 ];
 
 export { nextConfig };

@@ -14,18 +14,14 @@ import { GroupLabel } from "./GroupLabel";
 import { InputFieldByType } from "./InputFieldByType";
 import classes from "./UserProfileFormFields.module.scss";
 
-export default function UserProfileFormFields(
-  props: UserProfileFormFieldsProps<KcContext, I18n>,
-) {
-  const {
-    kcContext,
-    i18n,
-    onIsFormSubmittableValueChange,
-    doMakeUserConfirmPassword,
-    BeforeField,
-    AfterField,
-  } = props;
-
+export default function UserProfileFormFields({
+  kcContext,
+  i18n,
+  onIsFormSubmittableValueChange,
+  doMakeUserConfirmPassword,
+  BeforeField,
+  AfterField,
+}: UserProfileFormFieldsProps<KcContext, I18n>) {
   const {
     formState: { formFieldStates, isFormSubmittable },
     dispatchFormAction,

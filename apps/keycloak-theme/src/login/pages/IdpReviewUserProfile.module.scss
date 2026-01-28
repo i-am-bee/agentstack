@@ -10,29 +10,18 @@
   row-gap: $spacing-05;
 }
 
-.termsText {
-  @include scrollbar();
-  max-block-size: rem(400px);
-  overflow-y: auto;
-  margin-block-end: $spacing-05;
+.form {
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-05;
 }
 
-.actions {
-  display: flex;
-  gap: $spacing-03;
-  flex-direction: column;
-
-  @include breakpoint-up(md) {
-    flex-direction: row;
-  }
+.submitButton {
+  min-inline-size: rem(200px);
 }
 
 @include breakpoint-up(md) {
   .root {
     padding-inline: $spacing-08;
-  }
-
-  .container {
-    max-inline-size: rem(480px);
   }
 }

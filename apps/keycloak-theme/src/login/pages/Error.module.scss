@@ -13,13 +13,13 @@
   }
 }
 
-.content {
-  justify-content: center;
-}
-
 .image {
   max-inline-size: 100%;
   block-size: auto;
   margin-block-end: $spacing-06;
   fill: currentColor;
+}
+
+.message {
+  font-size: rem(20px);
 }

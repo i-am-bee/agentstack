@@ -3,12 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-.root {
+.form {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: $spacing-05;
-}
-
-.message {
-  font-size: rem(20px);
 }

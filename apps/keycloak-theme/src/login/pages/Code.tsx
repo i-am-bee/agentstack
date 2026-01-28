@@ -19,7 +19,7 @@ export default function Code(props: CustomPageProps<{ pageId: "code.ftl" }>) {
   const { msg } = i18n;
 
   return (
-    <Layout i18n={i18n} contentClassname={classes.layout}>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
@@ -31,6 +31,7 @@ export default function Code(props: CustomPageProps<{ pageId: "code.ftl" }>) {
             ? msg("codeSuccessTitle")
             : msg("codeErrorTitle", code.error)
         }
+        centered
       >
         <div className={classes.root}>
           {code.success ? (

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { ArrowRight } from "@carbon/icons-react";
 import { Button, Checkbox, Link } from "@carbon/react";
 import type { UserProfileFormFieldsProps } from "keycloakify/login/UserProfileFormFieldsProps";
 import type { JSX } from "keycloakify/tools/JSX";
@@ -109,14 +110,12 @@ export default function Register(props: RegisterProps) {
 
             {recaptchaRequired &&
               (recaptchaVisible || recaptchaAction === undefined) && (
-                <div className={classes.recaptcha}>
-                  <div
-                    className="g-recaptcha"
-                    data-size="compact"
-                    data-sitekey={recaptchaSiteKey}
-                    data-action={recaptchaAction}
-                  ></div>
-                </div>
+                <div
+                  className="g-recaptcha"
+                  data-size="compact"
+                  data-sitekey={recaptchaSiteKey}
+                  data-action={recaptchaAction}
+                ></div>
               )}
 
             <div className={classes.formOptions}>
@@ -140,6 +139,8 @@ export default function Register(props: RegisterProps) {
               <Button
                 type="submit"
                 kind="primary"
+                className={classes.submitButton}
+                renderIcon={ArrowRight}
                 disabled={
                   !isFormSubmittable ||
                   (termsAcceptanceRequired && !areTermsAccepted)

@@ -20,7 +20,7 @@ export default function Error(props: CustomPageProps<{ pageId: "error.ftl" }>) {
   const { msg } = i18n;
 
   return (
-    <Layout i18n={i18n} contentClassname={classes.content}>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
@@ -28,12 +28,13 @@ export default function Error(props: CustomPageProps<{ pageId: "error.ftl" }>) {
         classes={kcClasses}
         displayMessage={false}
         headerNode=""
+        centered
       >
         <div className={classes.root}>
           <NotFound className={classes.image} />
           <h1>{msg("errorTitle")}</h1>
           <p
-            className="instruction"
+            className={classes.message}
             dangerouslySetInnerHTML={{ __html: kcSanitize(message.summary) }}
           />
           {!skipLink &&

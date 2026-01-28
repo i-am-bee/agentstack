@@ -1,0 +1,14 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@use "styles/common" as *;
+
+.cds--inline-notification--low-contrast {
+  color: pink;
+  &.cds--inline-notification--success,
+  &.cds--inline-notification--warning {
+    color: $text-inverse;
+  }
+}

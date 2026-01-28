@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@i-am-bee/lint-config": "workspace:*",
+    "@radix-ui/react-slot": "^1.2.4",
     "@storybook/react": "^8.1.10",
     "@storybook/react-vite": "^8.1.10",
     "@types/react": "^18.2.0",

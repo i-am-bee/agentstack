@@ -8,7 +8,6 @@
   display: grid;
   block-size: 100dvh;
   grid-template-areas: "main";
-  padding-inline: $spacing-05;
 }
 
 .header {
@@ -36,8 +35,8 @@
   min-block-size: 100vh;
 }
 
-@include breakpoint-up(md) {
+@include breakpoint-up(lg) {
   .root {
-    padding-inline: rem(64px);
+    --cds-grid-margin: #{rem(64px)};
   }
 }

@@ -19,13 +19,14 @@ export default function Terms(props: CustomPageProps<{ pageId: "terms.ftl" }>) {
   const { url } = kcContext;
 
   return (
-    <Layout i18n={i18n} contentClassname={classes.root}>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
         doUseDefaultCss={false}
         displayMessage={false}
         headerNode={<PageHeading>Terms and Conditions</PageHeading>}
+        centered
       >
         <div className={classes.content}>
           <div className={classes.termsText}>{msg("termsText")}</div>

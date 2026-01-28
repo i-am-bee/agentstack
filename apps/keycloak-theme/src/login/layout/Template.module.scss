@@ -4,18 +4,17 @@
  */
 
 .root {
-  max-inline-size: rem(400px);
   inline-size: 100%;
+  display: flex;
+  justify-content: flex-start;
+
+  &.centered {
+    justify-content: center;
+  }
 }
 
 .notification {
   margin-block-end: $spacing-05;
-
-  &:global(
-      .cds--inline-notification--low-contrast.cds--inline-notification--success
-    ) {
-    color: $text-inverse;
-  }
 }
 
 .infoBox {

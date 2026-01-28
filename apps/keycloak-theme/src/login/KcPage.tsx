@@ -14,9 +14,13 @@ import type { KcContext } from "../login/KcContext";
 import { useDarkModeScript } from "./hooks/useDarkModeScript";
 import Template from "./layout/Template";
 import Code from "./pages/Code";
+import DeleteAccountConfirm from "./pages/DeleteAccountConfirm";
 import Error from "./pages/Error";
+import IdpReviewUserProfile from "./pages/IdpReviewUserProfile";
 import Info from "./pages/Info";
 import { Login } from "./pages/Login";
+import LoginIdpLinkConfirm from "./pages/LoginIdpLinkConfirm";
+import LoginIdpLinkEmail from "./pages/LoginIdpLinkEmail";
 import Register from "./pages/Register";
 import Terms from "./pages/Terms";
 
@@ -58,6 +62,20 @@ export default function KcPage(props: { kcContext: KcContext }) {
             return <Code {...{ kcContext, i18n, classes }} />;
           case "login-reset-password.ftl":
             return <LoginResetPassword {...{ kcContext, i18n, classes }} />;
+          case "delete-account-confirm.ftl":
+            return <DeleteAccountConfirm {...{ kcContext, i18n, classes }} />;
+          case "idp-review-user-profile.ftl":
+            return (
+              <IdpReviewUserProfile
+                {...{ kcContext, i18n, classes }}
+                UserProfileFormFields={UserProfileFormFields}
+                doMakeUserConfirmPassword={doMakeUserConfirmPassword}
+              />
+            );
+          case "login-idp-link-confirm.ftl":
+            return <LoginIdpLinkConfirm {...{ kcContext, i18n, classes }} />;
+          case "login-idp-link-email.ftl":
+            return <LoginIdpLinkEmail {...{ kcContext, i18n, classes }} />;
           default:
             return (
               <DefaultPage
