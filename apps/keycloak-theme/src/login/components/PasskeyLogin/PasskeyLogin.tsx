@@ -12,7 +12,6 @@ type Props = {
   kcContext: Extract<LoginPageContext, { pageId: "login.ftl" }>;
   i18n: I18n;
   webAuthnButtonId: string;
-  doUseDefaultCss?: boolean;
 };
 
 export function PasskeyLogin(props: Props) {

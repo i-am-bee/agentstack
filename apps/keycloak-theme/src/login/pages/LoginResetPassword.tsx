@@ -5,21 +5,17 @@
 
 import { Button, Link, TextInput } from "@carbon/react";
 import { kcSanitize } from "keycloakify/lib/kcSanitize";
-import type { PageProps } from "keycloakify/login/pages/PageProps";
 
-import { Container } from "../components/Container/Container";
+import { Layout } from "../components/Layout/Layout";
 import { PageHeading } from "../components/PageHeading/PageHeading";
-import type { I18n } from "../i18n";
-import type { KcContext } from "../KcContext";
+import Template from "../layout/Template";
+import type { CustomPageProps } from "../types";
 import classes from "./LoginResetPassword.module.scss";
 
 export default function LoginResetPassword(
-  props: PageProps<
-    Extract<KcContext, { pageId: "login-reset-password.ftl" }>,
-    I18n
-  >,
+  props: CustomPageProps<{ pageId: "login-reset-password.ftl" }>,
 ) {
-  const { kcContext, i18n, doUseDefaultCss, Template } = props;
+  const { kcContext, i18n } = props;
 
   const { url, realm, auth, messagesPerField } = kcContext;
 
@@ -31,11 +27,11 @@ export default function LoginResetPassword(
   const errorMessage = hasError ? messagesPerField.get("username") : "";
 
   return (
-    <Container>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
-        doUseDefaultCss={doUseDefaultCss}
+        doUseDefaultCss={false}
         displayInfo
         displayMessage={!hasError}
         infoNode={
@@ -94,6 +90,6 @@ export default function LoginResetPassword(
           </form>
         </div>
       </Template>
-    </Container>
+    </Layout>
   );
 }

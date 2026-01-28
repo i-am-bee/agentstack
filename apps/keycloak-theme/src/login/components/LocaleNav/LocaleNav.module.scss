@@ -1,0 +1,13 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.dropdown {
+  max-inline-size: rem(180px);
+  inline-size: 100%;
+
+  :global(.cds--label) {
+    display: none;
+  }
+}

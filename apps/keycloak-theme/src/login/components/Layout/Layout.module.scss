@@ -11,13 +11,23 @@
   padding-inline: $spacing-05;
 }
 
+.header {
+  position: fixed;
+  inset-inline: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: $spacing-04;
+  padding-inline-end: $spacing-04;
+}
+
 .main {
   grid-area: "main";
   display: grid;
 }
 
 .content {
-  padding-block: $spacing-08;
+  padding-block-start: rem(64px);
+  padding-block-end: $spacing-08;
   inline-size: 100%;
   display: flex;
   row-gap: $spacing-06;

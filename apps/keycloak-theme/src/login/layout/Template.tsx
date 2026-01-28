@@ -11,7 +11,6 @@ import { clsx } from "keycloakify/tools/clsx";
 import { useSetClassName } from "keycloakify/tools/useSetClassName";
 import { useEffect, useMemo } from "react";
 
-import { LocaleNav } from "../components/LocaleNav/LocaleNav";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../KcContext";
 import { stripHtmlFromInfoMessage } from "../utils";
@@ -75,8 +74,6 @@ export default function Template(props: TemplateProps<KcContext, I18n>) {
     <div className={clsx(kcClsx("kcLoginClass"), classes.root)}>
       <div className={kcClsx("kcFormCardClass")}>
         <header className={kcClsx("kcFormHeaderClass")}>
-          <LocaleNav i18n={i18n} />
-
           {(() => {
             const node = !(
               auth !== undefined &&

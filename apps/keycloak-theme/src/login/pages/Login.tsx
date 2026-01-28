@@ -4,20 +4,21 @@
  */
 
 import { Button } from "@carbon/react";
-import type { PageProps } from "keycloakify/login/pages/PageProps";
 
 import Bee from "../../svgs/bee.svg?react";
-import { Container } from "../components/Container/Container";
+import { Layout } from "../components/Layout/Layout";
 import { LoginForm } from "../components/LoginForm/LoginForm";
 import { PageHeading } from "../components/PageHeading/PageHeading";
 import { PasskeyLogin } from "../components/PasskeyLogin/PasskeyLogin";
-import type { I18n } from "../i18n";
-import type { LoginPageContext } from "../types";
+import Template from "../layout/Template";
+import type { CustomPageProps } from "../types";
 import { getAppName, isIbmProvider } from "../utils";
 import classes from "./Login.module.scss";
 
-export function Login(props: PageProps<LoginPageContext, I18n>) {
-  const { kcContext, i18n, doUseDefaultCss, Template } = props;
+export type LoginProps = CustomPageProps<{ pageId: "login.ftl" }>;
+
+export function Login(props: LoginProps) {
+  const { kcContext, i18n } = props;
 
   const { url, social, realm, registrationDisabled, messagesPerField } =
     kcContext;
@@ -31,11 +32,11 @@ export function Login(props: PageProps<LoginPageContext, I18n>) {
   const { msg } = i18n;
 
   return (
-    <Container>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
-        doUseDefaultCss={doUseDefaultCss}
+        doUseDefaultCss={false}
         displayMessage={!messagesPerField.existsError("username", "password")}
         headerNode={
           <PageHeading>
@@ -86,10 +87,9 @@ export function Login(props: PageProps<LoginPageContext, I18n>) {
             kcContext={kcContext}
             i18n={i18n}
             webAuthnButtonId={webAuthnButtonId}
-            doUseDefaultCss={doUseDefaultCss}
           />
         </div>
       </Template>
-    </Container>
+    </Layout>
   );
 }

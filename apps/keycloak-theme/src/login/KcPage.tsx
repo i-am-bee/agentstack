@@ -13,6 +13,9 @@ import { useI18n } from "../login/i18n";
 import type { KcContext } from "../login/KcContext";
 import { useDarkModeScript } from "./hooks/useDarkModeScript";
 import Template from "./layout/Template";
+import Code from "./pages/Code";
+import Error from "./pages/Error";
+import Info from "./pages/Info";
 import { Login } from "./pages/Login";
 import Register from "./pages/Register";
 import Terms from "./pages/Terms";
@@ -36,40 +39,25 @@ export default function KcPage(props: { kcContext: KcContext }) {
       {(() => {
         switch (kcContext.pageId) {
           case "login.ftl":
-            return (
-              <Login
-                kcContext={kcContext}
-                i18n={i18n}
-                Template={Template}
-                doUseDefaultCss={false}
-              />
-            );
+            return <Login kcContext={kcContext} i18n={i18n} />;
           case "register.ftl":
             return (
               <Register
                 {...{ kcContext, i18n, classes }}
-                Template={Template}
-                doUseDefaultCss={false}
                 UserProfileFormFields={UserProfileFormFields}
                 doMakeUserConfirmPassword={doMakeUserConfirmPassword}
               />
             );
           case "terms.ftl":
-            return (
-              <Terms
-                {...{ kcContext, i18n, classes }}
-                Template={Template}
-                doUseDefaultCss={false}
-              />
-            );
+            return <Terms {...{ kcContext, i18n, classes }} />;
+          case "error.ftl":
+            return <Error {...{ kcContext, i18n, classes }} />;
+          case "info.ftl":
+            return <Info {...{ kcContext, i18n, classes }} />;
+          case "code.ftl":
+            return <Code {...{ kcContext, i18n, classes }} />;
           case "login-reset-password.ftl":
-            return (
-              <LoginResetPassword
-                {...{ kcContext, i18n, classes }}
-                Template={Template}
-                doUseDefaultCss={false}
-              />
-            );
+            return <LoginResetPassword {...{ kcContext, i18n, classes }} />;
           default:
             return (
               <DefaultPage

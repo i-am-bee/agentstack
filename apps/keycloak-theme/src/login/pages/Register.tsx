@@ -4,16 +4,17 @@
  */
 
 import { Button, Checkbox, Link } from "@carbon/react";
-import type { PageProps } from "keycloakify/login/pages/PageProps";
 import type { UserProfileFormFieldsProps } from "keycloakify/login/UserProfileFormFieldsProps";
 import type { JSX } from "keycloakify/tools/JSX";
 import type { LazyOrNot } from "keycloakify/tools/LazyOrNot";
 import { useLayoutEffect, useRef, useState } from "react";
 
-import { Container } from "../components/Container/Container";
+import { Layout } from "../components/Layout/Layout";
 import { PageHeading } from "../components/PageHeading/PageHeading";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../KcContext";
+import Template from "../layout/Template";
+import type { CustomPageProps } from "../types";
 import { getAppName } from "../utils";
 import classes from "./Register.module.scss";
 
@@ -23,10 +24,7 @@ declare global {
   }
 }
 
-type RegisterProps = PageProps<
-  Extract<KcContext, { pageId: "register.ftl" }>,
-  I18n
-> & {
+type RegisterProps = CustomPageProps<{ pageId: "register.ftl" }> & {
   UserProfileFormFields: LazyOrNot<
     (props: UserProfileFormFieldsProps) => JSX.Element
   >;
@@ -34,14 +32,8 @@ type RegisterProps = PageProps<
 };
 
 export default function Register(props: RegisterProps) {
-  const {
-    kcContext,
-    i18n,
-    doUseDefaultCss,
-    Template,
-    UserProfileFormFields,
-    doMakeUserConfirmPassword,
-  } = props;
+  const { kcContext, i18n, UserProfileFormFields, doMakeUserConfirmPassword } =
+    props;
 
   const {
     messageHeader,
@@ -73,11 +65,11 @@ export default function Register(props: RegisterProps) {
   }, []);
 
   return (
-    <Container>
+    <Layout i18n={i18n}>
       <Template
         kcContext={kcContext}
         i18n={i18n}
-        doUseDefaultCss={doUseDefaultCss}
+        doUseDefaultCss={false}
         headerNode={
           messageHeader !== undefined ? (
             advancedMsg(messageHeader)
@@ -159,7 +151,7 @@ export default function Register(props: RegisterProps) {
           </form>
         </div>
       </Template>
-    </Container>
+    </Layout>
   );
 }
 
