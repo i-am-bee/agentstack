@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from a2a.utils import get_message_text
 from deepagents.backends import CompositeBackend, FilesystemBackend
 from a2a.types import Message
+from langchain_core.runnables import RunnableConfig
 
 from agentstack_sdk.a2a.extensions import (
     AgentDetail,
@@ -48,6 +49,8 @@ LLM_BY_AGENT = {
 }
 
 server = Server()
+
+CURRENT_DIRECTORY = Path(__file__).parent
 
 
 @server.agent(
@@ -95,26 +98,30 @@ async def deepagents_content_creator(
         subagents.append(sub_agent)
 
     agent_stack_backend = AgentStackBackend()
-    fs_backend = FilesystemBackend(virtual_mode=True, root_dir=None)  # current directory
+    print([f.filename for f in await agent_stack_backend.alist()])
+    fs_backend = FilesystemBackend(virtual_mode=True, root_dir=CURRENT_DIRECTORY)
 
     agent = create_deep_agent(
         model=create_chat_model(default_llm_config),
-        memory=["./memory/AGENTS.md"],
-        skills=["./skills/"],
+        memory=[f"{CURRENT_DIRECTORY}/memory/AGENTS.md"],
+        skills=[f"{CURRENT_DIRECTORY}/skills/"],
         tools=[generate_cover, generate_social_image],
         subagents=subagents,
         backend=CompositeBackend(
-            default=agent_stack_backend, routes={"./memory/": fs_backend, "./skills/": fs_backend}
+            default=agent_stack_backend,
+            routes={f"{CURRENT_DIRECTORY}/memory/": fs_backend, f"{CURRENT_DIRECTORY}/skills/": fs_backend},
         ),
     )
 
     thread_id = f"session-{context.task_id}"
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
-    messages = [*to_langchain_messages(history), HumanMessage(content=user_message)]
+    lc_messages = [*to_langchain_messages(history), HumanMessage(content=user_message)]
     tool_calls = defaultdict(lambda: {"name": "", "args": ""})
 
     async for chunk in agent.astream(
-        input={"messages": messages}, config={"configurable": {"thread_id": thread_id}}, stream_mode=["messages"]
+        input={"messages": lc_messages},
+        config=RunnableConfig(configurable={"thread_id": thread_id}),
+        stream_mode=["messages"],
     ):
         node_name, messages = chunk
         if node_name != "messages" or not messages:
@@ -144,7 +151,7 @@ async def deepagents_content_creator(
                     yield AgentMessage(text=last_msg.text)
                     await context.store(AgentMessage(text=last_msg.text))
 
-            elif isinstance(last_msg, ToolMessage):
+            elif isinstance(last_msg, ToolMessage) and last_msg.name and last_msg.text:
                 tool_message_metadata = trajectory.trajectory_metadata(title=last_msg.name, content=last_msg.text)
                 yield tool_message_metadata
                 await context.store(data=AgentMessage(metadata=tool_message_metadata))

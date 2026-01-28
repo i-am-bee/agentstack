@@ -25,12 +25,12 @@ class AgentStackBackend(BackendProtocol):
         self.prefix = prefix.rstrip("/")
 
     def _key(self, path: str) -> str:
-        return f"{self.prefix}{path}"
+        return f"{self.prefix}{path}".lstrip("/")
 
     async def _find_by_name(self, path: str) -> File | None:
         key = self._key(path)
         result = await File.list(filename_search=key)
-        return next((f for f in result.items if f.filename == path), None)
+        return next((f for f in result.items if f.filename == key), None)
 
     async def alist(
         self,
@@ -61,6 +61,9 @@ class AgentStackBackend(BackendProtocol):
         file = await self._find_by_name(file_path)
         if not file:
             return f"Error: File '{file_path}' not found"
+
+        if file.content_type.startswith("image") or file.content_type.startswith("application"):
+            return f"Error: File '{file_path}' cannot be read because its content is not a text."
 
         async with file.load_text_content() as loaded_file:
             content = loaded_file.text
@@ -173,7 +176,7 @@ class AgentStackBackend(BackendProtocol):
             return EditResult(error="No occurrences found", occurrences=0, path=file_path)
 
         await self.awrite(file_path, new_data)
-        await file.delete()  # not ideal
+        await file.delete()
 
         return EditResult(
             occurrences=occurrences,
