@@ -172,8 +172,8 @@ class AgentStackBackend(BackendProtocol):
         if not occurrences:
             return EditResult(error="No occurrences found", occurrences=0, path=file_path)
 
-        await file.delete()
         await self.awrite(file_path, new_data)
+        await file.delete()  # not ideal
 
         return EditResult(
             occurrences=occurrences,

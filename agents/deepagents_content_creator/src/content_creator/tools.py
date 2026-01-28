@@ -53,7 +53,7 @@ async def generate_cover(prompt: str, slug: str) -> str:
 
         print("generating cover image...")
 
-        client = genai.Client(api_key=os.environ["GOOGLE_API_KEY"]).aio
+        client = genai.Client().aio
         response = await client.models.generate_content(
             model="gemini-2.5-flash-image",
             contents=[prompt],
