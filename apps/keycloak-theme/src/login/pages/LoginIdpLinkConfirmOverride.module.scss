@@ -8,9 +8,4 @@
   display: flex;
   flex-direction: column;
   row-gap: $spacing-05;
-
-  p {
-    line-height: math.div(24, 16);
-    color: $text-secondary;
-  }
 }

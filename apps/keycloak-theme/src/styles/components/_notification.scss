@@ -6,8 +6,8 @@
 @use "styles/common" as *;
 
 .cds--inline-notification--low-contrast {
-  color: pink;
   &.cds--inline-notification--success,
+  &.cds--inline-notification--info,
   &.cds--inline-notification--warning {
     color: $text-inverse;
   }

@@ -1,0 +1,22 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+@use "styles/common" as *;
+
+.cds--btn-set {
+  column-gap: $spacing-03;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+
+  .cds--btn {
+    inline-size: auto;
+    max-inline-size: rem(240px);
+    &,
+    &:not(:focus) {
+      box-shadow: none;
+    }
+  }
+}

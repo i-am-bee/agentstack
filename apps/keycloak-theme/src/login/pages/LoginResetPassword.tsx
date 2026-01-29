@@ -43,9 +43,7 @@ export default function LoginResetPassword(
         }
         headerNode={
           <PageHeading>
-            <>
-              Reset password for <strong>{appName}</strong>
-            </>
+            Reset password for <strong>{appName}</strong>
           </PageHeading>
         }
       >

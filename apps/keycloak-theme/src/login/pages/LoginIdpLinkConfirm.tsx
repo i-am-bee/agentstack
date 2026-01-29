@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button } from "@carbon/react";
+import { Button, ButtonSet } from "@carbon/react";
 
 import { Layout } from "../components/Layout/Layout";
 import { PageHeading } from "../components/PageHeading/PageHeading";
 import Template from "../layout/Template";
 import type { CustomPageProps } from "../types";
-import classes from "./LoginIdpLinkConfirm.module.scss";
 
 export default function LoginIdpLinkConfirm(
   props: CustomPageProps<{ pageId: "login-idp-link-confirm.ftl" }>,
@@ -31,25 +30,27 @@ export default function LoginIdpLinkConfirm(
         size="sm"
       >
         <div>
-          <form className={classes.form} action={url.loginAction} method="post">
-            <Button
-              type="submit"
-              kind="secondary"
-              name="submitAction"
-              id="updateProfile"
-              value="updateProfile"
-            >
-              {msg("confirmLinkIdpReviewProfile")}
-            </Button>
-            <Button
-              type="submit"
-              kind="primary"
-              name="submitAction"
-              id="linkAccount"
-              value="linkAccount"
-            >
-              {msg("confirmLinkIdpContinue", idpAlias)}
-            </Button>
+          <form action={url.loginAction} method="post">
+            <ButtonSet>
+              <Button
+                type="submit"
+                kind="secondary"
+                name="submitAction"
+                id="updateProfile"
+                value="updateProfile"
+              >
+                {msg("confirmLinkIdpReviewProfile")}
+              </Button>
+              <Button
+                type="submit"
+                kind="primary"
+                name="submitAction"
+                id="linkAccount"
+                value="linkAccount"
+              >
+                {msg("confirmLinkIdpContinue", idpAlias)}
+              </Button>
+            </ButtonSet>
           </form>
         </div>
       </Template>

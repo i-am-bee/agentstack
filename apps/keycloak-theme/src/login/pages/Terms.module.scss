@@ -17,16 +17,6 @@
   margin-block-end: $spacing-05;
 }
 
-.actions {
-  display: flex;
-  gap: $spacing-03;
-  flex-direction: column;
-
-  @include breakpoint-up(md) {
-    flex-direction: row;
-  }
-}
-
 @include breakpoint-up(md) {
   .root {
     padding-inline: $spacing-08;

@@ -5,6 +5,9 @@
 
 .content {
   inline-size: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: $spacing-06;
 }
 
 .form {
@@ -13,16 +16,24 @@
   row-gap: $spacing-05;
 }
 
-.formOptions {
+.options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-block-start: $spacing-03;
+  flex-wrap: wrap;
+  gap: $spacing-03;
 }
 
-.info {
-  margin-block: $spacing-05;
+.submitButton {
+  inline-size: 100%;
+  max-inline-size: none;
+}
+
+.registration {
+  margin-block-start: $spacing-07;
   font-size: rem(16px);
-  line-height: math.div(20, 16);
-  color: $text-secondary;
+
+  a {
+    margin-inline-start: $spacing-02;
+  }
 }

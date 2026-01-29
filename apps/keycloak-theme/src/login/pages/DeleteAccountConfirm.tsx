@@ -5,6 +5,7 @@
 
 import {
   Button,
+  ButtonSet,
   InlineNotification,
   ListItem,
   UnorderedList,
@@ -52,16 +53,21 @@ export default function DeleteAccountConfirm(
             </p>
           </div>
 
-          <div className={classes.actions}>
+          <ButtonSet>
             <Button type="submit" kind="danger">
               {msgStr("doConfirmDelete")}
             </Button>
             {triggered_from_aia && (
-              <Button type="submit" name="cancel-aia" value="true" kind="ghost">
+              <Button
+                type="submit"
+                name="cancel-aia"
+                value="true"
+                kind="secondary"
+              >
                 {msgStr("doCancel")}
               </Button>
             )}
-          </div>
+          </ButtonSet>
         </form>
       </Template>
     </Layout>

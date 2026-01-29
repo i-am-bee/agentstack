@@ -6,10 +6,14 @@
 import { Button } from "@carbon/react";
 
 import type { I18n } from "../../i18n";
-import type { LoginPageContext } from "../../types";
+import type {
+  LoginPageContext,
+  LoginPasswordContext,
+  LoginUsernameContext,
+} from "../../types";
 
 type Props = {
-  kcContext: Extract<LoginPageContext, { pageId: "login.ftl" }>;
+  kcContext: LoginPageContext | LoginUsernameContext | LoginPasswordContext;
   i18n: I18n;
   webAuthnButtonId: string;
 };

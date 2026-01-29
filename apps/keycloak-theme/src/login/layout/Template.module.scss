@@ -20,3 +20,15 @@
 .infoBox {
   margin-block: $spacing-04;
 }
+
+.attemptedUsername {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-04;
+  margin-block-end: $spacing-05;
+}
+
+.restartLoginButton {
+  display: flex;
+  gap: $spacing-03;
+}

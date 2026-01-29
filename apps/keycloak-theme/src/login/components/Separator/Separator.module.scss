@@ -1,0 +1,28 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  block-size: rem(16px);
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    block-size: rem(1px);
+    inline-size: 100%;
+    background-color: $border-subtle;
+  }
+}
+
+.text {
+  background: $background;
+  font-size: rem(14px);
+  color: $text-placeholder;
+  position: relative;
+  padding-inline: $spacing-06;
+}

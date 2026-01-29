@@ -26,14 +26,6 @@ const base = [
       'simple-import-sort/exports': 'error',
     },
   },
-];
-
-/** @type {import('eslint').Linter.Config[]} */
-const config = [
-  ...base,
-  eslint.configs.recommended,
-  typescriptEslint.configs.recommended,
-  eslintConfigPrettier,
   {
     plugins: {
       'simple-import-sort': simpleImportSort,
@@ -47,20 +39,10 @@ const config = [
 ];
 
 /** @type {import('eslint').Linter.Config[]} */
-const nextConfig = [
-  ...base,
-  ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier'),
-  {
-    plugins: {
-      'simple-import-sort': simpleImportSort,
-      'css-modules': cssModules,
-    },
-    rules: {
-      'css-modules/no-unused-class': 'off',
-      'css-modules/no-undef-class': 'error',
-    },
-  },
-];
+const config = [...base, eslint.configs.recommended, typescriptEslint.configs.recommended, eslintConfigPrettier];
+
+/** @type {import('eslint').Linter.Config[]} */
+const nextConfig = [...base, ...compat.extends('next/core-web-vitals', 'next/typescript', 'prettier')];
 
 export { nextConfig };
 

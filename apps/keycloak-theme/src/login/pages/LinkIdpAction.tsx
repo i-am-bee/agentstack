@@ -9,14 +9,14 @@ import { Layout } from "../components/Layout/Layout";
 import { PageHeading } from "../components/PageHeading/PageHeading";
 import Template from "../layout/Template";
 import type { CustomPageProps } from "../types";
-import classes from "./Terms.module.scss";
+import classes from "./LinkIdpAction.module.scss";
 
-export default function Terms(props: CustomPageProps<{ pageId: "terms.ftl" }>) {
+export default function LinkIdpAction(
+  props: CustomPageProps<{ pageId: "link-idp-action.ftl" }>,
+) {
   const { kcContext, i18n } = props;
-
-  const { msg, msgStr } = i18n;
-
-  const { url } = kcContext;
+  const { idpDisplayName, url } = kcContext;
+  const { msg } = i18n;
 
   return (
     <Layout i18n={i18n}>
@@ -24,25 +24,23 @@ export default function Terms(props: CustomPageProps<{ pageId: "terms.ftl" }>) {
         kcContext={kcContext}
         i18n={i18n}
         doUseDefaultCss={false}
+        headerNode={
+          <PageHeading>{msg("linkIdpActionTitle", idpDisplayName)}</PageHeading>
+        }
         displayMessage={false}
-        headerNode={<PageHeading>Terms and Conditions</PageHeading>}
         centered
       >
         <div className={classes.content}>
-          <div className={classes.termsText}>{msg("termsText")}</div>
-
-          <form action={url.loginAction} method="POST">
+          <p className={classes.message}>
+            {msg("linkIdpActionMessage", idpDisplayName)}
+          </p>
+          <form className={classes.form} action={url.loginAction} method="post">
             <ButtonSet>
-              <Button name="accept" id="kc-accept" type="submit" kind="primary">
-                {msgStr("doAccept")}
+              <Button type="submit" name="continue">
+                {msg("doContinue")}
               </Button>
-              <Button
-                name="cancel"
-                id="kc-decline"
-                type="submit"
-                kind="secondary"
-              >
-                {msgStr("doDecline")}
+              <Button kind="secondary" type="submit" name="cancel-aia">
+                {msg("doCancel")}
               </Button>
             </ButtonSet>
           </form>

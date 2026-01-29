@@ -10,14 +10,19 @@
   row-gap: $spacing-05;
 }
 
+.message {
+  inline-size: 100%;
+  font-size: rem(16px);
+  line-height: math.div(24, 16);
+  color: $text-secondary;
+}
+
 .form {
   display: flex;
   flex-direction: column;
-  row-gap: $spacing-05;
 }
 
-@include breakpoint-up(md) {
-  .root {
-    padding-inline: $spacing-08;
-  }
+.actions {
+  display: flex;
+  column-gap: $spacing-05;
 }

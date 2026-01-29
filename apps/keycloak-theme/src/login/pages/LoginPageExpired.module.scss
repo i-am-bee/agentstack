@@ -1,0 +1,11 @@
+/**
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+.root {
+  inline-size: 100%;
+  font-size: rem(16px);
+  line-height: math.div(24, 16);
+  color: $text-secondary;
+}

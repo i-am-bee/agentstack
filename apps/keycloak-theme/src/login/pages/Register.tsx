@@ -3,11 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowRight } from "@carbon/icons-react";
 import { Button, Checkbox, Link } from "@carbon/react";
-import type { UserProfileFormFieldsProps } from "keycloakify/login/UserProfileFormFieldsProps";
-import type { JSX } from "keycloakify/tools/JSX";
-import type { LazyOrNot } from "keycloakify/tools/LazyOrNot";
 import { useLayoutEffect, useRef, useState } from "react";
 
 import { Layout } from "../components/Layout/Layout";
@@ -15,7 +11,8 @@ import { PageHeading } from "../components/PageHeading/PageHeading";
 import type { I18n } from "../i18n";
 import type { KcContext } from "../KcContext";
 import Template from "../layout/Template";
-import type { CustomPageProps } from "../types";
+import type { CustomPageProps, UserProfileFormPageProps } from "../types";
+import UserProfileFormFields from "../UserProfileFormFields";
 import { getAppName } from "../utils";
 import classes from "./Register.module.scss";
 
@@ -25,16 +22,11 @@ declare global {
   }
 }
 
-type RegisterProps = CustomPageProps<{ pageId: "register.ftl" }> & {
-  UserProfileFormFields: LazyOrNot<
-    (props: UserProfileFormFieldsProps) => JSX.Element
-  >;
-  doMakeUserConfirmPassword: boolean;
-};
+type RegisterProps = CustomPageProps<{ pageId: "register.ftl" }> &
+  UserProfileFormPageProps;
 
 export default function Register(props: RegisterProps) {
-  const { kcContext, i18n, UserProfileFormFields, doMakeUserConfirmPassword } =
-    props;
+  const { kcContext, i18n, doMakeUserConfirmPassword } = props;
 
   const {
     messageHeader,
@@ -76,9 +68,7 @@ export default function Register(props: RegisterProps) {
             advancedMsg(messageHeader)
           ) : (
             <PageHeading>
-              <>
-                Register to <strong>{appName}</strong>
-              </>
+              Register to <strong>{appName}</strong>
             </PageHeading>
           )
         }
@@ -139,8 +129,6 @@ export default function Register(props: RegisterProps) {
               <Button
                 type="submit"
                 kind="primary"
-                className={classes.submitButton}
-                renderIcon={ArrowRight}
                 disabled={
                   !isFormSubmittable ||
                   (termsAcceptanceRequired && !areTermsAccepted)

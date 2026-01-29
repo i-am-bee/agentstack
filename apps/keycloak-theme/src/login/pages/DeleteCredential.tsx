@@ -9,14 +9,16 @@ import { Layout } from "../components/Layout/Layout";
 import { PageHeading } from "../components/PageHeading/PageHeading";
 import Template from "../layout/Template";
 import type { CustomPageProps } from "../types";
-import classes from "./Terms.module.scss";
+import classes from "./DeleteCredential.module.scss";
 
-export default function Terms(props: CustomPageProps<{ pageId: "terms.ftl" }>) {
+export default function DeleteCredential(
+  props: CustomPageProps<{ pageId: "delete-credential.ftl" }>,
+) {
   const { kcContext, i18n } = props;
 
-  const { msg, msgStr } = i18n;
+  const { msgStr, msg } = i18n;
 
-  const { url } = kcContext;
+  const { url, credentialLabel } = kcContext;
 
   return (
     <Layout i18n={i18n}>
@@ -25,24 +27,28 @@ export default function Terms(props: CustomPageProps<{ pageId: "terms.ftl" }>) {
         i18n={i18n}
         doUseDefaultCss={false}
         displayMessage={false}
-        headerNode={<PageHeading>Terms and Conditions</PageHeading>}
+        headerNode={
+          <PageHeading>
+            {msg("deleteCredentialTitle", credentialLabel)}
+          </PageHeading>
+        }
         centered
       >
         <div className={classes.content}>
-          <div className={classes.termsText}>{msg("termsText")}</div>
+          <div>{msg("deleteCredentialMessage", credentialLabel)}</div>
 
-          <form action={url.loginAction} method="POST">
+          <form className={classes.form} action={url.loginAction} method="POST">
             <ButtonSet>
-              <Button name="accept" id="kc-accept" type="submit" kind="primary">
-                {msgStr("doAccept")}
+              <Button type="submit" kind="danger" name="accept" id="kc-accept">
+                {msgStr("doConfirmDelete")}
               </Button>
               <Button
-                name="cancel"
-                id="kc-decline"
                 type="submit"
                 kind="secondary"
+                name="cancel-aia"
+                id="kc-decline"
               >
-                {msgStr("doDecline")}
+                {msgStr("doCancel")}
               </Button>
             </ButtonSet>
           </form>

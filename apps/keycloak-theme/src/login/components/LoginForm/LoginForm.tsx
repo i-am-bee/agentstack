@@ -38,7 +38,6 @@ export function LoginForm({ kcContext, i18n }: Props) {
   return (
     <form
       className={styles.root}
-      id="kc-form-login"
       onSubmit={() => {
         setIsLoginButtonDisabled(true);
         return true;
@@ -96,7 +95,7 @@ export function LoginForm({ kcContext, i18n }: Props) {
             id="rememberMe"
             name="rememberMe"
             labelText={msgStr("rememberMe")}
-            defaultChecked={!!login.rememberMe}
+            defaultChecked={Boolean(login.rememberMe)}
           />
         )}
 

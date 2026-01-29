@@ -3,30 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowRight } from "@carbon/icons-react";
 import { Button } from "@carbon/react";
-import type { UserProfileFormFieldsProps } from "keycloakify/login/UserProfileFormFieldsProps";
-import type { JSX } from "keycloakify/tools/JSX";
-import type { LazyOrNot } from "keycloakify/tools/LazyOrNot";
 import { useState } from "react";
 
 import { Layout } from "../components/Layout/Layout";
 import Template from "../layout/Template";
-import type { CustomPageProps } from "../types";
+import type { CustomPageProps, UserProfileFormPageProps } from "../types";
+import UserProfileFormFields from "../UserProfileFormFields";
 import classes from "./IdpReviewUserProfile.module.scss";
 
 type IdpReviewUserProfileProps = CustomPageProps<{
   pageId: "idp-review-user-profile.ftl";
-}> & {
-  UserProfileFormFields: LazyOrNot<
-    (props: UserProfileFormFieldsProps) => JSX.Element
-  >;
-  doMakeUserConfirmPassword: boolean;
-};
+}> &
+  UserProfileFormPageProps;
 
 export default function IdpReviewUserProfile(props: IdpReviewUserProfileProps) {
-  const { kcContext, i18n, UserProfileFormFields, doMakeUserConfirmPassword } =
-    props;
+  const { kcContext, i18n, doMakeUserConfirmPassword } = props;
 
   const { msg, msgStr } = i18n;
 
@@ -53,13 +45,7 @@ export default function IdpReviewUserProfile(props: IdpReviewUserProfileProps) {
               doMakeUserConfirmPassword={doMakeUserConfirmPassword}
             />
 
-            <Button
-              type="submit"
-              kind="primary"
-              disabled={!isFormSubmittable}
-              renderIcon={ArrowRight}
-              className={classes.submitButton}
-            >
+            <Button type="submit" kind="primary" disabled={!isFormSubmittable}>
               {msgStr("doSubmit")}
             </Button>
           </form>

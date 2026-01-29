@@ -3,13 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { InlineNotification } from "@carbon/react";
+import { Reset } from "@carbon/icons-react";
+import { InlineNotification, TextInput } from "@carbon/react";
 import { getKcClsx } from "keycloakify/login/lib/kcClsx";
 import { useInitialize } from "keycloakify/login/Template.useInitialize";
 import type { TemplateProps } from "keycloakify/login/TemplateProps";
 import { clsx } from "keycloakify/tools/clsx";
 import { useSetClassName } from "keycloakify/tools/useSetClassName";
-import { useEffect, useMemo } from "react";
+import { useEffect, useId, useMemo } from "react";
 
 import type { ContainerProps } from "../components/Container/Container";
 import { Container } from "../components/Container/Container";
@@ -42,6 +43,7 @@ export default function Template({
   className,
   children,
 }: Props) {
+  const id = useId();
   const { kcClsx } = getKcClsx({ doUseDefaultCss, classes: kcClasses });
   const { msg, msgStr } = i18n;
 
@@ -99,21 +101,29 @@ export default function Template({
               ) ? (
                 <h1 id="kc-page-title">{headerNode}</h1>
               ) : (
-                <div id="kc-username" className={kcClsx("kcFormGroupClass")}>
-                  <label id="kc-attempted-username">
-                    {auth.attemptedUsername}
-                  </label>
+                <div
+                  id="kc-username"
+                  className={clsx(
+                    kcClsx("kcFormGroupClass"),
+                    classes.attemptedUsername,
+                  )}
+                >
+                  <TextInput
+                    id={`${id}-attempted-username`}
+                    labelText={msgStr("usernameOrEmail")}
+                    value={auth.attemptedUsername}
+                    disabled
+                  />
                   <a
                     id="reset-login"
                     href={url.loginRestartFlowUrl}
                     aria-label={msgStr("restartLoginTooltip")}
+                    className={classes.restartLoginButton}
                   >
-                    <div className="kc-login-tooltip">
-                      <i className={kcClsx("kcResetFlowIcon")}></i>
-                      <span className="kc-tooltip-text">
-                        {msg("restartLoginTooltip")}
-                      </span>
-                    </div>
+                    <Reset />
+                    <span className="kc-tooltip-text">
+                      {msg("restartLoginTooltip")}
+                    </span>
                   </a>
                 </div>
               );
@@ -151,7 +161,6 @@ export default function Template({
                     kind={message.type === "error" ? "error" : message.type}
                     lowContrast
                     hideCloseButton
-                    title=""
                     subtitle={message.summary}
                     className={classes.notification}
                   />
