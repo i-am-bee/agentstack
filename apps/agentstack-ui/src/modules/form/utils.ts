@@ -21,6 +21,7 @@ export function getDefaultValues(fields: FormField[]) {
           { type: 'singleselect' },
           { type: 'multiselect' },
           { type: 'checkbox' },
+          { type: 'checkbox_group' },
           ({ id, type, default_value }) => [id, { type, value: default_value }],
         )
         .otherwise(({ id, type }) => [id, { type }]),
