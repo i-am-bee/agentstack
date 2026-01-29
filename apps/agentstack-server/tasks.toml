@@ -316,6 +316,9 @@ export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
 echo "Waiting for agentstack-server deployment to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/agentstack-server
 
+echo "Waiting for Keycloak provision job to complete..."                                                                                                                                                                                                                                                                                                                                                                                     
+kubectl wait --for=condition=complete --timeout=300s job/keycloak-provision
+
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
 uv run pytest -m e2e
 result=$?
