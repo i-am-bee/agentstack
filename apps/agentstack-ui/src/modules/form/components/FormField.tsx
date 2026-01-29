@@ -8,6 +8,7 @@ import type { CSSProperties } from 'react';
 import { match, P } from 'ts-pattern';
 
 import { CheckboxField } from './fields/CheckboxField';
+import { CheckboxGroupField } from './fields/CheckboxGroupField';
 import { DateField } from './fields/DateField';
 import { FileField } from './fields/FileField';
 import { FileFieldValue } from './fields/FileFieldValue';
@@ -36,6 +37,7 @@ export function FormField({ field, value, autoFocus }: Props) {
     .with({ type: 'singleselect' }, (field) => <SingleSelectField field={field} autoFocus={autoFocus} />)
     .with({ type: 'multiselect' }, (field) => <MultiSelectField field={field} autoFocus={autoFocus} />)
     .with({ type: 'checkbox' }, (field) => <CheckboxField field={field} autoFocus={autoFocus} />)
+    .with({ type: 'checkbox_group' }, (field) => <CheckboxGroupField field={field} autoFocus={autoFocus} />)
     .exhaustive();
 
   return (
