@@ -1,14 +1,13 @@
 ---
-title: Extensions
-description: Service and UI extensions for agent communication and capabilities
+title: Agent Requirements
+description: Fulfill agent service demands and render UI extensions in your custom interface
 ---
 
-Built on top of the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), Agent Stack extends the protocol with Agent Stack specific capabilities through [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/). These extensions enable agents to access platform services and enhance the user interface beyond what the base A2A protocol provides.
+Agent Stack extends the [A2A Protocol](https://a2a-protocol.org/) with [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/) that enable agents to access platform services and enhance the user interface beyond what the base protocol provides.
 
 Extensions fall into two categories:
-
-- **Service extensions**: Demands in the agent card that your client fulfills.
-- **UI extensions**: Message metadata your UI renders.
+1. **Service extensions:** Demands in the agent card that your client fulfills (LLMs, embeddings, OAuth, secrets)
+2. **UI extensions:**  Message metadata your UI renders (forms, approvals, citations, trajectories)
 
 All extension definitions are exported from `agentstack-sdk/extensions` if you prefer a narrower import surface.
 

@@ -1,12 +1,14 @@
 ---
 title: Error Handling
-description: Patterns for API errors and A2A extension failures
+description: Handle platform API errors and agent task failures
 ---
 
-The SDK exposes two error surfaces:
+The SDK handles errors at two levels:
 
-- Platform API calls return `ApiResult<T>` or throw `ApiErrorException` when using `unwrapResult`.
-- A2A task updates can include error metadata via the error extension.
+1. **Platform API errors** occur when communicating with the Agent Stack server (authentication, network issues, invalid responses).
+2. **Agent task errors** occur when agents fail or reject tasks during execution.
+
+This guide shows how to catch and handle both error types in your UI.
 
 ## Platform API errors
 

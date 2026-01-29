@@ -1,12 +1,14 @@
 ---
-title: Client SDK Overview
-description: Architecture and core workflows for the AgentStack TypeScript SDK
+title: Getting Started
+description: SDK overview and key workflows for building custom agent interfaces
 ---
 
-The AgentStack TypeScript SDK builds on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/) and provides two layers:
+The Agent Stack TypeScript Client SDK simplifies building custom UIs for A2A agents. It handles agent service demands, maps task status updates to UI actions, and provides a typed platform API client. Use it to fulfill agent requirements, render interactive elements like forms and approvals, and manage communication between your UI and Agent Stack.
 
-- A2A extensions and helpers that map agent demands to client fulfillments and UI metadata.
-- A platform API client that talks to the AgentStack server.
+It builds on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/) and provides two layers:
+
+1. A2A extensions and helpers that map agent demands to client fulfillments and UI metadata.
+2. A platform API client that talks to the AgentStack server.
 
 The SDK also exports A2A protocol types and Zod schemas so your UI can stay in sync with the protocol.
 

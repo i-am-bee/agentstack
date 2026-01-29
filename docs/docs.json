@@ -159,18 +159,13 @@
           {
             "group": "Custom UI Integration",
             "pages": [
-              {
-                "group": "Client SDK (Typescript)",
-                "pages": [
-                  "development/custom-ui/client-sdk/overview",
-                  "development/custom-ui/client-sdk/a2a-client-integration",
-                  "development/custom-ui/client-sdk/extensions",
-                  "development/custom-ui/client-sdk/api-client",
-                  "development/custom-ui/client-sdk/error-handling",
-                  "development/custom-ui/client-sdk/message-building",
-                  "development/custom-ui/client-sdk/message-parts"
-                ]
-              },
+              "development/custom-ui/getting-started",
+              "development/custom-ui/a2a-client",
+              "development/custom-ui/agent-requirements",
+              "development/custom-ui/platform-api-client",
+              "development/custom-ui/error-handling",
+              "development/custom-ui/agent-responses",
+              "development/custom-ui/user-messages",
               "development/custom-ui/permissions-and-tokens"
             ]
           },
