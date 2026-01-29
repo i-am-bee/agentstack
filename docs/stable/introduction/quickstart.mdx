@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Get a running instance in minutes and explore pre-built agents"
+description: "Get Agent Stack up and running in minutes. Then explore running pre-built agents."
 ---
 
 ## Prerequisites
@@ -21,40 +21,17 @@ Open the terminal and run this command to install Agent Stack:
 ```bash
 sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/install/install.sh)"
 ```
-### Installation Lifecycle
-The Agent Stack interactive script handles the environment configuration and platform deployment through three phases.
-
-<CardGroup cols={1}>
-  <Card title="1. Environment Initialization" icon="gears">
-    Prepares the local system by managing core dependencies:
-    
-    - **Package Management:** Installs `uv` and the Agent Stack CLI.
-    - **Language Runtime:** Ensures the correct Python version and removes legacy versions.
-  </Card>
-
-  <Card title="2. Platform Deployment" icon="server">
-    Automates the provisioning of a local Kubernetes-based environment:
-    
-    - **Infrastructure:** Initializes `Lima`, `k3s`, and `Helm`.
-    - **Orchestration:** Pulls service images for the server, UI, and PostgreSQL.
-    - **Networking:** Deploys Helm charts and maps the platform to `localhost:8333`.
-  </Card>
-
-  <Card title="3. Provider Configuration" icon="key">
-    The final stage bridges the platform to your intelligence layer:
-    
-    - **Server Log In:** Starts an active server session.
-    - **Connectivity:** Prompts for **LLM provider setup** to enable model access.
-  </Card>
-</CardGroup>
 
 <Info> 
-The installer sets up uv and the agentstack-cli on your host machine. For details on what happens under the hood, refer to the Manual Install section below.
+
+The installer sets up `uv` and the `agentstack-cli` on your host machine. Agent Stack uses a Virtual Machine (managed via a bundled [Lima](https://github.com/lima-vm/lima) binary) to keep your host machine clean. The Kubernetes cluster running the Agent Stack server, agent containers, and associated storage and services live entirely inside the VM and not on your host directly. 
+
+
+For details on what happens under the hood, refer to the Manual Install section or read the [`install.sh`](https://github.com/i-am-bee/agentstack/blob/install/install.sh) source code.
+
 </Info>
 
 <Accordion title="Manual Install">
-
-Agent Stack uses a Virtual Machine (managed via a bundled Lima binary) to keep your host machine clean. Components like k3s, Helm, and PostgreSQL live entirely inside the VM and do not touch your host directly.
 
 <Steps>
 <Step title="Install uv">
@@ -75,7 +52,7 @@ Open a new terminal and run:
 uv python install --quiet --python-preference=only-managed --no-bin 3.13 && uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
 ```
 
-Follow the interactive prompts to finish setup. This starts the VM.
+Follow the interactive prompts to finish setup and  optionally start the VM.
 
 </Step>
 </Steps>
