@@ -53,6 +53,12 @@ export const checkboxFieldSchema = baseFieldSchema.extend({
   default_value: z.boolean().nullish(),
 });
 
+export const checkboxGroupFieldSchema = baseFieldSchema.extend({
+  type: z.literal('checkbox_group'),
+  fields: z.array(checkboxFieldSchema),
+  default_value: z.record(z.string(), z.boolean()).nullish(),
+});
+
 export const formFieldSchema = z.discriminatedUnion('type', [
   textFieldSchema,
   dateFieldSchema,
@@ -60,6 +66,7 @@ export const formFieldSchema = z.discriminatedUnion('type', [
   singleSelectFieldSchema,
   multiSelectFieldSchema,
   checkboxFieldSchema,
+  checkboxGroupFieldSchema,
 ]);
 
 export const textFieldValueSchema = z.object({
@@ -100,6 +107,11 @@ export const checkboxFieldValueSchema = z.object({
   value: z.boolean().nullish(),
 });
 
+export const checkboxGroupFieldValueSchema = z.object({
+  type: checkboxGroupFieldSchema.shape.type,
+  value: z.record(z.string(), z.boolean()).nullish(),
+});
+
 export const formFieldValueSchema = z.discriminatedUnion('type', [
   textFieldValueSchema,
   dateFieldValueSchema,
@@ -107,6 +119,7 @@ export const formFieldValueSchema = z.discriminatedUnion('type', [
   singleSelectFieldValueSchema,
   multiSelectFieldValueSchema,
   checkboxFieldValueSchema,
+  checkboxGroupFieldValueSchema,
 ]);
 
 export const formRenderSchema = z.object({

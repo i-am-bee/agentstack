@@ -8,6 +8,8 @@ import type z from 'zod';
 import type {
   checkboxFieldSchema,
   checkboxFieldValueSchema,
+  checkboxGroupFieldSchema,
+  checkboxGroupFieldValueSchema,
   dateFieldSchema,
   dateFieldValueSchema,
   fileFieldSchema,
@@ -33,6 +35,7 @@ export type SelectFieldOption = z.infer<typeof selectFieldOptionSchema>;
 export type SingleSelectField = z.infer<typeof singleSelectFieldSchema>;
 export type MultiSelectField = z.infer<typeof multiSelectFieldSchema>;
 export type CheckboxField = z.infer<typeof checkboxFieldSchema>;
+export type CheckboxGroupField = z.infer<typeof checkboxGroupFieldSchema>;
 
 export type FormField = z.infer<typeof formFieldSchema>;
 
@@ -42,6 +45,7 @@ export type FileFieldValue = z.infer<typeof fileFieldValueSchema>;
 export type SingleSelectFieldValue = z.infer<typeof singleSelectFieldValueSchema>;
 export type MultiSelectFieldValue = z.infer<typeof multiSelectFieldValueSchema>;
 export type CheckboxFieldValue = z.infer<typeof checkboxFieldValueSchema>;
+export type CheckboxGroupFieldValue = z.infer<typeof checkboxGroupFieldValueSchema>;
 
 export type FormFieldValue = z.infer<typeof formFieldValueSchema>;
 

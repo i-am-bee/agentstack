@@ -6,6 +6,7 @@
 import { Button } from '@carbon/react';
 import type {
   CheckboxField,
+  CheckboxGroupField,
   DateField,
   FileField,
   FormField,
@@ -87,6 +88,13 @@ function FormValueRenderer({ field }: { field: FieldWithValue }) {
       {match(field)
         .with({ type: 'text' }, { type: 'date' }, ({ value }) => value)
         .with({ type: 'checkbox' }, ({ value }) => (value ? 'yes' : 'no'))
+        .with({ type: 'checkbox_group' }, ({ value }) =>
+          value
+            ? Object.entries(value)
+                .map(([id, value]) => `${id} - ${value ? 'yes' : 'no'}`)
+                .join(', ')
+            : null,
+        )
         .with({ type: 'singleselect' }, ({ value }) => value)
         .with({ type: 'multiselect' }, ({ value }) => value?.join(', '))
         .with({ type: 'file' }, ({ value }) => value?.map(({ name }) => name).join(', '))
@@ -100,6 +108,7 @@ type FieldWithValue =
   | FieldWithValueMapper<TextField>
   | FieldWithValueMapper<DateField>
   | FieldWithValueMapper<CheckboxField>
+  | FieldWithValueMapper<CheckboxGroupField>
   | FieldWithValueMapper<SingleSelectField>
   | FieldWithValueMapper<MultiSelectField>
   | FieldWithValueMapper<FileField>;
