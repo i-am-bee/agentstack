@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SettingsDemands, SettingsValues } from 'agentstack-sdk';
+import type { SettingsFormRender, SettingsFormValues } from 'agentstack-sdk';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { match } from 'ts-pattern';
@@ -14,18 +14,18 @@ import { SingleSelectSettingsField } from './SingleSelectSettingsField';
 import { ToggleSettingsField } from './ToggleSettingsField';
 
 interface Props {
-  settingsDemands: SettingsDemands;
+  settingsForm: SettingsFormRender;
 }
 
-export function RunSettingsForm({ settingsDemands }: Props) {
+export function RunSettingsForm({ settingsForm }: Props) {
   const { selectedSettings, onUpdateSettings } = useAgentDemands();
 
-  const form = useForm<SettingsValues>({
+  const form = useForm<SettingsFormValues>({
     defaultValues: selectedSettings,
   });
 
   useEffect(() => {
-    const subscription = form.watch((values: SettingsValues) => {
+    const subscription = form.watch((values: SettingsFormValues) => {
       onUpdateSettings(values);
     });
 
@@ -35,30 +35,18 @@ export function RunSettingsForm({ settingsDemands }: Props) {
   return (
     <FormProvider {...form}>
       <form className={classes.root}>
-        {settingsDemands.fields.map((group) => {
-          return match(group)
-            .with({ type: 'checkbox_group' }, ({ id, fields }) => (
-              <div key={id}>
-                {fields.map((field) => (
-                  <ToggleSettingsField
-                    key={`${id}.${field.id}`}
-                    field={{ id: `${id}.values.${field.id}`, label: field.label }}
-                  />
+        {settingsForm.fields.map((group) =>
+          match(group)
+            .with({ type: 'checkbox_group' }, (groupField) => (
+              <div key={groupField.id}>
+                {groupField.fields.map((field) => (
+                  <ToggleSettingsField key={field.id} field={field} groupField={groupField} />
                 ))}
               </div>
             ))
-            .with({ type: 'single_select' }, ({ id, label, options }) => (
-              <SingleSelectSettingsField
-                key={id}
-                field={{
-                  id,
-                  label,
-                  options,
-                }}
-              />
-            ))
-            .exhaustive();
-        })}
+            .with({ type: 'singleselect' }, (field) => <SingleSelectSettingsField key={field.id} field={field} />)
+            .exhaustive(),
+        )}
       </form>
     </FormProvider>
   );

@@ -3,7 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApprovalDecision, FormDemands, Fulfillments, SettingsDemands, SettingsValues } from 'agentstack-sdk';
+import type {
+  ApprovalDecision,
+  FormDemands,
+  Fulfillments,
+  SettingsFormRender,
+  SettingsFormValues,
+} from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -26,15 +32,20 @@ export interface ModelProvidersContextValue {
   select: (key: string, value: string) => void;
 }
 
+export type ProvideFormValuesParams = {
+  formId: 'initial_form' | 'settings_form';
+  values: RunFormValues;
+};
+
 interface AgentDemandsContextValue {
   llmProviders: ModelProvidersContextValue;
   embeddingProviders: ModelProvidersContextValue;
-  getFulfillments: (context: FulfillmentsContext) => Promise<Fulfillments>;
-  provideFormValues: (values: RunFormValues) => void;
-  onUpdateSettings: (settings: SettingsValues) => void;
-  selectedSettings: SettingsValues | undefined;
-  settingsDemands: SettingsDemands | null;
   formDemands: FormDemands | null;
+  settingsForm: SettingsFormRender | null;
+  selectedSettings: SettingsFormValues | undefined;
+  getFulfillments: (context: FulfillmentsContext) => Promise<Fulfillments>;
+  provideFormValues: ({ formId, values }: ProvideFormValuesParams) => void;
+  onUpdateSettings: (settings: SettingsFormValues) => void;
 }
 
 export const AgentDemandsContext = createContext<AgentDemandsContextValue | null>(null);
