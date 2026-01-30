@@ -117,7 +117,8 @@
             "pages": [
               "development/deploy-agents/wrap-existing-agents",
               "development/deploy-agents/building-agents",
-              "development/deploy-agents/deploy-your-agents"
+              "development/deploy-agents/deploy-your-agents",
+              "development/deploy-agents/a2a-agents"
             ]
           },
           {
@@ -173,8 +174,7 @@
           {
             "group": "Experimental",
             "pages": [
-              "development/experimental/connectors",
-              "development/experimental/a2a-proxy"
+              "development/experimental/connectors"
             ]
           },
           {
