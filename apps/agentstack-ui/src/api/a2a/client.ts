@@ -165,6 +165,8 @@ export const buildA2AClient = async <UIGenericPart = never>({
               messageSubject.next({ type: RunResultType.Parts, parts, taskId });
             })
             .with({ kind: 'message' }, (message) => {
+              // For non-streaming agents, a task ID may not be available. In that case,
+              // we fall back to using the message ID as a task identifier.
               const resolvedTaskId = message.taskId ?? taskId ?? message.messageId;
               taskId = resolvedTaskId;
 
