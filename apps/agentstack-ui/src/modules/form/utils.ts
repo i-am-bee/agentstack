@@ -4,6 +4,8 @@
  */
 
 import type { FormField } from 'agentstack-sdk';
+import keyBy from 'lodash/keyBy';
+import mapValues from 'lodash/mapValues';
 import { match } from 'ts-pattern';
 
 import { getFilePlatformUrl } from '#api/a2a/utils.ts';
@@ -21,9 +23,24 @@ export function getDefaultValues(fields: FormField[]) {
           { type: 'singleselect' },
           { type: 'multiselect' },
           { type: 'checkbox' },
-          { type: 'checkbox_group' },
-          ({ id, type, default_value }) => [id, { type, value: default_value }],
+          ({ id, type, default_value }) => [
+            id,
+            {
+              type,
+              value: default_value,
+            },
+          ],
         )
+        .with({ type: 'checkbox_group' }, ({ id, type, fields }) => [
+          id,
+          {
+            type,
+            value: mapValues(
+              keyBy(fields, ({ id }) => id),
+              ({ default_value }) => default_value,
+            ),
+          },
+        ])
         .otherwise(({ id, type }) => [id, { type }]),
     ),
   );

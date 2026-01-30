@@ -10,10 +10,12 @@ import type {
   FormFulfillments,
   Fulfillments,
   MCPFulfillments,
-  SettingsValues,
+  SettingsDemands,
+  SettingsFormValues,
 } from 'agentstack-sdk';
 import { ConnectorState, MCPTransportType } from 'agentstack-sdk';
 
+import { transformSettingsFormValuesToLegacySettingsValues } from '#modules/runs/settings/utils.ts';
 import { BASE_URL } from '#utils/constants.ts';
 
 interface BuildFulfillmentsParams {
@@ -21,7 +23,8 @@ interface BuildFulfillmentsParams {
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
   providedSecrets: Record<string, string>;
-  selectedSettings: SettingsValues;
+  settingsDemands: SettingsDemands | null;
+  selectedSettings: SettingsFormValues;
   formFulfillments: FormFulfillments;
   oauthRedirectUri: string | null;
   connectors: Connector[];
@@ -32,20 +35,15 @@ export const buildFulfillments = ({
   selectedLLMProviders,
   selectedEmbeddingProviders,
   selectedSettings,
+  settingsDemands,
   providedSecrets,
   formFulfillments,
   oauthRedirectUri,
   connectors,
 }: BuildFulfillmentsParams): Fulfillments => {
-  return {
+  const fulfillments: Fulfillments = {
     // @deprecated - token now passed via A2A client headers
     getContextToken: () => contextToken,
-
-    settings: async () => {
-      return {
-        values: selectedSettings,
-      };
-    },
 
     form: async (demands) => {
       if (demands.form_demands.initial_form && !formFulfillments.form_fulfillments['initial_form']) {
@@ -155,4 +153,13 @@ export const buildFulfillments = ({
       return oauthRedirectUri;
     },
   };
+
+  if (settingsDemands) {
+    // @deprecated - use form extension with "settings_form" demand instead
+    fulfillments.settings = async () => ({
+      values: transformSettingsFormValuesToLegacySettingsValues(selectedSettings),
+    });
+  }
+
+  return fulfillments;
 };

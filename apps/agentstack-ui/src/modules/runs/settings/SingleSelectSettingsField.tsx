@@ -3,30 +3,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { SettingsSingleSelectFieldValue } from 'agentstack-sdk';
+import type { SingleSelectField, SingleSelectFieldValue } from 'agentstack-sdk';
 import { useController } from 'react-hook-form';
 
 import { RadioSelect } from '#components/RadioSelect/RadioSelect.tsx';
+import { getFieldName } from '#modules/form/utils.ts';
 
-export function SingleSelectSettingsField({
-  field,
-}: {
-  field: { id: string; label: string; options: { value: string; label: string }[] };
-}) {
-  const { id, label } = field;
+interface Props {
+  field: SingleSelectField;
+}
+
+export function SingleSelectSettingsField({ field }: Props) {
+  const { label } = field;
+
+  const name = getFieldName(field);
+  const options = field.options.map(({ id, label }) => ({ value: id, label }));
 
   const {
-    field: { onChange, value },
-  } = useController<{ [key: string]: SettingsSingleSelectFieldValue }, `${typeof id}.value`>({
-    name: `${id}.value`,
-  });
+    field: { value, onChange },
+  } = useController<Record<string, SingleSelectFieldValue>, typeof name>({ name });
 
   return (
     <RadioSelect
       name="radio-button-vertical-group"
       label={label}
-      value={value}
-      options={field.options}
+      value={value ?? undefined}
+      options={options}
       onChange={onChange}
     />
   );

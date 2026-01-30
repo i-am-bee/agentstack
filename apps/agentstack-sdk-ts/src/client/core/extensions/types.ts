@@ -35,6 +35,9 @@ export type Fulfillments = Partial<{
   embedding: (demand: EmbeddingDemands) => Promise<EmbeddingFulfillments>;
   mcp: (demand: MCPDemands) => Promise<MCPFulfillments>;
   oauth: (demand: OAuthDemands) => Promise<OAuthFulfillments>;
+  /**
+   * @deprecated - keeping this for backwards compatibility, use form extension with "settings_form" demand instead
+   */
   settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFulfillments>;
