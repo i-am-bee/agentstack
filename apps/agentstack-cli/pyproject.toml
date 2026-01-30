@@ -6,31 +6,31 @@ readme = "README.md"
 authors = [{ name = "IBM Corp." }]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "anyio~=4.10.0",
-    "pydantic~=2.11.7",
-    "pydantic-settings~=2.10.1",
-    "requests~=2.32.5",
-    "jsonschema~=4.25.1",
-    "jsf~=0.11.2",
-    'gnureadline~=8.2.13; sys_platform != "win32"',
-    "prompt-toolkit~=3.0.52",
-    "inquirerpy~=0.3.4",
-    "psutil~=7.0.0",
+    "anyio>=4.12.1",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
+    "requests>=2.32.5",
+    "jsonschema>=4.26.0",
+    "jsf>=0.11.2",
+    'gnureadline>=8.3.3; sys_platform != "win32"',
+    "prompt-toolkit>=3.0.52",
+    "inquirerpy>=0.3.4",
+    "psutil>=7.2.2",
     "a2a-sdk", # version determined by agentstack-sdk
-    "tenacity~=9.1.2",
-    "typer~=0.17.4",
-    "pyyaml~=6.0.2",
+    "tenacity>=9.1.2",
+    "typer>=0.21.1",
+    "pyyaml>=6.0.3",
     "agentstack-sdk",
-    "authlib~=1.6.3",
-    "openai~=1.107.1",
+    "authlib>=1.6.6",
+    "openai>=2.16.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pyright>=1.1.399",
-    "pytest>=8.3.4",
-    "ruff>=0.8.5",
-    "wheel>=0.45.1",
+    "pyright>=1.1.407", # note: pyright 1.1.408 has a bug with multiple-inheritance
+    "pytest>=9.0.2",
+    "ruff>=0.14.14",
+    "wheel>=0.46.3",
 ]
 
 [tool.uv.sources]
