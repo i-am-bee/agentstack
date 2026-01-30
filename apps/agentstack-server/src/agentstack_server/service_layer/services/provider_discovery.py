@@ -86,7 +86,7 @@ class ProviderDiscoveryService:
 
         return discovery
 
-    async def expire_discoveries(self, *, max_age: timedelta | None = None) -> int:
+    async def cleanup_expired_discoveries(self, *, max_age: timedelta | None = None) -> int:
         max_age = max_age or timedelta(days=1)
         cutoff = utc_now() - max_age
         async with self._uow() as uow:

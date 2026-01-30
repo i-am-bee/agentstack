@@ -184,7 +184,7 @@ DISCOVERY_TIMEOUT_SEC = 180
 DISCOVERY_POLL_INTERVAL_SEC = 2
 
 
-async def _discover_agent_card(docker_image: str) -> None:
+async def _discover_agent_card(docker_image: str) -> AgentCard:
     from agentstack_sdk.platform.provider_discovery import DiscoveryState, ProviderDiscovery
 
     console.info("Image missing agent card label, starting discovery...")
@@ -208,8 +208,7 @@ async def _discover_agent_card(docker_image: str) -> None:
         if not card:
             raise RuntimeError("Discovery completed but no agent card was returned")
 
-        with status("Registering agent with discovered card"):
-            await Provider.create(location=docker_image, agent_card=card)
+        return card
 
 
 @app.command("add")
@@ -292,10 +291,13 @@ async def add_agent(
                     async with configuration.use_platform_client():
                         await Provider.create(location=location)
             except httpx.HTTPStatusError as e:
-                if e.response.status_code == 422 and "beeai.dev.agent.json" in str(e.response.text):
-                    await _discover_agent_card(location)
-                    return
-                raise
+                if e.response.status_code == 422:
+                    agent_card = await _discover_agent_card(location)
+                    with status("Registering agent with discovered card"):
+                        async with configuration.use_platform_client():
+                            await Provider.create(location=location, agent_card=agent_card)
+                else:
+                    raise
         console.success(f"Agent [bold]{location}[/bold] added to platform")
         await list_agents()
 
