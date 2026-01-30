@@ -4,26 +4,34 @@
  */
 
 import { Toggle } from '@carbon/react';
-import type { SettingsCheckboxFieldValue } from 'agentstack-sdk';
+import type { CheckboxField, CheckboxGroupField, CheckboxGroupFieldValue } from 'agentstack-sdk';
 import { useController } from 'react-hook-form';
+
+import { getFieldName } from '#modules/form/utils.ts';
 
 import classes from './ToggleSettingsField.module.scss';
 
-export function ToggleSettingsField({ field }: { field: { label: string; id: string } }) {
-  const { id, label } = field;
+interface Props {
+  field: CheckboxField;
+  groupField: CheckboxGroupField;
+}
+
+export function ToggleSettingsField({ field, groupField }: Props) {
+  const { id, content } = field;
+
+  const groupName = getFieldName(groupField);
+  const name = `${groupName}.${id}` as const;
 
   const {
-    field: { onChange, value },
-  } = useController<{ [key: string]: SettingsCheckboxFieldValue }>({
-    name: `${id}.value`,
-  });
+    field: { value, onChange },
+  } = useController<Record<string, CheckboxGroupFieldValue>, typeof name>({ name });
 
   return (
     <Toggle
       className={classes.root}
-      id={id}
-      labelA={label}
-      labelB={label}
+      id={name}
+      labelA={content}
+      labelB={content}
       size="sm"
       onToggle={onChange}
       toggled={Boolean(value)}

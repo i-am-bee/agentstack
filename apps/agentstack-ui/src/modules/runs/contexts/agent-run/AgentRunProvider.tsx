@@ -348,7 +348,10 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     (form: UIMessageForm) => {
       checkPendingRun();
 
-      provideFormValues(form.response);
+      provideFormValues({
+        formId: 'initial_form',
+        values: form.response,
+      });
 
       const message: UIUserMessage = {
         id: uuid(),

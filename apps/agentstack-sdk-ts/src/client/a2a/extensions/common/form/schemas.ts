@@ -56,7 +56,6 @@ export const checkboxFieldSchema = baseFieldSchema.extend({
 export const checkboxGroupFieldSchema = baseFieldSchema.extend({
   type: z.literal('checkbox_group'),
   fields: z.array(checkboxFieldSchema),
-  default_value: z.record(z.string(), z.boolean()).nullish(),
 });
 
 export const formFieldSchema = z.discriminatedUnion('type', [
@@ -109,7 +108,7 @@ export const checkboxFieldValueSchema = z.object({
 
 export const checkboxGroupFieldValueSchema = z.object({
   type: checkboxGroupFieldSchema.shape.type,
-  value: z.record(z.string(), z.boolean()).nullish(),
+  value: z.record(z.string(), z.boolean().nullish()).nullish(),
 });
 
 export const formFieldValueSchema = z.discriminatedUnion('type', [

@@ -9,6 +9,9 @@ import type { SettingsDemands, SettingsFulfillments } from './types';
 
 export const SETTINGS_EXTENSION_URI = 'https://a2a-extensions.agentstack.beeai.dev/ui/settings/v1';
 
+/**
+ * @deprecated Use the form extension with `form_demands.settings_form`.
+ */
 export const settingsExtension: A2AServiceExtension<
   typeof SETTINGS_EXTENSION_URI,
   SettingsDemands,

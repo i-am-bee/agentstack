@@ -45,12 +45,6 @@ export function isImageMimeType(mimeType: string | undefined): boolean {
   return Boolean(mimeType?.toLowerCase().startsWith('image/'));
 }
 
-export function objectFromEntries<const T extends ReadonlyArray<readonly [PropertyKey, unknown]>>(
-  entries: T,
-): { [K in T[number] as K[0]]: K[1] } {
-  return Object.fromEntries(entries) as { [K in T[number] as K[0]]: K[1] };
-}
-
 export function ensureBase64Uri(value: string, contentType?: string | null): string {
   const pattern = /^data:[^;]+;base64,/;
 

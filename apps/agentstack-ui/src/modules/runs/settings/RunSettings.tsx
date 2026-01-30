@@ -16,15 +16,15 @@ interface Props {
 }
 
 export function RunSettings({ dialog, iconOnly }: Props) {
-  const { settingsDemands } = useAgentDemands();
+  const { settingsForm } = useAgentDemands();
 
-  if (!settingsDemands?.fields.length) {
+  if (!settingsForm?.fields.length) {
     return null;
   }
 
   return (
     <RunDialogButton dialog={dialog} label="Settings" icon={SettingsAdjust} iconOnly={iconOnly}>
-      <RunSettingsForm settingsDemands={settingsDemands} />
+      <RunSettingsForm settingsForm={settingsForm} />
     </RunDialogButton>
   );
 }
