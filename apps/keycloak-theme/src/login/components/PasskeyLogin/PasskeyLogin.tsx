@@ -3,10 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button } from '@carbon/react';
+import { Button } from "@carbon/react";
 
-import type { I18n } from '../../i18n';
-import type { LoginPageContext, LoginPasswordContext, LoginUsernameContext } from '../../types';
+import type { I18n } from "../../i18n";
+import type {
+  LoginPageContext,
+  LoginPasswordContext,
+  LoginUsernameContext,
+} from "../../types";
 
 type Props = {
   kcContext: LoginPageContext | LoginUsernameContext | LoginPasswordContext;
@@ -35,16 +39,23 @@ export function PasskeyLogin(props: Props) {
         <input type="hidden" id="error" name="error" />
       </form>
 
-      {authenticators !== undefined && authenticators.authenticators.length !== 0 && (
-        <form id="authn_select">
-          {authenticators.authenticators.map((authenticator, i) => (
-            <input key={i} type="hidden" name="authn_use_chk" readOnly value={authenticator.credentialId} />
-          ))}
-        </form>
-      )}
+      {authenticators !== undefined &&
+        authenticators.authenticators.length !== 0 && (
+          <form id="authn_select">
+            {authenticators.authenticators.map((authenticator, i) => (
+              <input
+                key={i}
+                type="hidden"
+                name="authn_use_chk"
+                readOnly
+                value={authenticator.credentialId}
+              />
+            ))}
+          </form>
+        )}
 
       <Button id={webAuthnButtonId} type="button" kind="secondary">
-        {msgStr('passkey-doAuthenticate')}
+        {msgStr("passkey-doAuthenticate")}
       </Button>
     </>
   );
