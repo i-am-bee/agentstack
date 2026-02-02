@@ -78,7 +78,7 @@ const fulfillments = {
 const metadata = await resolveMetadata(fulfillments);
 ```
 
-See **[Extensions](./extensions)** for the available service and UI extension helpers.
+See **[Agent Requirements](./agent-requirements)** for the available service and UI extension helpers.
 
 ## 3. Send a message stream and handle updates
 
@@ -134,7 +134,7 @@ for await (const event of stream) {
 
 In `agentstack-ui`, status updates are also used to render message parts, and artifact updates are rendered as rich UI blocks.
 
-For rendering message parts and citations, see [Message Parts and Rendering](/development/custom-ui/client-sdk/message-parts).
+For rendering message parts and citations, see **[Agent Responses](./agent-responses)**.
 
 ## 4. Send user responses
 
@@ -167,7 +167,7 @@ for await (const event of responseStream) {
 }
 ```
 
-For a focused look at composing messages, see **[Message Building](./message-building)**.
+For a focused look at composing messages, see **[User Messages](./user-messages)**.
 
 ## Cancel a task
 
