@@ -234,8 +234,6 @@ async def add_agent(
     - **Combined Formats**: `https://github.com/myorg/myrepo.git@v1.0.0#path=/path/to/agent`
     - **Enterprise GitHub**: `https://github.mycompany.com/myorg/myrepo`
     - **With a custom Dockerfile location**: `agentstack add --dockerfile /my-agent/path/to/Dockerfile "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"`
-
-    [aliases: install]
     """
     if location is None:
         repo_input = (
@@ -338,8 +336,9 @@ async def update_agent(
         else:
             provider = select_provider(search_path, providers=providers)
 
-        if location is None and is_github_url(provider.source):
-            match = re.search(r"^(?:(?:https?://)?(?:www\.)?github\.com/)?([^/]+)/([^/@?&]+)", provider.source)
+        if location is None and is_github_url(provider.origin):
+            match = re.search(r"^(?:(?:git\+)(?:https?://)?(?:www\.)?github\.com/)?([^/]+)/([^/@?&]+)", provider.origin)
+
             if match:
                 owner, repo = match.group(1), match.group(2).removesuffix(".git")
 
@@ -349,7 +348,6 @@ async def update_agent(
                         headers={"Accept": "application/vnd.github.v3+json"},
                     )
                     tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
-
                 if tags:
                     selected_tag = await inquirer.fuzzy(
                         message="Select a new tag to use:",
@@ -362,7 +360,7 @@ async def update_agent(
             location = (
                 await inquirer.text(
                     message="Enter new agent location (public docker image or github url):",
-                    default=provider.source,
+                    default=provider.origin.lstrip("git+"),
                 ).execute_async()
                 or ""
             )
@@ -371,7 +369,7 @@ async def update_agent(
             console.error("No location provided. Exiting.")
             sys.exit(1)
 
-        url = announce_server_action(f"Upgrading agent from '{provider.source}' to {location}")
+        url = announce_server_action(f"Upgrading agent from '{provider.origin}' to {location}")
         await confirm_server_action("Proceed with upgrading agent on", url=url, yes=yes)
 
         if is_github_url(location):
