@@ -57,6 +57,7 @@ export function useTextSelection({ containerRef, onSelectionChange }: Props) {
     document.addEventListener('selectionchange', debouncedProcessSelection);
 
     return () => {
+      debouncedProcessSelection.cancel();
       document.removeEventListener('selectionchange', debouncedProcessSelection);
     };
   }, [containerRef, onSelectionChange]);
