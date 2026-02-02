@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "login-update-password.ftl",
+  pageId: 'login-update-password.ftl',
 });
 
 const meta = {
-  title: "login/login-update-password.ftl",
+  title: 'login/login-update-password.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -35,11 +35,11 @@ export const WithPasswordError: Story = {
     <KcPageStory
       kcContext={{
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
         messagesPerField: {
-          existsError: (field: string) => field === "password",
-          get: () => "Password must be at least 8 characters long.",
+          existsError: (field: string) => field === 'password',
+          get: () => 'Password must be at least 8 characters long.',
         },
         isAppInitiatedAction: false,
       }}
@@ -58,11 +58,11 @@ export const WithPasswordConfirmError: Story = {
     <KcPageStory
       kcContext={{
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
         messagesPerField: {
-          existsError: (field: string) => field === "password-confirm",
-          get: () => "Passwords do not match.",
+          existsError: (field: string) => field === 'password-confirm',
+          get: () => 'Passwords do not match.',
         },
         isAppInitiatedAction: false,
       }}
@@ -81,7 +81,7 @@ export const WithAppInitiatedAction: Story = {
     <KcPageStory
       kcContext={{
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
         isAppInitiatedAction: true,
       }}

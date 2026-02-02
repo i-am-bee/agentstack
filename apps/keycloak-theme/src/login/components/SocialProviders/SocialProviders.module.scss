@@ -13,3 +13,9 @@
     max-inline-size: none;
   }
 }
+
+.ssoOnly {
+  :global(.cds--btn) {
+    inline-size: auto;
+  }
+}

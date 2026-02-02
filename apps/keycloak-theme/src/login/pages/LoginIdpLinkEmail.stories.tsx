@@ -3,30 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 // Mock kcContext to avoid TS2304 error and to simulate the real environment
 const mockKcContext = {
   url: {
-    loginAction: "/login-action",
+    loginAction: '/login-action',
   },
-  idpAlias: "mockIdpAlias",
+  idpAlias: 'mockIdpAlias',
   brokerContext: {
-    username: "mockUser",
+    username: 'mockUser',
   },
   realm: {
-    displayName: "MockRealm",
+    displayName: 'MockRealm',
   },
 };
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "login-idp-link-email.ftl",
+  pageId: 'login-idp-link-email.ftl',
 });
 
 const meta = {
-  title: "login/login-idp-link-email.ftl",
+  title: 'login/login-idp-link-email.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -55,12 +55,12 @@ export const WithIdpAlias: Story = {
     <KcPageStory
       kcContext={{
         ...mockKcContext,
-        idpAlias: "Google",
+        idpAlias: 'Google',
         brokerContext: {
-          username: "john.doe",
+          username: 'john.doe',
         },
         realm: {
-          displayName: "MyRealm",
+          displayName: 'MyRealm',
         },
       }}
     />
@@ -78,12 +78,12 @@ export const WithCustomRealmDisplayName: Story = {
     <KcPageStory
       kcContext={{
         ...mockKcContext,
-        idpAlias: "Facebook",
+        idpAlias: 'Facebook',
         brokerContext: {
-          username: "jane.doe",
+          username: 'jane.doe',
         },
         realm: {
-          displayName: "CUSTOM REALM DISPLAY NAME",
+          displayName: 'CUSTOM REALM DISPLAY NAME',
         },
       }}
     />
@@ -102,11 +102,11 @@ export const WithFormSubmissionError: Story = {
       kcContext={{
         ...mockKcContext,
         url: {
-          loginAction: "/error",
+          loginAction: '/error',
         },
         message: {
-          type: "error",
-          summary: "An error occurred during form submission.",
+          type: 'error',
+          summary: 'An error occurred during form submission.',
         },
       }}
     />

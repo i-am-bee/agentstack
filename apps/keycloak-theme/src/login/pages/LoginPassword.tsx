@@ -3,21 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowRight } from "@carbon/icons-react";
-import { Button, Link, PasswordInput } from "@carbon/react";
-import { kcSanitize } from "keycloakify/lib/kcSanitize";
-import { useId, useState } from "react";
+import { ArrowRight } from '@carbon/icons-react';
+import { Button, Link, PasswordInput } from '@carbon/react';
+import { kcSanitize } from 'keycloakify/lib/kcSanitize';
+import { useId, useState } from 'react';
 
-import { Layout } from "../components/Layout/Layout";
-import { PageHeading } from "../components/PageHeading/PageHeading";
-import { PasskeyLogin } from "../components/PasskeyLogin/PasskeyLogin";
-import Template from "../layout/Template";
-import type { CustomPageProps } from "../types";
-import { getAppName } from "../utils";
-import classes from "./LoginPassword.module.scss";
+import { Layout } from '../components/Layout/Layout';
+import { PageHeading } from '../components/PageHeading/PageHeading';
+import { PasskeyLogin } from '../components/PasskeyLogin/PasskeyLogin';
+import Template from '../layout/Template';
+import type { CustomPageProps } from '../types';
+import { getAppName } from '../utils';
+import classes from './LoginPassword.module.scss';
 
 export type LoginPasswordProps = CustomPageProps<{
-  pageId: "login-password.ftl";
+  pageId: 'login-password.ftl';
 }>;
 
 export default function LoginPassword(props: LoginPasswordProps) {
@@ -31,10 +31,10 @@ export default function LoginPassword(props: LoginPasswordProps) {
   const [isLoginButtonDisabled, setIsLoginButtonDisabled] = useState(false);
 
   const appName = getAppName(realm);
-  const webAuthnButtonId = "authenticateWebAuthnButton";
+  const webAuthnButtonId = 'authenticateWebAuthnButton';
 
-  const hasError = messagesPerField.existsError("password");
-  const errorMessage = hasError ? messagesPerField.get("password") : "";
+  const hasError = messagesPerField.existsError('password');
+  const errorMessage = hasError ? messagesPerField.get('password') : '';
 
   return (
     <Layout i18n={i18n}>
@@ -62,7 +62,7 @@ export default function LoginPassword(props: LoginPasswordProps) {
             <PasswordInput
               id={`${id}-password`}
               name="password"
-              labelText={msgStr("password")}
+              labelText={msgStr('password')}
               autoFocus
               autoComplete="on"
               invalid={hasError}
@@ -78,11 +78,7 @@ export default function LoginPassword(props: LoginPasswordProps) {
             />
 
             <div className={classes.options}>
-              {realm.resetPasswordAllowed && (
-                <Link href={url.loginResetCredentialsUrl}>
-                  {msg("doForgotPassword")}
-                </Link>
-              )}
+              {realm.resetPasswordAllowed && <Link href={url.loginResetCredentialsUrl}>{msg('doForgotPassword')}</Link>}
             </div>
 
             <Button
@@ -91,15 +87,11 @@ export default function LoginPassword(props: LoginPasswordProps) {
               className={classes.submitButton}
               renderIcon={ArrowRight}
             >
-              {msgStr("doLogIn")}
+              {msgStr('doLogIn')}
             </Button>
           </form>
 
-          <PasskeyLogin
-            kcContext={kcContext}
-            i18n={i18n}
-            webAuthnButtonId={webAuthnButtonId}
-          />
+          <PasskeyLogin kcContext={kcContext} i18n={i18n} webAuthnButtonId={webAuthnButtonId} />
         </div>
       </Template>
     </Layout>

@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { LoginView } from "../components/LoginView/LoginView";
-import type { CustomPageProps } from "../types";
+import { LoginView } from '../components/LoginView/LoginView';
+import type { CustomPageProps } from '../types';
 
 export type LoginUsernameProps = CustomPageProps<{
-  pageId: "login-username.ftl";
+  pageId: 'login-username.ftl';
 }>;
 
 export default function LoginUsername(props: LoginUsernameProps) {

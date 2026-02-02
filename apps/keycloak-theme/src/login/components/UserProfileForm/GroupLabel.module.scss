@@ -8,12 +8,12 @@
 }
 
 .header {
-  @include type-style("heading-compact-01");
+  @include type-style('heading-compact-01');
   margin-block-end: $spacing-02;
 }
 
 .description {
-  @include type-style("body-compact-01");
+  @include type-style('body-compact-01');
   color: $text-secondary;
   margin-block-end: 0;
 }

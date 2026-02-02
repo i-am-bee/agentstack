@@ -3,6 +3,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-@use '../../../agentstack-ui/src/styles/style';
-@use 'fonts';
-@use 'components';
+export { default } from "@i-am-bee/lint-config/prettier";

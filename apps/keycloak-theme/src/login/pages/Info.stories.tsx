@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "info.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'info.ftl' });
 
 const meta = {
-  title: "login/info.ftl",
+  title: 'login/info.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -22,9 +22,9 @@ export const Default: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        messageHeader: "Message header",
+        messageHeader: 'Message header',
         message: {
-          summary: "Server info message",
+          summary: 'Server info message',
         },
       }}
     />
@@ -35,9 +35,9 @@ export const WithLinkBack: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        messageHeader: "Message header",
+        messageHeader: 'Message header',
         message: {
-          summary: "Server message",
+          summary: 'Server message',
         },
         actionUri: undefined,
       }}
@@ -49,19 +49,14 @@ export const WithRequiredActions: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        messageHeader: "Message header",
+        messageHeader: 'Message header',
         message: {
-          summary: "Required actions:",
+          summary: 'Required actions:',
         },
-        requiredActions: [
-          "CONFIGURE_TOTP",
-          "UPDATE_PROFILE",
-          "VERIFY_EMAIL",
-          "CUSTOM_ACTION",
-        ],
-        "x-keycloakify": {
+        requiredActions: ['CONFIGURE_TOTP', 'UPDATE_PROFILE', 'VERIFY_EMAIL', 'CUSTOM_ACTION'],
+        'x-keycloakify': {
           messages: {
-            "requiredAction.CUSTOM_ACTION": "Custom action",
+            'requiredAction.CUSTOM_ACTION': 'Custom action',
           },
         },
       }}

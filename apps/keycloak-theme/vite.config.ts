@@ -10,6 +10,9 @@ import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import svgr from "vite-plugin-svgr";
 
+const THEME_NAME_AGENTSTACK = "agentstack";
+const THEME_NAME_AGENTSTACK_SSO = "agentstack-sso";
+
 export default defineConfig({
   define: {
     "import.meta.env.VITE_APP_NAME": JSON.stringify(
@@ -32,7 +35,7 @@ export default defineConfig({
     }),
     keycloakify({
       accountThemeImplementation: "none",
-      themeName: "agentstack",
+      themeName: [THEME_NAME_AGENTSTACK, THEME_NAME_AGENTSTACK_SSO],
     }),
   ],
   css: {

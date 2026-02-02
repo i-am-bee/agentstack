@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useInsertScriptTags } from "keycloakify/tools/useInsertScriptTags";
-import { useEffect } from "react";
+import { useInsertScriptTags } from 'keycloakify/tools/useInsertScriptTags';
+import { useEffect } from 'react';
 
-const THEME_STORAGE_KEY = "@i-am-bee/agentstack/THEME";
+const THEME_STORAGE_KEY = '@i-am-bee/agentstack/THEME';
 
 /**
  * Injects dark mode script to prevent flash of wrong theme.
@@ -33,10 +33,10 @@ export function useDarkModeScript() {
 `;
 
   const { insertScriptTags } = useInsertScriptTags({
-    componentOrHookName: "DarkModeScript",
+    componentOrHookName: 'DarkModeScript',
     scriptTags: [
       {
-        type: "text/javascript",
+        type: 'text/javascript',
         textContent: darkModeScript,
       },
     ],

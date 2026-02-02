@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "login-idp-link-confirm-override.ftl",
+  pageId: 'login-idp-link-confirm-override.ftl',
 });
 
 const meta = {
-  title: "login/login-idp-link-confirm-override.ftl",
+  title: 'login/login-idp-link-confirm-override.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 

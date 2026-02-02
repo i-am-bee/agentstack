@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button } from "@carbon/react";
-import { useState } from "react";
+import { Button } from '@carbon/react';
+import { useState } from 'react';
 
-import { Layout } from "../components/Layout/Layout";
-import Template from "../layout/Template";
-import type { CustomPageProps, UserProfileFormPageProps } from "../types";
-import UserProfileFormFields from "../UserProfileFormFields";
-import classes from "./IdpReviewUserProfile.module.scss";
+import { Layout } from '../components/Layout/Layout';
+import Template from '../layout/Template';
+import type { CustomPageProps, UserProfileFormPageProps } from '../types';
+import UserProfileFormFields from '../UserProfileFormFields';
+import classes from './IdpReviewUserProfile.module.scss';
 
 type IdpReviewUserProfileProps = CustomPageProps<{
-  pageId: "idp-review-user-profile.ftl";
+  pageId: 'idp-review-user-profile.ftl';
 }> &
   UserProfileFormPageProps;
 
@@ -32,21 +32,21 @@ export default function IdpReviewUserProfile(props: IdpReviewUserProfileProps) {
         kcContext={kcContext}
         i18n={i18n}
         doUseDefaultCss={false}
-        displayMessage={messagesPerField.exists("global")}
-        headerNode={msg("loginIdpReviewProfileTitle")}
+        displayMessage={messagesPerField.exists('global')}
+        headerNode={msg('loginIdpReviewProfileTitle')}
       >
         <div className={classes.content}>
           <form className={classes.form} action={url.loginAction} method="post">
             <UserProfileFormFields
               kcContext={kcContext}
               i18n={i18n}
-              kcClsx={() => ""}
+              kcClsx={() => ''}
               onIsFormSubmittableValueChange={setIsFormSubmittable}
               doMakeUserConfirmPassword={doMakeUserConfirmPassword}
             />
 
             <Button type="submit" kind="primary" disabled={!isFormSubmittable}>
-              {msgStr("doSubmit")}
+              {msgStr('doSubmit')}
             </Button>
           </form>
         </div>
