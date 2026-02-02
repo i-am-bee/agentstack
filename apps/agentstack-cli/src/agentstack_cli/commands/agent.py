@@ -116,6 +116,7 @@ from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_co
 from agentstack_cli.server_utils import announce_server_action, confirm_server_action
 from agentstack_cli.utils import (
     generate_schema_example,
+    github_url_verbose_pattern,
     is_github_url,
     parse_env_var,
     print_log,
@@ -235,6 +236,7 @@ async def add_agent(
     - **Enterprise GitHub**: `https://github.mycompany.com/myorg/myrepo`
     - **With a custom Dockerfile location**: `agentstack add --dockerfile /my-agent/path/to/Dockerfile "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"`
     """
+    repo_input = location
     if location is None:
         repo_input = (
             await inquirer.text(
@@ -243,33 +245,44 @@ async def add_agent(
             or ""
         )
 
-        match = re.search(r"^(?:(?:https?://)?(?:www\.)?github\.com/)?([^/]+)/([^/?&]+)", repo_input)
-        if not match:
-            raise ValueError(f"Invalid GitHub URL format: {repo_input}. Expected 'owner/repo' or a full GitHub URL.")
+    if not repo_input:
+        console.error("No location provided. Exiting.")
+        sys.exit(1)
 
-        owner, repo = match.group(1), match.group(2).removesuffix(".git")
+    if match := re.match(github_url_verbose_pattern, repo_input, re.VERBOSE):
+        owner, repo, version, path = (
+            match.group("org"),
+            match.group("repo").removesuffix(".git"),
+            match.group("version"),
+            match.group("path"),
+        )
 
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"https://api.github.com/repos/{owner}/{repo}/tags",
-                headers={"Accept": "application/vnd.github.v3+json"},
-            )
-            tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
+        if version is None and path is None:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"https://api.github.com/repos/{owner}/{repo}/tags",
+                    headers={"Accept": "application/vnd.github.v3+json"},
+                )
+                tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
 
-        if tags:
-            selected_tag = await inquirer.fuzzy(
-                message="Select a tag to use:",
-                choices=tags,
-            ).execute_async()
-        else:
-            selected_tag = (
-                await inquirer.text(
-                    message="Enter tag to use:",
+            if tags:
+                selected_tag = await inquirer.fuzzy(
+                    message="Select a tag to use:",
+                    choices=tags,
                 ).execute_async()
-                or "main"
-            )
+            else:
+                selected_tag = (
+                    await inquirer.text(
+                        message="Enter tag to use:",
+                    ).execute_async()
+                    or "main"
+                )
 
-        location = f"https://github.com/{owner}/{repo}@{selected_tag}"
+            location = f"https://github.com/{owner}/{repo}@{selected_tag}"
+        else:
+            location = repo_input
+    else:
+        location = repo_input
 
     url = announce_server_action(f"Installing agent '{location}' for")
     await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
@@ -337,10 +350,10 @@ async def update_agent(
             provider = select_provider(search_path, providers=providers)
 
         if location is None and is_github_url(provider.origin):
-            match = re.search(r"^(?:(?:git\+)(?:https?://)?(?:www\.)?github\.com/)?([^/]+)/([^/@?&]+)", provider.origin)
+            match = re.match(github_url_verbose_pattern, provider.origin, re.VERBOSE)
 
             if match:
-                owner, repo = match.group(1), match.group(2).removesuffix(".git")
+                owner, repo = match.group("org"), match.group("repo").removesuffix(".git")
 
                 async with httpx.AsyncClient() as client:
                     response = await client.get(

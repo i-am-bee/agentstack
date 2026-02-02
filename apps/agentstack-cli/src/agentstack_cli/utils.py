@@ -288,10 +288,8 @@ def print_log(line, ansi_mode=False, out_console: Console | None = None):
             (out_console or console).print(line)
 
 
-def is_github_url(url: str) -> bool:
-    """This pattern is taken from agentstack_server.utils.github.GithubUrl, make sure to keep it in sync"""
-
-    pattern = r"""
+# ! This pattern is taken from agentstack_server.utils.github.GithubUrl, make sure to keep it in sync
+github_url_verbose_pattern = r"""
         ^
         (?:git\+)?                              # Optional git+ prefix
         https?://(?P<host>github(?:\.[^/]+)+)/  # GitHub host (github.com or github.enterprise.com)
@@ -307,7 +305,10 @@ def is_github_url(url: str) -> bool:
         (?:\#path=(?P<path>.+))?                # Optional path after #path=
         $
     """
-    return bool(re.match(pattern, url, re.VERBOSE))
+
+
+def is_github_url(url: str) -> bool:
+    return bool(re.match(github_url_verbose_pattern, url, re.VERBOSE))
 
 
 def get_httpx_response_error_details(response: httpx.Response | None) -> tuple[str, str] | None:
