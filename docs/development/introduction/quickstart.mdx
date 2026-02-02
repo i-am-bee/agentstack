@@ -24,7 +24,7 @@ sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/instal
 
 <Info> 
 
-The installer sets up `uv` and the `agentstack-cli` on your host machine. Agent Stack uses a Virtual Machine (managed via a bundled [Lima](https://github.com/lima-vm/lima) binary) to keep your host machine clean. The Kubernetes cluster running the Agent Stack server, agent containers, and associated storage and services live entirely inside the VM and not on your host directly. 
+The installer sets up `uv` and the `agentstack-cli` on your host machine. Agent Stack uses a virtual machine (managed via a bundled [Lima](https://github.com/lima-vm/lima) binary) to keep your host machine clean. The Kubernetes cluster running the Agent Stack server, agent containers, and associated storage and services live entirely inside the VM and not on your host directly. 
 
 
 For details on what happens under the hood, refer to the Manual Install section or read the [`install.sh`](https://github.com/i-am-bee/agentstack/blob/install/install.sh) source code.
@@ -52,7 +52,7 @@ Open a new terminal and run:
 uv python install --quiet --python-preference=only-managed --no-bin 3.13 && uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
 ```
 
-Follow the interactive prompts to finish setup and  optionally start the VM.
+Follow the interactive prompts to finish setup and optionally start the VM.
 
 </Step>
 </Steps>

@@ -8,7 +8,7 @@ You can clone it and start coding right away—no setup headaches or boilerplate
 
 ## Prerequisites
 
-- Agent Stack installed ([Quickstart](/stable/introduction/quickstart)) and the platform running with `agentstack platform start`
+- Agent Stack installed ([Quickstart](../introduction/quickstart)) and the platform running with `agentstack platform start`
 - [uv](https://docs.astral.sh/uv/) package manager (should be already installed if you followed the quickstart)
 
 ## 1.  Start From Template
@@ -120,19 +120,21 @@ Agents should be async and use `yield`. This allows the server to stream respons
 
 </Steps>
 
-## Manual Project Configuration
+<Accordion title="Manual Project Configuration">
 
 If you prefer not to use our starter template, you must ensure your project includes these core components to integrate correctly with the Agent Stack platform.
 - The SDK Inegration
     - Add agentstack-sdk to your project dependencies.
     - Your code must initialize a Server() instance from the SDK.
     - You need a designated function that calls server.run(host, port). This is what allows the platform (and Docker) to start your agent.
-- Agent logic remains the same as in the [Implement Your Agent Logic](https://agentstack.beeai.dev/stable/deploy-agents/building-agents#implement-your-agent-logic) section
+- Agent logic remains the same as in the [Implement Your Agent Logic](#2-implement-your-agent-logic) section
 - Containerization Requirements
     - If you plan to deploy your agent to the platform (rather than just running it locally), your repository must contain a `Dockerfile`
 - Git and Platform Metadata
     - The repository must be accessible to the Agent Stack orchestrator if you are using the `agentstack add` command via URL.
     - Use Git tags (e.g., v1.0.0) if you want to manage stable releases of your agent.
+
+</Accordion>
 
 ## Next Steps
 
