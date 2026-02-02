@@ -19,7 +19,7 @@ from agentstack_server.api.auth.auth import (
     validate_oauth_access_token,
     verify_internal_jwt,
 )
-from agentstack_server.api.auth.utils import create_resource_uri
+from agentstack_server.api.auth.utils import create_resource_uri, get_claims_by_path
 from agentstack_server.api.rate_limiter import RateLimit, UserRateLimiter
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.permissions import AuthorizedUser, Permissions
@@ -93,8 +93,12 @@ async def authenticate_oauth_user(
         logger.warning(f"Token validation failed: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token validation failed") from e
 
-    realm_access = claims.get("realm_access", {}) if claims else {}
-    realm_roles = realm_access.get("roles", []) if realm_access else []
+    realm_roles = get_claims_by_path(claims or {}, configuration.auth.oidc.roles_path)
+    if isinstance(realm_roles, str):
+        realm_roles = realm_roles.split(";")
+    if not isinstance(realm_roles, list):
+        logger.warning(f"Invalid realm roles path (not an array): {configuration.auth.oidc.roles_path}")
+        realm_roles = []
 
     try:
         claims = (

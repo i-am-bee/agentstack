@@ -1,4 +1,4 @@
-{{- if .Values.auth.enabled }}
+{{- if and .Values.auth.enabled .Values.keycloak.enabled }}
 apiVersion: apps/v1
 # Use a stateful setup to ensure that for a rolling update Pods are restarted with a rolling strategy one-by-one.
 # This prevents losing in-memory information stored redundantly in two Pods.
@@ -71,7 +71,7 @@ spec:
               value: http
             # Keycloak Hostname Configuration
             - name: KC_HOSTNAME
-              value: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336"{{ else }}{{ regexReplaceAll "/realms/.*" .Values.auth.keycloakIssuerUrl "" | quote }}{{ end }}
+              value: {{ if hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl }}"http://localhost:8336"{{ else }}{{ regexReplaceAll "/realms/.*" .Values.keycloak.publicIssuerUrl "" | quote }}{{ end }}
             - name: KC_HOSTNAME_STRICT
               value: "true"
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC

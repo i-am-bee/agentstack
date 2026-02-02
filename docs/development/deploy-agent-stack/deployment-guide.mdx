@@ -118,7 +118,11 @@ auth:
   enabled: false
 ```
 
-#### OIDC authentication (via Keycloak)
+#### OIDC Authentication
+
+Agent Stack supports OIDC authentication either using the bundled Keycloak instance or an external provider.
+
+##### Keycloak (Default)
 
 We use an internal Keycloak instance to handle OIDC authentication. This allows you to configure external Identity Providers (Google, GitHub, SAML, etc.) directly within Keycloak.
 
@@ -127,12 +131,47 @@ trustProxyHeaders: true # This is important if validate_audience is enabled
 
 auth:
   enabled: true
-  # Check helm/values.yaml for all available options
-  keycloakIssuerUrl: "https://keycloak.example.com/realms/agentstack" # Public URL of keycloak
-  
+
   # Next.js settings
   nextauthUrl: "https://example.com" # Public URL of the UI
   apiUrl: "https://api.example.com" # Public URL of the API
+  
+keycloak:
+  enabled: true
+  publicIssuerUrl: "https://keycloak.example.com/realms/agentstack" # Public URL of keycloak
+
+```
+
+##### External OIDC Provider
+
+If you want to use an external OIDC provider (e.g., Auth0, Okta, or your own Keycloak), you can disable the bundled Keycloak and configure the external provider details.
+
+```yaml
+auth:
+  enabled: true
+
+  # Next.js settings
+  nextauthUrl: "https://example.com" # Public URL of the UI
+  apiUrl: "https://api.example.com" # Public URL of the API
+
+keycloak:
+  enabled: false
+
+externalOidcProvider:
+  issuerUrl: "https://your-oidc-provider.com"
+  name: "My IDP" # Optional display name used in the UI
+  id: "my-idp" # Optional ID used internally
+  rolesPath: "realm_access.roles" # JSON path to roles in JWT claims (can be an array or a semicolon separated string)
+  
+  uiClientId: "agentstack-ui"
+  serverClientId: "agentstack-server"
+  
+  # Secrets can be provided directly or via existing secrets
+  uiClientSecret: "..." 
+  serverClientSecret: "..."
+  # existingSecret: "my-oidc-secret"
+  # uiClientSecretKey: "ui-secret-key"         # Key in my-oidc-secret
+  # serverClientSecretKey: "server-secret-key" # Key in my-oidc-secret
 ```
   
 <Warning>

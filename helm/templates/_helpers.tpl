@@ -537,3 +537,166 @@ Return the Phoenix API KEY
     {{- print .Values.externalPhoenix.apiKey -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+*** OIDC CONFIGURATION ***
+*/}}
+
+{{/*
+Return the OIDC Issuer URL
+*/}}
+{{- define "agentstack.oidc.issuerUrl" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- if .Values.keycloak.publicIssuerUrl -}}
+        {{- print .Values.keycloak.publicIssuerUrl -}}
+    {{- else -}}
+        {{- printf "http://keycloak:%d/realms/agentstack" (.Values.keycloak.service.port | int) -}}
+    {{- end -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.issuerUrl -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC UI Client ID
+*/}}
+{{- define "agentstack.oidc.uiClientId" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "agentstack-ui" -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.uiClientId -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC Server Client ID
+*/}}
+{{- define "agentstack.oidc.serverClientId" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "agentstack-server" -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.serverClientId -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC UI Client Secret Name
+*/}}
+{{- define "agentstack.oidc.uiClientSecretName" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "agentstack-ui-secret" -}}
+{{- else -}}
+    {{- if .Values.externalOidcProvider.existingSecret -}}
+        {{- print .Values.externalOidcProvider.existingSecret -}}
+    {{- else -}}
+        {{- print "agentstack-ui-secret" -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC UI Client Secret Key
+*/}}
+{{- define "agentstack.oidc.uiClientSecretKey" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "agentstackUiClientSecret" -}}
+{{- else -}}
+    {{- if .Values.externalOidcProvider.existingSecret -}}
+        {{- print .Values.externalOidcProvider.uiClientSecretKey -}}
+    {{- else -}}
+        {{- print "agentstackUiClientSecret" -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC Server Client Secret Name
+*/}}
+{{- define "agentstack.oidc.serverClientSecretName" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "agentstack-secret" -}}
+{{- else -}}
+    {{- if .Values.externalOidcProvider.existingSecret -}}
+        {{- print .Values.externalOidcProvider.existingSecret -}}
+    {{- else -}}
+        {{- print "agentstack-secret" -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC Server Client Secret Key
+*/}}
+{{- define "agentstack.oidc.serverClientSecretKey" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "agentstackServerClientSecret" -}}
+{{- else -}}
+    {{- if .Values.externalOidcProvider.existingSecret -}}
+        {{- print .Values.externalOidcProvider.serverClientSecretKey -}}
+    {{- else -}}
+        {{- print "agentstackServerClientSecret" -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentstack.oidc.providerName" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "Keycloak" -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentstack.oidc.providerId" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "keycloak" -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.id -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentstack.oidc.rolesPath" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print "realm_access.roles" -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.rolesPath -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC UI Client Secret Value (Logic extracted)
+*/}}
+{{- define "agentstack.oidc.uiClientSecretValue" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- $uiClientSecret := .Values.keycloak.uiClientSecret -}}
+    {{- $secret := (lookup "v1" "Secret" .Release.Namespace "agentstack-ui-secret") -}}
+    {{- if and $secret $secret.data (hasKey $secret.data "agentstackUiClientSecret") -}}
+        {{- $uiClientSecret = index $secret.data "agentstackUiClientSecret" | b64dec -}}
+    {{- end -}}
+    {{- if not $uiClientSecret -}}
+        {{- $uiClientSecret = randAlphaNum 32 -}}
+    {{- end -}}
+    {{- print $uiClientSecret -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.uiClientSecret -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the OIDC Server Client Secret Value (Logic extracted)
+*/}}
+{{- define "agentstack.oidc.serverClientSecretValue" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- $serverClientSecret := .Values.keycloak.serverClientSecret -}}
+    {{- $secret := (lookup "v1" "Secret" .Release.Namespace "agentstack-secret") -}}
+    {{- if and $secret $secret.data (hasKey $secret.data "agentstackServerClientSecret") -}}
+        {{- $serverClientSecret = index $secret.data "agentstackServerClientSecret" | b64dec -}}
+    {{- end -}}
+    {{- if not $serverClientSecret -}}
+        {{- $serverClientSecret = randAlphaNum 32 -}}
+    {{- end -}}
+    {{- print $serverClientSecret -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.serverClientSecret -}}
+{{- end -}}
+{{- end -}}

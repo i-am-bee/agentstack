@@ -302,7 +302,7 @@ async def validate_oauth_access_token(
     ):
         pass
 
-    claims_or_exc = await introspect_token(token, provider=provider, aud=aud)
+    claims_or_exc = await introspect_token(token, provider=provider, aud=frozenset(aud))
     if isinstance(claims_or_exc, Exception):
         raise claims_or_exc
     return claims_or_exc, provider

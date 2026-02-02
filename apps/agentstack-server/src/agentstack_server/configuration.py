@@ -99,6 +99,7 @@ class OidcConfiguration(BaseModel):
     insecure_transport: bool = False
 
     scope: list[str] = ["openid", "email", "profile"]
+    roles_path: str = "realm_access.roles"
     validate_audience: bool = True
 
     @property

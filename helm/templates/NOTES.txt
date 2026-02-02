@@ -36,15 +36,30 @@ Getting started:
 
 {{- if .Values.auth.enabled }}
 
-{{- if or (hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl) (hasPrefix "http://localhost" .Values.auth.nextauthUrl) (hasPrefix "http://localhost" .Values.auth.apiUrl) }}
-
-⚠️ IMPORTANT!
+{{- if or (hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl) (hasPrefix "http://localhost" .Values.auth.nextauthUrl) (hasPrefix "http://localhost" .Values.auth.apiUrl) }}
+  {{- if hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl }}
+  - Keycloak:
+      NOTE: Keycloak is running in clustered-native mode, but with http only. This configuration is for development only.
+      Make sure to update keycloak.publicIssuerUrl (and enable TLS for external access) for production:
+      keycloak:
+        publicIssuerUrl: "https://keycloak.example.com/realms/agentstack"
+  {{- end }}
+  {{- if hasPrefix "http://localhost" .Values.auth.nextauthUrl }}
+  - NextAuth:
+      NOTE: nextauthUrl is set to localhost. Update it for production.
+  {{- end }}
+  {{- if hasPrefix "http://localhost" .Values.auth.apiUrl }}
+  - API:
+      NOTE: apiUrl is set to localhost. Update it for production.
+  {{- end }}
+  ⚠️ IMPORTANT!
   It is important to expose the following endpoints publicly and configure the values:
   values:
     auth:
-      keycloakIssuerUrl: "https://keycloak.example.com/realms/agentstack"
       nextauthUrl: "https://example.com"
       apiUrl: "https://api.example.com"
+    keycloak:
+      publicIssuerUrl: "https://keycloak.example.com/realms/agentstack"
 
   Use
   - ingress: https://kubernetes.io/docs/concepts/services-networking/ingress
@@ -62,7 +77,7 @@ Getting started:
     kubectl get secret --namespace {{ .Release.Namespace }} keycloak-secret -o jsonpath="{.data.admin-password}" | base64 -d
 
 # Setup users
-  Open keycloak UI: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336"{{ else }}{{ .Values.auth.keycloakIssuerUrl | quote }}{{ end }}
+  Open keycloak UI: {{ if hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl }}"http://localhost:8336"{{ else }}{{ .Values.keycloak.publicIssuerUrl | quote }}{{ end }}
 
   1. Go to "Manage realms" -> "agentstack", create users under "Users" menu
   2. Assign "agentstack-admin" role to your admin user

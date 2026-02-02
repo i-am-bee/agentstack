@@ -99,14 +99,15 @@ depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
 dir = "{{config_root}}/apps/agentstack-ui"
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 run = "pnpm next build"
-sources = [
-    "*.json",
-    "*.js",
-    "*.mjs",
-    "*.ts",
-    "public/**/*",
-    "src/**/*",
-]
+# TODO: This breaks mise (rust sources file not found error)
+# sources = [
+#     "*.json",
+#     "*.js",
+#     "*.mjs",
+#     "*.ts",
+#     "public/**/*",
+#     "src/**/*",
+# ]
 outputs = [".next/standalone/**/*"]
 
 # schema

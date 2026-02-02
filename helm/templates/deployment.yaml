@@ -267,20 +267,22 @@ spec:
             - name: AUTH__OIDC__VALIDATE_AUDIENCE
               value: {{ .Values.auth.validateAudience | quote }}
             - name: AUTH__OIDC__NAME
-              value: "Keycloak"
+              value: {{ include "agentstack.oidc.providerName" . | quote }}
             - name: AUTH__OIDC__ISSUER
-              value: {{ .Values.auth.keycloakIssuerUrl | quote }}
+              value: {{ include "agentstack.oidc.issuerUrl" . | quote }}
             - name: AUTH__OIDC__EXTERNAL_ISSUER
-              value: {{ if hasPrefix "http://keycloak" .Values.auth.keycloakIssuerUrl }}"http://localhost:8336/realms/agentstack"{{ else }}{{ .Values.auth.keycloakIssuerUrl | quote }}{{ end }}
+              value: {{ if hasPrefix "http://keycloak" (include "agentstack.oidc.issuerUrl" .) }}"http://localhost:8336/realms/agentstack"{{ else }}{{ include "agentstack.oidc.issuerUrl" . | quote }}{{ end }}
             - name: AUTH__OIDC__INSECURE_TRANSPORT
-              value: {{ hasPrefix "http://keycloak" (.Values.auth.keycloakIssuerUrl | default "") | quote }}
+              value: {{ hasPrefix "http://keycloak" (include "agentstack.oidc.issuerUrl" . | default "") | quote }}
             - name: AUTH__OIDC__CLIENT_ID
-              value: "agentstack-server"
+              value: {{ include "agentstack.oidc.serverClientId" . | quote }}
+            - name: AUTH__OIDC__ROLES_PATH
+              value: {{ include "agentstack.oidc.rolesPath" . | quote }}
             - name: AUTH__OIDC__CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  key: agentstackServerClientSecret
-                  name: agentstack-secret
+                  key: {{ include "agentstack.oidc.serverClientSecretKey" . }}
+                  name: {{ include "agentstack.oidc.serverClientSecretName" . }}
             {{- else }}
             - name: AUTH__DISABLE_AUTH
               value: "true"

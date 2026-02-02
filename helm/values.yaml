@@ -113,11 +113,6 @@ agentRegistrySyncPeriodCron: "*/30 * * * * *"
 
 encryptionKey: ""
 auth:
-  # This URL is used by server to validate tokens from keycloak
-  # WARNING: if the keycloak URL is internal, the server is configured to allow insecure issuer (http)
-  # CHANGE TO A PUBLIC KEYCLOAK URL FOR PRODUCTION
-  keycloakIssuerUrl: "http://keycloak:8336/realms/agentstack"
-
   enabled: true # Warning, disable only for local deployments
   basic:
     enabled: true # Disable basic auth for enhanced security
@@ -140,6 +135,110 @@ auth:
 # https://agentstack.example.com, without respecting the headers, the URL would be "http://agentstack.example.com",
 # See https://www.uvicorn.org/settings/#application-interface
 trustProxyHeaders: false
+
+## Keycloak Configuration
+# Keycloak is an integral part of the application, it is deployed automatically when auth.enabled is set to true
+keycloak:
+  enabled: true
+
+  # This URL is used by server to validate tokens from keycloak
+  # WARNING: if the keycloak URL is internal, the server is configured to allow insecure issuer (http)
+  # CHANGE TO A PUBLIC KEYCLOAK URL FOR PRODUCTION
+  publicIssuerUrl: "http://keycloak:8336/realms/agentstack"
+  replicaCount: 1
+  # Warning: set this to false if you want TLS in keycloak, make sure to provide certs in extraVolumes
+  httpEnabled: true
+  auth:
+    adminUser: admin
+    # a random password will be generated if empty, you can get it using
+    # kubectl get secret keycloak-secret -o jsonpath="{.data.admin-password}" | base64 -d
+    adminPassword: ""
+    seedAgentstackUsers:
+      # - username: admin
+      #   password: admin
+      #   firstName: Admin
+      #   lastName: User
+      #   email: admin@beeai.dev
+      #   roles: ["agentstack-admin"]
+      #   enabled: true
+  image:
+    repository: ghcr.io/i-am-bee/agentstack/keycloak-themed
+    tag: 26.5.2
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8336
+  uiClientSecret: ""
+  serverClientSecret: ""
+  persistence:
+    useDedicatedDatabase: false # Default to false (implies useSharedDatabase=true)
+    dedicatedDatabaseConfig:
+      host: ""
+      port: 5432
+      user: keycloak
+      password: ""
+      database: keycloak
+      schema: public
+      existingSecret: ""
+      ssl: true
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2000Mi
+    requests:
+      cpu: 500m
+      memory: 1700Mi
+
+  ## @param extraEnvVars Additional environment variables to pass to Keycloak
+  extraEnvVars: []
+  # - name: KC_HTTPS_CERTIFICATE_FILE
+  #   value: /opt/keycloak/conf/server.crt.pem
+  # - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+  #   value: /opt/keycloak/conf/server.key.pem
+
+  ## @param extraVolumes Additional volumes to add to the pod
+  extraVolumes: []
+  # - name: keycloak-tls
+  #   secret:
+  #     secretName: keycloak-tls
+
+  ## @param extraVolumeMounts Additional volume mounts to add to the Keycloak container
+  extraVolumeMounts: []
+  # - name: keycloak-tls
+  #   mountPath: /opt/keycloak/conf/server.crt.pem
+  #   subPath: server.crt.pem
+  #   readOnly: true
+  # - name: keycloak-tls
+  #   mountPath: /opt/keycloak/conf/server.key.pem
+  #   subPath: server.key.pem
+  #   readOnly: true
+
+## External OIDC Provider Configuration
+## This is used when keycloak.enabled is set to false
+## @param externalOidcProvider.issuerUrl External OIDC issuer URL
+## @param externalOidcProvider.name Display name of the provider
+## @param externalOidcProvider.id ID of the provider (used for internal references)
+## @param externalOidcProvider.uiClientId Client ID for UI
+## @param externalOidcProvider.uiClientSecret Client Secret for UI
+## @param externalOidcProvider.uiClientSecretKey Key in existing secret for UI Client Secret
+## @param externalOidcProvider.serverClientId Client ID for Server
+## @param externalOidcProvider.serverClientSecret Client Secret for Server
+## @param externalOidcProvider.serverClientSecretKey Key in existing secret for Server Client Secret
+## @param externalOidcProvider.existingSecret Name of existing secret containing client secrets
+##
+externalOidcProvider:
+  issuerUrl: ""
+  name: "OIDC"
+  id: "oidc"
+  rolesPath: "realm_access.roles" # JSON path to roles in JWT claims (can be an array or a semicolon separated string)
+  uiClientId: "agentstack-ui"
+  uiClientSecret: ""
+  uiClientSecretKey: "uiClientSecret"
+  serverClientId: "agentstack-server"
+  serverClientSecret: ""
+  serverClientSecretKey: "serverClientSecret"
+  existingSecret: ""
+
 
 cors:
   enabled: false
@@ -683,77 +782,6 @@ docling:
   maxSyncWait: 300 # 5 minutes in seconds
   imagePullPolicy: IfNotPresent
   image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0"
-
-## Keycloak Configuration
-# Keycloak is an integral part of the application, it is deployed automatically when auth.enabled is set to true
-keycloak:
-  replicaCount: 1
-  # Warning: set this to false if you want TLS in keycloak, make sure to provide certs in extraVolumes
-  httpEnabled: true
-  auth:
-    adminUser: admin
-    # a random password will be generated if empty, you can get it using
-    # kubectl get secret keycloak-secret -o jsonpath="{.data.admin-password}" | base64 -d
-    adminPassword: ""
-    seedAgentstackUsers:
-      # - username: admin
-      #   password: admin
-      #   firstName: Admin
-      #   lastName: User
-      #   email: admin@beeai.dev
-      #   roles: ["agentstack-admin"]
-      #   enabled: true
-  image:
-    repository: ghcr.io/i-am-bee/agentstack/keycloak-themed
-    tag: 26.5.2
-    pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 8336
-  uiClientSecret: ""
-  serverClientSecret: ""
-  persistence:
-    useDedicatedDatabase: false # Default to false (implies useSharedDatabase=true)
-    dedicatedDatabaseConfig:
-      host: ""
-      port: 5432
-      user: keycloak
-      password: ""
-      database: keycloak
-      schema: public
-      existingSecret: ""
-      ssl: true
-  resources:
-    limits:
-      cpu: 2000m
-      memory: 2000Mi
-    requests:
-      cpu: 500m
-      memory: 1700Mi
-
-  ## @param extraEnvVars Additional environment variables to pass to Keycloak
-  extraEnvVars: []
-  # - name: KC_HTTPS_CERTIFICATE_FILE
-  #   value: /opt/keycloak/conf/server.crt.pem
-  # - name: KC_HTTPS_CERTIFICATE_KEY_FILE
-  #   value: /opt/keycloak/conf/server.key.pem
-
-  ## @param extraVolumes Additional volumes to add to the pod
-  extraVolumes: []
-  # - name: keycloak-tls
-  #   secret:
-  #     secretName: keycloak-tls
-
-  ## @param extraVolumeMounts Additional volume mounts to add to the Keycloak container
-  extraVolumeMounts: []
-  # - name: keycloak-tls
-  #   mountPath: /opt/keycloak/conf/server.crt.pem
-  #   subPath: server.crt.pem
-  #   readOnly: true
-  # - name: keycloak-tls
-  #   mountPath: /opt/keycloak/conf/server.key.pem
-  #   subPath: server.key.pem
-  #   readOnly: true
 
 # This is to override the chart name.
 nameOverride: ""
