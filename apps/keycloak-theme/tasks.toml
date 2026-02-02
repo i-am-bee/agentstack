@@ -3,12 +3,13 @@
 ["keycloak-theme:build"]
 depends = ["keycloak-theme:build:*"]
 dir = "{{config_root}}/apps/keycloak-theme"
+sources = ["src/**/*", "public/*", "dist_keycloak/*", "vite.config.ts"]
 run = "docker build -t ghcr.io/i-am-bee/agentstack/keycloak-themed:local ."
 
 ["keycloak-theme:build:jar"]
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
-sources = ["src/**/*", "public/*", "dist_keycloak/*"]
+sources = ["src/**/*", "public/*", "dist_keycloak/*", "vite.config.ts"]
 run = "npm run build && npx keycloakify build"
 
 # run

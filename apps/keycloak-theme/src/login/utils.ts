@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { APP_NAME, THEME_NAME_AGENTSTACK_SSO } from "../constants";
+import { APP_NAME } from "../constants";
+import type { ThemeName } from "../kc.gen";
 import type { InfoMessage, Provider, Realm } from "./types";
 
 export function isIbmProvider({
@@ -33,6 +34,6 @@ export function getAppName(realm: Realm): string {
   return hasDisplayName ? realm.displayName : APP_NAME;
 }
 
-export function isNoUserPasswordTheme(themeName: string): boolean {
-  return themeName === THEME_NAME_AGENTSTACK_SSO;
+export function isSsoOnlyTheme(themeName: ThemeName): boolean {
+  return themeName === "agentstack-sso";
 }

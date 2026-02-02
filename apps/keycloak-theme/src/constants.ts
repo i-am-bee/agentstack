@@ -4,6 +4,3 @@
  */
 
 export const APP_NAME = import.meta.env.VITE_APP_NAME || "Agent Stack";
-
-export const THEME_NAME_AGENTSTACK = "agentstack";
-export const THEME_NAME_AGENTSTACK_SSO = "agentstack-sso";

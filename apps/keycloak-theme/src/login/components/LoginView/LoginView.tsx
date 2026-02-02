@@ -18,7 +18,7 @@ import { useId, useState } from "react";
 import type { I18n } from "../../i18n";
 import type { KcContext } from "../../KcContext";
 import Template from "../../layout/Template";
-import { getAppName, isNoUserPasswordTheme } from "../../utils";
+import { getAppName, isSsoOnlyTheme } from "../../utils";
 import { Layout } from "../Layout/Layout";
 import { PageHeading } from "../PageHeading/PageHeading";
 import { PasskeyLogin } from "../PasskeyLogin/PasskeyLogin";
@@ -67,7 +67,7 @@ export function LoginView({
   const appName = getAppName(realm);
   const webAuthnButtonId = "authenticateWebAuthnButton";
   const providers = social?.providers ?? [];
-  const isSsoOnly = !realm.password || isNoUserPasswordTheme(themeName);
+  const isSsoOnly = !realm.password || isSsoOnlyTheme(themeName);
 
   const hasError = withPassword
     ? messagesPerField.existsError("username", "password")
