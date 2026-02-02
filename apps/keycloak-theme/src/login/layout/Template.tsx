@@ -3,26 +3,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Reset } from "@carbon/icons-react";
-import { InlineNotification, TextInput } from "@carbon/react";
-import { getKcClsx } from "keycloakify/login/lib/kcClsx";
-import { useInitialize } from "keycloakify/login/Template.useInitialize";
-import type { TemplateProps } from "keycloakify/login/TemplateProps";
-import { clsx } from "keycloakify/tools/clsx";
-import { useSetClassName } from "keycloakify/tools/useSetClassName";
-import { useEffect, useId, useMemo } from "react";
+import { Reset } from '@carbon/icons-react';
+import { InlineNotification, TextInput } from '@carbon/react';
+import { getKcClsx } from 'keycloakify/login/lib/kcClsx';
+import { useInitialize } from 'keycloakify/login/Template.useInitialize';
+import type { TemplateProps } from 'keycloakify/login/TemplateProps';
+import { clsx } from 'keycloakify/tools/clsx';
+import { useSetClassName } from 'keycloakify/tools/useSetClassName';
+import { useEffect, useId, useMemo } from 'react';
 
-import type { ContainerProps } from "../components/Container/Container";
-import { Container } from "../components/Container/Container";
-import type { I18n } from "../i18n";
-import type { KcContext } from "../KcContext";
-import { stripHtmlFromInfoMessage } from "../utils";
-import classes from "./Template.module.scss";
+import type { ContainerProps } from '../components/Container/Container';
+import { Container } from '../components/Container/Container';
+import type { I18n } from '../i18n';
+import type { KcContext } from '../KcContext';
+import { stripHtmlFromInfoMessage } from '../utils';
+import classes from './Template.module.scss';
 
 interface Props extends TemplateProps<KcContext, I18n> {
   className?: string;
   centered?: boolean;
-  size?: ContainerProps["size"];
+  size?: ContainerProps['size'];
 }
 
 export default function Template({
@@ -47,32 +47,22 @@ export default function Template({
   const { kcClsx } = getKcClsx({ doUseDefaultCss, classes: kcClasses });
   const { msg, msgStr } = i18n;
 
-  const {
-    realm,
-    auth,
-    url,
-    message: origMessage,
-    isAppInitiatedAction,
-  } = kcContext;
+  const { realm, auth, url, message: origMessage, isAppInitiatedAction } = kcContext;
 
-  const message = useMemo(
-    () => (origMessage ? stripHtmlFromInfoMessage(origMessage) : undefined),
-    [origMessage],
-  );
+  const message = useMemo(() => (origMessage ? stripHtmlFromInfoMessage(origMessage) : undefined), [origMessage]);
 
   useEffect(() => {
-    document.title =
-      documentTitle ?? msgStr("loginTitle", realm.displayName || realm.name);
+    document.title = documentTitle ?? msgStr('loginTitle', realm.displayName || realm.name);
   }, []);
 
   useSetClassName({
-    qualifiedName: "html",
-    className: kcClsx("kcHtmlClass"),
+    qualifiedName: 'html',
+    className: kcClsx('kcHtmlClass'),
   });
 
   useSetClassName({
-    qualifiedName: "body",
-    className: bodyClassName ?? kcClsx("kcBodyClass"),
+    qualifiedName: 'body',
+    className: bodyClassName ?? kcClsx('kcBodyClass'),
   });
 
   const { isReadyToRender } = useInitialize({ kcContext, doUseDefaultCss });
@@ -82,64 +72,40 @@ export default function Template({
   }
 
   return (
-    <div
-      className={clsx(
-        kcClsx("kcLoginClass"),
-        classes.root,
-        { [classes.centered]: centered },
-        className,
-      )}
-    >
+    <div className={clsx(kcClsx('kcLoginClass'), classes.root, { [classes.centered]: centered }, className)}>
       <Container size={size}>
-        <div className={kcClsx("kcFormCardClass")}>
-          <header className={kcClsx("kcFormHeaderClass")}>
+        <div className={kcClsx('kcFormCardClass')}>
+          <header className={kcClsx('kcFormHeaderClass')}>
             {(() => {
-              const node = !(
-                auth !== undefined &&
-                auth.showUsername &&
-                !auth.showResetCredentials
-              ) ? (
+              const node = !(auth !== undefined && auth.showUsername && !auth.showResetCredentials) ? (
                 <h1 id="kc-page-title">{headerNode}</h1>
               ) : (
-                <div
-                  id="kc-username"
-                  className={clsx(
-                    kcClsx("kcFormGroupClass"),
-                    classes.attemptedUsername,
-                  )}
-                >
+                <div id="kc-username" className={clsx(kcClsx('kcFormGroupClass'), classes.attemptedUsername)}>
                   <TextInput
                     id={`${id}-attempted-username`}
-                    labelText={msgStr("usernameOrEmail")}
+                    labelText={msgStr('usernameOrEmail')}
                     value={auth.attemptedUsername}
                     disabled
                   />
                   <a
                     id="reset-login"
                     href={url.loginRestartFlowUrl}
-                    aria-label={msgStr("restartLoginTooltip")}
+                    aria-label={msgStr('restartLoginTooltip')}
                     className={classes.restartLoginButton}
                   >
                     <Reset />
-                    <span className="kc-tooltip-text">
-                      {msg("restartLoginTooltip")}
-                    </span>
+                    <span className="kc-tooltip-text">{msg('restartLoginTooltip')}</span>
                   </a>
                 </div>
               );
 
               if (displayRequiredFields) {
                 return (
-                  <div className={kcClsx("kcContentWrapperClass")}>
-                    <div
-                      className={clsx(
-                        kcClsx("kcLabelWrapperClass"),
-                        "subtitle",
-                      )}
-                    >
+                  <div className={kcClsx('kcContentWrapperClass')}>
+                    <div className={clsx(kcClsx('kcLabelWrapperClass'), 'subtitle')}>
                       <span className="subtitle">
                         <span className="required">*</span>
-                        {msg("requiredFields")}
+                        {msg('requiredFields')}
                       </span>
                     </div>
                     <div className="col-md-10">{node}</div>
@@ -154,46 +120,36 @@ export default function Template({
           <div>
             <div>
               {/* App-initiated actions should not see warning messages about the need to complete the action during login. */}
-              {displayMessage &&
-                message !== undefined &&
-                (message.type !== "warning" || !isAppInitiatedAction) && (
-                  <InlineNotification
-                    kind={message.type === "error" ? "error" : message.type}
-                    lowContrast
-                    hideCloseButton
-                    subtitle={message.summary}
-                    className={classes.notification}
-                  />
-                )}
+              {displayMessage && message !== undefined && (message.type !== 'warning' || !isAppInitiatedAction) && (
+                <InlineNotification
+                  kind={message.type === 'error' ? 'error' : message.type}
+                  lowContrast
+                  hideCloseButton
+                  subtitle={message.summary}
+                  className={classes.notification}
+                />
+              )}
               {children}
               {auth !== undefined && auth.showTryAnotherWayLink && (
-                <form
-                  id="kc-select-try-another-way-form"
-                  action={url.loginAction}
-                  method="post"
-                >
-                  <div className={kcClsx("kcFormGroupClass")}>
+                <form id="kc-select-try-another-way-form" action={url.loginAction} method="post">
+                  <div className={kcClsx('kcFormGroupClass')}>
                     <input type="hidden" name="tryAnotherWay" value="on" />
                     <a
                       href="#"
                       id="try-another-way"
                       onClick={(event) => {
-                        document.forms[
-                          "kc-select-try-another-way-form" as never
-                        ].requestSubmit();
+                        document.forms['kc-select-try-another-way-form' as never].requestSubmit();
                         event.preventDefault();
                         return false;
                       }}
                     >
-                      {msg("doTryAnotherWay")}
+                      {msg('doTryAnotherWay')}
                     </a>
                   </div>
                 </form>
               )}
               {socialProvidersNode}
-              {displayInfo && infoNode && (
-                <div className={classes.infoBox}>{infoNode}</div>
-              )}
+              {displayInfo && infoNode && <div className={classes.infoBox}>{infoNode}</div>}
             </div>
           </div>
         </div>

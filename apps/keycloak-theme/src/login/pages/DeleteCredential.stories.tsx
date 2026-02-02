@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "delete-credential.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'delete-credential.ftl' });
 
 const meta = {
-  title: "login/delete-credential.ftl",
+  title: 'login/delete-credential.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -25,8 +25,8 @@ export const WithCustomCredentialLabel: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        credentialLabel: "Test Credential",
-        url: { loginAction: "/login-action" },
+        credentialLabel: 'Test Credential',
+        url: { loginAction: '/login-action' },
       }}
     />
   ),

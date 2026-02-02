@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "login-reset-password.ftl",
+  pageId: 'login-reset-password.ftl',
 });
 
 const meta = {
-  title: "login/login-reset-password.ftl",
+  title: 'login/login-reset-password.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -52,15 +52,15 @@ export const WithUsernameError: Story = {
           duplicateEmailsAllowed: false,
         },
         url: {
-          loginAction: "/mock-login-action",
-          loginUrl: "/mock-login-url",
+          loginAction: '/mock-login-action',
+          loginUrl: '/mock-login-url',
         },
         messagesPerField: {
-          existsError: (field: string) => field === "username",
-          get: () => "Invalid username",
+          existsError: (field: string) => field === 'username',
+          get: () => 'Invalid username',
         },
         auth: {
-          attemptedUsername: "invalid_user",
+          attemptedUsername: 'invalid_user',
         },
       }}
     />

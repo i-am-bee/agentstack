@@ -3,15 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { TextInput } from "@carbon/react";
-import { kcSanitize } from "keycloakify/lib/kcSanitize";
+import { TextInput } from '@carbon/react';
+import { kcSanitize } from 'keycloakify/lib/kcSanitize';
 
-import { Layout } from "../components/Layout/Layout";
-import Template from "../layout/Template";
-import type { CustomPageProps } from "../types";
-import classes from "./Code.module.scss";
+import { Layout } from '../components/Layout/Layout';
+import Template from '../layout/Template';
+import type { CustomPageProps } from '../types';
+import classes from './Code.module.scss';
 
-export default function Code(props: CustomPageProps<{ pageId: "code.ftl" }>) {
+export default function Code(props: CustomPageProps<{ pageId: 'code.ftl' }>) {
   const { kcContext, i18n, classes: kcClasses } = props;
 
   const { code } = kcContext;
@@ -26,17 +26,13 @@ export default function Code(props: CustomPageProps<{ pageId: "code.ftl" }>) {
         doUseDefaultCss={false}
         classes={kcClasses}
         displayMessage={false}
-        headerNode={
-          code.success
-            ? msg("codeSuccessTitle")
-            : msg("codeErrorTitle", code.error)
-        }
+        headerNode={code.success ? msg('codeSuccessTitle') : msg('codeErrorTitle', code.error)}
         centered
       >
         <div className={classes.root}>
           {code.success ? (
             <>
-              <p>{msg("copyCodeInstruction")}</p>
+              <p>{msg('copyCodeInstruction')}</p>
               <TextInput id="code" labelText="" value={code.code} readOnly />
             </>
           ) : (

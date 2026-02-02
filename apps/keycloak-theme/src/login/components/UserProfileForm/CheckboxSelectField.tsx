@@ -3,21 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Checkbox, FormLabel } from "@carbon/react";
+import { Checkbox, FormLabel } from '@carbon/react';
 
-import classes from "./CheckboxSelectField.module.scss";
-import { FieldLabel } from "./FieldLabel";
-import type { InputFieldByTypeProps } from "./types";
-import { getFieldError, getInputLabel, getOptions } from "./utils";
+import classes from './CheckboxSelectField.module.scss';
+import { FieldLabel } from './FieldLabel';
+import type { InputFieldByTypeProps } from './types';
+import { getFieldError, getInputLabel, getOptions } from './utils';
 
 export function CheckboxSelectField(props: InputFieldByTypeProps) {
-  const {
-    attribute,
-    dispatchFormAction,
-    displayableErrors,
-    i18n,
-    valueOrValues,
-  } = props;
+  const { attribute, dispatchFormAction, displayableErrors, i18n, valueOrValues } = props;
 
   const { hasError, errorMessage } = getFieldError(displayableErrors);
   const options = getOptions(attribute);
@@ -48,14 +42,14 @@ export function CheckboxSelectField(props: InputFieldByTypeProps) {
                 newValues.splice(newValues.indexOf(option), 1);
               }
               dispatchFormAction({
-                action: "update",
+                action: 'update',
                 name: attribute.name,
                 valueOrValues: newValues,
               });
             }}
             onBlur={() =>
               dispatchFormAction({
-                action: "focus lost",
+                action: 'focus lost',
                 name: attribute.name,
                 fieldIndex: undefined,
               })

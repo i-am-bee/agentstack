@@ -3,40 +3,30 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { PasswordInput } from "@carbon/react";
-import { assert } from "keycloakify/tools/assert";
+import { PasswordInput } from '@carbon/react';
+import { assert } from 'keycloakify/tools/assert';
 
-import { FieldLabel } from "./FieldLabel";
-import type { InputFieldByTypeProps } from "./types";
-import { getFieldError } from "./utils";
+import { FieldLabel } from './FieldLabel';
+import type { InputFieldByTypeProps } from './types';
+import { getFieldError } from './utils';
 
 type PasswordFieldProps = InputFieldByTypeProps & {
   fieldIndex: number | undefined;
 };
 
 export function PasswordField(props: PasswordFieldProps) {
-  const {
-    attribute,
-    fieldIndex,
-    dispatchFormAction,
-    valueOrValues,
-    i18n,
-    displayableErrors,
-  } = props;
+  const { attribute, fieldIndex, dispatchFormAction, valueOrValues, i18n, displayableErrors } = props;
 
   const { advancedMsgStr, msgStr } = i18n;
 
-  const { hasError, errorMessage } = getFieldError(
-    displayableErrors,
-    fieldIndex,
-  );
+  const { hasError, errorMessage } = getFieldError(displayableErrors, fieldIndex);
 
   const value = (() => {
     if (fieldIndex !== undefined) {
       assert(valueOrValues instanceof Array);
       return valueOrValues[fieldIndex];
     }
-    assert(typeof valueOrValues === "string");
+    assert(typeof valueOrValues === 'string');
     return valueOrValues;
   })();
 
@@ -55,23 +45,19 @@ export function PasswordField(props: PasswordFieldProps) {
           ? undefined
           : advancedMsgStr(attribute.annotations.inputTypePlaceholder)
       }
-      hidePasswordLabel={msgStr("hidePassword")}
-      showPasswordLabel={msgStr("showPassword")}
+      hidePasswordLabel={msgStr('hidePassword')}
+      showPasswordLabel={msgStr('showPassword')}
       {...Object.fromEntries(
-        Object.entries(attribute.html5DataAnnotations ?? {}).map(
-          ([key, value]) => [`data-${key}`, value],
-        ),
+        Object.entries(attribute.html5DataAnnotations ?? {}).map(([key, value]) => [`data-${key}`, value]),
       )}
       onChange={(event) =>
         dispatchFormAction({
-          action: "update",
+          action: 'update',
           name: attribute.name,
           valueOrValues: (() => {
             if (fieldIndex !== undefined) {
               assert(valueOrValues instanceof Array);
-              return valueOrValues.map((v, i) =>
-                i === fieldIndex ? event.target.value : v,
-              );
+              return valueOrValues.map((v, i) => (i === fieldIndex ? event.target.value : v));
             }
             return event.target.value;
           })(),
@@ -79,7 +65,7 @@ export function PasswordField(props: PasswordFieldProps) {
       }
       onBlur={() =>
         dispatchFormAction({
-          action: "focus lost",
+          action: 'focus lost',
           name: attribute.name,
           fieldIndex: fieldIndex,
         })

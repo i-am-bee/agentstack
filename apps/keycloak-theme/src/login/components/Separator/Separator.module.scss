@@ -11,7 +11,7 @@
   position: relative;
 
   &::before {
-    content: "";
+    content: '';
     position: absolute;
     block-size: rem(1px);
     inline-size: 100%;

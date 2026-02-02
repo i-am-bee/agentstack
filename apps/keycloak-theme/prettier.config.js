@@ -3,6 +3,4 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-@forward 'notification';
-@forward 'button';
-@forward 'link';
+export { default } from '@i-am-bee/lint-config/prettier';

@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "login-verify-email.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'login-verify-email.ftl' });
 
 const meta = {
-  title: "login/login-verify-email.ftl",
+  title: 'login/login-verify-email.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -23,11 +23,11 @@ export const Default: Story = {
     <KcPageStory
       kcContext={{
         message: {
-          summary: "You need to verify your email to activate your account.",
-          type: "warning",
+          summary: 'You need to verify your email to activate your account.',
+          type: 'warning',
         },
         user: {
-          email: "john.doe@gmail.com",
+          email: 'john.doe@gmail.com',
         },
       }}
     />
@@ -45,14 +45,14 @@ export const WithSuccessMessage: Story = {
     <KcPageStory
       kcContext={{
         message: {
-          summary: "Your email has been successfully verified.",
-          type: "success",
+          summary: 'Your email has been successfully verified.',
+          type: 'success',
         },
         user: {
-          email: "john.doe@gmail.com",
+          email: 'john.doe@gmail.com',
         },
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
       }}
     />
@@ -70,14 +70,14 @@ export const WithErrorMessage: Story = {
     <KcPageStory
       kcContext={{
         message: {
-          summary: "There was an error verifying your email. Please try again.",
-          type: "error",
+          summary: 'There was an error verifying your email. Please try again.',
+          type: 'error',
         },
         user: {
-          email: "john.doe@gmail.com",
+          email: 'john.doe@gmail.com',
         },
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
       }}
     />
@@ -95,14 +95,14 @@ export const WithInfoMessage: Story = {
     <KcPageStory
       kcContext={{
         message: {
-          summary: "Please verify your email to continue using our services.",
-          type: "info",
+          summary: 'Please verify your email to continue using our services.',
+          type: 'info',
         },
         user: {
-          email: "john.doe@gmail.com",
+          email: 'john.doe@gmail.com',
         },
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
       }}
     />

@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Dropdown } from "@carbon/react";
-import { useId } from "react";
+import { Dropdown } from '@carbon/react';
+import { useId } from 'react';
 
-import type { I18n } from "../../i18n";
-import classes from "./LocaleNav.module.scss";
+import type { I18n } from '../../i18n';
+import classes from './LocaleNav.module.scss';
 
 interface Props {
   i18n: I18n;
@@ -26,14 +26,8 @@ export function LocaleNav({ i18n }: Props) {
     label: label,
   }));
 
-  const handleChange = ({
-    selectedItem,
-  }: {
-    selectedItem: { id: string; label: string };
-  }) => {
-    const language = enabledLanguages.find(
-      (lang) => lang.languageTag === selectedItem.id,
-    );
+  const handleChange = ({ selectedItem }: { selectedItem: { id: string; label: string } }) => {
+    const language = enabledLanguages.find((lang) => lang.languageTag === selectedItem.id);
     if (language?.href) {
       window.location.href = language.href;
     }
@@ -49,7 +43,7 @@ export function LocaleNav({ i18n }: Props) {
       label={label}
       size="sm"
       items={items}
-      itemToString={(item) => item?.label ?? ""}
+      itemToString={(item) => item?.label ?? ''}
       selectedItem={currentLanguage ? { id: languageTag, label } : undefined}
       onChange={handleChange}
     />

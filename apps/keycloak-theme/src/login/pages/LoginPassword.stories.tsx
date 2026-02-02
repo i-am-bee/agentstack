@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "login-password.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'login-password.ftl' });
 
 const meta = {
-  title: "login/login-password.ftl",
+  title: 'login/login-password.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -36,12 +36,12 @@ export const WithPasswordError: Story = {
           resetPasswordAllowed: true,
         },
         url: {
-          loginAction: "/mock-login",
-          loginResetCredentialsUrl: "/mock-reset-password",
+          loginAction: '/mock-login',
+          loginResetCredentialsUrl: '/mock-reset-password',
         },
         messagesPerField: {
-          existsError: (field: string) => field === "password",
-          get: () => "Invalid password",
+          existsError: (field: string) => field === 'password',
+          get: () => 'Invalid password',
         },
       }}
     />
@@ -62,8 +62,8 @@ export const WithoutResetPasswordOption: Story = {
           resetPasswordAllowed: false,
         },
         url: {
-          loginAction: "/mock-login",
-          loginResetCredentialsUrl: "/mock-reset-password",
+          loginAction: '/mock-login',
+          loginResetCredentialsUrl: '/mock-reset-password',
         },
         messagesPerField: {
           existsError: () => false,
@@ -84,7 +84,7 @@ export const WithAuthPassKey: Story = {
       {...args}
       kcContext={{
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
         enableWebAuthnConditionalUI: true,
       }}

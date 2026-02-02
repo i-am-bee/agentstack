@@ -3,53 +3,43 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { TextInput } from "@carbon/react";
-import { assert } from "keycloakify/tools/assert";
+import { TextInput } from '@carbon/react';
+import { assert } from 'keycloakify/tools/assert';
 
-import { FieldLabel } from "./FieldLabel";
-import type { InputFieldByTypeProps } from "./types";
-import { getFieldError } from "./utils";
+import { FieldLabel } from './FieldLabel';
+import type { InputFieldByTypeProps } from './types';
+import { getFieldError } from './utils';
 
 type InputFieldProps = InputFieldByTypeProps & {
   fieldIndex: number | undefined;
 };
 
 export function InputField(props: InputFieldProps) {
-  const {
-    attribute,
-    fieldIndex,
-    dispatchFormAction,
-    valueOrValues,
-    i18n,
-    displayableErrors,
-  } = props;
+  const { attribute, fieldIndex, dispatchFormAction, valueOrValues, i18n, displayableErrors } = props;
 
   const { advancedMsgStr } = i18n;
 
-  const { hasError, errorMessage } = getFieldError(
-    displayableErrors,
-    fieldIndex,
-  );
+  const { hasError, errorMessage } = getFieldError(displayableErrors, fieldIndex);
 
   const value = (() => {
     if (fieldIndex !== undefined) {
       assert(valueOrValues instanceof Array);
       return valueOrValues[fieldIndex];
     }
-    assert(typeof valueOrValues === "string");
+    assert(typeof valueOrValues === 'string');
     return valueOrValues;
   })();
 
   const inputType = (() => {
     const { inputType } = attribute.annotations;
-    if (inputType?.startsWith("html5-")) {
+    if (inputType?.startsWith('html5-')) {
       return inputType.slice(6);
     }
-    return inputType ?? "text";
+    return inputType ?? 'text';
   })();
 
   // Hidden input - render as native input
-  if (attribute.annotations.inputType === "hidden") {
+  if (attribute.annotations.inputType === 'hidden') {
     return <input type="hidden" name={attribute.name} value={valueOrValues} />;
   }
 
@@ -77,20 +67,16 @@ export function InputField(props: InputFieldProps) {
             : parseInt(`${attribute.annotations.inputTypeMaxlength}`)
         }
         {...Object.fromEntries(
-          Object.entries(attribute.html5DataAnnotations ?? {}).map(
-            ([key, value]) => [`data-${key}`, value],
-          ),
+          Object.entries(attribute.html5DataAnnotations ?? {}).map(([key, value]) => [`data-${key}`, value]),
         )}
         onChange={(event) =>
           dispatchFormAction({
-            action: "update",
+            action: 'update',
             name: attribute.name,
             valueOrValues: (() => {
               if (fieldIndex !== undefined) {
                 assert(valueOrValues instanceof Array);
-                return valueOrValues.map((v, i) =>
-                  i === fieldIndex ? event.target.value : v,
-                );
+                return valueOrValues.map((v, i) => (i === fieldIndex ? event.target.value : v));
               }
               return event.target.value;
             })(),
@@ -98,7 +84,7 @@ export function InputField(props: InputFieldProps) {
         }
         onBlur={() =>
           dispatchFormAction({
-            action: "focus lost",
+            action: 'focus lost',
             name: attribute.name,
             fieldIndex: fieldIndex,
           })

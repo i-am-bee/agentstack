@@ -3,20 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { FormLabel, RadioButton, RadioButtonGroup } from "@carbon/react";
+import { FormLabel, RadioButton, RadioButtonGroup } from '@carbon/react';
 
-import { FieldLabel } from "./FieldLabel";
-import type { InputFieldByTypeProps } from "./types";
-import { getFieldError, getInputLabel, getOptions } from "./utils";
+import { FieldLabel } from './FieldLabel';
+import type { InputFieldByTypeProps } from './types';
+import { getFieldError, getInputLabel, getOptions } from './utils';
 
 export function RadioSelectField(props: InputFieldByTypeProps) {
-  const {
-    attribute,
-    dispatchFormAction,
-    displayableErrors,
-    i18n,
-    valueOrValues,
-  } = props;
+  const { attribute, dispatchFormAction, displayableErrors, i18n, valueOrValues } = props;
 
   const { hasError, errorMessage } = getFieldError(displayableErrors);
   const options = getOptions(attribute);
@@ -34,14 +28,14 @@ export function RadioSelectField(props: InputFieldByTypeProps) {
         disabled={attribute.readOnly}
         onChange={(value) =>
           dispatchFormAction({
-            action: "update",
+            action: 'update',
             name: attribute.name,
             valueOrValues: value as string,
           })
         }
         onBlur={() =>
           dispatchFormAction({
-            action: "focus lost",
+            action: 'focus lost',
             name: attribute.name,
             fieldIndex: undefined,
           })

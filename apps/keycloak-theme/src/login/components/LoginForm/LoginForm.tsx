@@ -3,37 +3,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { ArrowRight } from "@carbon/icons-react";
-import {
-  Button,
-  Checkbox,
-  Link,
-  PasswordInput,
-  TextInput,
-} from "@carbon/react";
-import { kcSanitize } from "keycloakify/lib/kcSanitize";
-import { useState } from "react";
+import { ArrowRight } from '@carbon/icons-react';
+import { Button, Checkbox, Link, PasswordInput, TextInput } from '@carbon/react';
+import { kcSanitize } from 'keycloakify/lib/kcSanitize';
+import { useState } from 'react';
 
-import type { I18n } from "../../i18n";
-import type { KcContext } from "../../KcContext";
-import styles from "./LoginForm.module.scss";
+import type { I18n } from '../../i18n';
+import type { KcContext } from '../../KcContext';
+import styles from './LoginForm.module.scss';
 
 interface Props {
-  kcContext: Extract<KcContext, { pageId: "login.ftl" }>;
+  kcContext: Extract<KcContext, { pageId: 'login.ftl' }>;
   i18n: I18n;
 }
 
 export function LoginForm({ kcContext, i18n }: Props) {
-  const { realm, url, usernameHidden, login, auth, messagesPerField } =
-    kcContext;
+  const { realm, url, usernameHidden, login, auth, messagesPerField } = kcContext;
 
   const { msg, msgStr } = i18n;
   const [isLoginButtonDisabled, setIsLoginButtonDisabled] = useState(false);
 
-  const hasError = messagesPerField.existsError("username", "password");
-  const errorMessage = hasError
-    ? messagesPerField.getFirstError("username", "password")
-    : "";
+  const hasError = messagesPerField.existsError('username', 'password');
+  const errorMessage = hasError ? messagesPerField.getFirstError('username', 'password') : '';
 
   return (
     <form
@@ -51,12 +42,12 @@ export function LoginForm({ kcContext, i18n }: Props) {
           name="username"
           labelText={
             !realm.loginWithEmailAllowed
-              ? msgStr("username")
+              ? msgStr('username')
               : !realm.registrationEmailAsUsername
-                ? msgStr("usernameOrEmail")
-                : msgStr("email")
+                ? msgStr('usernameOrEmail')
+                : msgStr('email')
           }
-          defaultValue={login.username ?? ""}
+          defaultValue={login.username ?? ''}
           autoFocus
           autoComplete="username"
           invalid={hasError}
@@ -75,7 +66,7 @@ export function LoginForm({ kcContext, i18n }: Props) {
       <PasswordInput
         id="password"
         name="password"
-        labelText={msgStr("password")}
+        labelText={msgStr('password')}
         autoComplete="current-password"
         invalid={usernameHidden && hasError}
         invalidText={
@@ -94,32 +85,18 @@ export function LoginForm({ kcContext, i18n }: Props) {
           <Checkbox
             id="rememberMe"
             name="rememberMe"
-            labelText={msgStr("rememberMe")}
+            labelText={msgStr('rememberMe')}
             defaultChecked={Boolean(login.rememberMe)}
           />
         )}
 
-        {realm.resetPasswordAllowed && (
-          <Link href={url.loginResetCredentialsUrl}>
-            {msg("doForgotPassword")}
-          </Link>
-        )}
+        {realm.resetPasswordAllowed && <Link href={url.loginResetCredentialsUrl}>{msg('doForgotPassword')}</Link>}
       </div>
 
-      <input
-        type="hidden"
-        id="id-hidden-input"
-        name="credentialId"
-        value={auth.selectedCredential}
-      />
+      <input type="hidden" id="id-hidden-input" name="credentialId" value={auth.selectedCredential} />
 
-      <Button
-        type="submit"
-        disabled={isLoginButtonDisabled}
-        className={styles.submitButton}
-        renderIcon={ArrowRight}
-      >
-        {msgStr("doLogIn")}
+      <Button type="submit" disabled={isLoginButtonDisabled} className={styles.submitButton} renderIcon={ArrowRight}>
+        {msgStr('doLogIn')}
       </Button>
     </form>
   );
