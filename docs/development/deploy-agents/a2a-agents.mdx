@@ -36,9 +36,13 @@ When you register an A2A agent:
 
 When users interact with your agent, Agent Stack manages the container lifecycle automatically.
 
-## Add A2A Agent via URL
+## Add Unmanaged A2A Agent
 
-If your A2A agent is already running and you don't want Agent Stack to manage its lifecycle, you can add it directly via URL:
+<Tip>
+An **unmanaged agent** is an A2A agent whose lifecycle is not controlled by Agent Stack. You are responsible for starting, stopping, and maintaining it. Agent Stack only proxies requests to it.
+</Tip>
+
+If your A2A agent is already running and you don't want Agent Stack to manage its lifecycle (unmanaged), you can add it directly via its URL:
 
 ```bash
 agentstack add <agent-url>
@@ -49,4 +53,12 @@ For example:
 agentstack add http://localhost:8080
 ```
 
-Agent Stack will fetch the agent card from `/.well-known/agent-card.json` and register the agent.
+### Requirements
+
+Your running A2A agent must expose a valid agent card at `/.well-known/agent-card.json`. For the example above, this would be at `http://localhost:8080/.well-known/agent-card.json`.
+
+### How It Works
+
+When you register an unmanaged A2A agent, Agent Stack fetches the agent card from the `/.well-known/agent-card.json` endpoint of the provided URL. It then enhances the metadata from the card to make the agent available in the interface.
+
+Agent Stack will not manage the lifecycle of this agent. When users interact with it, requests are proxied to the provided agent URL.
