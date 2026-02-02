@@ -6,6 +6,7 @@ import typing
 from collections import defaultdict
 from typing import Any
 
+import httpx
 from authlib.common.errors import AuthlibBaseError
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
@@ -63,7 +64,7 @@ class AuthManager:
         if auth_server in self._oidc_cache:
             return self._oidc_cache[auth_server]
 
-        async with AsyncOAuth2Client() as client:
+        async with httpx.AsyncClient() as client:
             try:
                 resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
                 resp.raise_for_status()
@@ -196,7 +197,6 @@ class AuthManager:
         server = self._auth.servers.get(active_res)
         if not server:
             return None
-
         auth_server = server.authorization_servers.get(active_auth_server)
         if not auth_server or not auth_server.token:
             return None

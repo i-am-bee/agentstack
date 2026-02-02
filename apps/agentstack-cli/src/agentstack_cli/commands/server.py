@@ -138,46 +138,43 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 sys.exit(1)
 
         # Validate that the token is still valid by attempting to load it
-
-        # Temporarily set the server as active to test the token, this does not save the change yet
+        # Keep the original active server/auth server in case of failure
         previous_server = config.auth_manager.active_server
         previous_auth_server = config.auth_manager.active_auth_server
-        config.auth_manager._auth.active_server = server
-        config.auth_manager._auth.active_auth_server = auth_server
+
+        config.auth_manager.active_server = server
+        config.auth_manager.active_auth_server = auth_server
 
         try:
             token = await config.auth_manager.load_auth_token()
             if not token:
                 # No token available, need to log in
                 # Restore previous state until login completes
-                config.auth_manager._auth.active_server = previous_server
-                config.auth_manager._auth.active_auth_server = previous_auth_server
+                config.auth_manager.active_server = previous_server
+                config.auth_manager.active_auth_server = previous_auth_server
                 # Fall through to login flow below
             else:
-                # Token is valid, switch to this server (setters handle saving)
-                config.auth_manager.active_server = server
-                config.auth_manager.active_auth_server = auth_server
                 console.success(f"Logged in to [cyan]{server}[/cyan].")
                 return
         except InvalidGrantError:
             # Token refresh failed due to invalid/expired refresh token
             log_in_message = "Your session has expired. Please log in again."
             # Restore previous state until login completes
-            config.auth_manager._auth.active_server = previous_server
-            config.auth_manager._auth.active_auth_server = previous_auth_server
+            config.auth_manager.active_server = previous_server
+            config.auth_manager.active_auth_server = previous_auth_server
             # Fall through to login flow below
         except OAuth2Error as e:
             # Other OAuth2 protocol errors - report but don't continue
             console.error(f"OAuth2 error: {e.description}")
-            config.auth_manager._auth.active_server = previous_server
-            config.auth_manager._auth.active_auth_server = previous_auth_server
+            config.auth_manager.active_server = previous_server
+            config.auth_manager.active_auth_server = previous_auth_server
             sys.exit(1)
         except RuntimeError as e:
             # Network or OIDC discovery errors - report but don't continue
             console.error(f"Failed to validate authentication: {e}")
             console.hint("Check your network connection and try again.")
-            config.auth_manager._auth.active_server = previous_server
-            config.auth_manager._auth.active_auth_server = previous_auth_server
+            config.auth_manager.active_server = previous_server
+            config.auth_manager.active_auth_server = previous_auth_server
             sys.exit(1)
 
     # Starting the login flow
