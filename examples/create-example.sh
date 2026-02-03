@@ -81,3 +81,18 @@ sed \
     "$TEST_TEMPLATE" > "$test_file"
 
 echo "Created test at $test_file"
+
+# Add entry to code-workspace
+workspace_file="$REPO_ROOT/agentstack.code-workspace"
+helm_line=$(grep -n '"name": "helm"' "$workspace_file" | head -1 | cut -d: -f1)
+insert_line=$((helm_line - 1))
+
+sed -i.bak "${insert_line}i\\
+    {\\
+      \"name\": \"${name}-example\",\\
+      \"path\": \"examples/${path}\",\\
+    },
+" "$workspace_file"
+rm -f "$workspace_file.bak"
+
+echo "Added workspace entry '${name}-example'"
