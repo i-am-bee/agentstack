@@ -4,7 +4,7 @@
  */
 
 import debounce from 'lodash/debounce';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export interface TextSelectionInfo {
   text: string;
@@ -19,39 +19,39 @@ interface Props {
 }
 
 export function useTextSelection({ containerRef, onSelectionChange }: Props) {
-  useEffect(() => {
+  const processSelection = useCallback(() => {
     const container = containerRef.current;
     if (!container) {
       return;
     }
 
-    const processSelection = () => {
-      const selection = window.getSelection();
-      const selectedText = selection?.toString().trim();
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
 
-      if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
-        onSelectionChange(null);
-        return;
-      }
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
+      onSelectionChange(null);
+      return;
+    }
 
-      const range = selection.getRangeAt(0);
+    const range = selection.getRangeAt(0).cloneRange();
 
-      if (!container.contains(range.commonAncestorContainer)) {
-        onSelectionChange(null);
-        return;
-      }
+    if (!container.contains(range.commonAncestorContainer)) {
+      onSelectionChange(null);
+      return;
+    }
 
-      const rects = Array.from(range.getClientRects());
-      const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
+    const rects = Array.from(range.getClientRects());
+    const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
 
-      onSelectionChange({
-        text: selectedText,
-        range,
-        rects,
-        firstVisibleRect,
-      });
-    };
+    onSelectionChange({
+      text: selectedText,
+      range,
+      rects,
+      firstVisibleRect,
+    });
+  }, [containerRef, onSelectionChange]);
 
+  useEffect(() => {
     const debouncedProcessSelection = debounce(processSelection, SELECTION_DEBOUNCE_MS);
 
     document.addEventListener('selectionchange', debouncedProcessSelection);
@@ -60,7 +60,7 @@ export function useTextSelection({ containerRef, onSelectionChange }: Props) {
       debouncedProcessSelection.cancel();
       document.removeEventListener('selectionchange', debouncedProcessSelection);
     };
-  }, [containerRef, onSelectionChange]);
+  }, [containerRef, processSelection]);
 }
 
 const SELECTION_DEBOUNCE_MS = 100;
