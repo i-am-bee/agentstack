@@ -60,7 +60,7 @@ export function useTextSelection({ containerRef, onSelectionChange }: Props) {
       debouncedProcessSelection.cancel();
       document.removeEventListener('selectionchange', debouncedProcessSelection);
     };
-  }, [containerRef, processSelection]);
+  }, [processSelection]);
 }
 
 const SELECTION_DEBOUNCE_MS = 100;
