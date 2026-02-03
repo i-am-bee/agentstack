@@ -19,7 +19,7 @@ line-length = 120
 target-version = "py311"
 
 [tool.uv.sources]
-agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
+agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
 
 [project.scripts]
 server = "advanced_history.agent:run"

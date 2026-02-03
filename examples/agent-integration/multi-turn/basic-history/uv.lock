@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agentstack-sdk"
 version = "0.6.1"
-source = { editable = "../../apps/agentstack-sdk-py" }
+source = { editable = "../../../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
     { name = "anyio" },
@@ -174,7 +174,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
+    { name = "agentstack-sdk", editable = "../../../../apps/agentstack-sdk-py" },
     { name = "pyyaml", specifier = ">=6.0.2" },
 ]
 
