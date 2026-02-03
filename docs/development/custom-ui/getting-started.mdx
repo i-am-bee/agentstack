@@ -28,7 +28,7 @@ graph TB
         A2AClient[A2A Client]
     end
     
-    subgraph AgentStack [AgentStack Platform]
+    subgraph AgentStack [Agent Stack Platform]
         Agent[Agent]
         API[Platform API]
     end
@@ -39,10 +39,10 @@ graph TB
     A2AClient -->|"handleTaskStatusUpdate"| SDK
     SDK -->|"buildApiClient"| API
     
-    style SDK fill:#e1f5ff
-    style A2AClient fill:#fff4e1
-    style Agent fill:#e8f5e9
-    style API fill:#f3e5f5
+    style SDK fill:#e1f5ff,color:#000
+    style A2AClient fill:#fff4e1,color:#000
+    style Agent fill:#e8f5e9,color:#000
+    style API fill:#f3e5f5,color:#000
 ```
 
 ## Core Workflows
