@@ -11,7 +11,7 @@ server = Server()
 
 
 @server.agent()
-async def example_name(input: Message, context: RunContext):
+async def example_name_example(input: Message, context: RunContext):
     pass  # Implementation goes here
 
 

@@ -8,7 +8,7 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.usefixtures("clean_up")
-async def %{EXAMPLE_NAME_SNAKE_CASE}_example(subtests, get_final_task_from_stream, a2a_client_factory):
+async def test_%{EXAMPLE_NAME_SNAKE_CASE}_example(subtests, get_final_task_from_stream, a2a_client_factory):
     example_path = "%{EXAMPLE_PATH}"
 
     async with run_example(example_path, a2a_client_factory) as running_example:

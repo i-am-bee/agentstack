@@ -57,6 +57,10 @@
       "path": "examples/agent-integration/multi-turn/advanced-history",
     },
     {
+      "name": "initial-form-rendering-example",
+      "path": "examples/agent-integration/forms/initial-form-rendering",
+    },
+    {
       "name": "helm",
       "path": "helm",
     },
