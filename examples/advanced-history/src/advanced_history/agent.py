@@ -38,7 +38,7 @@ def to_framework_message(message: Message) -> FrameworkMessage:
 
 
 @server.agent()
-async def multi_turn_chat_agent(
+async def advanced_history_example(
     input: Message,
     context: RunContext,
     llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],

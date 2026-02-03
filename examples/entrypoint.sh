@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# EXAMPLES: comma-separated list, e.g. "chat", "chat,rag", or "all"
+# EXAMPLES: comma-separated list, e.g. "basic-history", "basic-history,advanced-history", or "all"
 EXAMPLES_INPUT="${EXAMPLES:-all}"
 
 # Discover available examples
@@ -34,7 +34,7 @@ for example in "${EXAMPLE_LIST[@]}"; do
 
 	echo "Starting $example on port $PORT_BASE"
 	cd "$example_dir"
-	PORT=$PORT_BASE "$example_dir/.venv/bin/server" &
+	PORT=$PORT_BASE HOST=0.0.0.0 "$example_dir/.venv/bin/server" &
 	PIDS+=($!)
 	((PORT_BASE++))
 done

@@ -13,7 +13,7 @@ server = Server()
 
 
 @server.agent()
-async def basic_history_agent(input: Message, context: RunContext):
+async def basic_history_example(input: Message, context: RunContext):
     """Agent that demonstrates conversation history access"""
 
     # Store the current message in the context store
