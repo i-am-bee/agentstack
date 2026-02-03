@@ -49,7 +49,10 @@ Text and file parts are in the `message.parts` array. Map them to your UI compon
 function processParts(parts: Part[]) {
   return parts.flatMap((part) => {
     if (part.kind === "text") {
-      return [{ kind: "text", text: part.text }];
+      return [{
+        kind: "text",
+        text: part.text,
+      }];
     }
 
     if (part.kind === "file") {
@@ -63,10 +66,19 @@ function processParts(parts: Part[]) {
       ];
     }
 
+    if (part.kind === "data") {
+      return [{
+        kind: "data",
+        data: part.data,
+      }];
+    }
+
     return [];
   });
 }
 ```
+
+Data parts are structured payloads. Render them as JSON or map them to specialized UI components in your app.
 
 ## Resolve file URLs
 

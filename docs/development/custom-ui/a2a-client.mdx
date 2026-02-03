@@ -5,9 +5,13 @@ description: Create the A2A client, fulfill agent demands, and handle streaming 
 
 To communicate with agents, you use the A2A protocol client to send messages and receive streaming events. The Agent Stack SDK provides helpers that turn those events into UI updates. This guide shows how to integrate `@a2a-js/sdk` with the Agent Stack SDK helpers, mirroring the same flow used in `agentstack-ui`.
 
-## 1. Create an A2A client
+## 1. Create a context token
 
-Use the A2A client factory and the AgentStack authenticated fetch helper.
+Create a context token for the user session so the agent can access platform services. This token is required for the A2A client. See **[Permissions and Tokens](./permissions-and-tokens)** for how to generate a context token and scope permissions.
+
+## 2. Create an A2A client
+
+Use the A2A client factory and the AgentStack authenticated fetch helper. `createAuthenticatedFetch` attaches the `Authorization` header to every request so the A2A client can load the agent card and open JSON RPC streams with authentication. That is the only reason for the custom factory.
 
 ```typescript
 import {
@@ -18,8 +22,8 @@ import {
 } from "@a2a-js/sdk/client";
 import { createAuthenticatedFetch } from "agentstack-sdk";
 
-async function getAgentClient(baseUrl: string, providerId: string, token?: string) {
-  const fetchImpl = token ? createAuthenticatedFetch(token) : fetch;
+async function getAgentClient(baseUrl: string, providerId: string, token: string) {
+  const fetchImpl = createAuthenticatedFetch(token);
   const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
 
   const factory = new ClientFactory(
@@ -33,9 +37,11 @@ async function getAgentClient(baseUrl: string, providerId: string, token?: strin
 }
 ```
 
-## 2. Resolve agent card demands
+## 3. Resolve agent card demands
 
 Once you have the client, read the agent card and resolve its demands.
+
+Demands map to A2A extensions. See **[Agent Requirements](./agent-requirements)** for extension definitions and helper usage.
 
 ```typescript
 import { handleAgentCard } from "agentstack-sdk";
@@ -80,7 +86,7 @@ const metadata = await resolveMetadata(fulfillments);
 
 See **[Agent Requirements](./agent-requirements)** for the available service and UI extension helpers.
 
-## 3. Send a message stream and handle updates
+## 4. Send a message stream and handle updates
 
 Merge agent card metadata with user metadata and stream events.
 
@@ -129,6 +135,11 @@ for await (const event of stream) {
   if (event.kind === "artifact-update") {
     // Render event.artifact parts and metadata
   }
+
+  if (event.kind === "message") {
+    // Non streaming agents may emit a final message event
+    // Render event.parts and event.metadata
+  }
 }
 ```
 
@@ -136,7 +147,7 @@ In `agentstack-ui`, status updates are also used to render message parts, and ar
 
 For rendering message parts and citations, see **[Agent Responses](./agent-responses)**.
 
-## 4. Send user responses
+## 5. Send user responses
 
 When the user replies to forms, approvals, or canvas requests, build metadata with `resolveUserMetadata` and send another message.
 

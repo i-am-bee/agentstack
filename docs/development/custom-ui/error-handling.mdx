@@ -20,6 +20,7 @@ import { buildApiClient, unwrapResult } from "agentstack-sdk";
 const api = buildApiClient({ baseUrl: "https://your-agentstack-instance.com" });
 
 const result = await api.readUser();
+
 if (!result.ok) {
   console.error(result.error.type, result.error.message);
 }
@@ -35,7 +36,7 @@ Use the guard helpers to match specific error types.
 import { isHttpError, isNetworkError, isParseError, isValidationError } from "agentstack-sdk";
 
 try {
-  await api.readUser();
+  unwrapResult(await api.readUser());
 } catch (error) {
   if (isHttpError(error, 401)) {
     console.error("Unauthorized");

@@ -194,6 +194,7 @@ const metadata = await resolveMetadata({
 ### Platform API
 
 Adds context token metadata so the agent can call platform services. This is typically used only when you cannot pass the token through A2A client headers.
+`getContextToken` is deprecated and kept for backward compatibility. Prefer passing the context token via A2A client headers when possible.
 
 ```typescript
 import { handleAgentCard } from "agentstack-sdk";

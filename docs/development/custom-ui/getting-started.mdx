@@ -7,7 +7,7 @@ The Agent Stack TypeScript Client SDK simplifies building custom UIs for A2A age
 
 It builds on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/) and provides two layers:
 
-1. A2A extensions and helpers that map agent demands to client fulfillments and UI metadata.
+1. A2A extensions and helpers that translate agent card demands such as LLM access, embeddings, OAuth, and secrets into client fulfillments like API keys, model choices, redirect URIs, and secret values, plus UI metadata.
 2. A platform API client that talks to the AgentStack server.
 
 The SDK also exports A2A protocol types and Zod schemas so your UI can stay in sync with the protocol.
@@ -47,9 +47,36 @@ graph TB
 
 ## Core Workflows
 
-### 1. Handle agent card demands
+### 1. Create an A2A client
 
-Agents declare service demands in their agent card. Use `handleAgentCard` to read these demands and produce metadata fulfillments.
+Create a context token for the session and pass it to the A2A client fetch. The token is required to fetch the agent card and stream messages. See **[Permissions and Tokens](./permissions-and-tokens)** for context token creation.
+
+```typescript
+import {
+  ClientFactory,
+  ClientFactoryOptions,
+  DefaultAgentCardResolver,
+  JsonRpcTransportFactory,
+} from "@a2a-js/sdk/client";
+import { createAuthenticatedFetch } from "agentstack-sdk";
+
+const fetchImpl = createAuthenticatedFetch(contextToken.token);
+const factory = new ClientFactory(
+  ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
+    transports: [new JsonRpcTransportFactory({ fetchImpl })],
+    cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
+  }),
+);
+
+const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+const client = await factory.createFromUrl(baseUrl, agentCardPath);
+```
+
+See **[A2A Client Integration](./a2a-client)** for a complete setup.
+
+### 2. Handle agent card demands
+
+Agents declare service demands in their agent card. Use `handleAgentCard` to read those demands and produce metadata fulfillments.
 
 ```typescript
 import { handleAgentCard } from "agentstack-sdk";
@@ -74,7 +101,7 @@ const metadata = await resolveMetadata({
 
 Use `buildMessageBuilder(agentCard)` when you want a helper that turns a user message into a fully formed A2A message with metadata.
 
-### 2. Stream task status updates into UI actions
+### 3. Stream task status updates into UI actions
 
 When you stream A2A task events, `handleTaskStatusUpdate` maps status updates into actionable UI events.
 It focuses on `auth-required` and `input-required` states, which cover OAuth, secrets, forms, and approvals.
@@ -93,9 +120,23 @@ for await (const event of stream) {
 }
 ```
 
-### 3. Build user metadata
+<Tip>
+  **Why task status updates for chat streaming**
+
+  1. A2A uses tasks to represent long running work so you can track progress and cancel.
+  2. Status updates provide the incremental channel for UI events and streaming output.
+  3. Each streamed token arrives as a `TaskStatusUpdate`, so you can append text as it arrives.
+</Tip>
+
+### 4. Build user metadata
 
 When the user responds to forms, approvals, or canvas requests, use `resolveUserMetadata` to build message metadata.
+
+<Tip>
+  **User metadata**
+
+  User metadata is the structured response payload that you attach to a message. It is separate from text parts and lets the agent consume form fields, approvals, and canvas actions in a typed way.
+</Tip>
 
 ```typescript
 import { resolveUserMetadata } from "agentstack-sdk";
@@ -106,29 +147,21 @@ const metadata = await resolveUserMetadata({
 });
 ```
 
-### 4. Use the platform API client
+### 5. Use the platform API client
 
 `buildApiClient` exposes the platform API with typed responses and runtime validation.
+Use the user access token from your identity provider for UI side API calls. Context tokens are scoped for agent use and can also authenticate to the platform API when running inside the agent. See **[Permissions and Tokens](./permissions-and-tokens)** for token types and scopes.
 
 ```typescript
 import { buildApiClient, createAuthenticatedFetch } from "agentstack-sdk";
 
 const api = buildApiClient({
   baseUrl: "https://your-agentstack-instance.com",
-  fetch: createAuthenticatedFetch("token-value"),
+  fetch: createAuthenticatedFetch(accessToken),
 });
 ```
 
 All API calls return `ApiResult<T>`. Use `unwrapResult` if you want exceptions, and then handle errors with `isHttpError`, `isNetworkError`, `isParseError`, and `isValidationError`.
-
-## Extension Helpers at a Glance
-
-These helpers are factories. You pass an extension definition once and get back a function tailored to that extension.
-
-- `extractServiceExtensionDemands(extension)` returns a function that pulls typed demands for that service from an agent card.
-- `fulfillServiceExtensionDemand(extension)` returns a function that applies a fulfillment into outgoing metadata for that service.
-- `extractUiExtensionData(extension)` returns a function that reads typed UI metadata for that extension from messages.
-- `buildLLMExtensionFulfillmentResolver(api, token)` returns a resolver that maps LLM demands to platform models.
 
 ## Protocol Types and Schemas
 
