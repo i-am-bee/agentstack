@@ -10,14 +10,14 @@ from tests.e2e.examples.conftest import run_example
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.usefixtures("clean_up")
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_basic_history_example(subtests, get_final_task_from_stream, a2a_client_factory):
     example_path = "agent-integration/multi-turn/basic-history"
 
     async with run_example(example_path, a2a_client_factory) as running_example:
         with subtests.test("agent reports 1 message in history"):
             message = create_text_message_object(content="My 1st message")
-            message.context_id = running_example.context.id
+            message.context_id = running_example.caaontext.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
             # Verify response
             assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
