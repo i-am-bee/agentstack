@@ -145,9 +145,9 @@ const metadata = await resolveMetadata({
 });
 ```
 
-### Settings
+### Settings (deprecated)
 
-Provides runtime configuration values that match the requested fields.
+Deprecated. Planned for removal in the next release. Use [Settings Form](#settings-form) instead.
 
 This extension lives under `ui/settings` in the SDK, but it is treated as a service extension because it carries demands
 and fulfillments.
@@ -179,6 +179,15 @@ const metadata = await resolveMetadata({
 });
 ```
 
+#### Migration guide
+
+- Agent cards: replace the `ui/settings` extension with the `services/form` extension and move settings fields to `form_demands.settings_form`.
+- Single select: change type `single_select` to `singleselect`, and change `options` items from `{ value }` to `{ id }`.
+- Checkbox group: `checkbox_group` now requires a non empty `label`.
+- Checkbox items: `checkbox` now requires `content` for the visible text. Keep `label` populated too and map the legacy checkbox label to `content` when migrating.
+- Fulfillments: change checkbox group values from `{ values: { [id]: { value } } }` to `{ value: { [id]: boolean | null } }`.
+
+
 ### Form
 
 Provides form responses when the agent requests structured input.
@@ -198,6 +207,62 @@ const metadata = await resolveMetadata({
   }),
 });
 ```
+
+#### Settings Form
+
+Settings UI is delivered through the Form service extension. Agents request settings with `form_demands.settings_form`, and clients respond with `form_fulfillments.settings_form`.
+
+```typescript
+import { handleAgentCard } from "agentstack-sdk";
+
+const { resolveMetadata } = handleAgentCard(agentCard);
+
+const metadata = await resolveMetadata({
+  form: async (demands) => {
+    const settingsForm = demands.form_demands.settings_form;
+
+    if (!settingsForm) {
+      return { form_fulfillments: {} };
+    }
+
+    return {
+      form_fulfillments: {
+        settings_form: {
+          values: Object.fromEntries(
+            settingsForm.fields.map((field) => {
+              if (field.type === "singleselect") {
+                return [
+                  field.id,
+                  {
+                    type: "singleselect",
+                    value: field.default_value
+                  }
+                ];
+              }
+
+              if (field.type === "checkbox_group") {
+                return [
+                  field.id,
+                  {
+                    type: "checkbox_group",
+                    value: Object.fromEntries(
+                      field.fields.map((checkbox) => [checkbox.id, checkbox.default_value]),
+                    ),
+                  },
+                ];
+              }
+
+              throw new Error("Unsupported settings field type");
+            }),
+          ),
+        },
+      },
+    };
+  },
+});
+```
+
+Prefer `settings_form` when both `settings_form` and legacy settings demands are present.
 
 ### Platform API
 
