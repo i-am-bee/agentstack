@@ -49,6 +49,14 @@
       "path": "agents/canvas",
     },
     {
+      "name": "basic-history-example",
+      "path": "examples/basic-history",
+    },
+    {
+      "name": "advanced-history-example",
+      "path": "examples/advanced-history",
+    },
+    {
       "name": "helm",
       "path": "helm",
     },

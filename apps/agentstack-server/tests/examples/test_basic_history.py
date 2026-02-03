@@ -1,0 +1,34 @@
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import pytest
+from a2a.client.helpers import create_text_message_object
+from a2a.types import TaskState
+
+from tests.examples.conftest import example_process
+
+pytestmark = pytest.mark.e2e
+
+
+@pytest.mark.usefixtures("clean_up")
+async def test_basic_history_example(subtests, get_final_task_from_stream, a2a_client_factory):
+    example_name = "basic-history"
+
+    async with example_process(example_name, a2a_client_factory) as (_, a2a_client, context):
+        with subtests.test("add 1st message"):
+            message = create_text_message_object(content="My 1st message")
+            message.context_id = context.id
+            task = await get_final_task_from_stream(a2a_client.send_message(message))
+
+            # Verify response
+            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert "I can see we have 1 messages in our conversation." in task.history[-1].parts[0].root.text
+
+        with subtests.test("add 2nd message"):
+            message = create_text_message_object(content="My 2nd message")
+            message.context_id = context.id
+            task = await get_final_task_from_stream(a2a_client.send_message(message))
+
+            # Verify response
+            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert "I can see we have 3 messages in our conversation." in task.history[-1].parts[0].root.text
