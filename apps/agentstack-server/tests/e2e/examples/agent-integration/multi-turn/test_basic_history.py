@@ -17,7 +17,7 @@ async def test_basic_history_example(subtests, get_final_task_from_stream, a2a_c
     async with run_example(example_path, a2a_client_factory) as running_example:
         with subtests.test("agent reports 1 message in history"):
             message = create_text_message_object(content="My 1st message")
-            message.context_id = running_example.caaontext.id
+            message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
             # Verify response
             assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"

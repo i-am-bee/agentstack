@@ -8,9 +8,11 @@ from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Any, NamedTuple
 
+import httpx
 import pytest
 from a2a.client import Client, ClientEvent
 from a2a.types import AgentCard, Message, Task
+from a2a.utils.constants import AGENT_CARD_WELL_KNOWN_PATH
 from agentstack_sdk.platform import Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from tenacity import retry, stop_after_delay, wait_fixed
@@ -25,20 +27,15 @@ class RunningExample(NamedTuple):
     provider: Provider
 
 
-def run_process(example_path: str, port: int) -> subprocess.Popen:
-    cwd = f"../../examples/{example_path}"
+def run_process(example_dir_path: str, port: int) -> subprocess.Popen:
+    cwd = f"../../examples/{example_dir_path}"
     print(f"Running example in {cwd}")
     return subprocess.Popen(
         ["uv", "run", "server"],
         cwd=cwd,
-        env={**os.environ, "PORT": str(port)},
+        env={**os.environ, "PORT": str(port), "PRODUCTION_MODE": "true"},
         preexec_fn=os.setsid,
     )
-
-
-def get_example_url(example_path: str, port: int = DEFAULT_PORT) -> str:
-    example_name = os.path.basename(example_path)
-    return f"http://localhost:{port}/#{example_name.replace('-', '_')}_example"
 
 
 def kill_process(process: subprocess.Popen) -> None:
@@ -47,11 +44,12 @@ def kill_process(process: subprocess.Popen) -> None:
 
 
 @retry(stop=stop_after_delay(30), wait=wait_fixed(0.5))
-async def _wait_for_ready(example_url: str):
-    providers = await Provider.list()
-    provider = next((p for p in providers if p.source == example_url), None)
-    assert provider, "Provider not registered yet"
-    return provider
+async def _get_agent_card(agent_url: str):
+    async with httpx.AsyncClient(timeout=None) as httpx_client:
+        card_resp = await httpx_client.get(f"{agent_url}{AGENT_CARD_WELL_KNOWN_PATH}")
+        card_resp.raise_for_status()
+        card = AgentCard.model_validate(card_resp.json())
+        return card
 
 
 @pytest.fixture
@@ -72,13 +70,15 @@ def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent | Messag
 
 @asynccontextmanager
 async def run_example(
-    example_path: str,
+    example_dir_path: str,
     a2a_client_factory: Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]],
     port: int = DEFAULT_PORT,
 ) -> AsyncGenerator[RunningExample]:
-    process = run_process(example_path, port)
+    process = run_process(example_dir_path, port)
     try:
-        provider = await _wait_for_ready(get_example_url(example_path, port))
+        example_url = f"http://localhost:{port}"
+        agent_card = await _get_agent_card(example_url)
+        provider = await Provider.create(location=example_url, agent_card=agent_card)
 
         context = await Context.create()
         context_token = await context.generate_token(
