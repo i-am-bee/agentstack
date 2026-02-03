@@ -29,7 +29,7 @@ export function ToggleSettingsField({ field, groupField }: Props) {
   return (
     <Toggle
       className={classes.root}
-      id={id}
+      id={name}
       labelA={content}
       labelB={content}
       size="sm"

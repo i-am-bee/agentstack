@@ -23,7 +23,8 @@ interface BuildFulfillmentsParams {
   selectedLLMProviders: Record<string, string>;
   selectedEmbeddingProviders: Record<string, string>;
   providedSecrets: Record<string, string>;
-  settingsDemands: SettingsDemands | null;
+  legacySettingsDemands: SettingsDemands | null;
+  settingsFormDemanded: boolean;
   selectedSettings: SettingsFormValues;
   formFulfillments: FormFulfillments;
   oauthRedirectUri: string | null;
@@ -35,7 +36,8 @@ export const buildFulfillments = ({
   selectedLLMProviders,
   selectedEmbeddingProviders,
   selectedSettings,
-  settingsDemands,
+  legacySettingsDemands,
+  settingsFormDemanded,
   providedSecrets,
   formFulfillments,
   oauthRedirectUri,
@@ -46,8 +48,16 @@ export const buildFulfillments = ({
     getContextToken: () => contextToken,
 
     form: async (demands) => {
-      if (demands.form_demands.initial_form && !formFulfillments.form_fulfillments['initial_form']) {
+      if (demands.form_demands.initial_form && !formFulfillments.form_fulfillments.initial_form) {
         throw new Error('Initial form has not been fulfilled despite being demanded.');
+      }
+
+      if (!demands.form_demands.settings_form && formFulfillments.form_fulfillments.settings_form) {
+        const form_fulfillments = { ...formFulfillments.form_fulfillments };
+
+        delete form_fulfillments.settings_form;
+
+        return { form_fulfillments };
       }
 
       return formFulfillments;
@@ -154,7 +164,7 @@ export const buildFulfillments = ({
     },
   };
 
-  if (settingsDemands) {
+  if (legacySettingsDemands && !settingsFormDemanded) {
     // @deprecated - use form extension with "settings_form" demand instead
     fulfillments.settings = async () => ({
       values: transformSettingsFormValuesToLegacySettingsValues(selectedSettings),

@@ -28,19 +28,23 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
   const [selectedEmbeddingProviders, setSelectedEmbeddingProviders] = useState<Record<string, string>>({});
   const [selectedLLMProviders, setSelectedLLMProviders] = useState<Record<string, string>>({});
 
+  const legacySettingsDemands = agentClient.demands.settingsDemands;
   const formDemands = agentClient.demands.formDemands;
-  const settingsDemands = agentClient.demands.settingsDemands;
+  const settingsFormDemand = formDemands?.form_demands.settings_form;
+  const settingsFormDemanded = Boolean(settingsFormDemand);
 
   const settingsForm: SettingsFormRender | null =
-    formDemands?.form_demands.settings_form ?? transformLegacySettingsDemandsToSettingsForm(settingsDemands);
+    formDemands?.form_demands.settings_form ?? transformLegacySettingsDemandsToSettingsForm(legacySettingsDemands);
 
   const initialSettingsFormValues = getInitialSettingsFormValues(settingsForm);
   const formFulfillmentsRef = useRef<FormFulfillments>({
-    form_fulfillments: {
-      settings_form: {
-        values: initialSettingsFormValues,
-      },
-    },
+    form_fulfillments: settingsFormDemanded
+      ? {
+          settings_form: {
+            values: initialSettingsFormValues,
+          },
+        }
+      : {},
   });
 
   const [selectedSettings, setSelectedSettings] = useState<SettingsFormValues>(initialSettingsFormValues);
@@ -123,12 +127,14 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
     (values: SettingsFormValues) => {
       setSelectedSettings(values);
 
-      provideFormValues({
-        formId: 'settings_form',
-        values,
-      });
+      if (settingsFormDemanded) {
+        provideFormValues({
+          formId: 'settings_form',
+          values,
+        });
+      }
     },
-    [provideFormValues],
+    [provideFormValues, settingsFormDemanded],
   );
 
   const { data: connectorsData } = useListConnectors();
@@ -154,7 +160,8 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
         selectedEmbeddingProviders,
         providedSecrets,
         selectedSettings,
-        settingsDemands,
+        legacySettingsDemands,
+        settingsFormDemanded,
         formFulfillments: formFulfillmentsRef.current,
         oauthRedirectUri: oauthRedirectUri ?? null,
         connectors: connectorsData?.items ?? [],
@@ -165,7 +172,8 @@ export function AgentDemandsProvider({ children }: PropsWithChildren) {
       selectedLLMProviders,
       selectedEmbeddingProviders,
       selectedSettings,
-      settingsDemands,
+      legacySettingsDemands,
+      settingsFormDemanded,
       demandedSecrets,
       connectorsData,
     ],
