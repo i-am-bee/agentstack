@@ -12,9 +12,9 @@ pytestmark = pytest.mark.e2e
 
 @pytest.mark.usefixtures("clean_up")
 async def test_basic_history_example(subtests, get_final_task_from_stream, a2a_client_factory):
-    example_name = "basic-history"
+    example_path = "agent-integration/multi-turn/basic-history"
 
-    async with run_example(example_name, a2a_client_factory) as running_example:
+    async with run_example(example_path, a2a_client_factory) as running_example:
         with subtests.test("agent reports 1 message in history"):
             message = create_text_message_object(content="My 1st message")
             message.context_id = running_example.context.id

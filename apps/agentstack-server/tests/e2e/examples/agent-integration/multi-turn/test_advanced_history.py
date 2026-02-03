@@ -14,9 +14,9 @@ pytestmark = pytest.mark.e2e
 
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
 async def test_advanced_history_example(subtests, get_final_task_from_stream, a2a_client_factory):
-    example_name = "advanced-history"
+    example_path = "agent-integration/multi-turn/advanced-history"
 
-    async with run_example(example_name, a2a_client_factory) as running_example:
+    async with run_example(example_path, a2a_client_factory) as running_example:
         spec = LLMServiceExtensionSpec.from_agent_card(running_example.provider.agent_card)
         metadata = LLMServiceExtensionClient(spec).fulfillment_metadata(
             llm_fulfillments={

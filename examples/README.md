@@ -2,7 +2,7 @@
 
 ## Creating a new example
 
-Use `create-example.sh` to scaffold a new example from the template in `.template/`.
+Use `create-example.sh` to scaffold a new example and its e2e test from the templates in `.template/`.
 
 ```bash
 ./create-example.sh <path> <description>
@@ -31,17 +31,20 @@ examples/agent-integration/multi-turn/basic-history/
   src/basic_history/
     __init__.py
     agent.py
+
+apps/agentstack-server/tests/e2e/examples/agent-integration/multi-turn/
+  test_basic_history.py
 ```
 
 ## Template placeholders
 
-The template files in `.template/example/` use `%{...}` placeholders:
+The template files in `.template/` use `%{...}` placeholders:
 
 | Placeholder | Replaced with | Example |
 |---|---|---|
 | `%{EXAMPLE_NAME}` | Project name (kebab-case) | `basic-history` |
 | `%{EXAMPLE_DESCRIPTION}` | Description | `Example demonstrating basic history.` |
-| `%{EXAMPLE_NAME_SNAKECASE}` | Python package name | `basic_history` |
+| `%{EXAMPLE_NAME_SNAKE_CASE}` | Python package name | `basic_history` |
 | `%{SDK_PATH}` | Relative path to SDK | `../../../../apps/agentstack-sdk-py` |
 
 The directory `src/example_name/` and the function name `example_name` in `agent.py` are also renamed to the snake_case name.

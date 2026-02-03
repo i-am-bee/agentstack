@@ -25,8 +25,8 @@ class RunningExample(NamedTuple):
     provider: Provider
 
 
-def run_process(example_name: str, port: int) -> subprocess.Popen:
-    cwd = f"../../examples/{example_name}"
+def run_process(example_path: str, port: int) -> subprocess.Popen:
+    cwd = f"../../examples/{example_path}"
     print(f"Running example in {cwd}")
     return subprocess.Popen(
         ["uv", "run", "server"],
@@ -36,7 +36,8 @@ def run_process(example_name: str, port: int) -> subprocess.Popen:
     )
 
 
-def get_example_url(example_name: str, port: int = DEFAULT_PORT) -> str:
+def get_example_url(example_path: str, port: int = DEFAULT_PORT) -> str:
+    example_name = os.path.basename(example_path)
     return f"http://localhost:{port}/#{example_name.replace('-', '_')}_example"
 
 
@@ -71,13 +72,13 @@ def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent | Messag
 
 @asynccontextmanager
 async def run_example(
-    example_name: str,
+    example_path: str,
     a2a_client_factory: Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]],
     port: int = DEFAULT_PORT,
 ) -> AsyncGenerator[RunningExample]:
-    process = run_process(example_name, port)
+    process = run_process(example_path, port)
     try:
-        provider = await _wait_for_ready(get_example_url(example_name, port))
+        provider = await _wait_for_ready(get_example_url(example_path, port))
 
         context = await Context.create()
         context_token = await context.generate_token(

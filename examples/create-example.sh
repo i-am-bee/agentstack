@@ -2,7 +2,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$SCRIPT_DIR/.."
 TEMPLATE_DIR="$SCRIPT_DIR/.template/example"
+TEST_TEMPLATE="$SCRIPT_DIR/.template/test.py"
+TEST_BASE_DIR="$REPO_ROOT/apps/agentstack-server/tests/e2e/examples"
 
 usage() {
     echo "Usage: $0 <path> <description>"
@@ -52,12 +55,12 @@ cp -r "$TEMPLATE_DIR" "$target_dir"
 # Rename sentinel directory
 mv "$target_dir/src/example_name" "$target_dir/src/$snake_name"
 
-# Replace placeholders in all files
+# Replace placeholders in all example files
 find "$target_dir" -type f | while read -r file; do
     sed -i.bak \
         -e "s|%{EXAMPLE_NAME}|${name}|g" \
         -e "s|%{EXAMPLE_DESCRIPTION}|${description}|g" \
-        -e "s|%{EXAMPLE_NAME_SNAKECASE}|${snake_name}|g" \
+        -e "s|%{EXAMPLE_NAME_SNAKE_CASE}|${snake_name}|g" \
         -e "s|%{SDK_PATH}|${sdk_path}|g" \
         -e "s|example_name|${snake_name}|g" \
         "$file"
@@ -65,3 +68,16 @@ find "$target_dir" -type f | while read -r file; do
 done
 
 echo "Created example '$name' at $target_dir"
+
+# Create test file
+test_dir="$TEST_BASE_DIR/$(dirname "$path")"
+test_file="$test_dir/test_${snake_name}.py"
+
+mkdir -p "$test_dir"
+sed \
+    -e "s|%{EXAMPLE_NAME}|${name}|g" \
+    -e "s|%{EXAMPLE_NAME_SNAKE_CASE}|${snake_name}|g" \
+    -e "s|%{EXAMPLE_PATH}|${path}|g" \
+    "$TEST_TEMPLATE" > "$test_file"
+
+echo "Created test at $test_file"
