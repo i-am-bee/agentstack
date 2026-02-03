@@ -209,7 +209,10 @@ async def test_unmanaged_a2a_agent(unmanaged_a2a_server):
     assert len(provider.agent_card.skills) == 1
 
     assert len(provider.agent_card.capabilities.extensions) == 1
-    assert provider.agent_card.capabilities.extensions[0].uri == "https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1"
+    assert (
+        provider.agent_card.capabilities.extensions[0].uri
+        == "https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1"
+    )
 
     for _ in range(20):
         provider = await Provider.get(provider.id)
