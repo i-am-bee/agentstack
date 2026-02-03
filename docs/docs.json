@@ -139,7 +139,8 @@
               "development/agent-integration/env-variables",
               "development/agent-integration/error",
               "development/agent-integration/tool-calls",
-              "development/agent-integration/canvas"
+              "development/agent-integration/canvas",
+              "development/agent-integration/observability"
             ]
           },
           {
@@ -152,9 +153,8 @@
             "group": "Deploy Agent Stack",
             "pages": [
               "development/deploy-agent-stack/deployment-guide",
-              "development/deploy-agent-stack/authenticate-cli-to-server",
-              "development/deploy-agent-stack/observability"
-            ]
+              "development/deploy-agent-stack/authenticate-cli-to-server"
+                      ]
           },
           {
             "group": "Custom UI Integration",
