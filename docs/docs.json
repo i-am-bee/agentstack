@@ -56,7 +56,8 @@
               "stable/agent-integration/env-variables",
               "stable/agent-integration/error",
               "stable/agent-integration/tool-calls",
-              "stable/agent-integration/canvas"
+              "stable/agent-integration/canvas",
+              "stable/agent-integration/observability"
             ]
           },
           {
@@ -69,8 +70,7 @@
             "group": "Deploy Agent Stack",
             "pages": [
               "stable/deploy-agent-stack/deployment-guide",
-              "stable/deploy-agent-stack/authenticate-cli-to-server",
-              "stable/deploy-agent-stack/observability"
+              "stable/deploy-agent-stack/authenticate-cli-to-server"
             ]
           },
           {
