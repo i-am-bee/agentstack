@@ -6,20 +6,26 @@ import signal
 import subprocess
 from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, NamedTuple
 
-import httpx
 import pytest
-from a2a.client import Client, ClientConfig, ClientEvent, ClientFactory
+from a2a.client import Client, ClientEvent
 from a2a.types import AgentCard, Message, Task
 from agentstack_sdk.platform import Provider
-from agentstack_sdk.platform.context import Context, ContextToken
+from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from tenacity import retry, stop_after_delay, wait_fixed
 
 DEFAULT_PORT = 8000
 
 
-def run_example_process(example_name: str, port: int) -> subprocess.Popen:
+class RunningExample(NamedTuple):
+    client: Client
+    context: Context
+    context_token: ContextToken
+    provider: Provider
+
+
+def run_process(example_name: str, port: int) -> subprocess.Popen:
     cwd = f"../../examples/{example_name}"
     print(f"Running example in {cwd}")
     return subprocess.Popen(
@@ -63,31 +69,24 @@ def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent | Messag
     return fn
 
 
-@pytest.fixture()
-async def a2a_client_factory() -> Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]]:
-    @asynccontextmanager
-    async def a2a_client_factory(agent_card: AgentCard | dict, context_token: ContextToken) -> AsyncIterator[Client]:
-        token = context_token.token.get_secret_value()
-        async with httpx.AsyncClient(timeout=None, headers={"Authorization": f"Bearer {token}"}) as client:
-            yield ClientFactory(ClientConfig(httpx_client=client)).create(card=agent_card)
-
-    return a2a_client_factory
-
-
 @asynccontextmanager
-async def example_process(
+async def run_example(
     example_name: str,
     a2a_client_factory: Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]],
     port: int = DEFAULT_PORT,
-) -> AsyncGenerator[tuple[subprocess.Popen, Client, Context]]:
-    process = run_example_process(example_name, port)
+) -> AsyncGenerator[RunningExample]:
+    process = run_process(example_name, port)
     try:
         provider = await _wait_for_ready(get_example_url(example_name, port))
 
         context = await Context.create()
-        context_token = await context.generate_token(providers={provider.id})
+        context_token = await context.generate_token(
+            providers={provider.id},
+            grant_global_permissions=Permissions(llm={"*"}),
+            grant_context_permissions=ContextPermissions(context_data={"*"}),
+        )
 
         async with a2a_client_factory(provider.agent_card, context_token) as a2a_client:
-            yield process, a2a_client, context
+            yield RunningExample(a2a_client, context, context_token, provider)
     finally:
         kill_process(process)

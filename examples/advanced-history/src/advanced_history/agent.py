@@ -50,7 +50,7 @@ async def advanced_history_example(
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
     # Initialize BeeAI Framework LLM client
-    llm_client = AgentStackChatModel()
+    llm_client = AgentStackChatModel(tool_choice_support={"none", "auto"})
     llm_client.set_context(llm)
 
     # Create a RequirementAgent with conversation memory
