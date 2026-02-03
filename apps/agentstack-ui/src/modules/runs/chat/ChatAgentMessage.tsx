@@ -7,7 +7,6 @@ import { rem } from '@carbon/layout';
 import type { RefObject } from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
-import { Spinner } from '#components/Spinner/Spinner.tsx';
 import { MessageFiles } from '#modules/files/components/MessageFiles.tsx';
 import { MessageApproval } from '#modules/form/components/MessageApproval.tsx';
 import { MessageAuth } from '#modules/form/components/MessageAuth.tsx';
@@ -89,11 +88,7 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
 
   return (
     <div {...props} className={classes.root} ref={rootRef}>
-      {isPending && (
-        <div className={classes.spinner}>
-          <Spinner center />
-        </div>
-      )}
+      <MessageTrajectories message={message} isPending={isPending} />
 
       {!isPending && (
         <>
@@ -116,8 +111,6 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
       <MessageSecretsForm message={message} />
 
       <MessageApproval message={message} />
-
-      <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending} />
 
       {!isPending && <MessageActions message={message} className={classes.actions} contentRef={contentRef} />}
     </div>

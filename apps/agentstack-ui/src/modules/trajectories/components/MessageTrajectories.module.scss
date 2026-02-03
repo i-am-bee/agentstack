@@ -6,10 +6,8 @@
 .root {
   &:global(.cds--btn) {
     @include reset-focus();
-    @include line-clamp();
     padding-inline: 0;
     color: $expand-button-color;
-
     &:hover,
     &:active {
       background-color: transparent;
@@ -22,4 +20,10 @@
       transform: scaleY(-1);
     }
   }
+}
+
+.spinner {
+  min-block-size: rem(26px);
+  display: flex;
+  align-items: center;
 }

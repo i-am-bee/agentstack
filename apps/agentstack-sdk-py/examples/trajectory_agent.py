@@ -38,6 +38,15 @@ async def example_agent(
     )
     yield metadata
     await context.store(AgentMessage(metadata=metadata))
+    
+    for i in range(1, 9):
+        metadata = trajectory.trajectory_metadata(
+            title=f"Doing step {i}/8",
+            content=f"Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8",
+        )
+        yield metadata
+        await context.store(AgentMessage(metadata=metadata))
+        await asyncio.sleep(2)
 
     metadata = trajectory.trajectory_metadata(
         title="Test Markdown rendering",

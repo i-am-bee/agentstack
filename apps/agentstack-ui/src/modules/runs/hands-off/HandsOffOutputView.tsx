@@ -62,7 +62,7 @@ export function HandsOffOutputView() {
             <>
               <HandsOffText message={message} className={classes.text} />
 
-              <MessageTrajectories message={message} toggleable={hasOutput} autoScroll={!hasOutput} />
+              <MessageTrajectories message={message} isPending={isPending} />
             </>
           )}
 

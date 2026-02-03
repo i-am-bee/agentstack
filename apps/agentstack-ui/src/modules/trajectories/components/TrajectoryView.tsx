@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { Spinner } from '#components/Spinner/Spinner.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { hasViewableTrajectoryParts } from '#modules/trajectories/utils.ts';
 
@@ -14,14 +15,16 @@ import classes from './TrajectoryView.module.scss';
 
 interface Props {
   trajectories: UITrajectoryPart[];
-  toggleable?: boolean;
-  autoScroll?: boolean;
+  isPending?: boolean;
 }
 
-export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) {
+export function TrajectoryView({ trajectories, isPending }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [currentTrajectory, setCurrentTrajectory] = useState<UITrajectoryPart | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTrajectoryRef = useRef<UITrajectoryPart | null>(null);
 
-  const filteredTrajectories = trajectories.filter(hasViewableTrajectoryParts);
+  const filteredTrajectories = useMemo(() => trajectories.filter(hasViewableTrajectoryParts), [trajectories]);
   const hasTrajectories = filteredTrajectories.length > 0;
 
   const groupedTrajectories = useMemo(() => {
@@ -62,15 +65,64 @@ export function TrajectoryView({ trajectories, toggleable, autoScroll }: Props) 
     return grouped;
   }, [filteredTrajectories, hasTrajectories]);
 
+  const clearCurrentTrajectoryTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  lastTrajectoryRef.current = groupedTrajectories.at(-1) ?? null;
+
+  const updateCurrentTrajectory = useCallback(() => {
+    const lastTrajectory = lastTrajectoryRef.current;
+    console.log({ timeout: timeoutRef.current });
+
+    if (timeoutRef.current !== null || !lastTrajectory) {
+      return;
+    }
+
+    console.log('updateCurrentTrajectory', lastTrajectory);
+
+    setCurrentTrajectory(lastTrajectory);
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
+      updateCurrentTrajectory();
+    }, HEADER_UPDATE_DELAY_MS);
+  }, []);
+
+  useEffect(() => {
+    if (isPending && groupedTrajectories.length) {
+      updateCurrentTrajectory();
+    } else {
+      setCurrentTrajectory(null);
+      clearCurrentTrajectoryTimeout();
+    }
+  }, [clearCurrentTrajectoryTimeout, groupedTrajectories.length, isPending, updateCurrentTrajectory]);
+
+  useEffect(() => {
+    return () => {
+      clearCurrentTrajectoryTimeout();
+    };
+  }, [clearCurrentTrajectoryTimeout]);
+
   if (!hasTrajectories) {
     return null;
   }
 
   return (
     <div className={classes.root}>
-      {toggleable && <TrajectoryButton isOpen={isOpen} onClick={() => setIsOpen((state) => !state)} />}
-
-      <TrajectoryList trajectories={groupedTrajectories} autoScroll={autoScroll} isOpen={toggleable ? isOpen : true} />
+      <div className={classes.header}>
+        <TrajectoryButton
+          isOpen={isOpen}
+          onClick={() => setIsOpen((state) => !state)}
+          currentTrajectory={currentTrajectory}
+        />
+        {isPending && <Spinner center />}
+      </div>
+      <TrajectoryList trajectories={groupedTrajectories} isOpen={isOpen} />
     </div>
   );
 }
+
+const HEADER_UPDATE_DELAY_MS = 2000;

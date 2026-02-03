@@ -6,6 +6,7 @@
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
+import { CHARS, Splitting } from 'react-splitting';
 import { match } from 'ts-pattern';
 import { v5 as uuidv5 } from 'uuid';
 
@@ -37,7 +38,7 @@ export function TrajectoryItem({ trajectory }: Props) {
     <div className={clsx(classes.root)}>
       {title && (
         <motion.h3 {...fadeProps()} className={classes.name} key={title}>
-          {title}
+          <Splitting by={CHARS}>{title}</Splitting>
         </motion.h3>
       )}
 

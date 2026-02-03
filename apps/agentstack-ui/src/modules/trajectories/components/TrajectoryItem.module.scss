@@ -6,13 +6,14 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: $spacing-04;
+  gap: $spacing-03;
 }
 
 .name {
-  font-size: rem(18px);
-  line-height: math.div(26, 18);
+  font-size: rem(16px);
+  line-height: math.div(24, 16);
   font-weight: 600;
+  color: $text-secondary;
 }
 
 .body {
