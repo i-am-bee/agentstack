@@ -218,5 +218,5 @@ async def test_unmanaged_a2a_agent(unmanaged_a2a_server):
         provider = await Provider.get(provider.id)
         if provider.state == "online":
             break
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(1)
     assert provider.state == "online"
