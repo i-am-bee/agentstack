@@ -56,12 +56,12 @@ if __name__ == "__main__":
 Import `TrajectoryExtensionServer` and `TrajectoryExtensionSpec` from `agentstack_sdk.a2a.extensions`.
 </Step>
 
-<Step title='Inject the extension'>
+<Step title="Inject the extension">
   Add a trajectory parameter to your agent function using the `Annotated` type hint
   with `TrajectoryExtensionSpec()`.
 </Step>
 
-<Step title='Yield trajectory metadata'>
+<Step title="Yield trajectory metadata">
   Call `yield trajectory.trajectory_metadata()` with a `title` and `content` to
   add a step to the trajectory.
 </Step>
