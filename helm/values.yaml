@@ -83,6 +83,7 @@ contextTokenPermissions:
     vector_stores: ["*"]
     context_data: ["*"]
 
+
 # -------- AGENTS ----------
 providers: []
 # Example:
@@ -94,6 +95,15 @@ providers: []
 #     MY_CONFIG_VAR: "42"
 # - location: ghcr.io/i-am-bee/agentstack/agent-2-example:0.1.0
 #   auto_stop_timeout_sec: 600 # downscale after 10 minutes
+
+defaultLLMModel: ""
+defaultEmbeddingModel: ""
+modelProviders: []
+# Example:
+# - name: "OpenAI"
+#   type: "openai"
+#   base_url: "https://api.openai.com/v1"
+#   api_key: "sk-..."
 
 # DEPRECATED: Unmanaged providers
 unmanagedProviders: [] # DEPRECATED: use providers instead

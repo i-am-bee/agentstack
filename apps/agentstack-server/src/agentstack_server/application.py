@@ -45,6 +45,7 @@ from agentstack_server.exceptions import (
     PlatformError,
     RateLimitExceededError,
 )
+from agentstack_server.jobs.crons.model_provider import check_model_provider_registry, update_model_state_and_cache
 from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
 from agentstack_server.service_layer.services.user_feedback import UserFeedbackService
@@ -211,9 +212,13 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
                 user_feedback,
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
+                # Force initial synchronization job
                 with suppress(AlreadyEnqueued):
-                    # Force initial sync of the registry immediately
                     await check_registry.defer_async(timestamp=int(time.time()))
+                with suppress(AlreadyEnqueued):
+                    await check_model_provider_registry.defer_async(timestamp=int(time.time()))
+                with suppress(AlreadyEnqueued):
+                    await update_model_state_and_cache.defer_async(timestamp=int(time.time()))
                 try:
                     yield
                 finally:

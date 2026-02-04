@@ -135,11 +135,10 @@ auth:
   # Next.js settings
   nextauthUrl: "https://example.com" # Public URL of the UI
   apiUrl: "https://api.example.com" # Public URL of the API
-  
+
 keycloak:
   enabled: true
   publicIssuerUrl: "https://keycloak.example.com/realms/agentstack" # Public URL of keycloak
-
 ```
 
 ##### External OIDC Provider
@@ -162,18 +161,18 @@ externalOidcProvider:
   name: "My IDP" # Optional display name used in the UI
   id: "my-idp" # Optional ID used internally
   rolesPath: "realm_access.roles" # JSON path to roles in JWT claims (can be an array or a semicolon separated string)
-  
+
   uiClientId: "agentstack-ui"
   serverClientId: "agentstack-server"
-  
+
   # Secrets can be provided directly or via existing secrets
-  uiClientSecret: "..." 
+  uiClientSecret: "..."
   serverClientSecret: "..."
   # existingSecret: "my-oidc-secret"
   # uiClientSecretKey: "ui-secret-key"         # Key in my-oidc-secret
   # serverClientSecretKey: "server-secret-key" # Key in my-oidc-secret
 ```
-  
+
 <Warning>
 It is important to expose the following endpoints publicly and configure the value above:
 
@@ -182,7 +181,7 @@ It is important to expose the following endpoints publicly and configure the val
 - Keycloak (https://keycloak.example.com) - used by the UI and CLI to authenticate
 
 Use
-[ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/), 
+[ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/),
 [gateway API](https://kubernetes.io/docs/concepts/services-networking/gateway/),
 [openshift routes](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/ingress_and_load_balancing/routes)
 or other tools to expose the services.
@@ -194,10 +193,12 @@ or other tools to expose the services.
 Keycloak is deployed automatically when `auth.enabled` is `true`.
 
 **Accessing Keycloak:**
+
 - **Local Port-Forward:** `kubectl port-forward svc/agentstack-keycloak 8336:8336` -> Access at `http://localhost:8336`
 - **Production:** Create an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) for the `agentstack-keycloak` service.
 
 **Configuration:**
+
 1.  Log in to Keycloak (default credentials: `admin` / retrieve from secret).
 2.  Navigate to **Identity Providers**.
 3.  Add your external provider (e.g., GitHub, Google).
@@ -209,6 +210,7 @@ Keycloak is deployed automatically when `auth.enabled` is `true`.
 - External providers pass the email verification status correctly
 
 Without verified emails, authentication will fail with "Verified email not found" error.
+
 </Warning>
 
 <details>
@@ -219,19 +221,20 @@ The Agent Stack Keycloak integration is automatically provisioned with the follo
 **Realm:** `agentstack`
 
 **Clients:**
+
 - `agentstack-server`: Backend service client (Confidential, Service Accounts enabled).
 - `agentstack-ui`: Frontend UI client (Confidential, Standard Flow).
 - `agentstack-cli`: Command Line Interface client (Public, Standard Flow).
 
 **Roles:**
+
 - `agentstack-admin`: Full system access.
 - `agentstack-developer`: access to agent management.
 
 **Audiences:**
 Audience mappers are dynamically configured to ensure tokens are valid for the specific service URLs (UI, API) defined in your configuration.
+
 </details>
-
-
 
 ### Rate Limiting
 
@@ -308,6 +311,23 @@ Typically, this means creating a custom [ingress](https://kubernetes.io/docs/con
   [Routes](https://docs.redhat.com/en/documentation/openshift_container_platform/4.20/html/ingress_and_load_balancing/configuring-routes)
   can be used instead of ingress.
 </Warning>
+
+### Model Configuration
+
+You can add LLM/embedding models through the CLI (as admin user) or statically in the deployment
+
+```yaml
+# make sure these models are available in modelProviders
+defaultLLMModel: "openai:gpt-5-mini"
+defaultEmbeddingModel: "openai:text-embedding-3-small"
+
+modelProviders:
+  - name: "OpenAI"
+    type: "openai"
+    description: "OpenAI project 'my-project'"
+    base_url: "https://api.openai.com/v1"
+    api_key: "sk-..."
+```
 
 ### Agent Configuration
 

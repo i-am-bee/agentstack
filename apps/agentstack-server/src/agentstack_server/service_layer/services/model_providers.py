@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 import difflib
 import logging
-from asyncio import TaskGroup
 from collections import defaultdict
 from collections.abc import AsyncIterator
 from contextlib import suppress
@@ -11,9 +10,8 @@ from typing import Final
 from uuid import UUID
 
 import openai.types.chat
-from cachetools import TTLCache
 from kink import inject
-from pydantic import HttpUrl
+from pydantic import BaseModel, HttpUrl
 
 from agentstack_server.api.schema.openai import ChatCompletionRequest, EmbeddingsRequest
 from agentstack_server.domain.constants import MODEL_API_KEY_SECRET_NAME
@@ -21,24 +19,35 @@ from agentstack_server.domain.models.model_provider import (
     Model,
     ModelCapability,
     ModelProvider,
+    ModelProviderState,
     ModelProviderType,
     ModelWithScore,
 )
+from agentstack_server.domain.models.registry import ModelProviderRegistryLocation
 from agentstack_server.domain.repositories.env import EnvStoreEntity
 from agentstack_server.domain.repositories.openai_proxy import IOpenAIProxy
 from agentstack_server.exceptions import EntityNotFoundError, InvalidProviderCallError, ModelLoadFailedError
-from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.infrastructure.cache.serializers import PydanticSerializer
+from agentstack_server.service_layer.cache import ICache, ICacheFactory
+from agentstack_server.service_layer.unit_of_work import IUnitOfWork, IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
 
 
+class Models(BaseModel):
+    models: list[Model]
+
+
 @inject
 class ModelProviderService:
-    _provider_models: TTLCache[UUID, list[Model]] = TTLCache(maxsize=100, ttl=timedelta(days=1).total_seconds())
-
-    def __init__(self, uow: IUnitOfWorkFactory, openai_proxy: IOpenAIProxy):
+    def __init__(self, uow: IUnitOfWorkFactory, openai_proxy: IOpenAIProxy, cache_factory: ICacheFactory):
         self._uow: Final[IUnitOfWorkFactory] = uow
         self._openai_proxy: Final[IOpenAIProxy] = openai_proxy
+        self._cache: Final[ICache[Models]] = cache_factory.create(
+            namespace="model_providers",
+            serializer=PydanticSerializer(Models),
+            ttl=timedelta(days=1),
+        )
 
     async def create_provider(
         self,
@@ -50,6 +59,7 @@ class ModelProviderService:
         watsonx_project_id: str | None = None,
         watsonx_space_id: str | None = None,
         api_key: str,
+        registry: ModelProviderRegistryLocation | None = None,
     ) -> ModelProvider:
         model_provider = ModelProvider(
             name=name,
@@ -58,9 +68,10 @@ class ModelProviderService:
             base_url=base_url,
             watsonx_project_id=watsonx_project_id,
             watsonx_space_id=watsonx_space_id,
+            registry=registry,
         )
         # Check if models are available
-        await self._get_provider_models(provider=model_provider, api_key=api_key, raise_error=True)
+        models = await self._get_provider_models(provider=model_provider, api_key=api_key)
 
         async with self._uow() as uow:
             await uow.model_providers.create(model_provider=model_provider)
@@ -70,7 +81,26 @@ class ModelProviderService:
                 variables={MODEL_API_KEY_SECRET_NAME: api_key},
             )
             await uow.commit()
+        await self._cache.set(str(model_provider.id), Models(models=models))
         return model_provider
+
+    async def update_model_state_and_cache(self) -> None:
+        async with self._uow() as uow:
+            providers = [provider async for provider in uow.model_providers.list()]
+            api_keys = await self._get_provider_api_keys(model_provider_ids=[p.id for p in providers], uow=uow)
+
+        for model_provider, api_key in zip(providers, api_keys.values(), strict=True):
+            try:
+                models = await self._get_provider_models(provider=model_provider, api_key=api_key)
+                await self._cache.set(str(model_provider.id), Models(models=models))
+                updated_state = ModelProviderState.ONLINE
+            except Exception as e:
+                logger.error(f"Failed to update model cache for provider {model_provider.id}: {e}")
+                updated_state = ModelProviderState.OFFLINE
+
+            async with self._uow() as uow:
+                await uow.model_providers.update_state(model_provider_id=model_provider.id, state=updated_state)
+                await uow.commit()
 
     async def get_provider(self, *, model_provider_id: UUID) -> ModelProvider:
         """Get a model provider by ID."""
@@ -88,58 +118,111 @@ class ModelProviderService:
         async with self._uow() as uow:
             return [provider async for provider in uow.model_providers.list()]
 
-    async def delete_provider(self, *, model_provider_id: UUID) -> None:
+    async def delete_provider(self, *, model_provider_id: UUID, allow_registry_update: bool = False) -> None:
         """Delete a model provider and its environment variables."""
         async with self._uow() as uow:
+            if not allow_registry_update:
+                provider = await uow.model_providers.get(model_provider_id=model_provider_id)
+                if provider.registry:
+                    raise InvalidProviderCallError("Cannot delete a provider managed by registry")
+
             await uow.model_providers.delete(model_provider_id=model_provider_id)
             await uow.commit()
-            self._provider_models.pop(model_provider_id, None)
+
+        await self._cache.delete(str(model_provider_id))
+
+    async def patch_provider(
+        self,
+        *,
+        model_provider_id: UUID,
+        name: str | None = None,
+        base_url: HttpUrl | None = None,
+        description: str | None = None,
+        type: ModelProviderType | None = None,
+        api_key: str | None = None,
+        watsonx_project_id: str | None = None,
+        watsonx_space_id: str | None = None,
+        allow_registry_update: bool = False,
+    ) -> ModelProvider:
+        """Update a model provider."""
+
+        async with self._uow() as uow:
+            provider = await uow.model_providers.get(model_provider_id=model_provider_id)
+
+            if provider.registry and not allow_registry_update:
+                raise InvalidProviderCallError("Cannot update a provider managed by registry")
+
+            old_api_key = await self._get_provider_api_keys(model_provider_ids=[model_provider_id], uow=uow)
+            old_api_key = old_api_key[model_provider_id]
+
+        updated_provider = provider.model_copy()
+        updated_provider.name = name if name is not None else provider.name
+        updated_provider.description = description if description is not None else provider.description
+        updated_provider.type = type or updated_provider.type
+        updated_provider.base_url = base_url or updated_provider.base_url
+        updated_provider.watsonx_project_id = watsonx_project_id or updated_provider.watsonx_project_id
+        updated_provider.watsonx_space_id = watsonx_space_id or updated_provider.watsonx_space_id
+
+        updated_api_key = api_key or old_api_key
+
+        should_update = provider != updated_provider or (updated_api_key != old_api_key)
+
+        if should_update:
+            # Check that provider works
+            models = await self._get_provider_models(provider=updated_provider, api_key=updated_api_key)
+            updated_provider.state = ModelProviderState.ONLINE
+
+            async with self._uow() as uow:
+                await uow.model_providers.update(model_provider=updated_provider)
+
+                if updated_api_key != old_api_key:
+                    await uow.env.update(
+                        parent_entity=EnvStoreEntity.MODEL_PROVIDER,
+                        parent_entity_id=updated_provider.id,
+                        variables={MODEL_API_KEY_SECRET_NAME: api_key},
+                    )
+
+                await uow.commit()
+
+            await self._cache.set(str(model_provider_id), Models(models=models))
+
+        return updated_provider
+
+    async def _get_provider_api_keys(self, *, model_provider_ids: list[UUID], uow: IUnitOfWork) -> dict[UUID, str]:
+        result = await uow.env.get_all(
+            parent_entity=EnvStoreEntity.MODEL_PROVIDER,
+            parent_entity_ids=model_provider_ids,
+        )
+        try:
+            return {uuid: result[uuid][MODEL_API_KEY_SECRET_NAME] for uuid in model_provider_ids}
+        except KeyError as e:
+            raise EntityNotFoundError("provider_variable", id=MODEL_API_KEY_SECRET_NAME) from e
 
     async def get_provider_api_key(self, *, model_provider_id: UUID) -> str:
         async with self._uow() as uow:
             # Check permissions
             await uow.model_providers.get(model_provider_id=model_provider_id)
-            result = await uow.env.get(
-                parent_entity=EnvStoreEntity.MODEL_PROVIDER,
-                parent_entity_id=model_provider_id,
-                key=MODEL_API_KEY_SECRET_NAME,
-            )
-            if not result:
-                raise EntityNotFoundError("provider_variable", id=MODEL_API_KEY_SECRET_NAME)
-            return result
+            api_keys = await self._get_provider_api_keys(model_provider_ids=[model_provider_id], uow=uow)
+            return api_keys[model_provider_id]
 
-    async def _get_provider_models(
-        self, provider: ModelProvider, api_key: str, raise_error: bool = False
-    ) -> list[Model]:
+    async def _get_provider_models(self, provider: ModelProvider, api_key: str) -> list[Model]:
         try:
-            if self._provider_models.get(provider.id) is None:
-                self._provider_models[provider.id] = await self._openai_proxy.list_models(
-                    provider=provider, api_key=api_key
-                )
-            return self._provider_models[provider.id]
+            return await self._openai_proxy.list_models(provider=provider, api_key=api_key)
         except Exception as ex:
-            if raise_error:
-                raise ModelLoadFailedError(provider=provider, exception=ex) from ex
-            logger.warning(f"Failed to load models for {provider.type} provider {provider.id}: {ex}")
-        return []
+            raise ModelLoadFailedError(provider=provider, exception=ex) from ex
 
     async def get_all_models(self) -> dict[str, tuple[ModelProvider, Model]]:
         async with self._uow() as uow:
-            providers = [provider async for provider in uow.model_providers.list()]
-            all_env = await uow.env.get_all(
-                parent_entity=EnvStoreEntity.MODEL_PROVIDER, parent_entity_ids=[p.id for p in providers]
-            )
-        async with TaskGroup() as tg:
-            for provider in providers:
-                tg.create_task(
-                    self._get_provider_models(
-                        provider=provider, api_key=all_env[provider.id][MODEL_API_KEY_SECRET_NAME]
-                    )
-                )
+            providers = [
+                provider async for provider in uow.model_providers.list() if provider.state == ModelProviderState.ONLINE
+            ]
 
-        result = {}
-        for provider in providers:
-            for model in self._provider_models.get(provider.id, []):
+        cached_models = await self._cache.multi_get([str(p.id) for p in providers])
+        result: dict[str, tuple[ModelProvider, Model]] = {}
+        for provider, models in zip(providers, cached_models, strict=True):
+            if not models:
+                continue
+            for model in models.models:
                 result[model.id] = (provider, model)
         return result
 

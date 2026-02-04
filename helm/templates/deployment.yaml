@@ -224,7 +224,17 @@ spec:
                   key: .githubconfigjson
             {{- end }}
             - name: AGENT_REGISTRY__LOCATIONS__FILE
-              value: file:///app/config/registry.yaml
+              value: file:///app/config/providers_registry.yaml
+            - name: MODEL_PROVIDER_REGISTRY__LOCATIONS__FILE
+              value: file:///app/config/model_providers_registry.yaml
+            {{- if .Values.defaultLLMModel }}
+            - name: MODEL_PROVIDER__DEFAULT_LLM_MODEL
+              value: {{ .Values.defaultLLMModel | quote }}
+            {{- end }}
+            {{- if .Values.defaultEmbeddingModel }}
+            - name: MODEL_PROVIDER__DEFAULT_EMBEDDING_MODEL
+              value: {{ .Values.defaultEmbeddingModel | quote }}
+            {{- end }}
             {{- range $name, $location := .Values.externalRegistries }}
             - name: AGENT_REGISTRY__LOCATIONS__{{ $name | upper }}
               value: {{ $location }}
