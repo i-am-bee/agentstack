@@ -248,6 +248,8 @@ for await (const event of responseStream) {
       const errorMetadata = readError(event.status.message?.metadata);
 
       renderError(errorMetadata?.message ?? "Agent error");
+
+      break;
     }
   }
 }
