@@ -88,7 +88,7 @@ const stream = client.sendMessageStream({
 
 ### 3. Handle streaming updates and show the form
 
-Use `handleTaskStatusUpdate` to detect form requests and capture the task ID so you can continue the same task.
+Use `handleTaskStatusUpdate` to detect form requests and capture the task ID so you can continue the same task. Render streamed output from `status-update` events, and keep `message` as a fallback.
 
 ```typescript
 import { handleTaskStatusUpdate, type TaskStatusUpdateType } from "agentstack-sdk";
@@ -103,13 +103,20 @@ for await (const event of stream) {
   if (event.kind === "status-update") {
     taskId = event.taskId;
 
+    // UI actions like forms, approvals, secrets, OAuth
     for (const update of handleTaskStatusUpdate(event)) {
       if (update.type === TaskStatusUpdateType.FormRequired) {
         renderForm(update.form);
       }
     }
+
+    // Streaming agent output usually arrives here
+    if (event.status.message) {
+      renderMessage(event.status.message.parts, event.status.message.metadata);
+    }
   }
 
+  // Fallback for non-streaming agents or final messages
   if (event.kind === "message") {
     renderMessage(event.parts, event.metadata);
   }
@@ -121,7 +128,7 @@ for await (const event of stream) {
 
   1. A2A uses tasks to represent long running work so you can track progress and cancel.
   2. Status updates provide the incremental channel for UI events and streaming output.
-  3. Each streamed token arrives as a `TaskStatusUpdateEvent`, so you can append text as it arrives.
+  3. Each streamed token typically arrives as a `TaskStatusUpdateEvent` in Agent Stack, so you can append text as it arrives.
 </Tip>
 
 
@@ -209,26 +216,50 @@ for await (const event of responseStream) {
 }
 ```
 
-## Common pitfalls
+## Basic concepts: tasks, status updates, and streaming output
 
-- **Wrong token in A2A requests**: use the *context token* for A2A fetches, not the user access token.
-- **Missing metadata merge**: merge agent card fulfillments with user metadata when you send responses.
-- **Streaming text handling**: status updates can include partial text; append incrementally.
-- **Node fetch missing**: Node < 18 requires a `fetch` polyfill or custom `fetch` passed to the API client.
+Agent Stack’s A2A streaming is task-based. A single `sendMessageStream` call can yield several event shapes, and you should handle all of them:
 
-## Error handling
+- `task`: emits the initial Task object. Capture `task.id`, and use `task.status` (and optional `history`/`artifacts`) to seed your UI state.
+- `status-update`: emits a task status transition. When the agent is streaming, incremental output is typically delivered via `event.status.message` (a `Message` payload attached to the status).
+- `artifact-update`: emits artifacts as they are generated or updated (useful for streamed files, canvases, or structured outputs).
+- `message`: emits a standalone Message. This is common for non‑streaming agents and may also appear as a final response.
 
-When a status update fails, read error metadata from the error extension to show a user friendly message.
+Key detail for Agent Stack streaming: **incremental output usually arrives inside `status-update` events** (`event.status.message`). If you only render `message` events, you may miss streamed output.
+
+## Handling failed states
+
+Tasks can fail at any point during streaming. Failed or rejected updates arrive as `status-update` events with `event.status.state` set to `failed` or `rejected`. In those cases:
+
+- Read structured error metadata from the status message (if present).
+- Fall back to a generic error message if no metadata is provided.
+- Update the UI to a terminal error state and stop streaming.
 
 ```typescript
 import { errorExtension, extractUiExtensionData } from "agentstack-sdk";
 
 const readError = extractUiExtensionData(errorExtension);
-const errorMetadata = readError(event.status.message?.metadata);
 
-if (errorMetadata) {
-  console.error(errorMetadata.message ?? "Agent error");
+for await (const event of responseStream) {
+  if (event.kind === "status-update") {
+    const state = event.status.state;
+
+    if (state === "failed" || state === "rejected") {
+      const errorMetadata = readError(event.status.message?.metadata);
+
+      renderError(errorMetadata?.message ?? "Agent error");
+    }
+  }
 }
 ```
 
 For more about error handling, see **[Error Handling](./error-handling)**.
+
+
+## Common pitfalls
+
+- **Wrong token in A2A requests**: use the *context token* for A2A fetches, not the user access token.
+- **Missing metadata merge**: merge agent card fulfillments with user metadata when you send responses.
+- **Streaming text handling**: status updates can include partial text; append incrementally.
+- **Ignoring status updates**: streamed agent output typically arrives via `status-update` events (in `event.status.message`), not `message`.
+- **Node fetch missing**: Node < 18 requires a `fetch` polyfill or custom `fetch` passed to the API client.
