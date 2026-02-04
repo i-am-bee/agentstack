@@ -10,20 +10,28 @@ from pydantic import BaseModel, TypeAdapter
 from typing_extensions import TypedDict
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
-from agentstack_sdk.a2a.extensions.common.form import FormRender, FormResponse
+from agentstack_sdk.a2a.extensions.common.form import (
+    FormRender,
+    FormResponse,
+    SettingsFormRender,
+    SettingsFormResponse,
+)
 
 
-class FormDemands(TypedDict):
+class FormDemands(TypedDict, total=False):
     initial_form: FormRender | None
-    # TODO: We can put settings here too
+    settings_form: SettingsFormRender | None
 
 
 class FormServiceExtensionMetadata(BaseModel):
-    form_fulfillments: dict[str, FormResponse] = {}
+    form_fulfillments: dict[str, FormResponse | SettingsFormResponse] = {}
 
 
 class FormServiceExtensionParams(BaseModel):
     form_demands: FormDemands
+
+
+T = TypeVar("T")
 
 
 class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
@@ -31,14 +39,49 @@ class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
 
     @classmethod
     def demand(cls, initial_form: FormRender | None) -> Self:
+        """Create form extension demanding an initial_form."""
         return cls(params=FormServiceExtensionParams(form_demands={"initial_form": initial_form}))
 
+    @classmethod
+    def demand_settings(cls, settings_form: SettingsFormRender) -> Self:
+        """
+        Create form extension demanding a settings_form.
 
-T = TypeVar("T")
+        This is the preferred way to add settings to an agent, replacing the
+        deprecated SettingsExtensionSpec.
+
+        Example:
+            @server.agent()
+            async def my_agent(
+                form: Annotated[
+                    FormServiceExtensionServer,
+                    FormServiceExtensionSpec.demand_settings(
+                        settings_form=SettingsFormRender(fields=[...])
+                    ),
+                ],
+            ):
+                settings = form.parse_settings_form(model=MySettingsModel)
+        """
+        return cls(params=FormServiceExtensionParams(form_demands={"settings_form": settings_form}))
+
+    @classmethod
+    def demand_both(
+        cls, *, initial_form: FormRender | None = None, settings_form: SettingsFormRender | None = None
+    ) -> Self:
+        """Create form extension demanding both initial_form and settings_form."""
+        return cls(
+            params=FormServiceExtensionParams(
+                form_demands={
+                    "initial_form": initial_form,
+                    "settings_form": settings_form,
+                }
+            )
+        )
 
 
 class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]):
     def parse_initial_form(self, *, model: type[T] = FormResponse) -> T | None:
+        """Parse initial_form from form_fulfillments."""
         if self.data is None:
             return None
 
@@ -49,6 +92,40 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
         if model is FormResponse:
             return cast(T, initial_form)
         return TypeAdapter(model).validate_python(dict(initial_form))
+
+    def parse_settings_form(self, *, model: type[T] = SettingsFormResponse) -> T | None:
+        """
+        Parse settings_form from form_fulfillments.
+
+        This is the preferred way to access settings in agents, replacing the
+        deprecated SettingsExtensionServer.parse_settings_response().
+
+        Args:
+            model: Pydantic model to parse the settings into
+
+        Returns:
+            Parsed settings or None if not provided
+
+        Example:
+            class MySettings(BaseModel):
+                thinking: bool
+                response_style: str
+
+            settings = form.parse_settings_form(model=MySettings)
+            if settings:
+                if settings.thinking:
+                    yield "Thinking enabled..."
+        """
+        if self.data is None:
+            return None
+
+        settings_form = self.data.form_fulfillments.get("settings_form")
+
+        if settings_form is None:
+            return None
+        if model is SettingsFormResponse:
+            return cast(T, settings_form)
+        return TypeAdapter(model).validate_python(dict(settings_form))
 
 
 class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]): ...

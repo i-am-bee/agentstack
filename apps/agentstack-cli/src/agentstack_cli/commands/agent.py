@@ -47,9 +47,12 @@ from agentstack_sdk.a2a.extensions import (
     TrajectoryExtensionClient,
     TrajectoryExtensionSpec,
 )
+
 from agentstack_sdk.a2a.extensions.common.form import (
     CheckboxField,
     CheckboxFieldValue,
+    CheckboxGroupField,
+    CheckboxGroupFieldValue,
     DateField,
     DateFieldValue,
     FormFieldValue,
@@ -57,21 +60,29 @@ from agentstack_sdk.a2a.extensions.common.form import (
     FormResponse,
     MultiSelectField,
     MultiSelectFieldValue,
+    OptionItem,
+    SettingsFormField,
+    SettingsFormFieldValue,
+    SettingsFormRender,
+    SettingsFormResponse,
     SingleSelectField,
     SingleSelectFieldValue,
     TextField,
     TextFieldValue,
 )
+# Legacy settings extension (deprecated - use FormServiceExtensionSpec.demand_settings instead)
 from agentstack_sdk.a2a.extensions.ui.settings import (
     AgentRunSettings,
-    CheckboxGroupField,
-    CheckboxGroupFieldValue,
     SettingsExtensionSpec,
     SettingsFieldValue,
     SettingsRender,
 )
 from agentstack_sdk.a2a.extensions.ui.settings import (
     CheckboxFieldValue as SettingsCheckboxFieldValue,
+)
+from agentstack_sdk.a2a.extensions.ui.settings import CheckboxGroupField as SettingsCheckboxGroupField
+from agentstack_sdk.a2a.extensions.ui.settings import (
+    CheckboxGroupFieldValue as SettingsCheckboxGroupFieldValue,
 )
 from agentstack_sdk.a2a.extensions.ui.settings import SingleSelectField as SettingsSingleSelectField
 from agentstack_sdk.a2a.extensions.ui.settings import (
@@ -578,7 +589,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
     console.print()
     return FormResponse(values=form_values)
 
-
+# TODO: remove once legacy settings extension is fully deprecated
 async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSettings:
     """Ask user to configure settings using inquirer."""
     settings_values: dict[str, SettingsFieldValue] = {}
@@ -586,7 +597,7 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
     console.print("[bold]Agent Settings[/bold]\n")
 
     for field in settings_render.fields:
-        if isinstance(field, CheckboxGroupField):
+        if isinstance(field, SettingsCheckboxGroupField):
             checkbox_values: dict[str, SettingsCheckboxFieldValue] = {}
             for checkbox in field.fields:
                 answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
@@ -594,7 +605,7 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
                     default=checkbox.default_value,
                 ).execute_async()
                 checkbox_values[checkbox.id] = SettingsCheckboxFieldValue(value=answer)
-            settings_values[field.id] = CheckboxGroupFieldValue(values=checkbox_values)
+            settings_values[field.id] = SettingsCheckboxGroupFieldValue(values=checkbox_values)
         elif isinstance(field, SettingsSingleSelectField):
             choices = [Choice(value=opt.value, name=opt.label) for opt in field.options]
             answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
@@ -610,12 +621,105 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
     return AgentRunSettings(values=settings_values)
 
 
+async def _ask_settings_form_questions(settings_render: SettingsFormRender) -> SettingsFormResponse:
+    """Ask user to configure settings using the new form extension format."""
+    settings_values: dict[str, SettingsFormFieldValue] = {}
+
+    console.print("[bold]Agent Settings[/bold]\n")
+
+    for field in settings_render.fields:
+        if isinstance(field, CheckboxGroupField):
+            checkbox_value: dict[str, bool | None] = {}
+            for checkbox in field.fields:
+                answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+                    message=checkbox.label + ":",
+                    default=checkbox.default_value,
+                ).execute_async()
+                checkbox_value[checkbox.id] = answer
+            settings_values[field.id] = CheckboxGroupFieldValue(value=checkbox_value)
+        elif isinstance(field, SingleSelectField):
+            choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
+            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                message=field.label + ":",
+                choices=choices,
+                default=field.default_value,
+            ).execute_async()
+            settings_values[field.id] = SingleSelectFieldValue(value=answer)
+        else:
+            raise ValueError(f"Unsupported settings field type: {type(field).__name__}")
+
+    console.print()
+    return SettingsFormResponse(values=settings_values)
+
+
+def _get_settings_from_agent_card(agent_card: AgentCard) -> tuple[SettingsFormRender | None, bool]:
+    """
+    Extract settings from agent card, supporting both legacy and new format.
+    
+    Returns:
+        Tuple of (settings_render, is_legacy) where:
+        - settings_render: The settings form render (None if no settings)
+        - is_legacy: True if using old settings extension, False if using new form extension
+    """
+    # Try new format first (form extension with settings_form)
+    form_spec = FormServiceExtensionSpec.from_agent_card(agent_card)
+    if form_spec and form_spec.params:
+        settings_form = form_spec.params.form_demands.get("settings_form")
+        if settings_form:
+            return settings_form, False
+    
+    # Fall back to legacy settings extension
+    settings_spec = SettingsExtensionSpec.from_agent_card(agent_card)
+    if settings_spec and settings_spec.params:
+        # Convert legacy SettingsRender to SettingsFormRender
+        return _convert_legacy_settings_to_form(settings_spec.params), True
+    
+    return None, False
+
+
+# TODO: remove once legacy settings extension is fully deprecated
+def _convert_legacy_settings_to_form(legacy: SettingsRender) -> SettingsFormRender:
+    """Transform legacy SettingsRender to new SettingsFormRender format."""
+    new_fields: list[SettingsFormField] = []
+    for field in legacy.fields:
+        if isinstance(field, SettingsCheckboxGroupField):
+            new_fields.append(
+                CheckboxGroupField(
+                    id=field.id,
+                    label="",  # Legacy didn't require label
+                    fields=[
+                        CheckboxField(
+                            id=cb.id,
+                            label=cb.label,
+                            content=cb.label,  # Use label as content
+                            default_value=cb.default_value,
+                        )
+                        for cb in field.fields
+                    ],
+                )
+            )
+        elif isinstance(field, SettingsSingleSelectField):
+            new_fields.append(
+                SingleSelectField(
+                    id=field.id,
+                    label=field.label,
+                    options=[
+                        OptionItem(id=opt.value, label=opt.label)
+                        for opt in field.options
+                    ],
+                    default_value=field.default_value,
+                )
+            )
+    
+    return SettingsFormRender(fields=new_fields)
+
+
 async def _run_agent(
     client: Client,
     input: str | DataPart | FormResponse,
     agent_card: AgentCard,
     context_token: ContextToken,
-    settings: AgentRunSettings | None = None,
+    settings: AgentRunSettings | SettingsFormResponse | None = None,
     dump_files_path: Path | None = None,
     handle_input: Callable[[], str] | None = None,
     task_id: str | None = None,
@@ -675,10 +779,21 @@ async def _run_agent(
             | (
                 {
                     FormServiceExtensionSpec.URI: {
-                        "form_fulfillments": {"initial_form": typing.cast(FormResponse, input).model_dump(mode="json")}
+                        "form_fulfillments": {
+                            **(
+                                {"initial_form": typing.cast(FormResponse, input).model_dump(mode="json")}
+                                if isinstance(input, FormResponse)
+                                else {}
+                            ),
+                            **(
+                                {"settings_form": settings.model_dump(mode="json")}
+                                if isinstance(settings, SettingsFormResponse)
+                                else {}
+                            ),
+                        }
                     }
                 }
-                if isinstance(input, FormResponse)
+                if isinstance(input, FormResponse) or isinstance(settings, SettingsFormResponse)
                 else {}
             )
             | (
@@ -688,7 +803,11 @@ async def _run_agent(
                 if platform_extension_spec
                 else {}
             )
-            | ({SettingsExtensionSpec.URI: settings.model_dump(mode="json")} if settings else {})
+            | (  #TODO: remove once legacy settings extension is fully deprecated
+                {SettingsExtensionSpec.URI: settings.model_dump(mode="json")}
+                if isinstance(settings, AgentRunSettings)
+                else {}
+            )
         )
 
     msg = Message(
@@ -1105,14 +1224,8 @@ async def run_agent(
     splash_screen = Group(Markdown(f"# {agent.name}  \n{agent.description}"), NewLine())
     handle_input = _create_input_handler([], splash_screen=splash_screen)
 
-    settings_render = next(
-        (
-            SettingsRender.model_validate(ext.params)
-            for ext in agent.capabilities.extensions or ()
-            if ext.uri == SettingsExtensionSpec.URI and ext.params
-        ),
-        None,
-    )
+    # Extract settings from agent card (supports both legacy and new format)
+    settings_render, is_legacy_settings = _get_settings_from_agent_card(agent)
 
     if not input:
         if interaction_mode not in {InteractionMode.MULTI_TURN, InteractionMode.SINGLE_TURN}:
@@ -1134,7 +1247,19 @@ async def run_agent(
 
         if interaction_mode == InteractionMode.MULTI_TURN:
             console.print(f"{user_greeting}\n")
-            settings_input = await _ask_settings_questions(settings_render) if settings_render else None
+            # Ask settings based on format (legacy or new)
+            settings_input: AgentRunSettings | SettingsFormResponse | None = None
+            if settings_render:
+                # TODO: remove once legacy settings extension is fully deprecated
+                if is_legacy_settings:
+                    # Convert to legacy format for asking questions
+                    legacy_render = SettingsRender(fields=[
+                        f for f in settings_render.fields  # type: ignore
+                    ])
+                    settings_input = await _ask_settings_questions(legacy_render)
+                else:
+                    settings_input = await _ask_settings_form_questions(settings_render)
+            
             turn_input = await _ask_form_questions(initial_form_render) if initial_form_render else handle_input()
             async with a2a_client(provider.agent_card, context_token=context_token) as client:
                 while True:
@@ -1153,7 +1278,18 @@ async def run_agent(
         elif interaction_mode == InteractionMode.SINGLE_TURN:
             user_greeting = ui_annotations.get("user_greeting", None) or "Enter your instructions."
             console.print(f"{user_greeting}\n")
-            settings_input = await _ask_settings_questions(settings_render) if settings_render else None
+            
+            # Ask settings based on format (legacy or new)
+            settings_input: AgentRunSettings | SettingsFormResponse | None = None
+            if settings_render:
+                # TODO: remove once legacy settings extension is fully deprecated
+                if is_legacy_settings:
+                    legacy_render = SettingsRender(fields=[
+                        f for f in settings_render.fields  # type: ignore
+                    ])
+                    settings_input = await _ask_settings_questions(legacy_render)
+                else:
+                    settings_input = await _ask_settings_form_questions(settings_render)
             console.print()
             async with a2a_client(provider.agent_card, context_token=context_token) as client:
                 await _run_agent(
@@ -1167,7 +1303,17 @@ async def run_agent(
                 )
 
     else:
-        settings_input = await _ask_settings_questions(settings_render) if settings_render else None
+        # Ask settings based on format (legacy or new)
+        settings_input: AgentRunSettings | SettingsFormResponse | None = None
+        if settings_render:
+            if is_legacy_settings:
+                # TODO: remove once legacy settings extension is fully deprecated
+                legacy_render = SettingsRender(fields=[
+                    f for f in settings_render.fields  # type: ignore
+                ])
+                settings_input = await _ask_settings_questions(legacy_render)
+            else:
+                settings_input = await _ask_settings_form_questions(settings_render)
 
         async with a2a_client(provider.agent_card, context_token=context_token) as client:
             await _run_agent(

@@ -77,7 +77,12 @@ class CheckboxField(BaseField):
     default_value: bool = False
 
 
-FormField = TextField | DateField | FileField | SingleSelectField | MultiSelectField | CheckboxField
+class CheckboxGroupField(BaseField):
+    type: Literal["checkbox_group"] = "checkbox_group"
+    fields: list[CheckboxField]
+
+
+FormField = TextField | DateField | FileField | SingleSelectField | MultiSelectField | CheckboxField | CheckboxGroupField
 
 
 class FormRender(BaseModel):
@@ -124,6 +129,11 @@ class CheckboxFieldValue(BaseModel):
     value: bool | None = None
 
 
+class CheckboxGroupFieldValue(BaseModel):
+    type: Literal["checkbox_group"] = "checkbox_group"
+    value: dict[str, bool | None] | None = None
+
+
 FormFieldValue = (
     TextFieldValue
     | DateFieldValue
@@ -131,6 +141,7 @@ FormFieldValue = (
     | SingleSelectFieldValue
     | MultiSelectFieldValue
     | CheckboxFieldValue
+    | CheckboxGroupFieldValue
 )
 
 
@@ -147,3 +158,22 @@ class FormResponse(BaseModel):
                     )
                 case _:
                     yield key, value.value
+
+
+# Settings form types - subset of form types for agent settings
+SettingsFormField = CheckboxGroupField | SingleSelectField
+SettingsFormFieldValue = CheckboxGroupFieldValue | SingleSelectFieldValue
+
+
+class SettingsFormRender(BaseModel):
+    """FormRender specialized for settings - only allows checkbox_group and singleselect fields."""
+
+    fields: list[SettingsFormField]
+    title: str | None = None
+    description: str | None = None
+
+
+class SettingsFormResponse(BaseModel):
+    """FormResponse specialized for settings fields."""
+
+    values: dict[str, SettingsFormFieldValue]

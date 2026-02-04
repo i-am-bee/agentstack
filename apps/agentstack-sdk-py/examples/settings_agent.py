@@ -7,14 +7,16 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from agentstack_sdk.a2a.extensions.ui.settings import (
+from agentstack_sdk.a2a.extensions.common.form import (
     CheckboxField,
     CheckboxGroupField,
     OptionItem,
-    SettingsExtensionServer,
-    SettingsExtensionSpec,
-    SettingsRender,
+    SettingsFormRender,
     SingleSelectField,
+)
+from agentstack_sdk.a2a.extensions.services.form import (
+    FormServiceExtensionServer,
+    FormServiceExtensionSpec,
 )
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.server import Server
@@ -27,17 +29,19 @@ server = Server()
 async def settings_agent(
     message: Message,
     context: RunContext,
-    settings: Annotated[
-        SettingsExtensionServer,
-        SettingsExtensionSpec(
-            params=SettingsRender(
+    form: Annotated[
+        FormServiceExtensionServer,
+        FormServiceExtensionSpec.demand_settings(
+            settings_form=SettingsFormRender(
                 fields=[
                     CheckboxGroupField(
                         id="thinking",
+                        label="Thinking Options",
                         fields=[
                             CheckboxField(
                                 id="thinking",
-                                label="Thinking",
+                                label="Enable Thinking",
+                                content="Show agent's reasoning process",
                                 default_value=True,
                             )
                         ],
@@ -46,31 +50,40 @@ async def settings_agent(
                         id="response_style",
                         label="Response Style",
                         options=[
-                            OptionItem(value="concise", label="Concise"),
-                            OptionItem(value="detailed", label="Detailed"),
-                            OptionItem(value="humorous", label="Humorous"),
+                            OptionItem(id="concise", label="Concise"),
+                            OptionItem(id="detailed", label="Detailed"),
+                            OptionItem(id="humorous", label="Humorous"),
                         ],
                         default_value="concise",
                     ),
                 ],
-            ),
+            )
         ),
     ],
 ) -> AsyncGenerator[RunYield, Message]:
-    """Demonstrate settings extension"""
+    """Demonstrate settings form extension"""
 
-    if not settings:
-        yield "Settings extension hasn't been activated, no settings are available"
+    if not form:
+        yield "Form extension hasn't been activated, no settings are available"
         return
 
-    parsed_settings = settings.parse_settings_response()
+    parsed_settings = form.parse_settings_form()
 
-    thinking_field = parsed_settings.values["thinking"]
-    if thinking_field.type == "checkbox_group":
-        if thinking_field.values["thinking"].value:
+    if not parsed_settings:
+        yield "No settings provided"
+        return
+
+    thinking_field = parsed_settings.values.get("thinking")
+    if thinking_field and thinking_field.type == "checkbox_group":
+        thinking_enabled = thinking_field.value and thinking_field.value.get("thinking", False)
+        if thinking_enabled:
             yield "Thinking is enabled\n"
         else:
             yield "Thinking is disabled\n"
+
+    response_style_field = parsed_settings.values.get("response_style")
+    if response_style_field and response_style_field.type == "singleselect":
+        yield f"Response style: {response_style_field.value}\n"
 
 
 if __name__ == "__main__":
