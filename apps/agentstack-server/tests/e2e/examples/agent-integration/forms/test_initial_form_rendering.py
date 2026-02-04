@@ -12,7 +12,7 @@ from tests.e2e.examples.conftest import run_example
 pytestmark = pytest.mark.e2e
 
 
-@pytest.mark.usefixtures("clean_up")
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_initial_form_rendering_example(subtests, get_final_task_from_stream, a2a_client_factory):
     example_path = "agent-integration/forms/initial-form-rendering"
 
