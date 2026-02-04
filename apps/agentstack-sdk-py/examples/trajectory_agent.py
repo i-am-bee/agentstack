@@ -33,16 +33,27 @@ async def example_agent(
     await context.store(input)
 
     metadata = trajectory.trajectory_metadata(
-        title="Start",
+        title="Initializing...",
         content="Initializing...",
     )
     yield metadata
     await context.store(AgentMessage(metadata=metadata))
     
-    for i in range(1, 9):
+    await asyncio.sleep(1.5)
+
+    for i in range(1, 4):
         metadata = trajectory.trajectory_metadata(
-            title=f"Doing step {i}/8",
-            content=f"Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8,Doing step {i}/8",
+            title=f"Doing step {i}/10",
+            content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        )
+        yield metadata
+        await context.store(AgentMessage(metadata=metadata))
+        await asyncio.sleep(0.5)
+
+    for i in range(1, 7):
+        metadata = trajectory.trajectory_metadata(
+            title=f"Doing step {i + 3}/10 - and a very long title to test UI wrapping capabilities, maybe a little longer",
+            content="...",
         )
         yield metadata
         await context.store(AgentMessage(metadata=metadata))

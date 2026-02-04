@@ -6,9 +6,9 @@
 .root {
   &:global(.cds--btn) {
     @include reset-focus();
-    @include line-clamp();
     padding-inline: 0;
     color: $expand-button-color;
+    max-inline-size: 100%;
 
     &:hover,
     &:active {
@@ -22,4 +22,9 @@
       transform: scaleY(-1);
     }
   }
+}
+
+.message {
+  @include line-clamp();
+  max-inline-size: 100%;
 }

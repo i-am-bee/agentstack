@@ -6,22 +6,25 @@
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
-import { CHARS, Splitting } from 'react-splitting';
 import { match } from 'ts-pattern';
+import Typewriter from 'typewriter-effect';
 import { v5 as uuidv5 } from 'uuid';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { AnimatedMarkdown } from './AnimatedMarkdown.tsx';
 import classes from './TrajectoryItem.module.scss';
 
 interface Props {
   trajectory: UITrajectoryPart;
 }
+
+const TYPEWRITER_TOTAL_DURATION_MS = 1500;
+const TYPEWRITER_MAX_DELAY_MS = 20;
 
 export function TrajectoryItem({ trajectory }: Props) {
   const { title, content } = trajectory;
@@ -38,7 +41,14 @@ export function TrajectoryItem({ trajectory }: Props) {
     <div className={clsx(classes.root)}>
       {title && (
         <motion.h3 {...fadeProps()} className={classes.name} key={title}>
-          <Splitting by={CHARS}>{title}</Splitting>
+          <Typewriter
+            options={{
+              strings: title,
+              autoStart: true,
+              delay: Math.min(TYPEWRITER_TOTAL_DURATION_MS / title.length, TYPEWRITER_MAX_DELAY_MS),
+              cursor: '',
+            }}
+          />
         </motion.h3>
       )}
 
@@ -46,7 +56,7 @@ export function TrajectoryItem({ trajectory }: Props) {
         {match(parsed)
           .with({ type: 'string' }, ({ value }) => (
             <LineClampText lines={5} useBlockElement>
-              <MarkdownContent className={classes.content}>{value}</MarkdownContent>
+              <AnimatedMarkdown className={classes.content}>{value}</AnimatedMarkdown>
             </LineClampText>
           ))
           .otherwise(({ value }) => {

@@ -116,7 +116,7 @@ export function TrajectoryView({ trajectories, isPending }: Props) {
         <TrajectoryButton
           isOpen={isOpen}
           onClick={() => setIsOpen((state) => !state)}
-          currentTrajectory={currentTrajectory}
+          message={currentTrajectory && !isOpen ? currentTrajectory.title || currentTrajectory.content : undefined}
         />
         {isPending && <Spinner center />}
       </div>

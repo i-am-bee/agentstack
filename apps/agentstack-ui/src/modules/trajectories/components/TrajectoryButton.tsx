@@ -9,7 +9,6 @@ import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { MouseEventHandler } from 'react';
 
-import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
 import classes from './TrajectoryButton.module.scss';
@@ -18,11 +17,10 @@ interface Props {
   isOpen?: boolean;
   onClick?: MouseEventHandler;
   message?: string;
-  currentTrajectory?: UITrajectoryPart | null;
 }
 
-export function TrajectoryButton({ isOpen, message, currentTrajectory, onClick }: Props) {
-  const displayMessage = message ?? currentTrajectory?.title ?? currentTrajectory?.content ?? 'Activity';
+export function TrajectoryButton({ isOpen, message, onClick }: Props) {
+  const displayMessage = message ?? 'Activity';
 
   return (
     <Button
@@ -45,6 +43,7 @@ export function TrajectoryButton({ isOpen, message, currentTrajectory, onClick }
             },
           })}
           key={displayMessage}
+          className={classes.message}
         >
           {displayMessage}
         </motion.span>
