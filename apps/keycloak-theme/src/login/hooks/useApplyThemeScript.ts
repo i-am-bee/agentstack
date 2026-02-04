@@ -6,34 +6,38 @@
 import { useInsertScriptTags } from 'keycloakify/tools/useInsertScriptTags';
 import { useEffect } from 'react';
 
+const THEME_STORAGE_KEY = '@i-am-bee/agentstack/THEME';
+const THEME_URL_PARAM = 'kc_theme';
+const VALID_THEMES = ['System', 'Dark', 'Light'];
+const DEFAULT_THEME = 'System' satisfies (typeof VALID_THEMES)[number];
+
 /**
  * Injects theme script to apply the correct theme based on kc_theme URL parameter.
  * Supports Dark, Light, and System themes. Falls back to system preference if no parameter is provided.
  * This must run as early as possible in the page lifecycle to prevent theme flash.
  */
 export function useApplyThemeScript() {
-  const darkModeScript = `
+  const applyThemeScript = `
 (() => {
   try {
     const html = document.documentElement;
-    const THEME_STORAGE_KEY = '@i-am-bee/agentstack/THEME';
     
     const urlParams = new URLSearchParams(window.location.search);
-    const themeParam = urlParams.get('kc_theme');
+    const themeParam = urlParams.get('${THEME_URL_PARAM}');
     
-    let themePreference = 'System';
-    const validThemes = ['System', 'Dark', 'Light'];
+    let themePreference = '${DEFAULT_THEME}';
+    const validThemes = ${JSON.stringify(VALID_THEMES)};
 
     if (themeParam && validThemes.includes(themeParam)) {
       themePreference = themeParam;
       try {
-        window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeParam));
+        window.localStorage.setItem('${THEME_STORAGE_KEY}', JSON.stringify(themeParam));
       } catch (e) {
         console.warn('Failed to save theme preference to localStorage', e);
       }
     } else {
       try {
-        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        const stored = window.localStorage.getItem('${THEME_STORAGE_KEY}');
         if (stored) {
           const parsedTheme = JSON.parse(stored);
           if (validThemes.includes(parsedTheme)) {
@@ -68,7 +72,7 @@ export function useApplyThemeScript() {
     scriptTags: [
       {
         type: 'text/javascript',
-        textContent: darkModeScript,
+        textContent: applyThemeScript,
       },
     ],
   });
