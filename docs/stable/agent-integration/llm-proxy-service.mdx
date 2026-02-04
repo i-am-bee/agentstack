@@ -1,41 +1,130 @@
 ---
 title: "LLM Proxy Service"
-description: "Learn how to use the LLM proxy service extension within your agent"
+description: "Leverage Agent Stack's model and provider agnostic LLM inference"
 ---
 
-When building AI agents, one of the first requirements you might have is to connect your agent to a Large Language Model (LLM). Fortunately, the Agent Stack helps with this by providing built-in OpenAI-compatible LLM inference.
+When building AI agents, one of the first requirements is connecting to a Large Language Model (LLM). Agent Stack provides built-in, OpenAI-compatible LLM inference that is model and provider agnostic.
 
-The platform's OpenAI endpoints are model and provider agnostic, serving as a proxy to whatever is configured.
+In order to effectively implement the LLM Proxy Service there are 3 steps to follow:
 
-For you as an agent builder, the usage is extremely simple because we've wrapped the usage into a Service Extension.
+<Steps>
+    <Step title="Add the LLM service extension to your agent">
+    Import the necessary components and add the LLM service extension to your agent function.
+    </Step>
 
-<Tip>
+    <Step title="Configure your LLM request">
+    Specify which model your agent prefers and how you want to access it.
+    </Step>
+
+    <Step title="Use the LLM in your agent">
+    Access the optionally provided LLM configuration and use it with your preferred LLM client.
+    </Step>
+</Steps>
+
+<Note>
 Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest/topics/extensions/) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform (in this case, Agent Stack) is responsible for providing those dependencies.
-</Tip>
+</Note>
 
 <Warning>
 Service extensions are optional by definition, so you should always check if they exist before using them.
 </Warning>
 
-## Quickstart
 
-<Steps>
-<Step title="Add LLM service extension to your agent">
-Import the necessary components and add the LLM service extension to your agent function.
-</Step>
+## Implementing Steps
 
-<Step title="Configure your LLM request">
-Specify which model your agent prefer and how you want to access it.
-</Step>
+### 1. Add the LLM service extension to your agent
 
-<Step title="Use the LLM in your agent">
-Access the optionally provided LLM configuration and use it with your preferred LLM client.
-</Step>
-</Steps>
+Import the `LLMServiceExtensionServer` and `LLMServiceExtensionSpec` from the SDK. You will use these within a type hint to let the platform know your agent requires LLM access.
 
-## Example of LLM Access
+```python
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from a2a.types import Message
+from typing import Annotated
 
-Here's how to add LLM inference capabilities to your agent:
+# The extension is added as an Annotated parameter in your agent function
+async def my_agent(
+    input: Message, 
+    llm: Annotated[
+        LLMServiceExtensionServer, ...]
+    ):
+    # agent logic
+    pass
+```
+### 2. Configure your LLM request
+
+Use `LLMServiceExtensionSpec.single_demand()` to request a model. By passing a suggested tuple, you tell the platform which model you'd prefer to use.
+
+```python
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from a2a.types import Message
+from typing import Annotated
+
+# The llm parameter is configured with a specific model demand
+async def my_agent(
+    input: Message, 
+    llm: Annotated[
+        LLMServiceExtensionServer, 
+        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+    ]
+):
+    # agent logic
+    pass
+```
+
+When you specify a suggested model like `"ibm/granite-3-3-8b-instruct"`the platform:
+
+1. Checks if the requested model is available in your configured environment
+2. Allocates the best available model that matches your requirements
+3. Provides you with the exact model identifier and endpoint details
+
+The platform handles the complexity of model provisioning and endpoint management, so you can focus on building your agent logic.
+
+### 3. Use the LLM in your agent
+
+Once the platform provides the extension, you can extract the OpenAI-compatible configuration.
+
+```python
+from typing import Annotated
+from a2a.utils.message import get_message_text
+from a2a.types import Message
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+
+async def my_agent(
+    input: Message,
+    llm: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+    ]
+) -> None:
+    # Verify that the optional extension was provided
+    if llm and llm.data and llm.data.llm_fulfillments:
+        user_message = get_message_text(input)
+        
+        # Access the resolved LLM configuration
+        llm_config = llm.data.llm_fulfillments.get("default")
+        
+        if llm_config:
+            # These credentials work with any OpenAI-compatible client library
+            api_model = llm_config.api_model
+            api_key = llm_config.api_key
+            api_base = llm_config.api_base
+```
+The platform automatically provides you with:
+
+- **`api_model`**: The specific model identifier that was allocated to your request
+- **`api_key`**: Authentication key for the LLM service
+- **`api_base`**: The base URL for the OpenAI-compatible API endpoint
+
+These credentials work with any OpenAI-compatible client library, making it easy to integrate with popular frameworks like:
+- BeeAI Framework
+- LangChain
+- LlamaIndex
+- OpenAI Python client
+- Custom implementations
+
+<Accordion title="Full Code Example">
+
+This complete example shows how to receive a user message and respond using the credentials provided by the LLM Proxy Service:
 
 ```python
 import os
@@ -87,45 +176,4 @@ if __name__ == "__main__":
     run()
 ```
 
-## How to request LLM access
-
-Here's what you need to know to add LLM inference capabilities to your agent:
-
-**Import the extension**: Import `LLMServiceExtensionServer` and `LLMServiceExtensionSpec` from `agentstack_sdk.a2a.extensions`.
-
-**Add the LLM parameter**: Add a third parameter to your agent function with the `Annotated` type hint for LLM access.
-
-**Specify your model requirements**: Use `LLMServiceExtensionSpec.single_demand()` to request a single model (multiple models will be supported in the future).
-
-**Suggest a preferred model**: Pass a tuple of suggested model names to help the platform choose the best available option.
-
-**Check if the extension exists**: Always verify that the LLM extension is provided before using it, as service extensions are optional.
-
-**Access LLM configuration**: Use `llm.data.llm_fulfillments.get("default")` to get the LLM configuration details.
-
-**Use with your LLM client**: The platform provides `api_model`, `api_key`, and `api_base` that work with OpenAI-compatible clients.
-
-## Understanding LLM Configuration
-
-The platform automatically provides you with:
-
-- **`api_model`**: The specific model identifier that was allocated to your request
-- **`api_key`**: Authentication key for the LLM service
-- **`api_base`**: The base URL for the OpenAI-compatible API endpoint
-
-These credentials work with any OpenAI-compatible client library, making it easy to integrate with popular frameworks like:
-- BeeAI Framework
-- LangChain
-- LlamaIndex
-- OpenAI Python client
-- Custom implementations
-
-## Model Selection
-
-When you specify a suggested model like `"ibm/granite-3-3-8b-instruct"`, the platform will:
-
-1. Check if the requested model is available in your configured environment
-2. Allocate the best available model that matches your requirements
-3. Provide you with the exact model identifier and endpoint details
-
-The platform handles the complexity of model provisioning and endpoint management, so you can focus on building your agent logic.
+</Accordion>

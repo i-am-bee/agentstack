@@ -3,7 +3,7 @@ title: "LLM Proxy Service"
 description: "Leverage Agent Stack's model and provider agnostic LLM inference"
 ---
 
-When building AI agents, one of the first requirements is connecting to a Large Large Model (LLM). Agent Stack provides built-in, OpenAI-compatible LLM inference that is model and provider agnostic.
+When building AI agents, one of the first requirements is connecting to a Large Language Model (LLM). Agent Stack provides built-in, OpenAI-compatible LLM inference that is model and provider agnostic.
 
 In order to effectively implement the LLM Proxy Service there are 3 steps to follow:
 
@@ -13,7 +13,7 @@ In order to effectively implement the LLM Proxy Service there are 3 steps to fol
     </Step>
 
     <Step title="Configure your LLM request">
-    Specify which model your agent prefer and how you want to access it.
+    Specify which model your agent prefers and how you want to access it.
     </Step>
 
     <Step title="Use the LLM in your agent">
@@ -56,12 +56,19 @@ Use `LLMServiceExtensionSpec.single_demand()` to request a model. By passing a s
 
 ```python
 from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from a2a.types import Message
 from typing import Annotated
 
-llm: Annotated[
-    LLMServiceExtensionServer, 
-    LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
-]
+# The llm parameter is configured with a specific model demand
+async def my_agent(
+    input: Message, 
+    llm: Annotated[
+        LLMServiceExtensionServer, 
+        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+    ]
+):
+    # agent logic
+    pass
 ```
 
 When you specify a suggested model like `"ibm/granite-3-3-8b-instruct"`the platform:
@@ -77,11 +84,18 @@ The platform handles the complexity of model provisioning and endpoint managemen
 Once the platform provides the extension, you can extract the OpenAI-compatible configuration.
 
 ```python
-from typing import Any
+from typing import Annotated
 from a2a.utils.message import get_message_text
 from a2a.types import Message
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
 
-async def my_agent(input: Message, llm: Any) -> None:
+async def my_agent(
+    input: Message,
+    llm: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+    ]
+) -> None:
     # Verify that the optional extension was provided
     if llm and llm.data and llm.data.llm_fulfillments:
         user_message = get_message_text(input)
