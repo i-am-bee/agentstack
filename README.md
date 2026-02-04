@@ -19,7 +19,6 @@
     <a href="#key-features"><b>Key Features</b></a> •
     <a href="#quickstart"><b>Quickstart</b></a> •
     <a href="#reference-agents"><b>Reference Agents</b></a> •
-    <a href="#documentation"><b>Documentation</b></a>
 </p>
 
 <div align="center">
