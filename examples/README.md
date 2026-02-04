@@ -1,5 +1,17 @@
 # Examples
 
+This directory contains example agents that serve three purposes:
+
+1. **Standalone agents** — Each example is a fully functional agent that can be run independently for learning and experimentation.
+
+2. **E2E tests** — Examples are used in end-to-end tests located in `apps/agentstack-server/tests/e2e/examples/`. This ensures all examples remain working and up-to-date.
+
+3. **Documentation** — Examples are embedded directly into the [docs](../docs/) using [embedme](https://github.com/zakhenry/embedme) tags:
+   ```mdx
+   {/* <!-- embedme examples/agent-integration/multi-turn/basic-history/src/basic_history/agent.py --> */}
+   ```
+   This keeps documentation code samples in sync with actual tested examples.
+
 ## Creating a new example
 
 Use `create-example.sh` to scaffold a new example and its e2e test from the templates in `.template/`.
@@ -35,6 +47,8 @@ examples/agent-integration/multi-turn/basic-history/
 apps/agentstack-server/tests/e2e/examples/agent-integration/multi-turn/
   test_basic_history.py
 ```
+
+It also adds a VS Code debug configuration to `examples/.vscode/launch.json`.
 
 ## Template placeholders
 

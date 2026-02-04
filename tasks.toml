@@ -575,3 +575,12 @@ echo "Latest released tag:    $(git ls-remote --tags origin 'v*' | grep -o 'refs
 echo "CI status:              https://github.com/i-am-bee/agentstack/actions/workflows/release.yml"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 '''
+
+["example:create"]
+description = "Create a new example from template"
+dir = "{{config_root}}"
+usage = '''
+arg "<path>" help="Path relative to examples/ (e.g., agent-integration/multi-turn/basic-history)"
+arg "<description>" help="Short description of the example"
+'''
+run = "examples/create-example.sh {{arg(name=\"path\")}} {{arg(name=\"description\")}}"

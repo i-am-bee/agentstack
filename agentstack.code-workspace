@@ -49,16 +49,8 @@
       "path": "agents/canvas",
     },
     {
-      "name": "basic-history-example",
-      "path": "examples/agent-integration/multi-turn/basic-history",
-    },
-    {
-      "name": "advanced-history-example",
-      "path": "examples/agent-integration/multi-turn/advanced-history",
-    },
-    {
-      "name": "initial-form-rendering-example",
-      "path": "examples/agent-integration/forms/initial-form-rendering",
+      "name": "examples",
+      "path": "examples",
     },
     {
       "name": "helm",

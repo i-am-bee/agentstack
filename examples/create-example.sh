@@ -82,17 +82,24 @@ sed \
 
 echo "Created test at $test_file"
 
-# Add entry to code-workspace
-workspace_file="$REPO_ROOT/agentstack.code-workspace"
-helm_line=$(grep -n '"name": "helm"' "$workspace_file" | head -1 | cut -d: -f1)
-insert_line=$((helm_line - 1))
+# Add debug configuration to examples/.vscode/launch.json
+launch_file="$SCRIPT_DIR/.vscode/launch.json"
+# Find the line with the closing ] of configurations array and insert before it
+last_config_line=$(grep -n '^\s*]' "$launch_file" | head -1 | cut -d: -f1)
+insert_line=$((last_config_line - 1))
 
-sed -i.bak "${insert_line}i\\
+sed -i.bak "${insert_line}a\\
+    },\\
     {\\
-      \"name\": \"${name}-example\",\\
-      \"path\": \"examples/${path}\",\\
-    },
-" "$workspace_file"
-rm -f "$workspace_file.bak"
+      \"name\": \"examples/${name}\",\\
+      \"type\": \"debugpy\",\\
+      \"justMyCode\": false,\\
+      \"request\": \"launch\",\\
+      \"cwd\": \"\${workspaceFolder}/${path}\",\\
+      \"program\": \"src/${snake_name}/agent.py\",\\
+      \"console\": \"integratedTerminal\"\\
+    }
+" "$launch_file"
+rm -f "$launch_file.bak"
 
-echo "Added workspace entry '${name}-example'"
+echo "Added debug configuration '${name}'"
