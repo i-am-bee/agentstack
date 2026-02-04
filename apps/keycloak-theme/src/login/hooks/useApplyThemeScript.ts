@@ -22,31 +22,31 @@ export function useApplyThemeScript() {
     const themeParam = urlParams.get('kc_theme');
     
     let themePreference = 'System';
-    
-    if (themeParam) {
+    const validThemes = ['System', 'Dark', 'Light'];
+
+    if (themeParam && validThemes.includes(themeParam)) {
       themePreference = themeParam;
       try {
         window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeParam));
       } catch (e) {
-        console.warn('Failed to save theme preference to localStorage', e); 
+        console.warn('Failed to save theme preference to localStorage', e);
       }
     } else {
       try {
         const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
         if (stored) {
-          themePreference = JSON.parse(stored);
+          const parsedTheme = JSON.parse(stored);
+          if (validThemes.includes(parsedTheme)) {
+            themePreference = parsedTheme;
+          }
         }
       } catch (e) {
-        console.warn('Failed to load theme preference from localStorage', e); 
+        console.warn('Failed to load theme preference from localStorage', e);
       }
     }
     
-    let isDarkMode = false;
-    if (themePreference === 'Dark') {
-      isDarkMode = true;
-    } else if (themePreference === 'Light') {
-      isDarkMode = false;
-    } else {
+    let isDarkMode = themePreference === 'Dark';
+    if (themePreference === 'System') {
       isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 
@@ -57,7 +57,9 @@ export function useApplyThemeScript() {
       html.classList.add('cds--white');
       html.classList.remove('cds--g90');
     }
-  } catch (error) {}
+  } catch (error) {
+    console.warn('Failed to apply theme', error); 
+  }
 })();
 `;
 
