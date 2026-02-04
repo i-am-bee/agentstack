@@ -60,6 +60,27 @@ sources = ["**/*.mdx"]
 outputs = { auto = true }
 run = "pnpm mintlify broken-links"
 
+
+["docs:check:snippets"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/docs"
+run = "pnpm embedme --source-root=.. ./development/**/*.mdx --verify --silent"
+sources = ["./development/**/*.mdx", "../examples/**/*"]
+outputs = { auto = true }
+
+# fix
+
+["docs:fix"]
+depends = ["docs:fix:*"]
+
+["docs:fix:snippets"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/docs"
+run = "pnpm embedme --source-root=.. ./development/**/*.mdx --silent"
+sources = ["./development/**/*.mdx", "../examples/**/*"]
+outputs = { auto = true }
+
+
 ## manual check
 
 ["docs:manual-check:external-links"]
