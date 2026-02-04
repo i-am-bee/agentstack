@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 
 const THEME_STORAGE_KEY = '@i-am-bee/agentstack/THEME';
 const THEME_URL_PARAM = 'kc_theme';
-const VALID_THEMES = ['System', 'Dark', 'Light'];
+const VALID_THEMES = ['System', 'Dark', 'Light'] as const;
 const DEFAULT_THEME = 'System' satisfies (typeof VALID_THEMES)[number];
 
 /**
