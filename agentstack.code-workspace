@@ -46,7 +46,7 @@
     },
     {
         "name": "agent-deepagents-content-creator",
-        "path": "agents/deepagents_content_creator"
+        "path": "agents/deepagents_content_builder"
     },
     {
       "name": "agent-canvas",

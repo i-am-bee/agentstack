@@ -1,5 +1,5 @@
 [project]
-name = "content-creator"
+name = "content-builder"
 version = "0.1.0"
 description = "A content writer agent configured entirely through files on disk"
 authors = [
@@ -29,7 +29,7 @@ line-length = 120
 agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
 
 [project.scripts]
-server = "content_creator.agent:serve"
+server = "content_builder.agent:serve"
 
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]
