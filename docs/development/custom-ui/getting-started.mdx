@@ -124,7 +124,7 @@ The agent card URL follows this convention:
 - `baseUrl` is your Agent Stack server root
 - `providerId` is the agent provider identifier
 
-`getAgentCardPath(providerId)` returns the **path portion** of that URL. Use it with `ClientFactory.createFromUrl(baseUrl, path)` so the client can resolve the full
+`getAgentCardPath(providerId)` returns the **path portion** of that URL. Use it with `ClientFactory.createFromUrl(baseUrl, agentCardPath)` so the client can resolve the full
 agent card endpoint.
 
 <Tip>
