@@ -10,7 +10,7 @@ Agent responses arrive as A2A messages with parts (text, files) and metadata (ci
 Trajectory and citation metadata are stored in message metadata, not in parts. Use the UI extensions to extract them and render UI sections.
 
 ```typescript
-import { citationExtension, extractUiExtensionData, trajectoryExtension } from "agentstack-sdk";
+import { citationExtension, extractUiExtensionData, trajectoryExtension, type Message } from "agentstack-sdk";
 
 const extractCitation = extractUiExtensionData(citationExtension);
 const extractTrajectory = extractUiExtensionData(trajectoryExtension);
@@ -46,6 +46,8 @@ function processMessageMetadata(message: Message) {
 Text and file parts are in the `message.parts` array. Map them to your UI components.
 
 ```typescript
+import { type Part } from "agentstack-sdk";
+
 function processParts(parts: Part[]) {
   return parts.flatMap((part) => {
     if (part.kind === "text") {
@@ -85,6 +87,8 @@ Data parts are structured payloads. Render them as JSON or map them to specializ
 Files can arrive as a platform URL or inline base64 bytes. Convert them to something the UI can render.
 
 ```typescript
+import { type FilePart } from "agentstack-sdk";
+
 function resolveFileUrl(file: FilePart["file"]) {
   if ("uri" in file) {
     return file.uri;

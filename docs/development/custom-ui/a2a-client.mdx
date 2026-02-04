@@ -5,188 +5,216 @@ description: Create the A2A client, fulfill agent demands, and handle streaming 
 
 To communicate with agents, you use the A2A protocol client to send messages and receive streaming events. The Agent Stack SDK provides helpers that turn those events into UI updates. This guide shows how to integrate `@a2a-js/sdk` with the Agent Stack SDK helpers, mirroring the same flow used in `agentstack-ui`.
 
-## 1. Create a context token
+If you only need the fast path, start with **[Getting Started](./getting-started)**.
 
-Create a context token for the user session so the agent can access platform services. This token is required for the A2A client. See **[Permissions and Tokens](./permissions-and-tokens)** for how to generate a context token and scope permissions.
+## Prereqs
 
-## 2. Create an A2A client
+- **Packages installed**: `agentstack-sdk` and `@a2a-js/sdk`
+- **Platform base URL** and **provider ID**
+- **User access token** (for platform API calls)
+- **Context token** (for A2A requests)
 
-Use the A2A client factory and the AgentStack authenticated fetch helper. `createAuthenticatedFetch` attaches the `Authorization` header to every request so the A2A client can load the agent card and open JSON RPC streams with authentication. That is the only reason for the custom factory.
+## Quick Start recap
 
-```typescript
-import {
-  ClientFactory,
-  ClientFactoryOptions,
-  DefaultAgentCardResolver,
-  JsonRpcTransportFactory,
-} from "@a2a-js/sdk/client";
-import { createAuthenticatedFetch } from "agentstack-sdk";
+- Create a platform API client with the user access token.
+- List providers, pick a `providerId`, then create a `context` and `contextToken`.
+- Create the A2A client with the `contextToken` and start a message stream.
 
-async function getAgentClient(baseUrl: string, providerId: string, token: string) {
-  const fetchImpl = createAuthenticatedFetch(token);
-  const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+The advanced sections assume you already have `client`, `context`, and `contextToken` from the quick start. If not, see **[Getting Started](./getting-started)**.
 
-  const factory = new ClientFactory(
-    ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
-      transports: [new JsonRpcTransportFactory({ fetchImpl })],
-      cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
-    }),
-  );
+## Advanced guide
 
-  return factory.createFromUrl(baseUrl, agentCardPath);
-}
-```
+In the next steps, you’ll wire up a full A2A message flow: resolve initial agent demands, start a streaming task, handle UI‑driven updates (like forms), and submit follow‑ups on the same task. The snippets are intentionally minimal but map directly to a real client implementation.
 
-## 3. Resolve agent card demands
+### 1. Read the agent card and resolve demands
 
-Once you have the client, read the agent card and resolve its demands.
-
-Demands map to A2A extensions. See **[Agent Requirements](./agent-requirements)** for extension definitions and helper usage.
+Fetch the agent card, inspect demands, and build the **initial** fulfillments. To keep the rest of this guide working without extra complexity, focus on the most common requirement: **LLM access** via the platform OpenAI‑compatible proxy. We map each LLM demand key to a model the user picked in your UI, then resolve the metadata that gets attached to your first message.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard, type Fulfillments } from "agentstack-sdk";
 
-const client = await getAgentClient(baseUrl, providerId, token);
 const card = await client.getAgentCard();
-
 const { resolveMetadata, demands } = handleAgentCard(card);
-```
 
-Use `demands` to decide which fulfillments you can satisfy, then call `resolveMetadata`.
+// Example: model picker state keyed by demand id.
+const selectedLlmModels: Record<string, string> = {
+  default: "gpt-4o",
+};
 
-```typescript
-const fulfillments = {
-  llm: async (llmDemands) => ({
-    llm_fulfillments: Object.fromEntries(
-      Object.keys(llmDemands.llm_demands).map((key) => [
-        key,
-        {
-          identifier: "llm_proxy",
-          api_base: "{platform_url}/api/v1/openai/",
-          api_key: contextToken.token,
-          api_model: "gpt-4o",
-        },
-      ]),
-    ),
-  }),
-  oauth: demands.oauthDemands
-    ? async (oauthDemands) => ({
-        oauth_fulfillments: Object.fromEntries(
-          Object.keys(oauthDemands.oauth_demands).map((key) => [
+const fulfillments: Fulfillments = {
+  llm: demands.llmDemands
+    ? async ({ llm_demands }) => ({
+        llm_fulfillments: Object.fromEntries(
+          Object.keys(llm_demands).map((key) => [
             key,
-            { redirect_uri: "https://app.example.com/oauth/callback" },
+            {
+              identifier: "llm_proxy",
+              api_base: "{platform_url}/api/v1/openai/",
+              api_key: contextToken.token,
+              api_model: selectedLlmModels[key],
+            },
           ]),
         ),
       })
     : undefined,
 };
 
-const metadata = await resolveMetadata(fulfillments);
+const agentMetadata = await resolveMetadata(fulfillments);
 ```
 
 See **[Agent Requirements](./agent-requirements)** for the available service and UI extension helpers.
 
-## 4. Send a message stream and handle updates
+### 2. Send the initial message stream
 
-Merge agent card metadata with user metadata and stream events.
+Start a task by sending the user prompt that triggers the project brief flow.
 
 ```typescript
-import { handleTaskStatusUpdate, resolveUserMetadata, TaskStatusUpdateType } from "agentstack-sdk";
-
-const agentCardMetadata = await resolveMetadata(fulfillments);
-const userMetadata = await resolveUserMetadata(inputs);
-
 const stream = client.sendMessageStream({
   message: {
     kind: "message",
     role: "user",
-    messageId: "message-id",
-    contextId: "context-id",
-    parts: [{ kind: "text", text: "Hello" }],
-    metadata: { ...agentCardMetadata, ...userMetadata },
+    messageId: crypto.randomUUID(),
+    contextId: context.id,
+    parts: [
+      {
+        kind: "text",
+        text: "Draft a short project brief for a new onboarding flow. Ask me for any details you need.",
+      },
+    ],
+    metadata: agentMetadata,
   },
 });
+```
+
+### 3. Handle streaming updates and show the form
+
+Use `handleTaskStatusUpdate` to detect form requests and capture the task ID so you can continue the same task.
+
+```typescript
+import { handleTaskStatusUpdate, type TaskStatusUpdateType } from "agentstack-sdk";
+
+let taskId: string | undefined;
 
 for await (const event of stream) {
   if (event.kind === "task") {
-    const taskId = event.id;
-    // Store taskId for cancellation or follow up requests
+    taskId = event.id;
   }
 
   if (event.kind === "status-update") {
+    taskId = event.taskId;
+
     for (const update of handleTaskStatusUpdate(event)) {
-      switch (update.type) {
-        case TaskStatusUpdateType.FormRequired:
-          // Render update.form
-          break;
-        case TaskStatusUpdateType.OAuthRequired:
-          // Redirect to update.url
-          break;
-        case TaskStatusUpdateType.SecretRequired:
-          // Prompt for update.demands
-          break;
-        case TaskStatusUpdateType.ApprovalRequired:
-          // Ask user to approve update.request
-          break;
+      if (update.type === TaskStatusUpdateType.FormRequired) {
+        renderForm(update.form);
       }
     }
   }
 
-  if (event.kind === "artifact-update") {
-    // Render event.artifact parts and metadata
-  }
-
   if (event.kind === "message") {
-    // Non streaming agents may emit a final message event
-    // Render event.parts and event.metadata
+    renderMessage(event.parts, event.metadata);
   }
 }
 ```
 
-In `agentstack-ui`, status updates are also used to render message parts, and artifact updates are rendered as rich UI blocks.
+<Tip>
+  **Why task status updates for chat streaming**
 
-For rendering message parts and citations, see **[Agent Responses](./agent-responses)**.
+  1. A2A uses tasks to represent long running work so you can track progress and cancel.
+  2. Status updates provide the incremental channel for UI events and streaming output.
+  3. Each streamed token arrives as a `TaskStatusUpdateEvent`, so you can append text as it arrives.
+</Tip>
 
-## 5. Send user responses
 
-When the user replies to forms, approvals, or canvas requests, build metadata with `resolveUserMetadata` and send another message.
+For rendering message parts and metadata (such as citations), see **[Agent Responses](./agent-responses)**.
 
-Include `taskId` when responding to an in progress task. Omit it when starting a new task.
+
+### 4. Submit the form and continue the task
+
+Convert the user responses into A2A metadata and send a follow-up message for the same task.
 
 ```typescript
-const metadata = await resolveUserMetadata({
-  form: { name: "Ada" },
-  approvalResponse: { decision: "approve" },
+import { resolveUserMetadata } from "agentstack-sdk";
+
+// Form values follow the SDK schemas: each field is { type, value }.
+const formValues = {
+  project_name: { type: "text", value: "New user onboarding" },
+  channels: { type: "multiselect", value: ["web", "mobile"] },
+  deadline: { type: "date", value: "2026-03-01" },
+  legal_review: { type: "checkbox", value: true },
+};
+
+const userMetadata = await resolveUserMetadata({
+  form: formValues,
 });
 
 const responseStream = client.sendMessageStream({
   message: {
     kind: "message",
     role: "user",
-    messageId: "message-id",
-    contextId: "context-id",
+    messageId: crypto.randomUUID(),
+    contextId: context.id,
     taskId,
-    parts: [{ kind: "text", text: "Approved" }],
-    metadata,
+    parts: [{ kind: "text", text: "Here are the project details." }],
+    metadata: { ...agentMetadata, ...userMetadata },
   },
 });
+```
 
+<Tip>
+  **User metadata**
+
+  User metadata is the structured response payload that you attach to a message. It is separate from text parts and lets the agent consume form fields, approvals, and canvas actions in a typed way.
+</Tip>
+
+<Tip>
+  Include `taskId` when responding to an in progress task. Omit it when starting a new task.
+</Tip>
+
+For a focused look at composing messages, see **[User Messages](./user-messages)**.
+
+### 5. Render the final output and artifacts
+
+Stream the response and render the final message and any artifacts.
+
+```typescript
 for await (const event of responseStream) {
-  if (event.kind === "status-update") {
-    // Handle follow up updates
+  if (event.kind === "artifact-update") {
+    renderArtifact(event.artifact);
+  }
+
+  if (event.kind === "message") {
+    renderMessage(event.parts, event.metadata);
   }
 }
 ```
 
-For a focused look at composing messages, see **[User Messages](./user-messages)**.
+### 6. Cancel a running task
 
-## Cancel a task
-
-The A2A client exposes cancellation by task ID.
+If a user clicks “Stop”, cancel the current task by ID. You’ll still receive a final status update with state `canceled`, so update your UI and stop streaming when you see it.
 
 ```typescript
-await client.cancelTask({ id: taskId });
+const cancel = async () => {
+  if (!taskId) return;
+
+  await client.cancelTask({ id: taskId });
+};
+
+for await (const event of responseStream) {
+  if (event.kind === "status-update" && event.status.state === "canceled") {
+    renderCanceledState();
+    break;
+  }
+
+  // ...handle other events
+}
 ```
+
+## Common pitfalls
+
+- **Wrong token in A2A requests**: use the *context token* for A2A fetches, not the user access token.
+- **Missing metadata merge**: merge agent card fulfillments with user metadata when you send responses.
+- **Streaming text handling**: status updates can include partial text; append incrementally.
+- **Node fetch missing**: Node < 18 requires a `fetch` polyfill or custom `fetch` passed to the API client.
 
 ## Error handling
 

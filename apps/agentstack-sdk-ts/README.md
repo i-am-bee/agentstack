@@ -20,7 +20,7 @@ The `agentstack-sdk` provides TypeScript and JavaScript tools for building clien
 ## Installation
 
 ```bash
-npm install agentstack-sdk
+npm install agentstack-sdk @a2a-js/sdk
 ```
 
 ## Quickstart
@@ -28,73 +28,121 @@ npm install agentstack-sdk
 ```typescript
 import {
   buildApiClient,
-  buildLLMExtensionFulfillmentResolver,
+  createAuthenticatedFetch,
+  unwrapResult,
   handleAgentCard,
   handleTaskStatusUpdate,
-  TaskStatusUpdateType,
-  unwrapResult,
+  resolveUserMetadata,
+  type TaskStatusUpdateType,
+  type Fulfillments,
 } from "agentstack-sdk";
+import {
+  ClientFactory,
+  ClientFactoryOptions,
+  DefaultAgentCardResolver,
+  JsonRpcTransportFactory,
+} from "@a2a-js/sdk/client";
 
-const api = buildApiClient({ baseUrl: "https://your-agentstack-instance.com" });
+const baseUrl = "https://your-agentstack-instance.com";
+const accessToken = "<user-access-token>";
 
-// 1. Receive an agent card and resolve metadata for service demands.
-const { resolveMetadata } = handleAgentCard(agentCard);
-const context = unwrapResult(await api.createContext({ provider_id: "provider-id" }));
-const token = unwrapResult(
+const api = buildApiClient({
+  baseUrl,
+  fetch: createAuthenticatedFetch(accessToken),
+});
+
+const providers = unwrapResult(await api.listProviders());
+const providerId = providers[0]?.id;
+
+const context = unwrapResult(await api.createContext({ provider_id: providerId }));
+const contextToken = unwrapResult(
   await api.createContextToken({
     context_id: context.id,
-    grant_global_permissions: { llm: ["*"], a2a_proxy: ["*"] },
+    grant_global_permissions: {
+      llm: ["*"],
+      embeddings: ["*"],
+      a2a_proxy: ["*"],
+    },
+    grant_context_permissions: {
+      files: ["*"],
+      vector_stores: ["*"],
+      context_data: ["*"],
+    },
   }),
 );
 
-const llmResolver = buildLLMExtensionFulfillmentResolver(api, token);
-const metadata = await resolveMetadata({ llm: llmResolver });
+const fetchImpl = createAuthenticatedFetch(contextToken.token);
+const factory = new ClientFactory(
+  ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
+    transports: [new JsonRpcTransportFactory({ fetchImpl })],
+    cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
+  }),
+);
 
-// 2. Send a message with metadata using your A2A client.
+const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+const client = await factory.createFromUrl(baseUrl, agentCardPath);
+
+const card = await client.getAgentCard();
+const { resolveMetadata, demands } = handleAgentCard(card);
+
+const selectedLlmModels: Record<string, string> = { default: "gpt-4o" };
+
+const fulfillments: Fulfillments = {
+  llm: demands.llmDemands
+    ? async ({ llm_demands }) => ({
+        llm_fulfillments: Object.fromEntries(
+          Object.keys(llm_demands).map((key) => [
+            key,
+            {
+              identifier: "llm_proxy",
+              api_base: `${baseUrl}/api/v1/openai/`,
+              api_key: contextToken.token,
+              api_model: selectedLlmModels[key],
+            },
+          ]),
+        ),
+      })
+    : undefined,
+};
+
+const agentMetadata = await resolveMetadata(fulfillments);
+
 const stream = client.sendMessageStream({
   message: {
-    messageId: 'message-id',
     kind: "message",
     role: "user",
+    messageId: crypto.randomUUID(),
     contextId: context.id,
     parts: [{ kind: "text", text: "Hello" }],
-    metadata,
+    metadata: agentMetadata,
   }
 });
 
-// 3. Handle task status updates.
-for await (const event of stream) {
-  if (event.kind === "status-update") {
-    const message = event.status.message;
+let taskId: string | undefined;
 
-    if (message) {
-      for (const part of message.parts) {
-        if (part.kind === "text") {
-          console.log("Agent:", part.text);
+for await (const event of stream) {
+  switch (event.kind) {
+    case "task":
+      taskId = event.id;
+    case "status-update":
+      taskId = event.taskId;
+
+      for (const update of handleTaskStatusUpdate(event)) {
+        switch (update.type) {
+          case TaskStatusUpdateType.FormRequired:
+            // Render form
+          case TaskStatusUpdateType.OAuthRequired:
+            // Redirect to update.url
+          case TaskStatusUpdateType.SecretRequired:
+            // Prompt for secrets
+          case TaskStatusUpdateType.ApprovalRequired:
+            // Request approval
         }
       }
-
-      if (message.metadata) {
-        console.log("Metadata keys:", Object.keys(message.metadata));
-      }
-    }
-
-    handleTaskStatusUpdate(event).forEach((result) => {
-      switch (result.type) {
-        case TaskStatusUpdateType.FormRequired:
-          // Show form to the user
-          break;
-        case TaskStatusUpdateType.OAuthRequired:
-          // Redirect to result.url
-          break;
-        case TaskStatusUpdateType.SecretRequired:
-          // Prompt for secrets
-          break;
-        case TaskStatusUpdateType.ApprovalRequired:
-          // Request approval from the user
-          break;
-      }
-    });
+    case "message":
+      // Render message parts and metadata
+    case "artifact-update":
+      // Render artifacts
   }
 }
 ```
@@ -135,9 +183,10 @@ UI extensions (message metadata your UI can render):
 ## Documentation
 
 - [Agent Stack Documentation](https://agentstack.beeai.dev)
-- [Client SDK Overview](https://agentstack.beeai.dev/development/custom-ui/client-sdk/overview)
-- [Extensions](https://agentstack.beeai.dev/development/custom-ui/client-sdk/extensions)
-- [API Client](https://agentstack.beeai.dev/development/custom-ui/client-sdk/api-client)
+- [Getting Started](https://agentstack.beeai.dev/stable/custom-ui/getting-started)
+- [A2A Client Integration](https://agentstack.beeai.dev/stable/custom-ui/a2a-client)
+- [Agent Requirements](https://agentstack.beeai.dev/stable/custom-ui/agent-requirements)
+- [Platform API Client](https://agentstack.beeai.dev/stable/custom-ui/platform-api-client)
 
 ## Resources
 

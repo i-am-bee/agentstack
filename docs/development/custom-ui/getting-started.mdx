@@ -12,14 +12,116 @@ It builds on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/) and pro
 
 The SDK also exports A2A protocol types and Zod schemas so your UI can stay in sync with the protocol.
 
-## What the SDK Exports
+## Quick Start
 
-The public surface of the SDK is grouped into four entrypoints:
+### 1. Install
 
-1. `agentstack-sdk` for everything
-2. `agentstack-sdk/api` for platform API client, schemas, and types
-3. `agentstack-sdk/core` for extension helpers and A2A interaction utilities
-4. `agentstack-sdk/extensions` for A2A extension definitions and types
+```bash
+npm i agentstack-sdk @a2a-js/sdk
+```
+
+### 2. Create the platform API client
+
+```typescript
+import { buildApiClient, createAuthenticatedFetch } from "agentstack-sdk";
+
+const baseUrl = "https://your-agentstack-instance.com";
+
+const api = buildApiClient({
+  baseUrl,
+  fetch: createAuthenticatedFetch(accessToken),
+});
+```
+
+`buildApiClient` exposes the platform API with typed responses and runtime validation.
+Use the user access token from your identity provider (OIDC/OAuth) for UI side API calls.
+
+### 3. Create context and context token
+
+```typescript
+const providers = unwrapResult(await api.listProviders());
+const providerId = providers[0]?.id;
+
+const context = unwrapResult(
+  await api.createContext({ provider_id: providerId }),
+);
+
+const contextToken = unwrapResult(
+  await api.createContextToken({
+    context_id: context.id,
+    grant_global_permissions: {
+      llm: ["*"],
+      embeddings: ["*"],
+      a2a_proxy: ["*"],
+    },
+    grant_context_permissions: {
+      files: ["*"],
+      vector_stores: ["*"],
+      context_data: ["*"],
+    },
+  }),
+);
+```
+
+<Tip>
+  **Finding `providerId`** Use `listProviders` or `readProviderByLocation` from the platform API to identify the agent you want. See **[Platform API Client](./platform-api-client)** for the provider endpoints.
+</Tip>
+
+Context tokens are scoped for agent use and can also authenticate to the platform API when running inside the agent. See **[Permissions and Tokens](./permissions-and-tokens)** for token types and scopes.
+
+<Tip>
+  **Token usage summary**
+
+  - Use **access token** for platform API calls from the UI.
+  - Use **context token** for A2A client calls and agent card fetches.
+</Tip>
+
+All API calls return `ApiResult<T>`. Use `unwrapResult` if you want exceptions, and then handle errors with `isHttpError`, `isNetworkError`, `isParseError`, and `isValidationError`.
+
+### 4. Create an A2A client and send a message
+
+Pass the **context token** to the A2A client fetch. Then fetch the agent card, resolve demands, and stream a message.
+For a full walkthrough (status updates, user responses, and cancellation), see **[A2A Client Integration](./a2a-client)**.
+
+```typescript
+import {
+  ClientFactory,
+  ClientFactoryOptions,
+  DefaultAgentCardResolver,
+  JsonRpcTransportFactory,
+} from "@a2a-js/sdk/client";
+import { createAuthenticatedFetch } from "agentstack-sdk";
+
+const fetchImpl = createAuthenticatedFetch(contextToken.token);
+
+const factory = new ClientFactory(
+  ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
+    transports: [new JsonRpcTransportFactory({ fetchImpl })],
+    cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
+  }),
+);
+
+const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+const client = await factory.createFromUrl(baseUrl, agentCardPath);
+
+const stream = client.sendMessageStream({
+  message: {
+    kind: "message",
+    role: "user",
+    messageId: crypto.randomUUID(),
+    contextId: context.id,
+    parts: [{ kind: "text", text: "Hello" }],
+  },
+});
+```
+
+`createAuthenticatedFetch` attaches the `Authorization` header to every request so the A2A client can load the agent card and open JSON RPC streams with authentication.
+
+<Tip>
+  **Need UI events and follow up messages?** The **[A2A Client Integration](./a2a-client)** shows how to handle status updates, render forms and approvals, and respond with user metadata.
+</Tip>
+
+## Architecture overview
 
 ```mermaid
 graph TB
@@ -45,123 +147,14 @@ graph TB
     style API fill:#f3e5f5,color:#000
 ```
 
-## Core Workflows
+## SDK entrypoints
 
-### 1. Create an A2A client
+The SDK is split into focused entrypoints:
 
-Create a context token for the session and pass it to the A2A client fetch. The token is required to fetch the agent card and stream messages. See **[Permissions and Tokens](./permissions-and-tokens)** for context token creation.
-
-```typescript
-import {
-  ClientFactory,
-  ClientFactoryOptions,
-  DefaultAgentCardResolver,
-  JsonRpcTransportFactory,
-} from "@a2a-js/sdk/client";
-import { createAuthenticatedFetch } from "agentstack-sdk";
-
-const fetchImpl = createAuthenticatedFetch(contextToken.token);
-const factory = new ClientFactory(
-  ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
-    transports: [new JsonRpcTransportFactory({ fetchImpl })],
-    cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
-  }),
-);
-
-const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
-const client = await factory.createFromUrl(baseUrl, agentCardPath);
-```
-
-See **[A2A Client Integration](./a2a-client)** for a complete setup.
-
-### 2. Handle agent card demands
-
-Agents declare service demands in their agent card. Use `handleAgentCard` to read those demands and produce metadata fulfillments.
-
-```typescript
-import { handleAgentCard } from "agentstack-sdk";
-
-const { demands, resolveMetadata } = handleAgentCard(agentCard);
-
-const metadata = await resolveMetadata({
-  llm: async (llmDemands) => {
-    return {
-      llm_fulfillments: {
-        default: {
-          identifier: "llm_proxy",
-          api_base: "{platform_url}/api/v1/openai/",
-          api_key: contextToken.token,
-          api_model: "gpt-4o",
-        },
-      },
-    };
-  },
-});
-```
-
-Use `buildMessageBuilder(agentCard)` when you want a helper that turns a user message into a fully formed A2A message with metadata.
-
-### 3. Stream task status updates into UI actions
-
-When you stream A2A task events, `handleTaskStatusUpdate` maps status updates into actionable UI events.
-It focuses on `auth-required` and `input-required` states, which cover OAuth, secrets, forms, and approvals.
-
-```typescript
-import { handleTaskStatusUpdate, TaskStatusUpdateType } from "agentstack-sdk";
-
-for await (const event of stream) {
-  if (event.kind === "status-update") {
-    for (const update of handleTaskStatusUpdate(event)) {
-      if (update.type === TaskStatusUpdateType.FormRequired) {
-        // Render update.form
-      }
-    }
-  }
-}
-```
-
-<Tip>
-  **Why task status updates for chat streaming**
-
-  1. A2A uses tasks to represent long running work so you can track progress and cancel.
-  2. Status updates provide the incremental channel for UI events and streaming output.
-  3. Each streamed token arrives as a `TaskStatusUpdate`, so you can append text as it arrives.
-</Tip>
-
-### 4. Build user metadata
-
-When the user responds to forms, approvals, or canvas requests, use `resolveUserMetadata` to build message metadata.
-
-<Tip>
-  **User metadata**
-
-  User metadata is the structured response payload that you attach to a message. It is separate from text parts and lets the agent consume form fields, approvals, and canvas actions in a typed way.
-</Tip>
-
-```typescript
-import { resolveUserMetadata } from "agentstack-sdk";
-
-const metadata = await resolveUserMetadata({
-  form: { name: "Ada" },
-  approvalResponse: { decision: "approve" },
-});
-```
-
-### 5. Use the platform API client
-
-`buildApiClient` exposes the platform API with typed responses and runtime validation.
-Use the user access token from your identity provider for UI side API calls. Context tokens are scoped for agent use and can also authenticate to the platform API when running inside the agent. See **[Permissions and Tokens](./permissions-and-tokens)** for token types and scopes.
-
-```typescript
-import { buildApiClient, createAuthenticatedFetch } from "agentstack-sdk";
-
-const api = buildApiClient({
-  baseUrl: "https://your-agentstack-instance.com",
-  fetch: createAuthenticatedFetch(accessToken),
-});
-```
-
-All API calls return `ApiResult<T>`. Use `unwrapResult` if you want exceptions, and then handle errors with `isHttpError`, `isNetworkError`, `isParseError`, and `isValidationError`.
+1. `agentstack-sdk` for everything
+2. `agentstack-sdk/api` for platform API client, schemas, and types
+3. `agentstack-sdk/core` for extension helpers and A2A interaction utilities
+4. `agentstack-sdk/extensions` for A2A extension definitions and types
 
 ## Protocol Types and Schemas
 
@@ -175,8 +168,9 @@ These exports are useful when building strongly typed UI layers or validating in
 
 ## Next Steps
 
+- **[A2A Client Integration](./a2a-client)** for the full streaming, UI events, and response flow
 - **[Agent Requirements](./agent-requirements)** for service and UI extension handling
-- **[Platform API Client](./platform-api-client)** for endpoint reference and error helpers
-- **[Error Handling](./error-handling)** for platform and extension error patterns
+- **[Agent Responses](./agent-responses)** for rendering message parts and citations
 - **[User Messages](./user-messages)** for composing user messages with metadata
-- **[A2A Client Integration](./a2a-client)** for end to end streaming with `@a2a-js/sdk`
+- **[Error Handling](./error-handling)** for platform and extension error patterns
+- **[Platform API Client](./platform-api-client)** for endpoint reference and error helpers
