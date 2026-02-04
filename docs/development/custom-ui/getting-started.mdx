@@ -90,7 +90,7 @@ import {
   DefaultAgentCardResolver,
   JsonRpcTransportFactory,
 } from "@a2a-js/sdk/client";
-import { createAuthenticatedFetch } from "agentstack-sdk";
+import { createAuthenticatedFetch, getAgentCardPath } from "agentstack-sdk";
 
 const fetchImpl = createAuthenticatedFetch(contextToken.token);
 
@@ -101,7 +101,7 @@ const factory = new ClientFactory(
   }),
 );
 
-const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+const agentCardPath = getAgentCardPath(providerId);
 const client = await factory.createFromUrl(baseUrl, agentCardPath);
 
 const stream = client.sendMessageStream({
@@ -116,6 +116,16 @@ const stream = client.sendMessageStream({
 ```
 
 `createAuthenticatedFetch` attaches the `Authorization` header to every request so the A2A client can load the agent card and open JSON RPC streams with authentication.
+
+The agent card URL follows this convention:
+
+`{baseUrl}/api/v1/a2a/{providerId}/.well-known/agent-card.json`
+
+- `baseUrl` is your Agent Stack server root
+- `providerId` is the agent provider identifier
+
+`getAgentCardPath(providerId)` returns the **path portion** of that URL. Use it with `ClientFactory.createFromUrl(baseUrl, path)` so the client can resolve the full
+agent card endpoint.
 
 <Tip>
   **Need UI events and follow up messages?** The **[A2A Client Integration](./a2a-client)** shows how to handle status updates, render forms and approvals, and respond with user metadata.

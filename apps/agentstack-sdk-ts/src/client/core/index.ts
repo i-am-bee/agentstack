@@ -12,3 +12,4 @@ export * from './fulfillment-resolvers/build-llm-extension-fulfillment-resolver'
 export * from './handle-agent-card';
 export * from './handle-task-status-update';
 export * from './utils/build-message-builder';
+export * from './utils/get-agent-card-path';

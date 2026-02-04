@@ -30,6 +30,7 @@ import {
   buildApiClient,
   createAuthenticatedFetch,
   unwrapResult,
+  getAgentCardPath,
   handleAgentCard,
   handleTaskStatusUpdate,
   resolveUserMetadata,
@@ -79,7 +80,7 @@ const factory = new ClientFactory(
   }),
 );
 
-const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+const agentCardPath = getAgentCardPath(providerId);
 const client = await factory.createFromUrl(baseUrl, agentCardPath);
 
 const card = await client.getAgentCard();
