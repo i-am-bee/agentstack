@@ -13,10 +13,10 @@ import { routes } from '#utils/router.ts';
 import classes from './AuthErrorPage.module.scss';
 
 interface Props {
-  redirectTo?: string;
+  callbackUrl?: string;
 }
 
-export function AuthErrorPage({ redirectTo = routes.signIn() }: Props) {
+export function AuthErrorPage({ callbackUrl = routes.signIn() }: Props) {
   return (
     <div className={classes.root}>
       <InlineNotification
@@ -26,7 +26,7 @@ export function AuthErrorPage({ redirectTo = routes.signIn() }: Props) {
         hideCloseButton
         lowContrast
       />
-      <Button kind="primary" onClick={() => signOut({ redirectTo })}>
+      <Button kind="primary" onClick={() => signOut({ redirectTo: callbackUrl })}>
         Sign in again
       </Button>
     </div>

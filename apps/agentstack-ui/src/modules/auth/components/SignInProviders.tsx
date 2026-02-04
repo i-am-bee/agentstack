@@ -18,7 +18,7 @@ interface Props {
 
 const authProvider = getProvider();
 
-export async function SignInProviders({ callbackUrl: redirectTo = routes.home() }: Props) {
+export async function SignInProviders({ callbackUrl = routes.home() }: Props) {
   if (!authProvider) {
     return null;
   }
@@ -27,10 +27,10 @@ export async function SignInProviders({ callbackUrl: redirectTo = routes.home() 
   const hasExistingToken = session?.user != null;
 
   if (hasExistingToken) {
-    return <AuthErrorPage redirectTo={redirectTo} />;
+    return <AuthErrorPage callbackUrl={callbackUrl} />;
   }
 
-  return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: authProvider.id, redirectTo })} />;
+  return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: authProvider.id, redirectTo: callbackUrl })} />;
 }
 
 async function handleSignIn({ providerId, redirectTo }: { providerId: string; redirectTo: string }) {
