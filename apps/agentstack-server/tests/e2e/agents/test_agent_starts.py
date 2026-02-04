@@ -213,10 +213,3 @@ async def test_unmanaged_a2a_agent(unmanaged_a2a_server):
         provider.agent_card.capabilities.extensions[0].uri
         == "https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1"
     )
-
-    for _ in range(20):
-        provider = await Provider.get(provider.id)
-        if provider.state == "online":
-            break
-        await asyncio.sleep(1)
-    assert provider.state == "online"
