@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 
 import { auth, getProvider, signIn } from '#app/(auth)/auth.ts';
+import type { ThemePreference } from '#contexts/Theme/theme-context.ts';
 import { routes } from '#utils/router.ts';
 
 import { AuthErrorPage } from './AuthErrorPage';
@@ -33,11 +34,14 @@ export async function SignInProviders({ callbackUrl: redirectTo = routes.home() 
   return <AutoSignIn signIn={handleSignIn.bind(null, { providerId: authProvider.id, redirectTo })} />;
 }
 
-async function handleSignIn({ providerId, redirectTo }: { providerId: string; redirectTo: string }) {
+async function handleSignIn(
+  { providerId, redirectTo }: { providerId: string; redirectTo: string },
+  theme: ThemePreference,
+) {
   'use server';
 
   try {
-    await signIn(providerId, { redirectTo });
+    await signIn(providerId, { redirectTo }, { kc_theme: theme });
   } catch (error) {
     // Sign-in can fail for a number of reasons, such as the user not existing, or the user not having the correct role.
     // In some cases, you may want to redirect to a custom error.

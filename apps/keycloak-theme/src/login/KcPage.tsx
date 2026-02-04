@@ -10,7 +10,7 @@ import { lazy, Suspense } from 'react';
 
 import { useI18n } from '../login/i18n';
 import type { KcContext } from '../login/KcContext';
-import { useDarkModeScript } from './hooks/useDarkModeScript';
+import { useApplyThemeScript } from './hooks/useApplyThemeScript';
 import Template from './layout/Template';
 
 const UserProfileFormFields = lazy(() => import('./components/UserProfileForm/UserProfileFormFields'));
@@ -44,7 +44,7 @@ export default function KcPage(props: { kcContext: KcContext }) {
 
   const { i18n } = useI18n({ kcContext });
 
-  useDarkModeScript();
+  useApplyThemeScript();
 
   return (
     <Suspense>
