@@ -77,10 +77,17 @@ async def run_example(
     process = run_process(example_dir_path, port)
     try:
         example_url = f"http://localhost:{port}"
+
+        # load agent card from expected location
         agent_card = await _get_agent_card(example_url)
+
+        # create provider for the agent
         provider = await Provider.create(location=example_url, agent_card=agent_card)
 
+        # create context for the example
         context = await Context.create()
+
+        # generate context token with global permissions for the provider (agent)
         context_token = await context.generate_token(
             providers={provider.id},
             grant_global_permissions=Permissions(llm={"*"}),

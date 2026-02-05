@@ -36,6 +36,15 @@
       "cwd": "${workspaceFolder}/deploy-agents/building-agents/implement-your-agent-logic",
       "program": "src/implement_your_agent_logic/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/example-of-file-processing",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/files/example-of-file-processing",
+      "program": "src/example_of_file_processing/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
