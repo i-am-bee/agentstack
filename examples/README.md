@@ -14,10 +14,10 @@ This directory contains example agents that serve three purposes:
 
 ## Creating a new example
 
-Use `create-example.sh` to scaffold a new example and its e2e test from the templates in `.template/`.
+Use the mise command to scaffold a new example and its e2e test from the templates in `.template/`.
 
 ```bash
-./create-example.sh <path> <description>
+mise run example:create <path> <description>
 ```
 
 - `path` -- path relative to `examples/`, e.g. `agent-integration/multi-turn/basic-history`
@@ -32,7 +32,7 @@ The script automatically derives:
 ### Example
 
 ```bash
-./create-example.sh agent-integration/multi-turn/basic-history "Example demonstrating basic history."
+mise run example:create agent-integration/multi-turn/basic-history "Example demonstrating basic history."
 ```
 
 This creates:

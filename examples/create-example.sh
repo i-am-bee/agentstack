@@ -88,8 +88,8 @@ launch_file="$SCRIPT_DIR/.vscode/launch.json"
 last_config_line=$(grep -n '^\s*]' "$launch_file" | head -1 | cut -d: -f1)
 insert_line=$((last_config_line - 1))
 
-sed -i.bak "${insert_line}a\\
-    },\\
+# Add comma to the last config's closing brace, then append the new config
+sed -i.bak -e "${insert_line}s/}$/},/" -e "${insert_line}a\\
     {\\
       \"name\": \"examples/${name}\",\\
       \"type\": \"debugpy\",\\
