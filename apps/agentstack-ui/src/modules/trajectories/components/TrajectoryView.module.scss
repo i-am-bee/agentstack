@@ -10,7 +10,9 @@
 }
 
 .header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, max-content) max-content;
   align-items: center;
   column-gap: $spacing-03;
+  overflow: hidden;
 }

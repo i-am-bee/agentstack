@@ -61,7 +61,6 @@
     "rxjs": "^7.8.2",
     "server-only": "^0.0.1",
     "ts-pattern": "^5.9.0",
-    "typewriter-effect": "2.22.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.1.0",
     "usehooks-ts": "catalog:",

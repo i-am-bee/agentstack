@@ -9,11 +9,15 @@
   gap: $spacing-03;
 }
 
-.name {
+.title {
   font-size: rem(16px);
   line-height: math.div(24, 16);
   font-weight: 600;
   color: $text-secondary;
+
+  .isAnimating & {
+    color: $text-primary;
+  }
 }
 
 .body {
@@ -22,6 +26,10 @@
   line-height: math.div(24, 16);
   color: $text-secondary;
   letter-spacing: $letter-spacing;
+
+  .isAnimating & {
+    color: $text-primary;
+  }
 }
 
 .content {

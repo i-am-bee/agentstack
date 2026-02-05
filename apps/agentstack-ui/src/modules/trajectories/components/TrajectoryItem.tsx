@@ -7,27 +7,23 @@ import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import { match } from 'ts-pattern';
-import Typewriter from 'typewriter-effect';
 import { v5 as uuidv5 } from 'uuid';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
-import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
-import { AnimatedMarkdown } from './AnimatedMarkdown.tsx';
+import { AnimatedText } from './AnimatedText.tsx';
 import classes from './TrajectoryItem.module.scss';
 
 interface Props {
   trajectory: UITrajectoryPart;
+  isPending?: boolean;
 }
 
-const TYPEWRITER_TOTAL_DURATION_MS = 1500;
-const TYPEWRITER_MAX_DELAY_MS = 20;
-
-export function TrajectoryItem({ trajectory }: Props) {
-  const { title, content } = trajectory;
+export function TrajectoryItem({ trajectory, isPending }: Props) {
+  const { title, content, createdAt } = trajectory;
 
   const parsed = useMemo(() => maybeParseJson(content), [content]);
 
@@ -37,27 +33,26 @@ export function TrajectoryItem({ trajectory }: Props) {
     return null;
   }
 
+  const shouldAnimateText = isPending && createdAt ? Date.now() - createdAt < TEXT_ANIMATION_DURATION_MS : false;
+
   return (
-    <div className={clsx(classes.root)}>
+    <div className={clsx(classes.root, { [classes.isAnimating]: shouldAnimateText })}>
       {title && (
-        <motion.h3 {...fadeProps()} className={classes.name} key={title}>
-          <Typewriter
-            options={{
-              strings: title,
-              autoStart: true,
-              delay: Math.min(TYPEWRITER_TOTAL_DURATION_MS / title.length, TYPEWRITER_MAX_DELAY_MS),
-              cursor: '',
-            }}
-          />
+        <motion.h3 {...fadeProps()} className={classes.title} key={title}>
+          <AnimatedText shouldAnimate={shouldAnimateText}>{title}</AnimatedText>
         </motion.h3>
       )}
 
       <motion.div {...fadeProps()} className={classes.body} key={contentKey}>
         {match(parsed)
           .with({ type: 'string' }, ({ value }) => (
-            <LineClampText lines={5} useBlockElement>
-              <AnimatedMarkdown className={classes.content}>{value}</AnimatedMarkdown>
-            </LineClampText>
+            <AnimatedText
+              shouldAnimate={shouldAnimateText}
+              className={classes.content}
+              lineClamp={!isPending ? { lines: 5, useBlockElement: true } : undefined}
+            >
+              {value}
+            </AnimatedText>
           ))
           .otherwise(({ value }) => {
             return (
@@ -72,3 +67,4 @@ export function TrajectoryItem({ trajectory }: Props) {
 }
 
 const TRAJECTORY_NAMESPACE = '1b671a64-40d5-431e-99b0-da01ff1f3341';
+const TEXT_ANIMATION_DURATION_MS = 1500;

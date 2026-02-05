@@ -16,9 +16,10 @@ import classes from './TrajectoryList.module.scss';
 interface Props {
   trajectories: UITrajectoryPart[];
   isOpen?: boolean;
+  isPending?: boolean;
 }
 
-export function TrajectoryList({ trajectories, isOpen }: Props) {
+export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
   const listRef = useRef<HTMLUListElement>(null);
 
   return (
@@ -35,7 +36,7 @@ export function TrajectoryList({ trajectories, isOpen }: Props) {
           <ul className={classes.list} ref={listRef}>
             {trajectories.map((trajectory) => (
               <li key={trajectory.id}>
-                <TrajectoryItem trajectory={trajectory} />
+                <TrajectoryItem trajectory={trajectory} isPending={isPending} />
               </li>
             ))}
           </ul>

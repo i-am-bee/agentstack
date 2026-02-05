@@ -92,6 +92,7 @@ export type UITrajectoryPart = {
   groupId?: string;
   title?: string;
   content?: string;
+  createdAt?: number;
 };
 
 export type UIFormPart = {

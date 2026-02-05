@@ -147,6 +147,7 @@ export function createTrajectoryPart(metadata: TrajectoryMetadata): UITrajectory
     groupId: group_id ?? undefined,
     title: title ?? undefined,
     content: truncate(content ?? undefined, { length: MAX_CONTENT_CHARS_LENGTH }),
+    createdAt: Date.now(),
   };
 
   return trajectoryPart;
