@@ -13,7 +13,7 @@
 
 </div>
 
-<h4 align="center">Open infrastructure for turning AI agents into runniing services in minutes. </h4>
+<h4 align="center">Open infrastructure for turning AI agents into running services in minutes. </h4>
 
 <p align="center">
     <a href="#key-features"><b>Key Features</b></a> •
