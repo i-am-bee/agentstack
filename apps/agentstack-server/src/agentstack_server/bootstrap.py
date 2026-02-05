@@ -11,6 +11,7 @@ import kr8s
 import procrastinate
 from kink import Container, di
 from limits.aio.storage import MemoryStorage, RedisStorage, Storage
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from agentstack_server.configuration import Configuration, get_configuration
@@ -36,12 +37,18 @@ logger = logging.getLogger(__name__)
 
 
 def setup_database_engine(config: Configuration) -> AsyncEngine:
-    return config.persistence.create_async_engine(
+    engine = config.persistence.create_async_engine(
         isolation_level="READ COMMITTED",
         hide_parameters=True,
         pool_size=20,
         max_overflow=10,
     )
+
+    sqlalchemy_instrumentor = SQLAlchemyInstrumentor()
+    if sqlalchemy_instrumentor:
+        sqlalchemy_instrumentor.instrument(engine=engine.sync_engine)
+
+    return engine
 
 
 async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: pathlib.Path | str | dict | None = None):

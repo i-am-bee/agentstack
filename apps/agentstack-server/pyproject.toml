@@ -49,6 +49,8 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.59b0",
     "limits[async-redis]>=5.3.0",
     "ijson>=3.4.0.post0",
+    "opentelemetry-instrumentation-openai>=0.52.1",
+    "opentelemetry-instrumentation-sqlalchemy>=0.60b1",
 ]
 
 [dependency-groups]

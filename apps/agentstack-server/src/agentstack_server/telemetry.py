@@ -5,10 +5,14 @@ import logging
 from importlib.metadata import version
 
 from opentelemetry import metrics, trace
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, LogRecordExportResult
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import MetricExportResult, PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import SERVICE_INSTANCE_ID, SERVICE_NAME, SERVICE_VERSION, Resource
@@ -18,6 +22,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanExportResult
 from agentstack_server.configuration import get_configuration
 from agentstack_server.utils.id import generate_stable_id
 
+root_logger = logging.getLogger()
 logger = logging.getLogger(__name__)
 
 OTEL_HTTP_ENDPOINT = str(get_configuration().telemetry.collector_url)
@@ -31,6 +36,10 @@ if fastapi_instrumentor:
 httpxclient_instrumentor = HTTPXClientInstrumentor()
 if httpxclient_instrumentor:
     httpxclient_instrumentor.instrument()
+
+openai_instrumentor = OpenAIInstrumentor()
+if openai_instrumentor:
+    openai_instrumentor.instrument()
 
 
 class SilentOTLPSpanExporter(OTLPSpanExporter):
@@ -49,6 +58,15 @@ class SilentOTLPMetricExporter(OTLPMetricExporter):
         except Exception as e:
             logger.debug(f"OpenTelemetry Exporter failed silently: {e}")
             return MetricExportResult.FAILURE
+
+
+class SilentOTLPLogExporter(OTLPLogExporter):
+    def export(self, *args, **kwargs):
+        try:
+            return super().export(*args, **kwargs)
+        except Exception as e:
+            logger.debug(f"OpenTelemetry Exporter failed silently: {e}")
+            return LogRecordExportResult.FAILURE
 
 
 def configure_telemetry():
@@ -74,6 +92,10 @@ def configure_telemetry():
             ],
         )
     )
+    logger_provider = LoggerProvider(resource=resource)
+    processor = BatchLogRecordProcessor(SilentOTLPLogExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/logs"))
+    logger_provider.add_log_record_processor(processor)
+    root_logger.addHandler(LoggingHandler(logger_provider=logger_provider))
 
 
 def shutdown_telemetry():
