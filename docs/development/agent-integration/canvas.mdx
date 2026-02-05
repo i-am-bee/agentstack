@@ -29,7 +29,6 @@ Here's how to use canvas with an LLM, adapting your system prompt based on wheth
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-import re
 from typing import Annotated
 
 from a2a.types import Message, TextPart
@@ -73,13 +72,13 @@ def get_system_prompt(canvas_edit):
     # Check if parts list is not empty and first part is TextPart
     if not canvas_edit.artifact.parts or not isinstance(canvas_edit.artifact.parts[0].root, TextPart):
         return BASE_PROMPT
-    
+
     original_code = canvas_edit.artifact.parts[0].root.text
-    
+
     # Validate indices are within bounds
-    if canvas_edit.start_index < 0 or canvas_edit.end_index > len(original_code):
+    if canvas_edit.start_index < 0 or canvas_edit.end_index > len(original_code) or canvas_edit.start_index > canvas_edit.end_index:
         return BASE_PROMPT
-    
+
     selected = original_code[canvas_edit.start_index : canvas_edit.end_index]
 
     return EDIT_PROMPT.format(selected_code=selected, description=canvas_edit.description)
@@ -87,6 +86,16 @@ def get_system_prompt(canvas_edit):
 
 async def call_llm(llm: LLMServiceExtensionServer, system_prompt: str, message: Message):
     """Call your LLM with the adapted prompt (implementation depends on your LLM framework)."""
+    # As a placeholder, we return a mock response.
+    example = "```python\n# Hard-coded example (no LLM used). Above is the prompt to use. This is the fake response.\nprint('Hello from LLM!')\n```"
+    artifact = AgentArtifact(
+        name="Response",
+        parts=[
+            TextPart(text=system_prompt),  # This is just for demonstration. Replace with actual LLM call.
+            TextPart(text=example),  # This is just for demonstration. Replace with actual LLM call.
+        ],
+    )
+    return artifact
 
 
 @server.agent()
@@ -96,28 +105,16 @@ async def code_agent(
     llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
     canvas: Annotated[CanvasExtensionServer, CanvasExtensionSpec()],
 ):
+    await context.store(message)
     canvas_edit = await canvas.parse_canvas_edit_request(message=message)
 
     # Adapt system prompt based on whether this is an edit or new generation
     system_prompt = get_system_prompt(canvas_edit)
 
-    response = await call_llm(llm, system_prompt, message)
+    artifact = await call_llm(llm, system_prompt, message)
+    yield artifact
 
-    # Extract code from response
-    match = re.search(r"```python\n(.*?)\n```", response, re.DOTALL)
-    if match:
-        code = match.group(1).strip()
-        first_line = code.split("\n", 1)[0]
-        name = first_line.lstrip("# ").strip() if first_line.startswith("#") else "Python Script"
-
-        artifact = AgentArtifact(
-            name=name,
-            parts=[TextPart(text=code)],
-        )
-        yield artifact
-
-    # Note: Always create a new artifact. When canvas_edit exists, pass its artifact_id
-    # to replace the previous version in the UI.
+    await context.store(artifact)
 
 
 if __name__ == "__main__":
@@ -160,9 +157,8 @@ Import `CanvasExtensionServer` and `CanvasExtensionSpec` from `agentstack_sdk.a2
 </Step>
 
 <Step title='Access the original content'>
-  Extract the text from `artifact.parts[0].root.text` (for text artifacts) and
-  use the start/end indices to get the selected portion: `selected_text =
-  content[start_index:end_index]`.
+  Extract the text from `artifact.parts[0].root.text` (for text artifacts) into a `content` variable and
+  use the start/end indices to get the selected portion: `selected_text = content[start_index:end_index]`.
 </Step>
 
 <Step title="Return a new artifact">
