@@ -28,7 +28,7 @@ cd my-agent
 ```
 
 Alternatively, if you want to start from scratch, you can create your own github repository. You will need to include a `Dockerfile` with the following information:
-```
+```dockerfile
 FROM python:3.13-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:0.7.15 /uv /bin/
 
@@ -127,14 +127,6 @@ agentstack build `https://github.com/myorg/myrepo`
 # Step 2: Register the agent
 agentstack add agentstack.local/my-agent-abc123:latest
 ```
-
-### Build without importing
-Test your Dockerfile builds without deploying:
-```bash
-agentstack build . --no-import
-```
-
-This creates the image in Docker Desktop but doesn't copy it to Agent Stack. Useful for testing or if you plan to push to a registry instead.
 
 ## Next Steps
 
