@@ -1,23 +1,3 @@
----
-title: "Customize Agent Details"
-description: "Configure how your agent appears and behaves in the GUI"
----
-
-When building your agent, you can configure certain attributes that affect how it appears and behaves in the user interface. The `@server.agent` decorator accepts a `detail` parameter with an `AgentDetail` object that controls the visual representation and behavior in the UI.
-
-You can customize various aspects of your agent's presentation, such as:
-- The type of user interface the agent uses (chat, form, etc.)
-- Custom user greetings
-- Metadata about tools the agent provides
-- Author and contributor information
-- License, framework, and source code details
-
-## Basic Configuration
-
-Configuring agent details is straightforward. Import `AgentDetail` and related types, then pass them to the `detail` parameter in the `@server.agent` decorator:
-
-{/* <!-- embedme examples/agent-integration/agent-details/basic-configuration/src/basic_configuration/agent.py --> */}
-```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
@@ -96,35 +76,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-
-```
-
-## Key Fields
-
-### UI Configuration
-- **`interaction_mode`**: Set to `"multi-turn"` for conversational agents or `"single-turn"` for one-shot agents
-- **`user_greeting`**: Welcome message displayed when users first interact with your agent
-
-### Metadata
-- **`framework`**: The framework used to build your agent (e.g., "BeeAI", "LangGraph", "CrewAI")
-- **`programming_language`**: Primary language (e.g., "Python", "JavaScript")
-- **`license`**: Software license (e.g., "Apache 2.0", "MIT")
-
-### Tools
-- **`tools`**: List of `AgentDetailTool` objects describing your agent's capabilities
-  - Each tool has a `name` and `description` to help users understand each tool's purpose
-
-### Skills
-- **`skills`**: List of `AgentSkill` objects that represent distinct, user-facing abilities your agent can perform
-	- Each skill includes an id, name, description, tags, and examples
-	- Examples are displayed in the user interface as starter questions — they help users understand what kinds of requests your agent can handle and encourage exploration
-	- Skills define what your agent can do — for example, “Research” for finding and summarizing information, or “Summarization” for condensing long documents
-
-### Links and Attribution
-- **`source_code_url`**: Link to the source code repository
-- **`author`**: Primary author information (name, email, url)
-- **`contributors`**: List of additional contributors
-
-<Tip>
-The Agent Details extension helps users understand your agent's capabilities before they start using it. Provide clear descriptions and accurate tool information to improve the user experience.
-</Tip>

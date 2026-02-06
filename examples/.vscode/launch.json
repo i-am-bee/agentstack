@@ -45,6 +45,15 @@
       "cwd": "${workspaceFolder}/agent-integration/files/example-of-file-processing",
       "program": "src/example_of_file_processing/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-configuration",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/agent-details/basic-configuration",
+      "program": "src/basic_configuration/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }

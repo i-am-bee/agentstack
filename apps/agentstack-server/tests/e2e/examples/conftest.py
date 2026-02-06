@@ -25,6 +25,7 @@ class RunningExample(NamedTuple):
     context: Context
     context_token: ContextToken
     provider: Provider
+    agent_card: AgentCard
 
 
 def run_process(example_dir_path: str, port: int) -> subprocess.Popen:
@@ -95,6 +96,6 @@ async def run_example(
         )
 
         async with a2a_client_factory(provider.agent_card, context_token) as a2a_client:
-            yield RunningExample(a2a_client, context, context_token, provider)
+            yield RunningExample(a2a_client, context, context_token, provider, agent_card)
     finally:
         kill_process(process)
