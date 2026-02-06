@@ -17,11 +17,11 @@ Before deployment, ensure your environment meets these specifications:
 
 | Category| Requirement |
 |--------|--------------|
-|<b>Kubernetes</b>|Version 1.24+ with admin access| 
-|<b>Tooling</b>  | Helm 3.8+ and kubectl configured|
-|<b>Storage</b>  | 20GB+ available for PostgreSQL|
-|<b>Providers</b>| API access for LLMs (OpenAI, Anthropic, etc.)|
-|<b>Agent Stack CLI</b>| Agent Stack CLI installed for post-deploy config|
+|**Kubernetes**|Version 1.24+ with admin access| 
+|**Tooling**  | Helm 3.8+ and kubectl configured|
+|**Storage**  | 20GB+ available for PostgreSQL|
+|**Providers**| API access for LLMs (OpenAI, Anthropic, etc.)|
+|**Agent Stack CLI**| Agent Stack CLI installed for post-deploy config|
 
 <Tip>
   **OpenShift Users**: Use the [OpenShift
@@ -114,10 +114,10 @@ agentstack run chat hi
 
 | Option| Description |
 |--------|--------------|
-|<b>Disabled</b>|No security. Simplest for isolated testing.| 
-|<b>Basic Auth</b>  | Simple username/password (adminPassword).|
-|<b>Bundled Keycloak</b>  | OIDC using an internal instance of Keycloak.|
-|<b>External OIDC</b>| Integration with existing Auth0, Okta, or Enterprise IDPs.|
+|**Disabled**|No security. Simplest for isolated testing.| 
+|**Basic Auth**  | Simple username/password (adminPassword).|
+|**Bundled Keycloak**  | OIDC using an internal instance of Keycloak.|
+|**External OIDC**| Integration with existing Auth0, Okta, or Enterprise IDPs.|
 
 <Warning>
   The current authentication model is basic and intended for development use.
@@ -209,7 +209,7 @@ If using OIDC (Bundled or External), you must expose the following endpoints pub
 - Keycloak: `https://keycloak.example.com` used by the UI and CLI to authenticate
 
 
-⚠️ Failure to configure these endpints with proper https may leave your application vulnerable.
+⚠️ Failure to configure these endpoints with proper https may leave your application vulnerable.
 
 </Warning>
 
@@ -288,7 +288,7 @@ externalDatabase:
 ```
 
 If the migration fails while installing the vector extension, you can disable automated creation and run the SQL manually.
-```console
+```yaml
 initContainers.createVectorDbExtension=false
 ```
 
@@ -318,7 +318,7 @@ seaweedfs:
 externalS3:
     host: <your-s3-host>
     accessKeyID: <your-s3-access-key>
-    accessKeySecret: <your-s3-acess-key-secret>
+    accessKeySecret: <your-s3-access-key-secret>
 ```
 
 ### Redis
@@ -568,7 +568,6 @@ kubectl get events --sort-by=.lastTimestamp
 **Authentication issues:**
 
 - **Redirect URIs:** Your Identity Provider must whitelist `https://<your-url>/api/auth/callback`. For CLI usage, you must also whitelist `http://localhost:9001/callback`.
-- **CLI Applciation:** Consider creating a separate public OIDC application for the CLI
+- **CLI Application:** Consider creating a separate public OIDC application for the CLI
 - **Audience Claim**: The `audience` claim in your JWT must match the public URL of your application exactly, with no trailing slash (e.g., `https://example.com`).
 - **Proxy Headers:** If you are behind a load balancer or ingress, `trustProxyHeaders`: true must be enabled in your config to correctly forward request URLs.
-- **Validation Toggle:** If you are still experiencing "Invalid Token" errors despite correct audience settings, you can try to disable the check by setting `auth.oidc.validate_audience: false`.
