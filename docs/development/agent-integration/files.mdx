@@ -5,7 +5,76 @@ description: "Upload and generate files in agents"
 
 One of the most common use cases for AI agents is working with files. Your agent should be able to read files from user uploads and generate new files as outputs. The Agent Stack makes this seamless through the A2A protocol's `FilePart`.
 
-## Quickstart
+## Example of File Processing
+
+Here's how to build an agent that can accept and modify files:
+
+```python
+import os
+from typing import Annotated
+
+from agentstack_sdk.server import Server
+from a2a.types import Message
+from agentstack_sdk.a2a.extensions.services.platform import (
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
+from agentstack_sdk.platform import File
+from agentstack_sdk.util.file import load_file
+
+        
+server = Server()
+
+            
+@server.agent(  
+    default_input_modes=["text/plain", "application/pdf", "image/*"],
+    default_output_modes=["text/plain", "application/pdf", "image/*"]
+)                   
+async def file_processor_agent(
+    input: Message,
+    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
+):              
+    """Agent that handles both text and binary files"""
+                    
+    for file_part in input.parts:
+        file_part_root = file_part.root
+                    
+        if file_part_root.kind == "file":
+            mime_type = file_part_root.file.mime_type or "application/octet-stream"
+                
+            async with load_file(file_part_root) as loaded_content:
+                # Determine if file is text or binary based on MIME type
+                is_text_file = mime_type.startswith("text/") or mime_type in [
+                    "application/json",
+                    "application/xml",
+                    "text/xml"
+                ]
+
+                if is_text_file:
+                    # For text files, use .text and encode to bytes
+                    content = loaded_content.text.encode()
+                else:
+                    # For binary files (PDFs, images, etc.), use .content directly
+                    content = loaded_content.content
+                
+                # Create new file with appropriate content
+                new_file = await File.create(
+                    filename=f"processed_{file_part_root.file.name}",
+                    content_type=mime_type,
+                    content=content,
+                )
+                yield new_file.to_file_part()
+    
+    yield "File processing complete"
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```
 
 <Steps>
 <Step title="Enable file uploads in your agent (optional)">
@@ -21,64 +90,9 @@ Iterate through message parts to find `FilePart` objects and load their content 
 </Step>
 
 <Step title="Generate new files">
-Use the `File.create()` method to generate new files and yield them as `FilePart` objects.
+Use the `File.create()` method to generate new files and yield them as `FilePart` objects with `to_file_part()`.
 </Step>
 </Steps>
-
-## Example of File Processing
-
-Here's how to build an agent that can accept and modify files:
-
-```python
-import os
-
-from typing import Annotated
-
-from agentstack_sdk.server import Server
-from a2a.types import Message
-from agentstack_sdk.a2a.extensions.services.platform import (
-    PlatformApiExtensionServer,
-    PlatformApiExtensionSpec,
-)
-from agentstack_sdk.platform import File
-from agentstack_sdk.util.file import load_file
-
-
-server = Server()
-
-
-@server.agent(
-    default_input_modes=["text/plain"],
-    default_output_modes=["text/plain"]
-)
-async def example_agent(
-    input: Message,
-    _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
-):
-    """Agent that can accept and modify files"""
-
-    for file_part in input.parts:
-        file_part_root = file_part.root
-
-        if file_part_root.kind == "file":
-            async with load_file(file_part_root) as loaded_content:
-                new_file = await File.create(
-                    filename=f"processed_{file_part_root.file.name}",
-                    content_type=file_part_root.file.mime_type or "application/octet-stream",
-                    content=loaded_content.text.encode(),
-                )
-                yield new_file.to_file_part()
-
-    yield "File Processing Done"
-
-
-def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
-
-
-if __name__ == "__main__":
-    run()
-```
 
 ## How to work with files
 
@@ -131,7 +145,20 @@ The `default_output_modes` parameter controls which file agent can produce:
 ```
 
 Common MIME types you might want to support:
-- **Text files**: `text/plain`, `text/markdown`, `text/csv`
-- **Documents**: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
-- **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/svg+xml`
-- **Data**: `application/json`, `application/xml`, `text/xml`
+
+| Category | MIME Types |
+|----------|------------|
+| **Text files** | `text/plain`<br/>`text/markdown`<br/>`text/csv` |
+| **Documents** | `application/pdf`<br/>`application/msword`<br/>`application/vnd.openxmlformats-officedocument.wordprocessingml.document` |
+| **Images** | `image/jpeg`<br/>`image/png`<br/>`image/gif`<br/>`image/svg+xml` |
+| **Data** | `application/json`<br/>`application/xml`<br/>`text/xml` |
+
+## Handling Text vs Binary Files
+
+When processing files, it's important to handle text and binary files differently. The `load_file` helper provides both `.text` and `.content` properties:
+
+<Note>
+**Key differences:**
+- **Text files** (text/plain, text/markdown, application/json, etc.): Use `loaded_content.text.encode()` to get bytes.
+- **Binary files** (application/pdf, image/*, etc.): Use `loaded_content.content` directly to preserve binary content.
+</Note>
