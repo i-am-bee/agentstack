@@ -116,7 +116,7 @@ from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_co
 from agentstack_cli.server_utils import announce_server_action, confirm_server_action
 from agentstack_cli.utils import (
     generate_schema_example,
-    get_gh_repo_tags,
+    get_github_repo_tags,
     github_url_verbose_pattern,
     is_github_url,
     parse_env_var,
@@ -260,7 +260,7 @@ async def add_agent(
 
         if version is None and path is None:
             host = match.group("host")
-            tags = await get_gh_repo_tags(host, owner, repo)
+            tags = await get_github_repo_tags(host, owner, repo)
 
             if tags:
                 selected_tag = await inquirer.fuzzy(
@@ -356,7 +356,7 @@ async def update_agent(
                     match.group("repo").removesuffix(".git"),
                 )
 
-                tags = await get_gh_repo_tags(host, owner, repo)
+                tags = await get_github_repo_tags(host, owner, repo)
 
                 if tags:
                     selected_tag = await inquirer.fuzzy(

@@ -343,7 +343,7 @@ def get_github_token() -> str | None:
     return None
 
 
-async def get_gh_repo_tags(host: str, owner: str, repo: str) -> list[str]:
+async def get_github_repo_tags(host: str, owner: str, repo: str) -> list[str]:
     headers = {"Accept": "application/vnd.github.v3+json"}
 
     # Add authentication if GITHUB_TOKEN is available (avoids rate limiting)
