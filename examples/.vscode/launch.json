@@ -54,6 +54,15 @@
       "cwd": "${workspaceFolder}/agent-integration/agent-details/basic-configuration",
       "program": "src/basic_configuration/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/example-of-llm-access",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/llm-proxy-service/example-of-llm-access",
+      "program": "src/example_of_llm_access/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }

@@ -1,7 +1,7 @@
 [project]
-name = "implement-your-agent-logic"
+name = "example-of-llm-access"
 version = "0.1.0"
-description = "The starter example is minimal and intended for demonstration purposes only"
+description = "Example demonstrating how to receive a user message and respond using the credentials provided by the LLM Proxy Service"
 authors = [
     { name = "IBM Corp." },
 ]
@@ -19,7 +19,7 @@ target-version = "py313"
 agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
 
 [project.scripts]
-server = "implement_your_agent_logic.agent:run"
+server = "example_of_llm_access.agent:run"
 
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]
