@@ -49,21 +49,20 @@ CMD ["uv", "run", "--no-sync", "server"]
 
 ### 2. Deploy your Agent to Agent Stack
 
-To deploy your agent from github, run:
+To deploy from your my-agent github repo, run the following with your organization name substituted for myorg:
 ```bash
-agentstack add `https://github.com/myorg/myrepo`
-```
+agentstack add `https://github.com/myorg/my-agent`
+
+This command automatically:
+1. ✓ Builds your Docker image from github using the provided Dockerfile in the github root directory
+2. ✓ Copies the image into Agent Stack's VM
+3. ✓ Registers it as an available agent
 
 As a specific example, to deploy the agentstack-starter example agent without modification, you can issue the following command:
 
 ```bash
 agentstack add https://github.com/i-am-bee/agentstack-starter
 ```
-
-This command automatically:
-1. ✓ Builds your Docker image from github
-2. ✓ Copies the image into Agent Stack's VM
-3. ✓ Registers it as an available agent
 
 <Note>
 **Why "copy into VM"?** Agent Stack runs in an isolated VM (Lima on Mac/Linux, WSL on Windows). Even though Docker Desktop builds your image, Agent Stack needs it copied into its VM to run it. The `add` command handles this automatically.
