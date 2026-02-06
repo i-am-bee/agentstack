@@ -4,9 +4,9 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing_extensions import deprecated
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
@@ -43,7 +43,7 @@ class SingleSelectField(BaseModel):
 
 @deprecated("Use FormServiceExtensionSpec.demand_settings() with SettingsFormRender instead")
 class SettingsRender(BaseModel):
-    fields: list[CheckboxGroupField | SingleSelectField]
+    fields: list[Annotated[CheckboxGroupField | SingleSelectField, Field(discriminator="type")]]
 
 
 @deprecated("Use agentstack_sdk.a2a.extensions.common.form.CheckboxFieldValue instead")

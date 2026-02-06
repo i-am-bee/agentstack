@@ -47,25 +47,12 @@ class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
         """
         Create form extension demanding a settings_form.
 
-        This is the preferred way to add settings to an agent, replacing the
-        deprecated SettingsExtensionSpec.
-
-        Example:
-            @server.agent()
-            async def my_agent(
-                form: Annotated[
-                    FormServiceExtensionServer,
-                    FormServiceExtensionSpec.demand_settings(
-                        settings_form=SettingsFormRender(fields=[...])
-                    ),
-                ],
-            ):
-                settings = form.parse_settings_form(model=MySettingsModel)
+        This is the preferred way to add settings to an agent, replacing the deprecated SettingsExtensionSpec.
         """
         return cls(params=FormServiceExtensionParams(form_demands={"settings_form": settings_form}))
 
     @classmethod
-    def demand_both(
+    def demand_forms(
         cls, *, initial_form: FormRender | None = None, settings_form: SettingsFormRender | None = None
     ) -> Self:
         """Create form extension demanding both initial_form and settings_form."""
@@ -120,7 +107,6 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
             return None
 
         settings_form = self.data.form_fulfillments.get("settings_form")
-
         if settings_form is None:
             return None
         if model is SettingsFormResponse:

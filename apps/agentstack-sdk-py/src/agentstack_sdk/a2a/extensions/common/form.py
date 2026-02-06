@@ -82,7 +82,9 @@ class CheckboxGroupField(BaseField):
     fields: list[CheckboxField]
 
 
-FormField = TextField | DateField | FileField | SingleSelectField | MultiSelectField | CheckboxField | CheckboxGroupField
+FormField = (
+    TextField | DateField | FileField | SingleSelectField | MultiSelectField | CheckboxField | CheckboxGroupField
+)
 
 
 class FormRender(BaseModel):
