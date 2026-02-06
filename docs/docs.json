@@ -8,13 +8,7 @@
     "dark": "#000000"
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -57,21 +51,19 @@
               "stable/agent-integration/env-variables",
               "stable/agent-integration/error",
               "stable/agent-integration/tool-calls",
-              "stable/agent-integration/canvas"
+              "stable/agent-integration/canvas",
+              "stable/agent-integration/observability"
             ]
           },
           {
             "group": "Reference",
-            "pages": [
-              "stable/reference/cli-reference"
-            ]
+            "pages": ["stable/reference/cli-reference"]
           },
           {
             "group": "Deploy Agent Stack",
             "pages": [
               "stable/deploy-agent-stack/deployment-guide",
-              "stable/deploy-agent-stack/authenticate-cli-to-server",
-              "stable/deploy-agent-stack/observability"
+              "stable/deploy-agent-stack/authenticate-cli-to-server"
             ]
           },
           {
@@ -89,15 +81,11 @@
           },
           {
             "group": "Experimental",
-            "pages": [
-              "stable/experimental/connectors"
-            ]
+            "pages": ["stable/experimental/connectors"]
           },
           {
             "group": "Community",
-            "pages": [
-              "stable/community/contribute"
-            ]
+            "pages": ["stable/community/contribute"]
           }
         ]
       },
@@ -145,9 +133,7 @@
           },
           {
             "group": "Reference",
-            "pages": [
-              "development/reference/cli-reference"
-            ]
+            "pages": ["development/reference/cli-reference"]
           },
           {
             "group": "Deploy Agent Stack",
@@ -171,15 +157,11 @@
           },
           {
             "group": "Experimental",
-            "pages": [
-              "development/experimental/connectors"
-            ]
+            "pages": ["development/experimental/connectors"]
           },
           {
             "group": "Community",
-            "pages": [
-              "development/community/contribute"
-            ]
+            "pages": ["development/community/contribute"]
           }
         ]
       }
