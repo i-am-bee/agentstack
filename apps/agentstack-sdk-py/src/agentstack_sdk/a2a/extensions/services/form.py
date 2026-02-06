@@ -31,9 +31,6 @@ class FormServiceExtensionParams(BaseModel):
     form_demands: FormDemands
 
 
-T = TypeVar("T")
-
-
 class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/form/v1"
 
@@ -66,6 +63,9 @@ class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
         )
 
 
+T = TypeVar("T")
+
+
 class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]):
     def parse_initial_form(self, *, model: type[T] = FormResponse) -> T | None:
         """Parse initial_form from form_fulfillments."""
@@ -86,22 +86,6 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
 
         This is the preferred way to access settings in agents, replacing the
         deprecated SettingsExtensionServer.parse_settings_response().
-
-        Args:
-            model: Pydantic model to parse the settings into
-
-        Returns:
-            Parsed settings or None if not provided
-
-        Example:
-            class MySettings(BaseModel):
-                thinking: bool
-                response_style: str
-
-            settings = form.parse_settings_form(model=MySettings)
-            if settings:
-                if settings.thinking:
-                    yield "Thinking enabled..."
         """
         if self.data is None:
             return None

@@ -78,11 +78,15 @@ from agentstack_sdk.a2a.extensions.ui.settings import (
 from agentstack_sdk.a2a.extensions.ui.settings import (
     CheckboxFieldValue as SettingsCheckboxFieldValue,
 )
-from agentstack_sdk.a2a.extensions.ui.settings import CheckboxGroupField as SettingsCheckboxGroupField
+from agentstack_sdk.a2a.extensions.ui.settings import (
+    CheckboxGroupField as SettingsCheckboxGroupField,
+)
 from agentstack_sdk.a2a.extensions.ui.settings import (
     CheckboxGroupFieldValue as SettingsCheckboxGroupFieldValue,
 )
-from agentstack_sdk.a2a.extensions.ui.settings import SingleSelectField as SettingsSingleSelectField
+from agentstack_sdk.a2a.extensions.ui.settings import (
+    SingleSelectField as SettingsSingleSelectField,
+)
 from agentstack_sdk.a2a.extensions.ui.settings import (
     SingleSelectFieldValue as SettingsSingleSelectFieldValue,
 )
