@@ -76,7 +76,7 @@ def get_system_prompt(canvas_edit):
     original_code = canvas_edit.artifact.parts[0].root.text
 
     # Validate indices are within bounds
-    if canvas_edit.start_index < 0 or canvas_edit.end_index > len(original_code) or canvas_edit.start_index > canvas_edit.end_index:
+    if not (0 <= canvas_edit.start_index <= canvas_edit.end_index <= len(original_code)):
         return BASE_PROMPT
 
     selected = original_code[canvas_edit.start_index : canvas_edit.end_index]
