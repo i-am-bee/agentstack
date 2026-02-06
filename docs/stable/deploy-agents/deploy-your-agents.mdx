@@ -40,7 +40,7 @@ WORKDIR /app
 
 RUN uv sync --no-cache --locked --link-mode copy
 
-ENV PRODUCTION_MODE=True \
+ENV PRODUCTION_MODE=true \
     PATH="/app/.venv/bin:$PATH" \
     HOME=/tmp
 
