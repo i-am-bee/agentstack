@@ -311,6 +311,72 @@ def is_github_url(url: str) -> bool:
     return bool(re.match(github_url_verbose_pattern, url, re.VERBOSE))
 
 
+def get_github_token() -> str | None:
+    """Get GitHub token from standard local sources for authenticated API requests.
+
+    Checks multiple sources in order of preference:
+    1. GITHUB_TOKEN environment variable
+    2. GH_TOKEN environment variable (used by GitHub CLI)
+    3. GitHub CLI (gh auth token) if user is logged in
+
+    Authenticated requests have much higher rate limits (5000/hour vs 60/hour).
+    """
+    # Check environment variables first
+    if token := os.getenv("GITHUB_TOKEN"):
+        return token
+    if token := os.getenv("GH_TOKEN"):
+        return token
+
+    # Try GitHub CLI if available
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "token"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0 and (token := result.stdout.strip()):
+            return token
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        pass
+
+    return None
+
+
+async def get_gh_repo_tags(host: str, owner: str, repo: str) -> list[str]:
+    headers = {"Accept": "application/vnd.github.v3+json"}
+
+    # Add authentication if GITHUB_TOKEN is available (avoids rate limiting)
+    if token := get_github_token():
+        headers["Authorization"] = f"token {token}"
+
+    # Determine API host
+    if host == "github.com":
+        api_host = "api.github.com"
+        if not get_github_token():
+            console.info(
+                "No GitHub token found. Using unauthenticated API (60 requests/hour limit).\n"
+                "For higher limits, run [green]gh auth login[/green] or set GITHUB_TOKEN or GH_TOKEN env variable."
+            )
+    else:
+        # GitHub Enterprise uses host/api/v3
+        api_host = f"{host}/api/v3"
+
+    async with httpx.AsyncClient() as client:
+        # Correct format: /repos/{owner}/{repo}/tags
+        url = f"https://{api_host}/repos/{owner}/{repo}/tags"
+        response = await client.get(url, headers=headers)
+
+        tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
+
+        if not tags and response.status_code != 200:
+            console.warning(f"Failed to fetch tags from '{url}' (status code {response.status_code}). ")
+        elif not tags and response.status_code <= 200:
+            console.warning(f"No tags fetched from '{url}' (status code {response.status_code}). ")
+
+        return tags
+
+
 def get_httpx_response_error_details(response: httpx.Response | None) -> tuple[str, str] | None:
     if response:
         try:

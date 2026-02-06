@@ -116,6 +116,7 @@ from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_co
 from agentstack_cli.server_utils import announce_server_action, confirm_server_action
 from agentstack_cli.utils import (
     generate_schema_example,
+    get_gh_repo_tags,
     github_url_verbose_pattern,
     is_github_url,
     parse_env_var,
@@ -258,12 +259,8 @@ async def add_agent(
         )
 
         if version is None and path is None:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"https://api.github.com/repos/{owner}/{repo}/tags",
-                    headers={"Accept": "application/vnd.github.v3+json"},
-                )
-                tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
+            host = match.group("host")
+            tags = await get_gh_repo_tags(host, owner, repo)
 
             if tags:
                 selected_tag = await inquirer.fuzzy(
@@ -353,14 +350,14 @@ async def update_agent(
             match = re.match(github_url_verbose_pattern, provider.origin, re.VERBOSE)
 
             if match:
-                owner, repo = match.group("org"), match.group("repo").removesuffix(".git")
+                host, owner, repo = (
+                    match.group("host"),
+                    match.group("owner"),
+                    match.group("repo").removesuffix(".git"),
+                )
 
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(
-                        f"https://api.github.com/repos/{owner}/{repo}/tags",
-                        headers={"Accept": "application/vnd.github.v3+json"},
-                    )
-                    tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
+                tags = await get_gh_repo_tags(host, owner, repo)
+
                 if tags:
                     selected_tag = await inquirer.fuzzy(
                         message="Select a new tag to use:",
