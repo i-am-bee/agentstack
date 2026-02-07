@@ -112,7 +112,7 @@ Make sure you have the Platform API and Embedding Service extensions imported an
 import json
 from typing import Annotated
 
-from a2a.types import Message, Part, DataPart, FilePart, TextPart
+from a2a.types import Message, Part, DataPart, FilePart, TextPart, FileWithUri
 
 from agentstack_sdk.server import Server
 from agentstack_sdk.a2a.extensions import (
@@ -169,7 +169,7 @@ the result. After extraction is completed, the `extraction` object will contain
 `extracted_files`, which is a list of extracted files in different formats.
 
 ```python
-from agentstack_sdk.platform import File, Extraction, FilePart, TextPart
+from agentstack_sdk.platform import File, Extraction
 import asyncio
 
 async def extract_file(file: File):
