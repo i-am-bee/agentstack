@@ -51,7 +51,8 @@ CMD ["uv", "run", "--no-sync", "server"]
 
 To deploy from your my-agent github repo, run the following with your organization name substituted for myorg:
 ```bash
-agentstack add `https://github.com/myorg/my-agent`
+agentstack add https://github.com/myorg/my-agent
+```
 
 This command automatically:
 1. ✓ Builds your Docker image from github using the provided Dockerfile in the github root directory
