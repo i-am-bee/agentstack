@@ -7,7 +7,7 @@ Sometimes you need to give users control over how your agent behaves—like togg
 The **Settings Extension** allows you to define these options in your code; the platform then automatically renders a native UI for the user and passes their choices back to your agent.
 
 <Tip>
-Settings extensions are a type of [Service Extension](../agent-integration/overview#dependency-injection-service-extensions) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform provides those dependencies.
+Settings extensions are a type of [Service Extension](/stable/agent-integration/overview#dependency-injection-service-extensions) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform provides those dependencies.
 </Tip>
 
 ## Basic Implementation
@@ -81,26 +81,22 @@ if __name__ == "__main__":
 
 <Steps>
 <Step title="Import the Settings extension">
- Import `SettingsExtensionServer`, `SettingsExtensionSpec`, `SettingsRender`, and field types from `agentstack_sdk.a2a.extensions.ui.settings`.
+Import `SettingsExtensionServer`, `SettingsExtensionSpec`, `SettingsRender`, and field types from `agentstack_sdk.a2a.extensions.ui.settings`.
 </Step>
-
 <Step title="Inject the extension">
 Add a settings parameter to your agent function using the `Annotated` type hint with `SettingsExtensionServer` and `SettingsExtensionSpec`.
 </Step>
-
 <Step title="Define your settings structure">
 Create a `SettingsRender` object with the fields you want users to configure.
 </Step>
-
 <Step title="Process settings data">
 Use `parse_settings_response()` to access the user's configuration choices. Use `parsed_settings.values['field_id']` to access the submitted values from your settings fields.
-
 </Step>
 </Steps>
 
-<Tip>
+<Warning>
 **Check if the extension exists**: Always verify that the settings extension is provided before using it, as service extensions are optional.
-</Tip>
+</Warning>
 
 ## Settings Field Types
 
