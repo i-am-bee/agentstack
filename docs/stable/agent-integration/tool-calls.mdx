@@ -7,7 +7,7 @@ Many agent frameworks support the ability to request user approval before execut
 The **Approval Extension** pauses execution and prompts the user with the tool details, resuming only after approval is granted.
 
 ## Basic Implementation
-To implement approvals, you inject the extension and call request_approval within your tool execution logic or a framework handler. 
+To implement approvals, you inject the extension and call `request_approval()` within your tool execution logic or a framework handler. 
 This example uses the [BeeAI Framework](https://framework.beeai.dev/modules/agents/requirement-agent#ask-permission-requirement) to request user approval before executing a tool call:
 
 ```python
@@ -71,7 +71,7 @@ Import `ApprovalExtensionServer`, `ApprovalExtensionSpec`, `ApprovalExtensionPar
 </Step>
 
 <Step title="Inject the extension">
-Add an approval parameter to your agent function using the Annotated type hint with `ApprovalExtensionServer` and `ApprovalExtensionSpec`.
+Add an approval parameter to your agent function using the `Annotated` type hint with `ApprovalExtensionServer` and `ApprovalExtensionSpec`.
 </Step>
 
 <Step title="Request user approval">
