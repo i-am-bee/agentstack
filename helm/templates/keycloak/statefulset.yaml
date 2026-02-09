@@ -22,6 +22,7 @@ spec:
         app: keycloak
         {{- include "agentstack.labels" . | nindent 8 }}
     spec:
+      {{- if .Values.keycloak.persistence.initSchemaContainer.enabled }}
       initContainers:
         - name: init-schema
           image: "{{ .Values.postgresql.image.registry }}/{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
@@ -35,7 +36,7 @@ spec:
                 echo "Waiting for database..."
                 sleep 2
               done
-              psql -h $KC_DB_URL_HOST -p $KC_DB_URL_PORT -U $KC_DB_USERNAME -d $KC_DB_URL_DATABASE -c "CREATE SCHEMA IF NOT EXISTS \"$KC_DB_SCHEMA\" AUTHORIZATION \"$KC_DB_USERNAME\";"
+              psql -h $KC_DB_URL_HOST -p $KC_DB_URL_PORT -U $KC_DB_USERNAME -d $KC_DB_URL_DATABASE -c "CREATE SCHEMA IF NOT EXISTS \"$KC_DB_SCHEMA\";"
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
               value: {{ .Values.keycloak.auth.adminUser | quote }}
@@ -45,6 +46,7 @@ spec:
                   name: keycloak-secret
                   key: admin-password
             {{- include "agentstack.keycloak.dbEnvVars" . | nindent 12 }}
+      {{- end }}
       containers:
         - name: keycloak
           image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"

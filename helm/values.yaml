@@ -181,6 +181,8 @@ keycloak:
   uiClientSecret: ""
   serverClientSecret: ""
   persistence:
+    initSchemaContainer:
+      enabled: true
     useDedicatedDatabase: false # Default to false (implies useSharedDatabase=true)
     dedicatedDatabaseConfig:
       host: ""
