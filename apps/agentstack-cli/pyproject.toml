@@ -73,9 +73,3 @@ lint.ignore = [
     "UP013", # update TypedDict to longer syntax -- not necessary
 ]
 force-exclude = true
-
-[tool.pyright]
-ignore = ["tests/**", "examples/cli.py"]
-venvPath = "."
-venv = ".venv"
-reportUnusedCallResult = false

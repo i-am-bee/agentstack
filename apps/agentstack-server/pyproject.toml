@@ -116,10 +116,3 @@ lint.ignore = [
     "E501", # line lenght (annyoing)
     "N999", # invalid module name agentstack-server (yeah, we use a dash, deal with it)
 ]
-
-[tool.pyright]
-ignore = ["tests/**"]
-venvPath = "."
-venv = ".venv"
-enableTypeIgnoreComments = true
-reportIgnoreCommentWithoutRule="none"
