@@ -58,23 +58,12 @@
     },
   ],
   "settings": {
-    "python.analysis.extraPaths": [
-      "${workspaceFolder}/apps/agentstack-sdk-py/src",
-    ],
-    "python.analysis.diagnosticMode": "openFilesOnly",
-    "python.analysis.typeCheckingMode": "basic",
     "files.associations": {
       "**/helm/templates/**/*.yaml": "helm",
       "**/helm/templates/**/*.tpl": "helm",
     },
-    "basedpyright.analysis.diagnosticMode": "openFilesOnly",
-    "cursorpyright.analysis.diagnosticMode": "openFilesOnly",
-    "cursorpyright.analysis.extraPaths": [
-      "${workspaceFolder}/apps/agentstack-sdk-py/src",
-    ],
-    "cursorpyright.analysis.typeCheckingMode": "basic",
   },
   "extensions": {
-    "recommendations": ["detachhead.basedpyright", "charliermarsh.ruff"],
+    "recommendations": ["astral-sh.ty", "charliermarsh.ruff"],
   },
 }

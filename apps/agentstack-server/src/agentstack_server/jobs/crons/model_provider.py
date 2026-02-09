@@ -109,7 +109,7 @@ async def check_model_provider_registry(
         provider_record = desired_providers[provider_origin]
 
         try:
-            await model_provider_service.patch_provider(  # pyright: ignore[reportUnusedCallResult]
+            await model_provider_service.patch_provider(
                 model_provider_id=provider.id,
                 name=provider_record.name,
                 description=provider_record.description,

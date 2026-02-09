@@ -15,4 +15,4 @@ async def find_free_port() -> int:
     listener = await anyio.create_tcp_listener()
     port = listener.extra(anyio.abc.SocketAttribute.local_address)[1]
     await listener.aclose()
-    return port
+    return int(port)

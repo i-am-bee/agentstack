@@ -43,11 +43,11 @@ async def _process_docling_stream(
             return float(obj)
         raise TypeError
 
-    async for k, v in ijson.kvitems_async(async_file, "document", use_float=False):  # pyright: ignore[reportAny]
+    async for k, v in ijson.kvitems_async(async_file, "document", use_float=False):
         if k in key_map:
             fmt, info = key_map[k]
 
-            content = v.encode("utf-8") if isinstance(v, str) else cast(bytes, orjson.dumps(v, default=serialize))  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+            content = v.encode("utf-8") if isinstance(v, str) else cast(bytes, orjson.dumps(v, default=serialize))
 
             async_file = AsyncFile.from_bytes(
                 filename=f"extracted_response.{info.file_extension}",
@@ -110,6 +110,6 @@ class DoclingTextExtractionBackend(ITextExtractionBackend):
                 },
             ) as response,
         ):
-            response.raise_for_status()  # pyright: ignore[reportUnusedCallResult]
+            response.raise_for_status()
             async_file = AsyncFile.from_async_iterator(response.aiter_bytes(), "tmp", "application/json")
             yield _process_docling_stream(async_file, formats)

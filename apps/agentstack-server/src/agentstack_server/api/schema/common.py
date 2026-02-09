@@ -26,9 +26,9 @@ class ErrorStreamResponse(BaseModel, extra="allow"):
 class EntityModel[T: BaseModel]:
     def __new__(cls, model: T) -> Self:
         assert getattr(model, "id", None)
-        return model  # pyright: ignore [reportReturnType]
+        return model
 
-    def __class_getitem__(cls, model: type[T]) -> type[T]:  # pyright: ignore [reportIncompatibleMethodOverride]
+    def __class_getitem__(cls, model: type[T]) -> type[T]:
         if not model.model_fields.get("id"):
             raise TypeError(f"Class {model.__name__} is missing the id attribute")
 
@@ -37,4 +37,4 @@ class EntityModel[T: BaseModel]:
 
         ModelOutput.__name__ = f"{model.__name__}Response"
 
-        return ModelOutput  # pyright: ignore [reportReturnType]
+        return ModelOutput

@@ -59,10 +59,10 @@ dev = [
     "pytest-httpx>=0.35.0",
     "pytest-subtests>=0.14.1",
     "reportlab>=4.4.2",
-    "pyright>=1.1.399",
     "ruff>=0.8.5",
     "agentstack-sdk",
     "python-keycloak>=7.0.2",
+    "ty>=0.0.15",
 ]
 
 [tool.uv.sources]

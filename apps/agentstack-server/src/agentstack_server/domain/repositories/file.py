@@ -90,4 +90,4 @@ class ITextExtractionBackend(Protocol):
         timeout: timedelta | None = None,  # noqa: ASYNC109
         settings: TextExtractionSettings | None = None,
     ) -> AsyncIterator[AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
-        yield ...  # pyright: ignore [reportReturnType]
+        yield ...

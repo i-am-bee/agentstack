@@ -30,7 +30,7 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
 
     def _get_client(self) -> AbstractAsyncContextManager[Any]:
         session = aioboto3.Session()
-        return session.client(  # pyright: ignore [reportReturnType]
+        return session.client(
             "s3",
             endpoint_url=str(self.config.endpoint_url),
             aws_access_key_id=self.config.access_key_id.get_secret_value(),

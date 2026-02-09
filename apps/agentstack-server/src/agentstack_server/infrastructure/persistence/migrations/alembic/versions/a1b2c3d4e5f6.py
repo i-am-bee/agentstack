@@ -26,7 +26,7 @@ discovery_state_enum = sa.Enum("pending", "in_progress", "completed", "failed", 
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.create_table(  # pyright: ignore[reportUnusedCallResult]
+    op.create_table(
         "provider_discoveries",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),

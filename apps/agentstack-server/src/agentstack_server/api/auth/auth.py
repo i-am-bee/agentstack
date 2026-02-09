@@ -139,13 +139,13 @@ def verify_internal_jwt(token: str, configuration: Configuration) -> ParsedToken
         },
     )
     claims.validate()
-    context_id = UUID(claims["resource"][0].replace("context:", ""))  # pyright: ignore[reportAny]
+    context_id = UUID(claims["resource"][0].replace("context:", ""))
     return ParsedToken(
         global_permissions=Permissions.model_validate(claims["scope"]["global"]),
         context_permissions=Permissions.model_validate(claims["scope"]["context"]),
         context_id=context_id,
-        user_id=UUID(claims["sub"]),  # pyright: ignore[reportAny]
-        iat=claims["iat"],  # pyright: ignore[reportAny]
+        user_id=UUID(claims["sub"]),
+        iat=claims["iat"],
         raw=claims,
     )
 
@@ -234,7 +234,7 @@ def extract_oauth_token(
 async def validate_jwt(token: str, *, provider: OidcProvider, aud: Iterable[str]) -> JWTClaims | Exception:
     keyset = await discover_jwks(provider)
     try:
-        claims = jwt.decode(  # pyright: ignore[reportUnknownMemberType]
+        claims = jwt.decode(
             token,
             key=keyset,
             claims_options={
@@ -244,7 +244,7 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: Iterable[str]
                 "aud": {"essential": True, "values": aud},
             },
         )
-        claims.validate()  # pyright: ignore[reportUnknownMemberType]
+        claims.validate()
         return claims
     except Exception as e:
         return e  # Cache exception response

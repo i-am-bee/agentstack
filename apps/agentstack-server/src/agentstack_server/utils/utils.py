@@ -5,25 +5,49 @@ import asyncio
 import concurrent.futures
 import functools
 from asyncio import CancelledError
-from collections.abc import Callable, Iterable
+from collections.abc import (
+    Callable,
+    Coroutine,
+    Iterable,
+)
 from contextlib import suppress
 from datetime import UTC, datetime
-from typing import Any, cast
-
-from agentstack_server.types import JsonValue
+from typing import Any, cast, overload
 
 
-def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, T]:
+def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V | None = None) -> dict[str, T]:
     """Remove entries with unwanted values (None by default) from dictionary."""
     return {key: cast(T, value) for key, value in map.items() if value is not value_to_exclude}
 
 
-def filter_json_recursively[T: JsonValue](
+@overload
+def filter_json_recursively(
+    obj: dict[str, Any],
+    values_to_exclude: Iterable[Any] | None = None,
+    keys_to_exclude: Iterable[str] | None = None,
+    exclude_empty: bool = False,
+) -> dict[str, Any]: ...
+
+
+@overload
+def filter_json_recursively(
+    obj: list[Any],
+    values_to_exclude: Iterable[Any] | None = None,
+    keys_to_exclude: Iterable[str] | None = None,
+    exclude_empty: bool = False,
+) -> list[Any]: ...
+
+
+@overload
+def filter_json_recursively[T](
     obj: T,
     values_to_exclude: Iterable[Any] | None = None,
     keys_to_exclude: Iterable[str] | None = None,
     exclude_empty: bool = False,
-) -> T:
+) -> T: ...
+
+
+def filter_json_recursively(obj, values_to_exclude=None, keys_to_exclude=None, exclude_empty=False):
     keys_to_exclude = set(keys_to_exclude) if keys_to_exclude else set()
     values_to_exclude = set(values_to_exclude) if values_to_exclude else set()
     if isinstance(obj, dict):
@@ -34,7 +58,7 @@ def filter_json_recursively[T: JsonValue](
         }
         if exclude_empty:
             result = {key: value for key, value in result.items() if not isinstance(value, (list, dict)) or value}
-        return result  # pyright: ignore[reportReturnType]
+        return result
 
     elif isinstance(obj, list):
         list_res = [
@@ -43,7 +67,7 @@ def filter_json_recursively[T: JsonValue](
         ]
         if exclude_empty:
             list_res = [item for item in list_res if not isinstance(item, (list, dict)) or item]
-        return list_res  # pyright: ignore[reportReturnType]
+        return list_res
 
     return obj
 
@@ -74,9 +98,9 @@ def utc_now() -> datetime:
     return datetime.now(UTC)
 
 
-def async_to_sync_isolated[AnyCallableT: Callable[..., Any]](fn: AnyCallableT) -> AnyCallableT:
+def async_to_sync_isolated[**P, R](fn: Callable[P, Coroutine[Any, Any, R]]) -> Callable[P, R]:
     @functools.wraps(fn)
-    def wrapped_fn(*args, **kwargs):
+    def wrapped_fn(*args: P.args, **kwargs: P.kwargs) -> R:
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(lambda: asyncio.run(fn(*args, **kwargs)))
             return future.result()

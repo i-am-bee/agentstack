@@ -50,11 +50,10 @@ run = "uv run ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-# TODO: Enable and fix issues in separate PR
-# ["agentstack-server:check:pyright"]
+# ["agentstack-server:check:ty"]
 # depends = ["agentstack-server:setup"]
 # dir = "{{config_root}}/apps/agentstack-server"
-# run = "uv run pyright"
+# run = "uv run ty check src"
 # sources = ["src/**/*.py"]
 # outputs = { auto = true }
 

@@ -19,4 +19,4 @@ class Queues(StrEnum):
 
     @staticmethod
     def all() -> set[str]:
-        return {v.value for v in Queues.__members__.values()}  # pyright: ignore [reportAttributeAccessIssue]
+        return {v.value for v in Queues.__members__.values()}

@@ -63,7 +63,7 @@ class DockerImageID(RootModel):
     _digest: str | None = PrivateAttr(None)
     _manifest: dict[str, Any] | None = PrivateAttr(None)
 
-    @property  # pyright: ignore [reportArgumentType]
+    @property
     @inject
     def registry_config(self, configuration: Configuration) -> OCIRegistryConfiguration:
         return configuration.oci_registry[self.registry]

@@ -210,7 +210,7 @@ class RequiresContextPermissions(Permissions):
 
 
 class RequiresContextPermissionsPath(RequiresContextPermissions):
-    def __call__(  # pyright: ignore [reportIncompatibleMethodOverride]
+    def __call__(
         self,
         user: Annotated[AuthorizedUser, Depends(authorized_user)],
         context_id: Annotated[UUID, Path()],

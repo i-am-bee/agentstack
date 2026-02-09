@@ -139,7 +139,7 @@ def _handle_exception[T: Callable](fn: T) -> T:
             async for item in fn(*args, **kwargs):
                 yield item
 
-    return _fn_iter if inspect.isasyncgenfunction(fn) else _fn  # pyright: ignore [reportReturnType]
+    return _fn_iter if inspect.isasyncgenfunction(fn) else _fn
 
 
 class ProxyRequestHandler(RequestHandler):
