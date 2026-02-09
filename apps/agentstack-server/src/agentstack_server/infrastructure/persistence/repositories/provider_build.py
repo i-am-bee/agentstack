@@ -102,7 +102,7 @@ class SqlAlchemyProviderBuildRepository(IProviderBuildRepository):
             raise EntityNotFoundError("provider_build", provider_build_id)
         return result.rowcount
 
-    async def list(  # pyrefly: ignore[bad-override]
+    async def list(
         self, *, status: BuildState | None = None, user_id: UUID | None = None
     ) -> AsyncIterator[ProviderBuild]:
         query = provider_builds_table.select()

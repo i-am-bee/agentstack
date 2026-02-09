@@ -184,7 +184,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
             )
 
     @override
-    async def create_chat_completion_stream(  # pyrefly: ignore[bad-override]
+    async def create_chat_completion_stream(
         self,
         *,
         request: ChatCompletionRequest,

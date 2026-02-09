@@ -77,7 +77,7 @@ class SqlAlchemyConnectorRepository(IConnectorRepository):
             raise EntityNotFoundError(entity="connector", id=connector_id)
         return result.rowcount
 
-    async def list(self, *, user_id: UUID | None = None) -> AsyncIterator[Connector]:  # pyrefly: ignore[bad-override]
+    async def list(self, *, user_id: UUID | None = None) -> AsyncIterator[Connector]:
         query = connectors.select()
         if user_id is not None:
             query = query.where(connectors.c.created_by == user_id)

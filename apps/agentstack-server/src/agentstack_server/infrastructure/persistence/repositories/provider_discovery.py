@@ -70,7 +70,7 @@ class SqlAlchemyProviderDiscoveryRepository(IProviderDiscoveryRepository):
         result = await self.connection.execute(query)
         return result.rowcount
 
-    async def list(  # pyrefly: ignore[bad-override]
+    async def list(
         self, *, user_id: UUID | None = None, status: DiscoveryState | None = None
     ) -> AsyncIterator[ProviderDiscovery]:
         query = select(provider_discoveries_table)

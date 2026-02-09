@@ -11,7 +11,7 @@ from agentstack_server.domain.models.context import Context, ContextHistoryItem,
 
 
 class IContextRepository(Protocol):
-    async def list(
+    def list(
         self, user_id: UUID | None = None, last_active_before: datetime | None = None
     ) -> AsyncIterator[Context]: ...
     async def list_paginated(

@@ -12,7 +12,7 @@ from beeai_framework.tools import (
 )
 from pydantic import BaseModel, Field, create_model
 
-from rag.tools.files.utils import File, format_size
+from rag.tools.files.utils import format_size
 
 
 class FileReaderToolResult(BaseModel):
@@ -24,12 +24,6 @@ class FileReaderToolResult(BaseModel):
 
 class FileReaderToolOutput(JSONToolOutput[FileReaderToolResult]):
     pass
-
-
-class FileReadInputBase(BaseModel):
-    """Base class for file read input to enable proper typing"""
-
-    filenames: List[str]
 
 
 def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
@@ -96,8 +90,7 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
             self.files = files
             self.files_dict = {file.filename: file for file in files}
 
-        # pyrefly: ignore [bad-override]
-        async def _run(self, input: FileReadInputBase, options, context) -> FileReaderToolOutput:
+        async def _run(self, input, options, context) -> FileReaderToolOutput:
             if len(input.filenames) == 1 and input.filenames[0] == "__None__":
                 return FileReaderToolOutput(
                     result=FileReaderToolResult(file_contents={"__None__": "There are no files to read at the moment."})

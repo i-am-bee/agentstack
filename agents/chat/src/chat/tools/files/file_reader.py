@@ -64,9 +64,8 @@ class FileReaderTool(Tool[FileReadInputBase, ToolRunOptions, FileReaderToolOutpu
             ),
         )
 
-    # pyrefly: ignore [bad-override]
     async def _run(
-        self, input: FileReadInputBase, options: ToolRunOptions, context: RunContext
+        self, input: FileReadInputBase, options: ToolRunOptions | None, context: RunContext
     ) -> FileReaderToolOutput:
         if len(input.filenames) == 1 and input.filenames[0] == "__None__":
             return FileReaderToolOutput(
