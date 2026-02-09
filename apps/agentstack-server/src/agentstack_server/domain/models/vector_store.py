@@ -53,7 +53,7 @@ class DocumentType(StrEnum):
 
 class VectorStoreDocumentInfo(BaseModel):
     id: str
-    usage_bytes: int = None
+    usage_bytes: int | None = None
 
 
 class VectorStoreItem(BaseModel):

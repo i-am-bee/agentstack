@@ -98,7 +98,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             )
             env = {
                 **(env or {}),
-                **global_provider_variables(provider_url=await self.get_provider_url(provider_id=provider.id)),
+                **global_provider_variables(provider_url=await self.get_provider_url(provider_id=provider.id)),  # ty:ignore[missing-argument, unknown-argument, invalid-argument-type]
             }
             secret = Secret(
                 await self._render_template(

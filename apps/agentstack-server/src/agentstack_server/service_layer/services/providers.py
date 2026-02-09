@@ -60,7 +60,7 @@ class ProviderService:
     ) -> ProviderWithState:
         try:
             if not agent_card:
-                agent_card = await location.load_agent_card()
+                agent_card = await location.load_agent_card()  # ty:ignore[missing-argument, invalid-await]
             agent_card = self._inject_default_agent_detail_extension(agent_card)
             version_info = await location.get_version_info()
 
@@ -176,7 +176,7 @@ class ProviderService:
 
             if not agent_card:
                 try:
-                    loaded_card = await location.load_agent_card()
+                    loaded_card = await location.load_agent_card()  # ty:ignore[missing-argument, invalid-await]
                     updated_provider.agent_card = self._inject_default_agent_detail_extension(loaded_card)
                 except ValueError as ex:
                     raise ManifestLoadError(
@@ -214,7 +214,7 @@ class ProviderService:
     ) -> ProviderWithState:
         try:
             if not agent_card:
-                agent_card = await location.load_agent_card()
+                agent_card = await location.load_agent_card()  # ty:ignore[missing-argument, invalid-await]
             agent_card = self._inject_default_agent_detail_extension(agent_card)
             provider = Provider(
                 source=location,
@@ -300,8 +300,8 @@ class ProviderService:
             providers = [
                 p
                 async for p in uow.providers.list(
-                    user_id=user.id if user_owned is True else None,
-                    exclude_user_id=user.id if user_owned is False else None,
+                    user_id=user.id if user_owned is True and user else None,
+                    exclude_user_id=user.id if user_owned is False and user else None,
                     origin=origin,
                 )
             ]

@@ -26,6 +26,8 @@ class ProcessLogMessage(BaseModel, extra="allow"):
     stream: ProcessLogType = ProcessLogType.STDOUT
     message: str
     time: datetime = Field(default_factory=utc_now)
+    error: bool | None = None
+    finished: bool | None = None
 
 
 class LogsContainer:

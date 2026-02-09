@@ -106,9 +106,9 @@ def configure_logging(configuration: LoggingConfiguration | None = None) -> None
             },
             "filters": {
                 "filter_duplicates": {
-                    "()": FilterDuplicates,
-                    "loggers": ["progressbar"],
-                }
+                    "()": FilterDuplicates,  # ty:ignore[invalid-key]
+                    "loggers": ["progressbar"],  # ty:ignore[invalid-key]
+                }  # ty:ignore[missing-typed-dict-key]
             },
             "handlers": {
                 "default": {

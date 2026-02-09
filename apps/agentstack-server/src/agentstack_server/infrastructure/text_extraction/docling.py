@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from decimal import Decimal
-from typing import NamedTuple, cast
+from typing import NamedTuple
 
 import ijson
 import orjson
@@ -47,7 +47,7 @@ async def _process_docling_stream(
         if k in key_map:
             fmt, info = key_map[k]
 
-            content = v.encode("utf-8") if isinstance(v, str) else cast(bytes, orjson.dumps(v, default=serialize))
+            content = v.encode("utf-8") if isinstance(v, str) else orjson.dumps(v, default=serialize)
 
             async_file = AsyncFile.from_bytes(
                 filename=f"extracted_response.{info.file_extension}",

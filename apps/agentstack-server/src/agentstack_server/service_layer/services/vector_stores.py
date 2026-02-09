@@ -107,7 +107,7 @@ class VectorStoreService:
             # Check usage
             usage_bytes_per_document_id = {d.id: d.usage_bytes for d in uow.vector_database.estimate_size(items)}
             total_usage = await uow.vector_stores.total_usage(user_id=user.id)
-            if total_usage + sum(usage_bytes_per_document_id.values()) > self._storage_limit_per_user:
+            if total_usage + sum(usage_bytes_per_document_id.values()) > self._storage_limit_per_user:  # ty:ignore[no-matching-overload]
                 # We are a bit more cautious here, the storage may in fact not be exceeded because some documents
                 # or items might already be in the database - the operation below is an upsert, but for simplicity
                 # we check the usage as if all items were new.

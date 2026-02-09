@@ -11,7 +11,7 @@ from a2a.server.apps import A2AFastAPIApplication
 from a2a.server.apps.rest.rest_adapter import RESTAdapter
 from a2a.types import AgentCard, AgentInterface, HTTPAuthSecurityScheme, SecurityScheme, TransportProtocol
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, Response
 
 from agentstack_server.api.dependencies import (
     A2AProxyServiceDependency,
@@ -93,7 +93,7 @@ async def a2a_proxy_jsonrpc_transport(
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
-) -> AgentCard:
+) -> Response:
     user = RequiresPermissions(a2a_proxy={provider_id})(user)
 
     provider = await provider_service.get_provider(provider_id=provider_id)
@@ -118,7 +118,7 @@ async def a2a_proxy_http_transport(
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
     path: str = "",
-):
+) -> Response:
     user = RequiresPermissions(a2a_proxy={provider_id})(user)
     provider = await provider_service.get_provider(provider_id=provider_id)
     agent_card = create_proxy_agent_card(

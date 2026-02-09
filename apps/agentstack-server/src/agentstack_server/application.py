@@ -160,7 +160,7 @@ def mount_routes(app: FastAPI):
         openapi_url = request.url_for(custom_openapi.__name__)
 
         return get_swagger_ui_html(
-            openapi_url=openapi_url,
+            openapi_url=str(openapi_url),
             title="BeeAI Platform API Docs",
         )
 
@@ -202,7 +202,7 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     bootstrap_dependencies_sync(dependency_overrides=dependency_overrides)
     configuration = di[Configuration]
 
-    @asynccontextmanager
+    @asynccontextmanager  # ty:ignore[no-matching-overload]
     @inject
     async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, user_feedback: UserFeedbackService):
         try:
@@ -241,14 +241,14 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     # Execution order is important here: https://fastapi.tiangolo.com/tutorial/middleware/#multiple-middleware-execution-order
     if configuration.cors.enabled:
         app.add_middleware(
-            CORSMiddleware,
+            CORSMiddleware,  # ty:ignore[invalid-argument-type]
             allow_origins=configuration.cors.allow_origins,
             allow_credentials=configuration.cors.allow_credentials,
             allow_methods=configuration.cors.allow_methods,
             allow_headers=configuration.cors.allow_headers,
         )
-    app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)
-    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
+    app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)  # ty:ignore[invalid-argument-type]
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")  # ty:ignore[invalid-argument-type]
 
     register_global_exception_handlers(app)
     return app

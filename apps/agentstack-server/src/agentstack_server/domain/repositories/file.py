@@ -23,7 +23,7 @@ from agentstack_server.domain.models.file import (
 
 class IFileRepository(Protocol):
     async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
-        yield  # type: ignore
+        yield
 
     async def list_paginated(
         self,
@@ -68,7 +68,7 @@ class IObjectStorageRepository(Protocol):
 
     @asynccontextmanager
     async def get_file(self, *, file_id: UUID) -> AsyncIterator[AsyncFile]:
-        yield  # type: ignore
+        yield
 
     async def delete_files(self, *, file_ids: list[UUID]) -> None: ...
     async def get_file_url(self, *, file_id: UUID) -> HttpUrl: ...

@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 import asyncio
 import typing
 from collections.abc import AsyncIterator, Iterator
@@ -9,6 +8,7 @@ from typing import Final, override
 
 import ibm_watsonx_ai.foundation_models.embeddings
 import openai.types.chat
+import pydantic
 from httpx import AsyncClient
 
 from agentstack_server.api.schema.openai import ChatCompletionRequest, EmbeddingsRequest, MultiformatEmbedding
@@ -39,7 +39,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                 logprobs=request.logprobs,
                 top_logprobs=request.top_logprobs,
                 presence_penalty=request.presence_penalty,
-                response_format=request.response_format,
+                response_format=request.response_format,  # ty:ignore[invalid-argument-type]
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
                 max_completion_tokens=request.max_completion_tokens,
@@ -90,7 +90,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
     ) -> openai.types.chat.ChatCompletion:
         response = await asyncio.to_thread(
             self._get_watsonx_model(request, api_key).chat,
-            messages=request.messages,
+            messages=[typing.cast(pydantic.BaseModel, message).model_dump() for message in request.messages],
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
@@ -138,7 +138,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         self, request: ChatCompletionRequest, model: ibm_watsonx_ai.foundation_models.ModelInference
     ) -> Iterator[openai.types.chat.ChatCompletionChunk]:
         for chunk in model.chat_stream(
-            messages=request.messages,
+            messages=[typing.cast(pydantic.BaseModel, message).model_dump() for message in request.messages],
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
@@ -160,7 +160,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                                 openai.types.chat.chat_completion_chunk.ChoiceDeltaToolCall(
                                     index=tool_call["index"],
                                     type="function",
-                                    function=openai.types.chat.chat_completion_chunk.ChoiceDeltaFunctionCall(
+                                    function=openai.types.chat.chat_completion_chunk.ChoiceDeltaFunctionCall(  # type: ignore
                                         name=tool_call["function"]["name"],
                                         arguments=tool_call["function"]["arguments"],
                                     ),

@@ -45,7 +45,7 @@ def create_table(*args, no_wrap: bool = True, **kwargs) -> Iterator[Table]:
         column.header = column.header.upper()
 
     if not table.rows:
-        table._render = lambda *args, **kwargs: [rich.text.Text("<No items found>", style="italic")]  # ty: ignore[invalid-assignment]
+        table._render = lambda *args, **kwargs: [rich.text.Text("<No items found>", style="italic")]  # ty:ignore[invalid-assignment]
 
 
 class AliasGroup(TyperGroup):

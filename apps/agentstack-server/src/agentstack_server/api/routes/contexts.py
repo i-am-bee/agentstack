@@ -41,7 +41,7 @@ async def create_context(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
     return EntityModel(
-        await context_service.create(user=user.user, metadata=request.metadata, provider_id=request.provider_id)
+        await context_service.create(user=user.user, metadata=request.metadata or {}, provider_id=request.provider_id)
     )
 
 

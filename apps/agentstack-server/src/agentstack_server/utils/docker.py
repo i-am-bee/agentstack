@@ -244,7 +244,7 @@ class ResolvedDockerImageID(BaseModel):
         return str(self.image_id)
 
 
-@alru_cache(ttl=timedelta(minutes=5).total_seconds())
+@alru_cache(ttl=timedelta(minutes=5).total_seconds())  # ty:ignore[invalid-argument-type]
 @inject
 async def get_registry_token(
     *,

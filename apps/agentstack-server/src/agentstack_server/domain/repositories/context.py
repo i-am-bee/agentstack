@@ -14,7 +14,7 @@ class IContextRepository(Protocol):
     async def list(
         self, user_id: UUID | None = None, last_active_before: datetime | None = None
     ) -> AsyncIterator[Context]:
-        yield ...  # type: ignore
+        yield ...
 
     async def list_paginated(
         self,

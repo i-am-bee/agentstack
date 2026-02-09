@@ -6,7 +6,7 @@ import re
 import time
 from datetime import timedelta
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import httpx
 from async_lru import alru_cache
@@ -32,14 +32,16 @@ async def get_github_token(host: str) -> str | None:
     if not (conf := di[Configuration].github_registry.get(host)):
         return None
     if conf.type == "pat":
-        return conf.token.get_secret_value()
+        pat_conf = cast(GithubPATConfiguration, conf)
+        return pat_conf.token.get_secret_value()
     else:
+        app_conf = cast(GithubAppConfiguration, conf)
         now = time.time()
-        payload = {"iat": int(now), "exp": int(now) + 600, "iss": conf.app_id}
-        encoded_jwt = jwt.encode({"alg": "RS256"}, payload, conf.private_key.get_secret_value()).decode("utf-8")
+        payload = {"iat": int(now), "exp": int(now) + 600, "iss": app_conf.app_id}
+        encoded_jwt = jwt.encode({"alg": "RS256"}, payload, app_conf.private_key.get_secret_value()).decode("utf-8")
         async with httpx.AsyncClient() as client:
             resp = await client.post(
-                f"https://{host}/api/v3/app/installations/{conf.installation_id}/access_tokens",
+                f"https://{host}/api/v3/app/installations/{app_conf.installation_id}/access_tokens",
                 headers={
                     "Authorization": f"Bearer {encoded_jwt}",
                     "Accept": "application/vnd.github+json",
@@ -261,7 +263,7 @@ class GithubUrl(RootModel):
     async def resolve_version(self) -> ResolvedGithubUrl:
         if not (token := await get_github_token(self._host)):
             if self._host == "github.com":
-                return await self._resolve_version_public()
+                return await self._resolve_version_public()  # ty:ignore[missing-argument, invalid-await]
             raise ValueError(f"GitHub token not configured for host {self._host}")
         return await self._resolve_version_api(token=token)
 

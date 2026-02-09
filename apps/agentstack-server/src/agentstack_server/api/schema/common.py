@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-from typing import Self
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -24,7 +23,7 @@ class ErrorStreamResponse(BaseModel, extra="allow"):
 
 
 class EntityModel[T: BaseModel]:
-    def __new__(cls, model: T) -> Self:
+    def __new__(cls, model: T) -> T:
         assert getattr(model, "id", None)
         return model
 
@@ -32,9 +31,9 @@ class EntityModel[T: BaseModel]:
         if not model.model_fields.get("id"):
             raise TypeError(f"Class {model.__name__} is missing the id attribute")
 
-        class ModelOutput(model):
+        class ModelOutput(model):  # ty:ignore[invalid-generic-class, unsupported-base]
             id: UUID
 
         ModelOutput.__name__ = f"{model.__name__}Response"
 
-        return ModelOutput
+        return ModelOutput  # ty:ignore[invalid-return-type]

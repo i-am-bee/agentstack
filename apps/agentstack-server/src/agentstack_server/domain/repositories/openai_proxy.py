@@ -28,7 +28,7 @@ class IOpenAIChatCompletionProxyAdapter(Protocol):
         request: ChatCompletionRequest,
         api_key: str,
     ) -> AsyncIterator[openai.types.chat.ChatCompletionChunk]:
-        yield ...  # type: ignore
+        yield ...
 
 
 class IOpenAIEmbeddingProxyAdapter(Protocol):

@@ -57,7 +57,7 @@ def configure_telemetry():
     trace.set_tracer_provider(
         tracer_provider=TracerProvider(
             resource=resource,
-            active_span_processor=BatchSpanProcessor(SilentOTLPSpanExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/traces")),
+            active_span_processor=BatchSpanProcessor(SilentOTLPSpanExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/traces")),  # ty:ignore[invalid-argument-type]
         )
     )
     metrics.set_meter_provider(

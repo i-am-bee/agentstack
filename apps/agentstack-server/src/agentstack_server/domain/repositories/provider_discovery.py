@@ -20,4 +20,4 @@ class IProviderDiscoveryRepository(Protocol):
     async def list(
         self, *, user_id: UUID | None = None, status: DiscoveryState | None = None
     ) -> AsyncIterator[ProviderDiscovery]:
-        yield ...  # type: ignore
+        yield ...

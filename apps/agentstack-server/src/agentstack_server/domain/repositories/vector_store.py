@@ -18,7 +18,7 @@ class IVectorStoreRepository(Protocol):
     """Interface for vector store repository operations."""
 
     async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[VectorStore]:
-        yield ...  # type: ignore
+        yield ...
 
     async def create(self, *, vector_store: VectorStore) -> None: ...
     async def get(
@@ -32,7 +32,7 @@ class IVectorStoreRepository(Protocol):
     async def total_usage(self, *, user_id: UUID | None = None) -> int: ...
 
     async def list_documents(self, *, vector_store_id: UUID) -> AsyncIterator[VectorStoreDocument]:
-        yield ...  # type: ignore
+        yield ...
 
     async def remove_documents(self, *, vector_store_id: UUID, document_ids: Iterable[str]) -> int: ...
 

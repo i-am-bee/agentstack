@@ -46,7 +46,10 @@ class LoggingConfiguration(BaseModel):
     @field_validator("level", "level_uvicorn", "level_procrastinate", mode="before")
     @classmethod
     def validate_level(cls, v: str | int | None):
-        return v if isinstance(v, int) else logging.getLevelNamesMapping()[v.upper()]
+        if isinstance(v, int):
+            return v
+        elif isinstance(v, str):
+            return logging.getLevelNamesMapping()[v.upper()]
 
 
 class OCIRegistryConfiguration(BaseModel, extra="allow"):

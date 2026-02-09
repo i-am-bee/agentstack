@@ -14,7 +14,7 @@ class IProviderBuildRepository(Protocol):
     async def list(
         self, *, status: BuildState | None = None, user_id: UUID | None = None
     ) -> AsyncIterator[ProviderBuild]:
-        yield ...  # type: ignore
+        yield ...
 
     async def list_paginated(
         self,

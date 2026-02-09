@@ -96,7 +96,7 @@ from agentstack_cli.configuration import Configuration
 if sys.platform != "win32":
     try:
         # This is necessary for proper handling of arrow keys in interactive input
-        import gnureadline as readline  # ty: ignore[unresolved-import]
+        import gnureadline as readline  # ty:ignore[unresolved-import]
     except ImportError:
         import readline  # noqa: F401
 
