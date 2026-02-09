@@ -16,6 +16,7 @@ from agentstack_server.utils.github import GithubUrl
 if TYPE_CHECKING:
     # Workaround to prevent cyclic imports
     # Models from this file are used in config which is used everywhere throughout the codebase
+    from agentstack_server.domain.models.model_provider import ModelProviderType
     from agentstack_server.domain.models.provider import ProviderLocation
 
 
@@ -63,7 +64,7 @@ def parse_providers_manifest(content: dict[str, Any]) -> list[ProviderRegistryRe
     return RegistryManifest.model_validate(content).providers
 
 
-class NetworkRegistryLocation(RootModel):
+class NetworkRegistryLocation(RootModel[HttpUrl]):
     root: HttpUrl
 
     async def load(self) -> list[ProviderRegistryRecord]:
@@ -74,7 +75,7 @@ class NetworkRegistryLocation(RootModel):
             return parse_providers_manifest(yaml.safe_load(resp.content))
 
 
-class GithubRegistryLocation(RootModel):
+class GithubRegistryLocation(RootModel[GithubUrl]):
     root: GithubUrl
 
     async def load(self) -> list[ProviderRegistryRecord]:
@@ -87,7 +88,7 @@ class GithubRegistryLocation(RootModel):
         return await network_location.load()
 
 
-class FileSystemRegistryLocation(RootModel):
+class FileSystemRegistryLocation(RootModel[FileUrl]):
     root: FileUrl
 
     async def load(self) -> list[ProviderRegistryRecord]:
@@ -96,3 +97,36 @@ class FileSystemRegistryLocation(RootModel):
 
 
 RegistryLocation = GithubRegistryLocation | NetworkRegistryLocation | FileSystemRegistryLocation
+
+
+class ModelProviderRegistryRecord(BaseModel, extra="allow"):
+    name: str | None = None
+    description: str | None = None
+    type: "ModelProviderType"
+    base_url: HttpUrl
+    api_key: str
+    watsonx_project_id: str | None = None
+    watsonx_space_id: str | None = None
+
+
+class ModelProviderRegistryManifest(BaseModel):
+    providers: list[ModelProviderRegistryRecord]
+
+
+def parse_model_providers_manifest(content: dict[str, Any]) -> list[ModelProviderRegistryRecord]:
+    from agentstack_server.domain.models.model_provider import ModelProviderType
+
+    _ = ModelProviderType  # make sure this is imported
+
+    return ModelProviderRegistryManifest.model_validate(content).providers
+
+
+class FileSystemModelProviderRegistryLocation(RootModel[FileUrl]):
+    root: FileUrl
+
+    async def load(self) -> list[ModelProviderRegistryRecord]:
+        content = await Path(self.root.path).read_text()
+        return parse_model_providers_manifest(yaml.safe_load(content))
+
+
+ModelProviderRegistryLocation = FileSystemModelProviderRegistryLocation

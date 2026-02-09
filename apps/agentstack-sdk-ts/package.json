@@ -1,7 +1,7 @@
 {
   "name": "agentstack-sdk",
   "author": "IBM Corp.",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "type": "module",
   "scripts": {
     "build": "rimraf dist && microbundle --format modern,cjs,umd src/*.ts",
@@ -73,15 +73,15 @@
   "module": "dist/index.js",
   "unpkg": "dist/index.umd.js",
   "dependencies": {
-    "@a2a-js/sdk": "^0.3.7",
-    "zod": "^4.1.11"
+    "@a2a-js/sdk": "^0.3.10",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@i-am-bee/lint-config": "workspace:*",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "microbundle": "^0.15.1",
-    "prettier": "^3.7.4",
-    "rimraf": "^6.0.1",
+    "prettier": "^3.8.1",
+    "rimraf": "^6.1.2",
     "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@9.9.0"

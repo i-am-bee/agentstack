@@ -1,5 +1,6 @@
 {
     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "ruff.interpreter": ["${workspaceFolder}/.venv/bin/python"],
     "python.analysis.typeCheckingMode": "basic",
     "python.analysis.diagnosticMode": "openFilesOnly",
     "python.analysis.indexing": true,
@@ -12,5 +13,5 @@
     "python.testing.pytestEnabled": true,
     "cursorpyright.analysis.autoImportCompletions": true,
     "cursorpyright.analysis.diagnosticMode": "openFilesOnly",
-    "cursorpyright.analysis.typeCheckingMode": "basic",
+    "cursorpyright.analysis.typeCheckingMode": "basic"
 }

@@ -1,15 +1,16 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 from uuid import UUID
 
 from fastapi import status
 from tenacity import retry_base, retry_if_exception
 
-from agentstack_server.domain.models.model_provider import ModelProvider
-
 if TYPE_CHECKING:
+    from agentstack_server.domain.models.model_provider import ModelProvider
     from agentstack_server.domain.models.provider import EnvVar, ProviderLocation
     from agentstack_server.domain.models.provider_build import BuildState
 
@@ -32,7 +33,7 @@ class VersionResolveError(PlatformError):
 
 class ManifestLoadError(PlatformError):
     def __init__(
-        self, location: "ProviderLocation", message: str | None = None, status_code: int = status.HTTP_404_NOT_FOUND
+        self, location: ProviderLocation, message: str | None = None, status_code: int = status.HTTP_404_NOT_FOUND
     ):
         message = message or f"Manifest at location {location} not found"
         super().__init__(message, status_code)
@@ -104,7 +105,7 @@ class ModelLoadFailedError(PlatformError):
 
 
 class MissingConfigurationError(Exception):
-    def __init__(self, missing_env: list["EnvVar"], status_code: int = status.HTTP_400_BAD_REQUEST):
+    def __init__(self, missing_env: list[EnvVar], status_code: int = status.HTTP_400_BAD_REQUEST):
         self.missing_env = missing_env
         self.status_code = status_code
 
@@ -154,7 +155,7 @@ class DuplicateEntityError(PlatformError):
 
 
 class BuildAlreadyFinishedError(PlatformError):
-    def __init__(self, platform_build_id: UUID, state: "BuildState", status_code: int = status.HTTP_409_CONFLICT):
+    def __init__(self, platform_build_id: UUID, state: BuildState, status_code: int = status.HTTP_409_CONFLICT):
         super().__init__(
             message=f"Build with ID {platform_build_id} already finished in state: {state}",
             status_code=status_code,

@@ -1,0 +1,56 @@
+---
+title: User Messages
+description: Compose user messages with agent fulfillments and user response metadata
+---
+
+User messages need metadata that fulfills agent service demands and includes user responses to forms, approvals, and canvas requests. This guide shows how to build properly structured A2A messages with the correct metadata attached.
+
+See **[Agent Requirements](./agent-requirements)** for the fulfillment and UI metadata helpers used in this flow.
+
+## Build a message builder
+
+`buildMessageBuilder` returns a function that resolves agent demands and builds a user message with metadata.
+
+```typescript
+import { buildMessageBuilder } from "agentstack-sdk";
+
+const buildMessage = buildMessageBuilder(agentCard);
+
+const message = await buildMessage(
+  "context-id",
+  {
+    llm: async (demands) => ({
+      llm_fulfillments: {
+        default: {
+          identifier: "llm_proxy",
+          api_base: "{platform_url}/api/v1/openai/",
+          api_key: contextToken.token,
+          api_model: "gpt-4o",
+        },
+      },
+    }),
+  },
+  {
+    messageId: "message-id",
+    parts: [{ kind: "text", text: "Hello" }],
+  },
+);
+```
+
+## Add user responses
+
+Use `resolveUserMetadata` when the user responds to forms, approvals, or canvas requests.
+
+```typescript
+import { resolveUserMetadata } from "agentstack-sdk";
+
+const metadata = await resolveUserMetadata({
+  form: { name: "Ada" },
+  approvalResponse: { decision: "approve" },
+});
+```
+
+You can merge the user metadata with agent card metadata if you are constructing messages manually.
+
+For end to end streaming usage, see **[A2A Client Integration](./a2a-client)**.
+For rendering responses, see **[Agent Responses](./agent-responses)**.

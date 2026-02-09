@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import Self, TypeVar, cast
+from typing import Any, Self, TypeVar, cast
 
 from pydantic import BaseModel, TypeAdapter
 from typing_extensions import TypedDict
@@ -51,4 +51,8 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
         return TypeAdapter(model).validate_python(dict(initial_form))
 
 
-class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]): ...
+class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]):
+    def fulfillment_metadata(self, *, form_fulfillments: dict[str, FormResponse]) -> dict[str, Any]:
+        return {
+            self.spec.URI: FormServiceExtensionMetadata(form_fulfillments=form_fulfillments).model_dump(mode="json")
+        }

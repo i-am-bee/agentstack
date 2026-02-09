@@ -2,12 +2,6 @@ version = 1
 revision = 3
 requires-python = "==3.13.*"
 
-[manifest]
-overrides = [
-    { name = "grpcio", specifier = "==1.72.1" },
-    { name = "grpcio-tools", specifier = "==1.72.1" },
-]
-
 [[package]]
 name = "a2a-sdk"
 version = "0.3.21"
@@ -26,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.6.1"
+version = "0.6.2"
 source = { editable = "../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },

@@ -12,7 +12,11 @@ import { routes } from '#utils/router.ts';
 
 import classes from './AuthErrorPage.module.scss';
 
-export function AuthErrorPage() {
+interface Props {
+  callbackUrl?: string;
+}
+
+export function AuthErrorPage({ callbackUrl = routes.signIn() }: Props) {
   return (
     <div className={classes.root}>
       <InlineNotification
@@ -22,7 +26,7 @@ export function AuthErrorPage() {
         hideCloseButton
         lowContrast
       />
-      <Button kind="primary" onClick={() => signOut({ redirectTo: routes.signIn() })}>
+      <Button kind="primary" onClick={() => signOut({ redirectTo: callbackUrl })}>
         Sign in again
       </Button>
     </div>

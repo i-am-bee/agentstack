@@ -1,0 +1,31 @@
+[project]
+name = "initial-form-rendering"
+version = "0.1.0"
+description = "Example demonstrating a form as the first interaction before users start a conversation with your agent"
+authors = [
+    { name = "IBM Corp." },
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "agentstack-sdk==0.5.3",
+    "pyyaml>=6.0.2",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
+
+[project.scripts]
+server = "initial_form_rendering.agent:run"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "watchfiles>=1.1.0",
+]

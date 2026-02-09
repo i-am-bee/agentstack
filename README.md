@@ -8,31 +8,43 @@
 [![Follow on Bluesky](https://img.shields.io/badge/Follow%20on%20Bluesky-0285FF?style=plastic&logo=bluesky&logoColor=white)](https://bsky.app/profile/beeaiagents.bsky.social)
 [![Join our Discord](https://img.shields.io/badge/Join%20our%20Discord-7289DA?style=plastic&logo=discord&logoColor=white)](https://discord.com/invite/NradeA6ZNF)
 [![LF AI & Data](https://img.shields.io/badge/LF%20AI%20%26%20Data-0072C6?style=plastic&logo=linuxfoundation&logoColor=white)](https://lfaidata.foundation/projects/)
+[![Docs](https://img.shields.io/badge/Docs-Read%20the%20Docs-0285FF?style=plastic&logo=bookstack&logoColor=white)](https://agentstack.beeai.dev)
+
 
 </div>
 
-<h4 align="center">Open infrastructure for deploying and sharing agents without vendor lock-in</h4>
+<h4 align="center">Open infrastructure for turning AI agents into running services in minutes. </h4>
 
 <p align="center">
     <a href="#key-features"><b>Key Features</b></a> •
     <a href="#quickstart"><b>Quickstart</b></a> •
     <a href="#reference-agents"><b>Reference Agents</b></a> •
-    <a href="#documentation"><b>Documentation</b></a>
 </p>
 
 <div align="center">
 
 </div>
 
-<div align="center">
-  <img src="docs/stable/images/ui-example2.png" alt="UI Example" width="650">
-</div>
+```mermaid
+flowchart TD
+  classDef box fill:#f9fafb,stroke:#d1d5db,stroke-width:1px,color:#111827,rx:6,ry:6
+
+  A["<b>Your Agent Code</b>"]
+  B["<b>Agent Stack CLI</b>"]
+  C["<b>Running Agent Service</b><br>localhost / deployment"]
+  D["<b>App</b><br>API / curl"]
+
+  A --> B --> C --> D
+
+  class A,B,C,D box
+``` 
+<p align="center"><em> Build agents → run them as services → call them from your app. </em></p>
 
 ---
 
-Agent Stack is open infrastructure for taking AI agents from prototype to production—no matter how you built them. It includes everything you need to make your agents usable by others: hosting, web UI, runtime services, and multi-tenancy—all without vendor lock-in.
+Agent Stack is a lightweight runtime for turning your AI agents into real, callable services. Run agents locally or in your environment, wire them into your app over HTTP, and ship agent-powered features without building deployment infrastructure from scratch. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, Agent Stack ensures you aren't locked into a proprietary vendor's ecosystem.
 
-Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, Agent Stack bridges the gap between different agent ecosystems.
+If you’re building agent-powered features or want your agents to run outside a prototype, Agent Stack gives you a fast path from code to deployment-ready service.
 
 ---
 
@@ -40,10 +52,10 @@ Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted 
 
 | Feature | Description |
 |:---------|:-------------|
-| 🎯 Instant Agent UI | Generate a shareable front-end from your code in minutes. Focus on your agent's logic, not UI frameworks. |
-| 🚀 Effortless Deployment | Go from container to production-ready. We handle database, storage, scaling, and RAG so you can focus on your agent. |
-| 🔄 Multi-Provider Playground | Test across OpenAI, Anthropic, Gemini, IBM watsonx, Ollama and more. Instantly compare performance and cost to find the optimal model. |
-| 🔧 Framework-Agnostic | Run agents from LangChain, CrewAI, and more on a single platform. Enable cross-framework collaboration without rewriting your code. |
+| 🎯 <b>Run agents as services</b> | Expose agents over HTTP for consumption in real applications and call them like any other backend service |
+| 🔄 <b>Fast local dev loop</b> | Spin up agents locally and iterate quickly |
+| 🔧 <b>No agent rewrites</b> | Wrap existing agents and run them as-is |
+| 🚀 <b>Deployment-ready architecture</b> | The same agents can move from local to deployed environments |
 
 ---
 
@@ -61,12 +73,12 @@ sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/instal
 ### Usage
 
 ```sh
-agentstack ui                     # Launch web interface
-agentstack list                   # See what agents are available
-agentstack run chat "Hi!"         # Send a message to chat agent
-agentstack run chat               # Try interactive mode
-agentstack info chat              # View agent details
-agentstack --help                 # See all options
+agentstack ui                           # Launch web interface
+agentstack list                         # See what agents are available
+agentstack run chat "Hi, who are you"   # Send a message to chat agent
+agentstack run chat                     # Try interactive mode
+agentstack info chat                    # View agent details
+agentstack --help                       # See all options
 ```
 
 ### Build Your First Agent

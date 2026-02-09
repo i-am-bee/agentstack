@@ -5,7 +5,7 @@
 """add provider_discoveries table
 
 Revision ID: a1b2c3d4e5f6
-Revises: fb04d94673c6
+Revises: 109a6afdf170
 Create Date: 2026-01-23 12:00:00.000000
 
 """
@@ -40,13 +40,8 @@ def upgrade() -> None:
     discovery_state_enum.create(op.get_bind())
     op.add_column("provider_discoveries", sa.Column("status", discovery_state_enum, nullable=False))
 
-    op.create_index("ix_provider_discoveries_created_at", "provider_discoveries", ["created_at"])
-    op.create_index("ix_provider_discoveries_created_by", "provider_discoveries", ["created_by"])
-
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_index("ix_provider_discoveries_created_by", "provider_discoveries")
-    op.drop_index("ix_provider_discoveries_created_at", "provider_discoveries")
     op.drop_table("provider_discoveries")
     discovery_state_enum.drop(op.get_bind())

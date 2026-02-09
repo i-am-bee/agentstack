@@ -1,6 +1,6 @@
 [project]
 name = "agentstack-server"
-version = "0.6.1"
+version = "0.6.2"
 description = "Agent Stack server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]

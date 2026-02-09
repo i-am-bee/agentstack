@@ -38,7 +38,7 @@ async def cleanup_expired_a2a_tasks(timestamp: int, a2a_proxy: A2AProxyService) 
 @inject
 async def cleanup_expired_provider_discoveries(timestamp: int, service: ProviderDiscoveryService) -> None:
     """Delete provider discovery records older than 1 day."""
-    deleted_count = await service.expire_discoveries()
+    deleted_count = await service.cleanup_expired_discoveries()
     logger.info(f"Deleted {deleted_count} expired provider discoveries")
 
 

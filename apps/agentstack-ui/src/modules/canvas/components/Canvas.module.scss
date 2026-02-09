@@ -20,8 +20,8 @@
   background-color: $background;
 
   .codeBlock & {
+    --cds-layer-02: #{$background};
     padding: 0;
-    --cds-layer-02: $background;
   }
 }
 
