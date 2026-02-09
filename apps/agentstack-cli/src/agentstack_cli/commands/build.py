@@ -62,7 +62,6 @@ async def client_side_build(
 ):
     """Build agent locally using Docker. [Local only]"""
     with verbosity(verbose):
-        await run_command(["which", "docker"], "Checking docker")
         image_id = "agentstack-agent-build-tmp:latest"
         port = await find_free_port()
         dockerfile_args = ("-f", dockerfile) if dockerfile else ()

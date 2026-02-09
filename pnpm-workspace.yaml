@@ -7,25 +7,25 @@ packages:
   - docs
 
 catalog:
-  "@carbon/icons-react": ^11.71.0
-  "@carbon/layout": "^11.44.0"
-  "@carbon/react": ^1.97.0
-  "@carbon/styles": ^1.96.0
-  "@ibm/plex": "^6.4.1"
-  "@svgr/webpack": ^8.1.0
-  "@tanstack/react-query": ^5.90.12
-  "@types/lodash": ^4.17.21
-  "@types/node": ^22.19.1
-  "@types/react": ^19.2.7
-  "@types/react-dom": ^19.2.3
+  '@carbon/icons-react': ^11.74.0
+  '@carbon/layout': ^11.47.0
+  '@carbon/react': ^1.100.0
+  '@carbon/styles': ^1.99.0
+  '@ibm/plex': ^6.4.1
+  '@svgr/webpack': ^8.1.0
+  '@tanstack/react-query': ^5.90.20
+  '@types/lodash': ^4.17.23
+  '@types/node': ^22.19.10
+  '@types/react': ^19.2.13
+  '@types/react-dom': ^19.2.3
   clsx: ^2.1.1
-  eslint: ^9.39.1
-  lodash: ^4.17.21
-  next: 15.5.7
-  prettier: ^3.7.4
-  react: ^19.2.1
-  react-dom: ^19.2.1
-  sass-embedded: ^1.93.3
+  eslint: ^9.39.2
+  lodash: ^4.17.23
+  next: 15.5.12
+  prettier: ^3.8.1
+  react: ^19.2.4
+  react-dom: ^19.2.4
+  sass-embedded: ^1.97.3
   stylelint: ^16.26.1
   typescript: ^5.9.3
   usehooks-ts: ^3.1.1

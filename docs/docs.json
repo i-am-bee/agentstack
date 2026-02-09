@@ -8,13 +8,7 @@
     "dark": "#000000"
   },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -34,7 +28,8 @@
             "pages": [
               "stable/deploy-agents/wrap-existing-agents",
               "stable/deploy-agents/building-agents",
-              "stable/deploy-agents/deploy-your-agents"
+              "stable/deploy-agents/deploy-your-agents",
+              "stable/deploy-agents/a2a-agents"
             ]
           },
           {
@@ -62,9 +57,7 @@
           },
           {
             "group": "Reference",
-            "pages": [
-              "stable/reference/cli-reference"
-            ]
+            "pages": ["stable/reference/cli-reference"]
           },
           {
             "group": "Deploy Agent Stack",
@@ -76,29 +69,23 @@
           {
             "group": "Custom UI Integration",
             "pages": [
-              {
-                "group": "Client SDK (Typescript)",
-                "pages": [
-                  "stable/custom-ui/client-sdk/overview",
-                  "stable/custom-ui/client-sdk/extensions",
-                  "stable/custom-ui/client-sdk/api-client"
-                ]
-              },
+              "stable/custom-ui/getting-started",
+              "stable/custom-ui/a2a-client",
+              "stable/custom-ui/agent-requirements",
+              "stable/custom-ui/platform-api-client",
+              "stable/custom-ui/error-handling",
+              "stable/custom-ui/agent-responses",
+              "stable/custom-ui/user-messages",
               "stable/custom-ui/permissions-and-tokens"
             ]
           },
           {
             "group": "Experimental",
-            "pages": [
-              "stable/experimental/connectors",
-              "stable/experimental/a2a-proxy"
-            ]
+            "pages": ["stable/experimental/connectors"]
           },
           {
             "group": "Community",
-            "pages": [
-              "stable/community/contribute"
-            ]
+            "pages": ["stable/community/contribute"]
           }
         ]
       },
@@ -146,16 +133,14 @@
           },
           {
             "group": "Reference",
-            "pages": [
-              "development/reference/cli-reference"
-            ]
+            "pages": ["development/reference/cli-reference"]
           },
           {
             "group": "Deploy Agent Stack",
             "pages": [
               "development/deploy-agent-stack/deployment-guide",
               "development/deploy-agent-stack/authenticate-cli-to-server"
-                      ]
+            ]
           },
           {
             "group": "Custom UI Integration",
@@ -172,15 +157,11 @@
           },
           {
             "group": "Experimental",
-            "pages": [
-              "development/experimental/connectors"
-            ]
+            "pages": ["development/experimental/connectors"]
           },
           {
             "group": "Community",
-            "pages": [
-              "development/community/contribute"
-            ]
+            "pages": ["development/community/contribute"]
           }
         ]
       }

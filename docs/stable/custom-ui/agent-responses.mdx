@@ -1,0 +1,104 @@
+---
+title: Agent Responses
+description: Extract and render message parts, citations, trajectories, and artifacts
+---
+
+Agent responses arrive as A2A messages with parts (text, files) and metadata (citations, trajectories). This guide shows how to extract and render these components in your UI.
+
+## Process message metadata
+
+Trajectory and citation metadata are stored in message metadata, not in parts. Use the UI extensions to extract them and render UI sections.
+
+```typescript
+import { citationExtension, extractUiExtensionData, trajectoryExtension, type Message } from "agentstack-sdk";
+
+const extractCitation = extractUiExtensionData(citationExtension);
+const extractTrajectory = extractUiExtensionData(trajectoryExtension);
+
+function processMessageMetadata(message: Message) {
+  const parts = [];
+  const trajectory = extractTrajectory(message.metadata);
+  const citations = extractCitation(message.metadata)?.citations;
+
+  if (trajectory) {
+    parts.push({ kind: "trajectory", ...trajectory });
+  }
+
+  if (citations) {
+    parts.push(
+      ...citations.map((citation) => ({
+        kind: "source",
+        url: citation.url,
+        startIndex: citation.start_index ?? undefined,
+        endIndex: citation.end_index ?? undefined,
+        title: citation.title ?? undefined,
+        description: citation.description ?? undefined,
+      })),
+    );
+  }
+
+  return parts;
+}
+```
+
+## Process message parts
+
+Text and file parts are in the `message.parts` array. Map them to your UI components.
+
+```typescript
+import { type Part } from "agentstack-sdk";
+
+function processParts(parts: Part[]) {
+  return parts.flatMap((part) => {
+    if (part.kind === "text") {
+      return [{
+        kind: "text",
+        text: part.text,
+      }];
+    }
+
+    if (part.kind === "file") {
+      return [
+        {
+          kind: "file",
+          filename: part.file.name ?? "file",
+          mimeType: part.file.mimeType ?? "application/octet-stream",
+          url: resolveFileUrl(part.file),
+        },
+      ];
+    }
+
+    if (part.kind === "data") {
+      return [{
+        kind: "data",
+        data: part.data,
+      }];
+    }
+
+    return [];
+  });
+}
+```
+
+Data parts are structured payloads. Render them as JSON or map them to specialized UI components in your app.
+
+## Resolve file URLs
+
+Files can arrive as a platform URL or inline base64 bytes. Convert them to something the UI can render.
+
+```typescript
+import { type FilePart } from "agentstack-sdk";
+
+function resolveFileUrl(file: FilePart["file"]) {
+  if ("uri" in file) {
+    return file.uri;
+  }
+
+  const mimeType = file.mimeType ?? "text/plain";
+  return `data:${mimeType};base64,${file.bytes}`;
+}
+```
+
+## Artifacts
+
+Artifact updates arrive as `artifact-update` events and contain their own parts. Process them the same way as message parts.

@@ -7,7 +7,7 @@ The Error extension provides a standardized way to report errors from your agent
 
 The Agent Stack SDK automatically handles exceptions raised within your agent function and uses the Error extension to report them. **No configuration is required** for standard error reporting.
 
-## Quickstart
+## Standard Error Reporting
 
 Simply raise exceptions in your agent code. The SDK will catch them and use the extension to format the error message.
 
@@ -19,24 +19,18 @@ server = Server()
 
 
 @server.agent()
-async def my_agent(input: Message):
+async def simple_error_agent(input: Message):
     # ... do some work ...
     raise ValueError("Something went wrong!")
+
+
+if __name__ == "__main__":
+    server.run()
 ```
 
 ## Advanced Configuration
 
 If you want to customize the error reporting, for example to include stack traces, you can inject the extension with custom parameters.
-
-<Steps>
-<Step title="Import the Error extension">
-Import `ErrorExtensionServer`, `ErrorExtensionSpec`, and `ErrorExtensionParams`.
-</Step>
-
-<Step title="Inject and Configure">
-Inject the extension using `Annotated` and set `include_stacktrace=True`.
-</Step>
-</Steps>
 
 ```python
 import os
@@ -69,7 +63,22 @@ async def error_agent(
     # This exception will be caught and formatted by the extension
     # The stack trace will be included because of the configuration above
     raise ValueError("Something went wrong!")
+
+
+if __name__ == "__main__":
+    server.run()
 ```
+
+<Steps>
+<Step title="Import the Error extension">
+Import `ErrorExtensionServer`, `ErrorExtensionSpec`, and `ErrorExtensionParams`.
+</Step>
+
+<Step title="Inject and Configure">
+Inject the extension using `Annotated` and set `include_stacktrace=True`.
+</Step>
+</Steps>
+
 
 <Tip>
     Enable stack traces during development for easier debugging, but consider disabling them in production to avoid leaking implementation details.
@@ -95,9 +104,12 @@ You can attach arbitrary context to errors by accessing the injected `ErrorExten
 
 ```python
 @server.agent()
-async def context_agent(
+async def context_error_agent(
     input: Message,
-    error_ext: Annotated[ErrorExtensionServer, ErrorExtensionSpec()],
+    error_ext: Annotated[
+        ErrorExtensionServer,
+        ErrorExtensionSpec(params=ErrorExtensionParams(include_stacktrace=False)),
+    ],
 ):
     # Add context before an error might occur or in an except block
     error_ext.context["request_id"] = "req-123"
@@ -108,3 +120,9 @@ async def context_agent(
     # If an exception is raised, the context is included
     raise ValueError("Something went wrong!")
 ```
+
+## Examples
+
+For more examples, see:
+
+- [error_agent.py](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/error_agent.py)

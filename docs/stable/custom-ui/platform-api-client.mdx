@@ -1,0 +1,354 @@
+---
+title: Platform API Client
+description: Complete reference for platform endpoints and API authentication
+---
+
+The platform API client provides typed access to Agent Stack server endpoints for managing contexts, files, providers, and other platform resources. This guide covers client initialization, authentication, response handling, and the complete endpoint reference.
+
+The `buildApiClient` function creates a type safe HTTP client for interacting with the AgentStack platform API. It returns an object that groups all platform endpoints into a single client. Every method returns an `ApiResult<T>` object so you can handle errors without throwing, or use `unwrapResult` to throw an `ApiErrorException` on failure.
+
+## Initialization
+
+Create an API client by calling `buildApiClient` with configuration options:
+
+```typescript
+import { buildApiClient } from "agentstack-sdk";
+
+const api = buildApiClient({
+  baseUrl: "https://your-agentstack-instance.com",
+  fetch: customFetch, // Optional: provide custom fetch implementation
+});
+```
+
+### Configuration Options
+
+- `baseUrl` (required): The base URL of your AgentStack server instance.
+- `fetch` (optional): Custom fetch implementation. Required in Node.js < 18 or environments without global fetch support. Useful for adding authentication headers or custom request handling.
+
+### Example: Authenticated Client
+
+In many applications, you will want to add authentication headers to requests:
+
+```typescript
+import { buildApiClient, createAuthenticatedFetch } from "agentstack-sdk";
+
+const authFetch = createAuthenticatedFetch("token-value");
+
+const api = buildApiClient({
+  baseUrl: "https://your-agentstack-instance.com",
+  fetch: authFetch,
+});
+```
+
+## Response Handling
+
+All API methods return a `Promise<ApiResult<T>>`:
+
+```typescript
+import { unwrapResult } from "agentstack-sdk";
+
+const result = await api.readUser();
+
+if (result.ok) {
+  console.log(result.data.email);
+} else {
+  console.error(result.error.type, result.error.message);
+}
+
+// Or throw on error
+const user = unwrapResult(await api.readUser());
+```
+
+`unwrapResult` also accepts an optional Zod schema if you want to validate against a more specific or stricter response shape:
+
+```typescript
+import { unwrapResult } from "agentstack-sdk";
+
+const connectors = unwrapResult(await api.listConnectors(), stricterListConnectorsResponseSchema);
+```
+
+### Error Helpers
+
+When you use `unwrapResult`, API errors throw `ApiErrorException`. Use the helper guards to handle specific cases:
+
+```typescript
+import { isHttpError, isValidationError } from "agentstack-sdk";
+
+try {
+  unwrapResult(await api.readUser());
+} catch (error) {
+  if (isHttpError(error, 401)) {
+    console.error("Unauthorized");
+  }
+
+  if (isValidationError(error)) {
+    console.error(error.apiError.details.issues);
+  }
+}
+```
+
+For more error handling patterns, see **[Error Handling](./error-handling)**.
+
+## Type Safety
+
+All API methods are fully typed with TypeScript and validated with Zod schemas at runtime. This ensures response data matches the SDK types and catches API contract changes early.
+
+## Endpoint Reference
+
+The `buildApiClient` return value includes the following methods.
+
+Each method returns a `Promise<ApiResult<T>>`. In the list below, the return type shows the `T` value for quick reference.
+
+### Contexts
+
+- `listContexts({ query }: ListContextsRequest): ListContextsResponse`
+- `createContext({ provider_id, metadata }: CreateContextRequest): CreateContextResponse`
+- `readContext({ context_id }: ReadContextRequest): ReadContextResponse`
+- `updateContext({ context_id, metadata }: UpdateContextRequest): UpdateContextResponse`
+- `deleteContext({ context_id }: DeleteContextRequest): DeleteContextResponse`
+- `listContextHistory({ context_id, query }: ListContextHistoryRequest): ListContextHistoryResponse`
+- `createContextHistory({ context_id, data }: CreateContextHistoryRequest): CreateContextHistoryResponse`
+- `patchContextMetadata({ context_id, metadata }: PatchContextMetadataRequest): PatchContextMetadataResponse`
+- `createContextToken({ context_id, grant_context_permissions, grant_global_permissions }: CreateContextTokenRequest): CreateContextTokenResponse`
+
+#### Example: Create a Context and Token
+
+```typescript
+const context = unwrapResult(
+  await api.createContext({
+    provider_id: "my-provider-id",
+    metadata: { project: "alpha" },
+  }),
+);
+
+const token = unwrapResult(
+  await api.createContextToken({
+    context_id: context.id,
+    grant_global_permissions: {
+      llm: ["*"],
+      embeddings: ["*"],
+      a2a_proxy: ["*"],
+      contexts: ["read", "write"],
+    },
+    grant_context_permissions: {
+      files: ["read", "write", "extract"],
+      vector_stores: ["read", "write"],
+      context_data: ["read", "write"],
+    },
+  }),
+);
+```
+
+### Files
+
+- `createFile({ context_id, file }: CreateFileRequest): CreateFileResponse`
+- `readFile({ context_id, file_id }: ReadFileRequest): ReadFileResponse`
+- `readFileContent({ context_id, file_id }: ReadFileContentRequest): ReadFileContentResponse`
+- `deleteFile({ context_id, file_id }: DeleteFileRequest): DeleteFileResponse`
+
+#### Example: Upload a File
+
+```typescript
+const upload = unwrapResult(
+  await api.createFile({
+    context_id: context.id,
+    file: new File(["Hello"], "hello.txt", { type: "text/plain" }),
+  }),
+);
+
+const content = unwrapResult(
+  await api.readFileContent({
+    context_id: context.id,
+    file_id: upload.id,
+  }),
+);
+```
+
+### Providers
+
+- `listProviders({ query }: ListProvidersRequest): ListProvidersResponse`
+- `createProvider({ location, agent_card, auto_stop_timeout_sec, origin, variables }: CreateProviderRequest): CreateProviderResponse`
+- `readProvider({ id }: ReadProviderRequest): ReadProviderResponse`
+- `deleteProvider({ id }: DeleteProviderRequest): DeleteProviderResponse`
+- `patchProvider({ id, location, agent_card, auto_stop_timeout_sec, origin, variables }: PatchProviderRequest): PatchProviderResponse`
+- `readProviderLogs({ id }: ReadProviderLogsRequest): ReadProviderLogsResponse`
+- `listProviderVariables({ id }: ListProviderVariablesRequest): ListProviderVariablesResponse`
+- `updateProviderVariables({ id, variables }: UpdateProviderVariablesRequest): UpdateProviderVariablesResponse`
+- `readProviderByLocation({ location }: ReadProviderByLocationRequest): ReadProviderByLocationResponse`
+- `previewProvider({ location, agent_card, auto_stop_timeout_sec, origin, variables }: PreviewProviderRequest): PreviewProviderResponse`
+
+#### Example: Update Provider Variables
+
+```typescript
+await api.updateProviderVariables({
+  id: "provider-id",
+  variables: {
+    OPENAI_API_KEY: "secret",
+    LEGACY_TOKEN: null, // set null to unset
+  },
+});
+```
+
+#### Example: Streaming Provider Logs
+
+`readProviderLogs` returns a `ReadableStream<Uint8Array>` in `data`:
+
+```typescript
+const result = await api.readProviderLogs({ id: "provider-id" });
+
+if (result.ok && result.data) {
+  const reader = result.data.getReader();
+  await reader.read();
+}
+```
+
+### Provider Builds
+
+- `listProviderBuilds({ query }: ListProviderBuildsRequest): ListProviderBuildsResponse`
+- `createProviderBuild({ location, build_configuration, on_complete }: CreateProviderBuildRequest): CreateProviderBuildResponse`
+- `readProviderBuild({ id }: ReadProviderBuildRequest): ReadProviderBuildResponse`
+- `deleteProviderBuild({ id }: DeleteProviderBuildRequest): DeleteProviderBuildResponse`
+- `readProviderBuildLogs({ id }: ReadProviderBuildLogsRequest): ReadProviderBuildLogsResponse`
+- `previewProviderBuild({ location, build_configuration, on_complete }: PreviewProviderBuildRequest): PreviewProviderBuildResponse`
+
+#### Example: Create a Provider Build
+
+```typescript
+const build = unwrapResult(
+  await api.createProviderBuild({
+    location: "github.com/org/repo",
+    build_configuration: { dockerfile_path: "Dockerfile" },
+    on_complete: {
+      type: "add_provider",
+      auto_stop_timeout_sec: 900,
+      variables: {
+        OPENAI_API_KEY: "secret",
+      },
+    },
+  }),
+);
+
+console.log(build.status);
+```
+
+#### Example: Streaming Provider Build Logs
+
+`readProviderBuildLogs` returns a `ReadableStream<Uint8Array>` in `data`:
+
+```typescript
+const result = await api.readProviderBuildLogs({ id: build.id });
+
+if (result.ok && result.data) {
+  const reader = result.data.getReader();
+  await reader.read();
+}
+```
+
+### Model Providers
+
+- `listModelProviders(): ListModelProvidersResponse`
+- `createModelProvider({ api_key, base_url, type, name, description, watsonx_project_id, watsonx_space_id }: CreateModelProviderRequest): CreateModelProviderResponse`
+- `readModelProvider({ model_provider_id }: ReadModelProviderRequest): ReadModelProviderResponse`
+- `deleteModelProvider({ model_provider_id }: DeleteModelProviderRequest): DeleteModelProviderResponse`
+- `matchModelProviders({ suggested_models, capability, score_cutoff }: MatchModelProvidersRequest): MatchModelProvidersResponse`
+
+#### Example: Match Model Providers
+
+```typescript
+import { ModelCapability } from "agentstack-sdk";
+
+const matches = unwrapResult(
+  await api.matchModelProviders({
+    suggested_models: ["gpt-4", "gpt-4o"],
+    capability: ModelCapability.Llm,
+    score_cutoff: 0.4,
+  }),
+);
+```
+
+### Connectors
+
+- `listConnectors(): ListConnectorsResponse`
+- `createConnector({ match_preset, url, client_id, client_secret, metadata }: CreateConnectorRequest): CreateConnectorResponse`
+- `readConnector({ connector_id }: ReadConnectorRequest): ReadConnectorResponse`
+- `deleteConnector({ connector_id }: DeleteConnectorRequest): DeleteConnectorResponse`
+- `connectConnector({ connector_id, redirect_url }: ConnectConnectorRequest): ConnectConnectorResponse`
+- `disconnectConnector({ connector_id }: DisconnectConnectorRequest): DisconnectConnectorResponse`
+- `listConnectorPresets(): ListConnectorPresetsResponse`
+
+#### Example: Start Connector OAuth
+
+```typescript
+const connector = unwrapResult(await api.connectConnector({ connector_id: "connector-id" }));
+
+if (connector.auth_request) {
+  window.location.href = connector.auth_request.authorization_endpoint;
+}
+```
+
+### Variables
+
+- `listVariables(): ListVariablesResponse`
+- `updateVariables({ variables }: UpdateVariablesRequest): UpdateVariablesResponse`
+
+#### Example: Update Variables
+
+```typescript
+await api.updateVariables({
+  variables: {
+    GLOBAL_FLAG: "true",
+    LEGACY_TOKEN: null, // set null to unset
+  },
+});
+```
+
+### Configuration
+
+- `readSystemConfiguration(): ReadSystemConfigurationResponse`
+- `updateSystemConfiguration({ default_embedding_model, default_llm_model }: UpdateSystemConfigurationRequest): UpdateSystemConfigurationResponse`
+
+#### Example: Update System Configuration
+
+```typescript
+const config = unwrapResult(await api.readSystemConfiguration());
+
+const updated = unwrapResult(
+  await api.updateSystemConfiguration({
+    default_llm_model: config.default_llm_model ?? "gpt-4o",
+    default_embedding_model: config.default_embedding_model ?? "text-embedding-3-small",
+  }),
+);
+```
+
+### Users
+
+- `readUser(): ReadUserResponse`
+
+#### Example: Read Current User
+
+```typescript
+const user = unwrapResult(await api.readUser());
+console.log(user.email);
+```
+
+### User Feedback
+
+- `createUserFeedback({ provider_id, context_id, task_id, message, rating, comment, comment_tags }: CreateUserFeedbackRequest): CreateUserFeedbackResponse`
+
+#### Example: Submit Feedback
+
+```typescript
+await api.createUserFeedback({
+  provider_id: "provider-id",
+  context_id: "context-id",
+  task_id: "task-id",
+  message: "Agent replied with incorrect citations.",
+  rating: -1,
+  comment: "Sources were unrelated to the answer.",
+  comment_tags: ["citations", "accuracy"],
+});
+```
+
+## Next Steps
+
+- **[Agent Requirements](./agent-requirements)** for service and UI extension handling

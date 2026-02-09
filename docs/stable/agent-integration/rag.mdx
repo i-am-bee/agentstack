@@ -68,7 +68,8 @@ Let's break down how each step can be implemented with the Agent Stack API.
 Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent.
 This also specifies which file types users can upload.
 Agent Stack uses [docling](https://docling-project.github.io/docling/) for extracting text out of documents in various
-[supported formats](https://docling-project.github.io/docling/usage/supported_formats/).
+[supported formats](https://docling-project.github.io/docling/usage/supported_formats/). To select which formats the
+agent can accept, use the `default_input_modes` parameter in the agent decorator.
 
 ```python
 from agentstack_sdk.server import Server

@@ -17,19 +17,19 @@
     "typescript": ">=5.0.0"
   },
   "dependencies": {
-    "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.36.0",
-    "@next/eslint-plugin-next": "^15.5.7",
-    "eslint-config-next": "^15.5.7",
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
+    "@next/eslint-plugin-next": "^15.5.12",
+    "eslint-config-next": "^15.5.12",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-css-modules": "^2.12.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "prettier": "^3.6.2",
-    "stylelint-config-css-modules": "^4.5.1",
-    "stylelint-config-recommended-scss": "^16.0.1",
-    "stylelint-plugin-logical-css": "^1.2.3",
-    "typescript-eslint": "^8.44.1"
+    "prettier": "^3.8.1",
+    "stylelint-config-css-modules": "^4.6.0",
+    "stylelint-config-recommended-scss": "^16.0.2",
+    "stylelint-plugin-logical-css": "^1.3.0",
+    "typescript-eslint": "^8.54.0"
   },
   "devDependencies": {
     "eslint": "catalog:",

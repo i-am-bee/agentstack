@@ -5,33 +5,12 @@ description: "Upload and generate files in agents"
 
 One of the most common use cases for AI agents is working with files. Your agent should be able to read files from user uploads and generate new files as outputs. The Agent Stack makes this seamless through the A2A protocol's `FilePart`.
 
-## Quickstart
-
-<Steps>
-<Step title="Enable file uploads in your agent (optional)">
-Add the `default_input_modes` parameter to your agent decorator only if you want users to upload files to your agent. This specifies which file types users can upload.
-</Step>
-
-<Step title="Inject the Platform API extension">
-Import and use the `PlatformApiExtensionServer` to access file creation capabilities. This extension provides your agent with the proper context and authentication needed to use the Agent Stack API for creating and managing files. If not provided, your agent will receive unauthorized responses when working with files.
-</Step>
-
-<Step title="Process uploaded files">
-Iterate through message parts to find `FilePart` objects and load their content using `load_file` helper.
-</Step>
-
-<Step title="Generate new files">
-Use the `File.create()` method to generate new files and yield them as `FilePart` objects.
-</Step>
-</Steps>
-
 ## Example of File Processing
 
 Here's how to build an agent that can accept and modify files:
 
 ```python
 import os
-
 from typing import Annotated
 
 from agentstack_sdk.server import Server
@@ -48,28 +27,45 @@ server = Server()
 
 
 @server.agent(
-    default_input_modes=["text/plain"],
-    default_output_modes=["text/plain"]
+    default_input_modes=["text/plain", "application/pdf", "image/*"],
+    default_output_modes=["text/plain", "application/pdf", "image/*"]
 )
-async def example_agent(
+async def file_processor_agent(
     input: Message,
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
-    """Agent that can accept and modify files"""
+    """Agent that handles both text and binary files"""
 
     for file_part in input.parts:
         file_part_root = file_part.root
 
         if file_part_root.kind == "file":
+            mime_type = file_part_root.file.mime_type or "application/octet-stream"
+
             async with load_file(file_part_root) as loaded_content:
+                # Determine if file is text or binary based on MIME type
+                is_text_file = mime_type.startswith("text/") or mime_type in [
+                    "application/json",
+                    "application/xml",
+                    "text/xml"
+                ]
+
+                if is_text_file:
+                    # For text files, use .text and encode to bytes
+                    content = loaded_content.text.encode()
+                else:
+                    # For binary files (PDFs, images, etc.), use .content directly
+                    content = loaded_content.content
+
+                # Create new file with appropriate content
                 new_file = await File.create(
                     filename=f"processed_{file_part_root.file.name}",
-                    content_type=file_part_root.file.mime_type or "application/octet-stream",
-                    content=loaded_content.text.encode(),
+                    content_type=mime_type,
+                    content=content,
                 )
                 yield new_file.to_file_part()
 
-    yield "File Processing Done"
+    yield "File processing complete"
 
 
 def run():
@@ -79,6 +75,24 @@ def run():
 if __name__ == "__main__":
     run()
 ```
+
+<Steps>
+<Step title="Enable file uploads in your agent (optional)">
+Add the `default_input_modes` parameter to your agent decorator only if you want users to upload files to your agent. This specifies which file types users can upload.
+</Step>
+
+<Step title="Inject the Platform API extension">
+Import and use the `PlatformApiExtensionServer` to access file creation capabilities. This extension provides your agent with the proper context and authentication needed to use the Agent Stack API for creating and managing files. If not provided, your agent will receive unauthorized responses when working with files.
+</Step>
+
+<Step title="Process uploaded files">
+Iterate through message parts to find `FilePart` objects and load their content using `load_file` helper.
+</Step>
+
+<Step title="Generate new files">
+Use the `File.create()` method to generate new files and yield them as `FilePart` objects with `to_file_part()`.
+</Step>
+</Steps>
 
 ## How to work with files
 
@@ -131,7 +145,20 @@ The `default_output_modes` parameter controls which file agent can produce:
 ```
 
 Common MIME types you might want to support:
-- **Text files**: `text/plain`, `text/markdown`, `text/csv`
-- **Documents**: `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
-- **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/svg+xml`
-- **Data**: `application/json`, `application/xml`, `text/xml`
+
+| Category | MIME Types |
+|----------|------------|
+| **Text files** | `text/plain`<br/>`text/markdown`<br/>`text/csv` |
+| **Documents** | `application/pdf`<br/>`application/msword`<br/>`application/vnd.openxmlformats-officedocument.wordprocessingml.document` |
+| **Images** | `image/jpeg`<br/>`image/png`<br/>`image/gif`<br/>`image/svg+xml` |
+| **Data** | `application/json`<br/>`application/xml`<br/>`text/xml` |
+
+## Handling Text vs Binary Files
+
+When processing files, it's important to handle text and binary files differently. The `load_file` helper provides both `.text` and `.content` properties:
+
+<Note>
+**Key differences:**
+- **Text files** (text/plain, text/markdown, application/json, etc.): Use `loaded_content.text.encode()` to get bytes.
+- **Binary files** (application/pdf, image/*, etc.): Use `loaded_content.content` directly to preserve binary content.
+</Note>

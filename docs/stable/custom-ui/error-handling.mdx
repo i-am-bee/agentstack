@@ -1,0 +1,72 @@
+---
+title: Error Handling
+description: Handle platform API errors and agent task failures
+---
+
+The SDK handles errors at two levels:
+
+1. **Platform API errors** occur when communicating with the Agent Stack server (authentication, network issues, invalid responses).
+2. **Agent task errors** occur when agents fail or reject tasks during execution.
+
+This guide shows how to catch and handle both error types in your UI.
+
+## Platform API errors
+
+All API methods return `ApiResult<T>`. You can branch on `result.ok` or use `unwrapResult` and catch errors.
+
+```typescript
+import { buildApiClient, unwrapResult } from "agentstack-sdk";
+
+const api = buildApiClient({ baseUrl: "https://your-agentstack-instance.com" });
+
+const result = await api.readUser();
+
+if (!result.ok) {
+  console.error(result.error.type, result.error.message);
+}
+
+const user = unwrapResult(await api.readUser());
+```
+
+### Error helpers
+
+Use the guard helpers to match specific error types.
+
+```typescript
+import { isHttpError, isNetworkError, isParseError, isValidationError } from "agentstack-sdk";
+
+try {
+  unwrapResult(await api.readUser());
+} catch (error) {
+  if (isHttpError(error, 401)) {
+    console.error("Unauthorized");
+  }
+
+  if (isNetworkError(error)) {
+    console.error("Network issue");
+  }
+
+  if (isParseError(error)) {
+    console.error("Invalid JSON response");
+  }
+
+  if (isValidationError(error)) {
+    console.error(error.apiError.details.issues);
+  }
+}
+```
+
+## A2A extension errors
+
+When tasks fail or are rejected, agents can emit an error extension payload. Read it with `extractUiExtensionData` and display a user facing message.
+
+```typescript
+import { errorExtension, extractUiExtensionData } from "agentstack-sdk";
+
+const readError = extractUiExtensionData(errorExtension);
+const errorMetadata = readError(event.status.message?.metadata);
+
+if (errorMetadata) {
+  console.error(errorMetadata.message ?? "Agent error");
+}
+```
