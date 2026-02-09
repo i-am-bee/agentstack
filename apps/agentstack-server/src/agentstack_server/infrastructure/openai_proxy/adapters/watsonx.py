@@ -159,7 +159,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                                 openai.types.chat.chat_completion_chunk.ChoiceDeltaToolCall(
                                     index=tool_call["index"],
                                     type="function",
-                                    function=openai.types.chat.chat_completion_chunk.ChoiceDeltaFunctionCall(  # type: ignore
+                                    function=openai.types.chat.chat_completion_chunk.ChoiceDeltaFunctionCall(
                                         name=tool_call["function"]["name"],
                                         arguments=tool_call["function"]["arguments"],
                                     ),

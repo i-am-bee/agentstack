@@ -137,7 +137,7 @@ async def rag(
 
 # CORRECT Format (use this):
 "Based on [Doc1_file.pdf](https://platform.com/files/123/content), the findings show..."
-"""  # type: ignore
+"""
 
     tools = [
         # Auxiliary tools

@@ -145,7 +145,7 @@ class OAuthExtensionClient(BaseExtensionClient[OAuthExtensionSpec, NoneType]):
         return A2AMessage(
             message_id=str(uuid.uuid4()),
             role=Role.user,
-            parts=[TextPart(text="Authorization completed")],  # type: ignore
+            parts=[TextPart(text="Authorization completed")],
             task_id=task_id,
             metadata={self.spec.URI: data.model_dump(mode="json")},
         )

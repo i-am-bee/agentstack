@@ -187,7 +187,7 @@ class ProxyRequestHandler(RequestHandler):
         async with httpx.AsyncClient(
             follow_redirects=True,
             timeout=timedelta(hours=1).total_seconds(),
-            headers=headers,  # pyrefly: ignore[bad-argument-type]
+            headers=headers,
         ) as httpx_client:
             client: BaseClient = cast(
                 BaseClient,

@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import typing
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -27,13 +28,13 @@ class EntityModel[T: BaseModel]:
         assert getattr(model, "id", None)
         return model
 
-    def __class_getitem__(cls, model: type[T]) -> type[T]:  # pyrefly: ignore[no-matching-overload]
-        if not model.model_fields.get("id"):  # pyrefly: ignore[no-matching-overload]
+    @typing.no_type_check
+    def __class_getitem__(cls, model: type[T]) -> type[T]:
+        if not model.model_fields.get("id"):
             raise TypeError(f"Class {model.__name__} is missing the id attribute")
 
-        class ModelOutput(model):  # pyrefly: ignore[invalid-inheritance]
+        class ModelOutput(model):
             id: UUID
 
         ModelOutput.__name__ = f"{model.__name__}Response"
-
-        return ModelOutput  # pyrefly: ignore[bad-return]
+        return ModelOutput

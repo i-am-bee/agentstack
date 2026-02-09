@@ -297,7 +297,7 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
 
     except httpx.HTTPError as e:
         if hasattr(e, "response") and hasattr(e.response, "json"):
-            err = str(e.response.json().get("detail", str(e)))  # type: ignore
+            err = str(e.response.json().get("detail", str(e)))
         else:
             err = str(e)
         match provider_type:

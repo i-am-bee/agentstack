@@ -28,7 +28,7 @@ class FileCreatorToolOutput(JSONToolOutput[FileCreatorToolResult]):
 
 
 class FileCreatorTool(
-    Tool[FileCreatorInput, ToolRunOptions, FileCreatorToolOutput]  # type: ignore
+    Tool[FileCreatorInput, ToolRunOptions, FileCreatorToolOutput]
 ):
     """
     Creates a new file and writes the provided content into it.

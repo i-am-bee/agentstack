@@ -33,14 +33,10 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
         await self._store.store(data)
 
     @overload
-    async def load_history(
-        self, load_history_items: Literal[False] = False
-    ) -> AsyncGenerator[Message | Artifact, None]:
-        yield ...  # type: ignore
+    def load_history(self, load_history_items: Literal[False] = False) -> AsyncGenerator[Message | Artifact, None]: ...
 
     @overload
-    async def load_history(self, load_history_items: Literal[True]) -> AsyncGenerator[ContextHistoryItem, None]:
-        yield ...  # type: ignore
+    def load_history(self, load_history_items: Literal[True]) -> AsyncGenerator[ContextHistoryItem, None]: ...
 
     async def load_history(
         self, load_history_items: bool = False
