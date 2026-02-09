@@ -17,7 +17,7 @@ from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.tools.mcp import MCPTool
 from beeai_framework.tools.think import ThinkTool
 from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.streamable_http import streamablehttp_client  # pyrefly: ignore [deprecated]
 
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
@@ -59,6 +59,7 @@ async def oauth_agent(
     """Multi-turn chat agent with conversation memory and LLM integration"""
     await context.store(input)
 
+    # pyrefly: ignore [deprecated]
     mcp_client = streamablehttp_client(
         url="https://mcp.stripe.com",
         auth=await oauth.create_httpx_auth(resource_url=pydantic.AnyUrl("https://mcp.stripe.com")) if oauth else None,

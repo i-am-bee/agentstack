@@ -170,6 +170,7 @@ class SqlAlchemyFileRepository(IFileRepository):
             raise EntityNotFoundError("file", file_id or "file to delete")
         return result.rowcount
 
+    # pyrefly: ignore[bad-override]
     async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
         query = files_table.select().where(files_table.c.file_type == FileType.USER_UPLOAD)
         if user_id:

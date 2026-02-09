@@ -64,6 +64,6 @@
     },
   },
   "extensions": {
-    "recommendations": ["astral-sh.ty", "charliermarsh.ruff"],
+    "recommendations": ["meta.pyrefly", "charliermarsh.ruff"],
   },
 }

@@ -62,6 +62,7 @@ class LimaDriver(BaseDriver):
             for line in result.stdout.decode().split("\n"):
                 if not line:
                     continue
+                # pyrefly: ignore [not-callable]
                 status = pydantic.TypeAdapter(typing.TypedDict("Status", {"name": str, "status": str})).validate_json(
                     line
                 )
@@ -102,7 +103,7 @@ class LimaDriver(BaseDriver):
             if total_memory_gib < 8:
                 console.warning("Less than 8 GB of RAM detected. Performance may be degraded.")
 
-            vm_memory_gib = round(min(8, max(3, total_memory_gib / 2)))
+            vm_memory_gib = round(min(8.0, max(3.0, total_memory_gib / 2)))
 
             with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete_on_close=False) as template_file:
                 template_file.write(

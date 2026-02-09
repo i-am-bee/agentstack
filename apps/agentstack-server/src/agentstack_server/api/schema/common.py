@@ -27,13 +27,13 @@ class EntityModel[T: BaseModel]:
         assert getattr(model, "id", None)
         return model
 
-    def __class_getitem__(cls, model: type[T]) -> type[T]:
-        if not model.model_fields.get("id"):
+    def __class_getitem__(cls, model: type[T]) -> type[T]:  # pyrefly: ignore[no-matching-overload]
+        if not model.model_fields.get("id"):  # pyrefly: ignore[no-matching-overload]
             raise TypeError(f"Class {model.__name__} is missing the id attribute")
 
-        class ModelOutput(model):  # ty:ignore[invalid-generic-class, unsupported-base]
+        class ModelOutput(model):  # pyrefly: ignore[invalid-inheritance]
             id: UUID
 
         ModelOutput.__name__ = f"{model.__name__}Response"
 
-        return ModelOutput  # ty:ignore[invalid-return-type]
+        return ModelOutput  # pyrefly: ignore[bad-return]

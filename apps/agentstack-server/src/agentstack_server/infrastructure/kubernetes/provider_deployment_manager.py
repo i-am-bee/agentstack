@@ -98,7 +98,11 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             )
             env = {
                 **(env or {}),
-                **global_provider_variables(provider_url=await self.get_provider_url(provider_id=provider.id)),  # ty:ignore[missing-argument, unknown-argument, invalid-argument-type]
+                # pyrefly: ignore[invalid-argument]
+                **global_provider_variables(
+                    # pyrefly: ignore[unexpected-keyword, bad-argument-count]
+                    provider_url=await self.get_provider_url(provider_id=provider.id)
+                ),
             }
             secret = Secret(
                 await self._render_template(
@@ -179,9 +183,13 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 label_selector={"managedBy": "agentstack"},
                 api=api,
             ):
-                provider_id = self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY)
+                provider_id = self._get_provider_id_from_name(
+                    # pyrefly: ignore[missing-attribute]
+                    deployment.metadata.name,
+                    TemplateKind.DEPLOY,
+                )
                 if provider_id not in existing_providers:
-                    tg.create_task(_delete(deployment))
+                    tg.create_task(_delete(deployment))  # pyrefly: ignore[bad-argument-type]
         if errors:
             raise ExceptionGroup("Exceptions occurred when removing orphaned providers", errors)
 
@@ -217,7 +225,11 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]:
         async with self.api() as api:
             deployments = {
-                self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY): deployment
+                self._get_provider_id_from_name(
+                    # pyrefly: ignore[missing-attribute]
+                    deployment.metadata.name,
+                    TemplateKind.DEPLOY,
+                ): deployment
                 async for deployment in kr8s.asyncio.get(
                     kind="deployment",
                     label_selector={"managedBy": "agentstack"},
@@ -231,9 +243,9 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 deployment = deployments.get(provider_id)
                 if not deployment:
                     state = ProviderDeploymentState.MISSING
-                elif deployment.status.get("availableReplicas", 0) > 0:
+                elif deployment.status.get("availableReplicas", 0) > 0:  # pyrefly: ignore[missing-attribute]
                     state = ProviderDeploymentState.RUNNING
-                elif deployment.status.get("replicas", 0) == 0:
+                elif deployment.status.get("replicas", 0) == 0:  # pyrefly: ignore[missing-attribute]
                     state = ProviderDeploymentState.READY
                 else:
                     state = ProviderDeploymentState.STARTING

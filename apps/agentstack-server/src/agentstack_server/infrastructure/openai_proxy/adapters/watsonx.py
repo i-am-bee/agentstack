@@ -38,7 +38,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                 logprobs=request.logprobs,
                 top_logprobs=request.top_logprobs,
                 presence_penalty=request.presence_penalty,
-                response_format=request.response_format,  # ty:ignore[invalid-argument-type]
+                response_format=request.response_format,  # pyrefly: ignore[bad-argument-type]
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
                 max_completion_tokens=request.max_completion_tokens,
@@ -88,8 +88,8 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         api_key: str,
     ) -> openai.types.chat.ChatCompletion:
         response = await asyncio.to_thread(
-            self._get_watsonx_model(request, api_key).chat,  # ty:ignore[invalid-argument-type]
-            messages=request.messages,
+            self._get_watsonx_model(request, api_key).chat,
+            messages=request.messages,  # pyrefly: ignore[bad-argument-type]
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
@@ -137,7 +137,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         self, request: ChatCompletionRequest, model: ibm_watsonx_ai.foundation_models.ModelInference
     ) -> Iterator[openai.types.chat.ChatCompletionChunk]:
         for chunk in model.chat_stream(
-            messages=request.messages,  # ty:ignore[invalid-argument-type]
+            messages=request.messages,  # pyrefly: ignore[bad-argument-type]
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
@@ -184,7 +184,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
             )
 
     @override
-    async def create_chat_completion_stream(
+    async def create_chat_completion_stream(  # pyrefly: ignore[bad-override]
         self,
         *,
         request: ChatCompletionRequest,

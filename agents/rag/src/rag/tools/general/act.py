@@ -90,6 +90,7 @@ class ActTool(Tool[ActToolInput]):
                 ),
             ),
             selected_tool=(
+                # pyrefly: ignore [invalid-literal]
                 Literal[tuple(tool_name for tool_name in allowed_tools_names)],
                 Field(
                     ...,
@@ -99,6 +100,7 @@ class ActTool(Tool[ActToolInput]):
         )
 
     @property
+    # pyrefly: ignore [bad-override]
     def input_schema(self):
         return self._input_schema
 
@@ -147,6 +149,7 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
         self.tools = tools
 
     @run_with_context
+    # pyrefly: ignore [bad-override]
     async def run(self, state: RequirementAgentRunState, ctx: RunContext) -> list[Rule]:
         last_step = state.steps[-1] if state.steps else None
 
@@ -216,6 +219,7 @@ def act_tool_middleware(ctx: RunContext) -> None:
 
     def handle_start(data: RequirementAgentStartEvent, event: EventMeta) -> None:
         allowed_tools = [t.name for t in data.request.tools if t.name != "act"]
+        # pyrefly: ignore [missing-attribute]
         act_tool.allowed_tools_names = allowed_tools
 
     ctx.emitter.on("start", handle_start)

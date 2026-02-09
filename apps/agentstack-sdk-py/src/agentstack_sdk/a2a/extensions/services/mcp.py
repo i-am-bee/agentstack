@@ -12,7 +12,7 @@ import pydantic
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
 from mcp.client.stdio import StdioServerParameters, stdio_client
-from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.streamable_http import streamablehttp_client  # pyrefly: ignore [deprecated]
 from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
@@ -160,6 +160,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             ):
                 yield (read, write)
         elif isinstance(transport, StreamableHTTPTransport):
+            # pyrefly: ignore [deprecated]
             async with streamablehttp_client(
                 url=transport.url,
                 headers=transport.headers,

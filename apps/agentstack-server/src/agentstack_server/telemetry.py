@@ -24,8 +24,8 @@ OTEL_HTTP_ENDPOINT = str(get_configuration().telemetry.collector_url)
 
 INSTRUMENTATION_NAME = "agentstack-server"
 
-FastAPIInstrumentor().instrument()
-HTTPXClientInstrumentor().instrument()
+FastAPIInstrumentor().instrument()  # pyrefly: ignore[missing-attribute]
+HTTPXClientInstrumentor().instrument()  # pyrefly: ignore[missing-attribute]
 
 
 class SilentOTLPSpanExporter(OTLPSpanExporter):
@@ -38,7 +38,7 @@ class SilentOTLPSpanExporter(OTLPSpanExporter):
 
 
 class SilentOTLPMetricExporter(OTLPMetricExporter):
-    def export(self, *args, **kwargs):
+    def export(self, *args, **kwargs):  # pyrefly: ignore[bad-override]
         try:
             return super().export(*args, **kwargs)
         except Exception as e:
@@ -57,7 +57,8 @@ def configure_telemetry():
     trace.set_tracer_provider(
         tracer_provider=TracerProvider(
             resource=resource,
-            active_span_processor=BatchSpanProcessor(SilentOTLPSpanExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/traces")),  # ty:ignore[invalid-argument-type]
+            # pyrefly: ignore[bad-argument-type]
+            active_span_processor=BatchSpanProcessor(SilentOTLPSpanExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/traces")),
         )
     )
     metrics.set_meter_provider(

@@ -46,11 +46,13 @@ class FileReaderTool(Tool[FileReadInputBase, ToolRunOptions, FileReaderToolOutpu
             file_descriptions = "\n".join(file.description for file in self.files)
 
             description = f"Select one or more of the provided files:\n\n{file_descriptions}"
+            # pyrefly: ignore [invalid-literal]
             literal = Literal[tuple(file.display_filename for file in self.files)]
         else:
             literal = Literal["__None__"]
             description = "There aren't any generated or attached file to read at the moment."
 
+        # pyrefly: ignore [bad-return]
         return create_model(
             "FileReadInput",
             filenames=(
@@ -62,6 +64,7 @@ class FileReaderTool(Tool[FileReadInputBase, ToolRunOptions, FileReaderToolOutpu
             ),
         )
 
+    # pyrefly: ignore [bad-override]
     async def _run(
         self, input: FileReadInputBase, options: ToolRunOptions, context: RunContext
     ) -> FileReaderToolOutput:

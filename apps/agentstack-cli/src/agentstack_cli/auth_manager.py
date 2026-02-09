@@ -287,6 +287,7 @@ class AuthManager:
     def active_auth_server(self, auth_server: str | None) -> None:
         if auth_server is not None and (
             self._auth.active_server not in self._auth.servers
+            # pyrefly: ignore [bad-index]
             or auth_server not in self._auth.servers[self._auth.active_server].authorization_servers
         ):
             raise ValueError(f"Auth server {auth_server} not found in active server")

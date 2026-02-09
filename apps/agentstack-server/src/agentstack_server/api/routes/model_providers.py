@@ -35,7 +35,7 @@ async def create_model_provider(
         watsonx_space_id=request.watsonx_space_id,
         api_key=request.api_key.get_secret_value(),
     )
-    return EntityModel(model_provider)
+    return EntityModel(model_provider)  # pyrefly: ignore[bad-return]
 
 
 @router.get("")
@@ -54,7 +54,7 @@ async def get_model_provider(
     model_provider_service: ModelProviderServiceDependency,
 ) -> EntityModel[ModelProvider]:
     provider = await model_provider_service.get_provider(model_provider_id=model_provider_id)
-    return EntityModel(provider)
+    return EntityModel(provider)  # pyrefly: ignore[bad-return]
 
 
 @router.delete("/{model_provider_id}", status_code=status.HTTP_204_NO_CONTENT)

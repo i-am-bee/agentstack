@@ -53,6 +53,7 @@ class SqlAlchemyModelProviderRepository(IModelProviderRepository):
             raise EntityNotFoundError(entity="model_provider", id=model_provider_id)
         return self._row_to_model_provider(row)
 
+    # pyrefly: ignore[bad-override]
     async def list(self, *, capability: ModelCapability | None = None) -> AsyncIterator[ModelProvider]:
         # Note: capability parameter is kept for interface compatibility but filtering is done in service
         query = select(model_providers_table).order_by(model_providers_table.c.created_at.desc())

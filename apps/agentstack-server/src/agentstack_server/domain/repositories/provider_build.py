@@ -13,8 +13,7 @@ from agentstack_server.domain.models.provider_build import BuildState, ProviderB
 class IProviderBuildRepository(Protocol):
     async def list(
         self, *, status: BuildState | None = None, user_id: UUID | None = None
-    ) -> AsyncIterator[ProviderBuild]:
-        yield ...
+    ) -> AsyncIterator[ProviderBuild]: ...
 
     async def list_paginated(
         self,

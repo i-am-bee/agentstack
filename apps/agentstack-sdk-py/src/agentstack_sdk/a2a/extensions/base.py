@@ -58,6 +58,7 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        # pyrefly: ignore [no-access]
         cls.Params = _get_generic_args(cls, BaseExtensionSpec)[0]
 
     params: ParamsT
@@ -78,6 +79,7 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
         """
         try:
             return cls(
+                # pyrefly: ignore [missing-attribute]
                 params=pydantic.TypeAdapter(cls.Params).validate_python(
                     next(x for x in agent.capabilities.extensions or [] if x.uri == cls.URI).params
                 ),
@@ -127,6 +129,7 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        # pyrefly: ignore [no-access]
         cls.MetadataFromClient = _get_generic_args(cls, BaseExtensionServer)[1]
 
     _metadata_from_client: MetadataFromClientT | None = None
@@ -189,6 +192,7 @@ class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromSe
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
+        # pyrefly: ignore [no-access]
         cls.MetadataFromServer = _get_generic_args(cls, BaseExtensionClient)[1]
 
     def __init__(self, spec: ExtensionSpecT) -> None:

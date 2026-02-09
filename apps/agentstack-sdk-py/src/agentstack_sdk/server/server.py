@@ -62,6 +62,7 @@ class Server:
             raise ValueError("Server can have only one agent.")
 
         def decorator(fn: Callable) -> Callable:
+            # pyrefly: ignore [bad-argument-type]
             self._agent_factory = agent_decorator(*other_args, **kwargs)(fn)
             return fn
 
@@ -167,6 +168,7 @@ class Server:
                 reload_task = asyncio.create_task(self._reload_variables_periodically()) if self_registration else None
 
                 try:
+                    # pyrefly: ignore [bad-argument-type]
                     async with lifespan_fn(app) if lifespan_fn else nullcontext():
                         yield
                 finally:
@@ -213,7 +215,7 @@ class Server:
             def on_error(connection: HTTPConnection, error: AuthenticationError) -> PlainTextResponse:
                 return PlainTextResponse("Unauthorized", status_code=401)
 
-            app.add_middleware(AuthenticationMiddleware, backend=auth_backend, on_error=on_error)  # ty:ignore[invalid-argument-type] (probably a bug in ty?)
+            app.add_middleware(AuthenticationMiddleware, backend=auth_backend, on_error=on_error)
 
         if configure_logger:
             configure_logger_func(log_level)

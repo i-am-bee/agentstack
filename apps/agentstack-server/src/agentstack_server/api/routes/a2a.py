@@ -131,7 +131,7 @@ async def a2a_proxy_http_transport(
     if not (handler := adapter.routes().get((f"/{path.rstrip('/')}", request.method), None)):
         raise HTTPException(status_code=404, detail="Not found")
 
-    return await handler(request)
+    return await handler(request)  # pyrefly: ignore[not-callable]
 
 
 # TODO: extra a2a routes are not supported

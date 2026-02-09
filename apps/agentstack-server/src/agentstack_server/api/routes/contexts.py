@@ -40,7 +40,7 @@ async def create_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(
+    return EntityModel(  # pyrefly: ignore[bad-return]
         await context_service.create(user=user.user, metadata=request.metadata or {}, provider_id=request.provider_id)
     )
 
@@ -62,7 +62,7 @@ async def get_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(await context_service.get(context_id=context_id, user=user.user))
+    return EntityModel(await context_service.get(context_id=context_id, user=user.user))  # pyrefly: ignore[bad-return]
 
 
 @router.delete("/{context_id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
@@ -82,7 +82,7 @@ async def update_context(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
     context = await context_service.update(metadata=request.metadata, context_id=context_id, user=user.user)
-    return EntityModel(context)
+    return EntityModel(context)  # pyrefly: ignore[bad-return]
 
 
 @router.patch("/{context_id}/metadata")
@@ -97,7 +97,7 @@ async def patch_context_metadata(
         metadata_patch=request.metadata,
         user=user.user,
     )
-    return EntityModel(context)
+    return EntityModel(context)  # pyrefly: ignore[bad-return]
 
 
 @router.post("/{context_id}/token")

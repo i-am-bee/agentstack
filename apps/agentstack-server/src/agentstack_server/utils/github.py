@@ -263,7 +263,7 @@ class GithubUrl(RootModel):
     async def resolve_version(self) -> ResolvedGithubUrl:
         if not (token := await get_github_token(self._host)):
             if self._host == "github.com":
-                return await self._resolve_version_public()  # ty:ignore[missing-argument, invalid-await]
+                return await self._resolve_version_public()  # pyrefly: ignore[not-async, bad-argument-count]
             raise ValueError(f"GitHub token not configured for host {self._host}")
         return await self._resolve_version_api(token=token)
 

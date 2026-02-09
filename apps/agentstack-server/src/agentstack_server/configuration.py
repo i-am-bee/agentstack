@@ -508,9 +508,11 @@ class Configuration(BaseSettings):
                             aliases.add(url.host)
                     else:
                         aliases.add(registry.strip("/"))
-                    if any("index.docker.io" in alias for alias in aliases):
+                    if any(alias and "index.docker.io" in alias for alias in aliases):
                         aliases.add("docker.io")
                     for alias in aliases:
+                        if not alias:
+                            continue
                         self.oci_registry[alias].username = conf.username
                         self.oci_registry[alias].password = conf.password
                         self.oci_registry[alias].auth_header = conf.auth

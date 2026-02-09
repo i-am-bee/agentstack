@@ -30,7 +30,7 @@ class EmbeddingsRequest(pydantic.BaseModel):
 
 
 class MultiformatEmbedding(openai.types.Embedding):
-    embedding: str | list[float]
+    embedding: str | list[float]  # pyrefly: ignore[bad-override]
 
 
 class ChatCompletionRequest(pydantic.BaseModel):

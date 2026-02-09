@@ -89,7 +89,7 @@ async def list_providers(
                 )
             }
         )
-        providers.append(EntityModel(new_provider))
+        providers.append(EntityModel(new_provider))  # pyrefly: ignore[bad-argument-type]
 
     return PaginatedResult(items=providers, total_count=len(providers))
 
@@ -103,7 +103,7 @@ async def get_provider(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> EntityModel[ProviderWithState]:
     provider = await provider_service.get_provider(provider_id=id)
-    return EntityModel(
+    return EntityModel(  # pyrefly: ignore[bad-return]
         provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(
@@ -127,7 +127,7 @@ async def get_provider_by_location(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     provider = await provider_service.get_provider(location=parsed_location)
-    return EntityModel(
+    return EntityModel(  # pyrefly: ignore[bad-return]
         provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(

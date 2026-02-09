@@ -53,6 +53,7 @@ class FileCreatorTool(
         )
 
     async def _run(self, input: FileCreatorInput, options, context) -> FileCreatorToolOutput:
+        # pyrefly: ignore [unknown-name]
         files: list[FileCreatorFile] = []
         for item in input.files:
             file = await File.create(

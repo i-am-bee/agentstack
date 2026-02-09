@@ -67,6 +67,7 @@ class Provider(pydantic.BaseModel):
                     await client.post(
                         url="/api/v1/providers",
                         json=filter_dict(
+                            # pyrefly: ignore [bad-argument-type]
                             {
                                 "location": location,
                                 "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
@@ -95,6 +96,7 @@ class Provider(pydantic.BaseModel):
 
         provider_id = self if isinstance(self, str) else self.id
         payload = filter_dict(
+            # pyrefly: ignore [bad-argument-type]
             {
                 "location": location,
                 "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
@@ -206,6 +208,7 @@ class Provider(pydantic.BaseModel):
         *, origin: str | None = None, user_owned: bool | None = None, client: PlatformClient | None = None
     ) -> list["Provider"]:
         async with client or get_platform_client() as client:
+            # pyrefly: ignore [bad-argument-type]
             params = filter_dict({"origin": origin, "user_owned": user_owned})
             return pydantic.TypeAdapter(list[Provider]).validate_python(
                 (

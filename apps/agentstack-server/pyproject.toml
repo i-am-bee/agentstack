@@ -62,7 +62,7 @@ dev = [
     "ruff>=0.8.5",
     "agentstack-sdk",
     "python-keycloak>=7.0.2",
-    "ty>=0.0.15",
+    "pyrefly>=0.52.0",
 ]
 
 [tool.uv.sources]
@@ -115,4 +115,10 @@ lint.select = [
 lint.ignore = [
     "E501", # line lenght (annyoing)
     "N999", # invalid module name agentstack-server (yeah, we use a dash, deal with it)
+]
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
 ]

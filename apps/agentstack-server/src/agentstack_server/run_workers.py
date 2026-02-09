@@ -14,8 +14,8 @@ from agentstack_server.jobs.queues import Queues
 logger = logging.getLogger(__name__)
 
 
-@asynccontextmanager  # ty:ignore[no-matching-overload]
 @inject
+@asynccontextmanager
 async def run_workers(app: procrastinate.App):
     worker_options: list[WorkerOptions] = [
         WorkerOptions(

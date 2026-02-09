@@ -112,6 +112,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
         )
 
         task = None
+        # pyrefly: ignore [bad-assignment]
         while True:
             async for event in client.send_message(message):
                 if isinstance(event, a2a.types.Message):

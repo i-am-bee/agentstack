@@ -21,11 +21,19 @@ agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true 
 [project.scripts]
 server = "basic_history.agent:run"
 
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]
+search-path = ['../../../../apps/agentstack-sdk-py/src', '.venv/lib/python3.13/site-packages']
+
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pyrefly>=0.52.0",
     "watchfiles>=1.1.0",
 ]

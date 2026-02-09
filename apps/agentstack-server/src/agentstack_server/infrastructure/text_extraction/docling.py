@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import typing
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
@@ -81,7 +82,7 @@ class DoclingTextExtractionBackend(ITextExtractionBackend):
         file_url: AnyUrl,
         timeout: timedelta | None = None,  # noqa: ASYNC109
         settings: TextExtractionSettings | None = None,
-    ) -> AsyncIterator[AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
+    ) -> typing.AsyncGenerator[typing.AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
         """
         Extract text from a file using the Docling service.
         Streams the response and yields files as they are parsed.

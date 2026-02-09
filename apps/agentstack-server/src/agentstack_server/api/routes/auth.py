@@ -26,5 +26,9 @@ def protected_resource_metadata(
 @well_known_router.get("/jwks")
 def jwks():
     config = get_configuration()
-    key = JsonWebKey.import_key(config.auth.jwt_public_key.get_secret_value(), {"use": "sig", "alg": "RS256"})
+    key = JsonWebKey.import_key(
+        # pyrefly: ignore[bad-argument-type]
+        config.auth.jwt_public_key.get_secret_value(),
+        {"use": "sig", "alg": "RS256"},
+    )
     return {"keys": [key.as_dict()]}

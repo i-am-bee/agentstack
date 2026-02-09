@@ -56,7 +56,7 @@ class Permissions(BaseModel):
 
     @classmethod
     def all(cls):
-        return cls(allow_all=True)  # ty:ignore[unknown-argument]
+        return cls(allow_all=True)
 
     def check(self, required: Self) -> bool:
         """Check if required permissions are subset of current permissions."""

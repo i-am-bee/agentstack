@@ -25,9 +25,9 @@ run = "uv run python -m ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-["agentstack-sdk-py:check:ty"]
+["agentstack-sdk-py:check:pyrefly"]
 dir = "{{config_root}}/apps/agentstack-sdk-py"
-run = "uv run ty check src"
+run = "uv run pyrefly check src"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 

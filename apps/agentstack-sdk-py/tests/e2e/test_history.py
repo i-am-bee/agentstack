@@ -25,6 +25,7 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
         match event:
             case (task, _):
                 final_task = task
+    # pyrefly: ignore [bad-return]
     return final_task
 
 
@@ -35,6 +36,7 @@ async def send_message_get_response(
     if context_id is not None:
         message.context_id = context_id
     final_task = await get_final_task_from_stream(client.send_message(message))
+    # pyrefly: ignore [missing-attribute]
     agent_messages = [msg.parts[0].root.text for msg in final_task.history or []]
     return agent_messages, final_task.context_id
 
@@ -47,6 +49,7 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
     async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield, None]:
         await context.store(input)
         async for message in context.load_history():
+            # pyrefly: ignore [missing-attribute]
             message.role = Role.agent
             yield message
             await context.store(message)
@@ -68,10 +71,12 @@ async def history_deleting_agent(create_server_with_agent) -> AsyncGenerator[tup
             if n_messages == 1:
                 delete_id = message.id
             if n_messages > 3:
+                # pyrefly: ignore [unbound-name]
                 await context.delete_history_from_id(delete_id)
                 break
 
         async for message in context.load_history():
+            # pyrefly: ignore [missing-attribute]
             message.role = Role.agent
             yield message
 

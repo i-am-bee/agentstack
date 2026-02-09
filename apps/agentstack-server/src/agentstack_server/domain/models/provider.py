@@ -70,7 +70,8 @@ class DockerImageProviderLocation(RootModel):
     async def get_resolved_version(self) -> ResolvedDockerImageID:
         if not self._resolved_version:
             try:
-                self._resolved_version = await self.root.resolve_version()  # ty:ignore[missing-argument, invalid-await]
+                # pyrefly: ignore[not-async, bad-argument-count]
+                self._resolved_version = await self.root.resolve_version()
             except Exception as ex:
                 raise VersionResolveError(str(self.root), str(ex)) from ex
         return self._resolved_version

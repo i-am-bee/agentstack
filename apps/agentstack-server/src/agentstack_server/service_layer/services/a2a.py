@@ -139,7 +139,8 @@ def _handle_exception[T: Callable](fn: T) -> T:
             async for item in fn(*args, **kwargs):
                 yield item
 
-    return _fn_iter if inspect.isasyncgenfunction(fn) else _fn  # ty:ignore[invalid-return-type]
+    # pyrefly: ignore[bad-return]
+    return _fn_iter if inspect.isasyncgenfunction(fn) else _fn
 
 
 class ProxyRequestHandler(RequestHandler):
@@ -171,10 +172,10 @@ class ProxyRequestHandler(RequestHandler):
             assert self._agent_card_factory is not None
             self._agent_card = await self._agent_card_factory()
 
-        headers = {} if not context else context.state.get("headers", {})
+        headers: dict[str, str] = {} if not context else context.state.get("headers", {})
         headers.pop("host", None)
         headers.pop("content-length", None)
-        if auth_header := headers.get("authorization", None):
+        if auth_header := headers.get("authorization"):
             _scheme, header_token = get_authorization_scheme_param(auth_header)
             try:
                 audience = create_resource_uri(URL(self._agent_card.url))
@@ -184,7 +185,9 @@ class ProxyRequestHandler(RequestHandler):
                 headers.pop("authorization", None)  # forward header only if it's a valid context token
 
         async with httpx.AsyncClient(
-            follow_redirects=True, timeout=timedelta(hours=1).total_seconds(), headers=headers
+            follow_redirects=True,
+            timeout=timedelta(hours=1).total_seconds(),
+            headers=headers,  # pyrefly: ignore[bad-argument-type]
         ) as httpx_client:
             client: BaseClient = cast(
                 BaseClient,

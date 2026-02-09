@@ -35,6 +35,7 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
         match event:
             case (task, _):
                 final_task = task
+    # pyrefly: ignore [bad-return]
     return final_task
 
 
@@ -66,10 +67,13 @@ async def test_run_sync(echo: tuple[Server, Client]) -> None:
 
     assert final_task is not None
     assert final_task.status.state == TaskState.completed
+    # pyrefly: ignore [bad-argument-type]
     assert len(final_task.history) >= 1
     # The echo agent should return the same text as input
+    # pyrefly: ignore [not-iterable]
     agent_messages = [msg for msg in final_task.history if msg.role.value == "agent"]
     assert len(agent_messages) >= 1
+    # pyrefly: ignore [missing-attribute]
     assert agent_messages[0].parts[0].root.text == message.parts[0].root.text
 
 
@@ -183,6 +187,7 @@ async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
 
     assert hasattr(final_task, "status")
     assert final_task.status.state == TaskState.completed
+    # pyrefly: ignore [missing-attribute, unsupported-operation]
     assert "Received resume: Resume input" in final_task.history[-1].parts[0].root.text
 
 
@@ -337,8 +342,11 @@ async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client
     assert final_chunk.append is True
 
     # Verify artifact content
+    # pyrefly: ignore [missing-attribute]
     assert "first chunk" in first_chunk.artifact.parts[0].root.text
+    # pyrefly: ignore [missing-attribute]
     assert "second chunk" in second_chunk.artifact.parts[0].root.text
+    # pyrefly: ignore [missing-attribute]
     assert "final chunk" in final_chunk.artifact.parts[0].root.text
 
 

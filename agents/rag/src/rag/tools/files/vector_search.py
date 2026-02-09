@@ -165,6 +165,7 @@ class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchT
         except Exception as e:
             raise ToolError(f"Error performing vector search: {e}") from e
 
+    # pyrefly: ignore [bad-override]
     def clone(self) -> "VectorSearchTool":
         """Create a copy of this tool."""
         return VectorSearchTool(

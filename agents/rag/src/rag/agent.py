@@ -47,6 +47,7 @@ from rag.tools.general.act import ActAlwaysFirstRequirement, ActTool, act_tool_m
 from rag.tools.general.clarification import ClarificationTool, clarification_tool_middleware
 from rag.tools.general.current_time import CurrentTimeTool
 
+# pyrefly: ignore [missing-attribute]
 BeeAIInstrumentor().instrument()
 
 logger = logging.getLogger(__name__)
@@ -172,6 +173,7 @@ async def rag(
             yield vector_store_create_metadata
             await context.store(AgentMessage(metadata=vector_store_create_metadata))
 
+        # pyrefly: ignore [bad-argument-type]
         tools.append(VectorSearchTool(vector_store_id=vector_store_id, embedding_function=embedding))
         async for item in embed_all_files(
             embedding_function=embedding,
@@ -300,6 +302,7 @@ def _get_clients(
 
     embedding_conf = None
     if embedding_ext:
+        # pyrefly: ignore [missing-attribute]
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
     embedding_client = AsyncOpenAI(

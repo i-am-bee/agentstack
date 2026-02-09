@@ -214,7 +214,7 @@ class RequiresContextPermissionsPath(RequiresContextPermissions):
         self,
         user: Annotated[AuthorizedUser, Depends(authorized_user)],
         context_id: Annotated[UUID, Path()],
-    ) -> AuthorizedUser:  # ty:ignore[invalid-method-override]
+    ) -> AuthorizedUser:
         return super().__call__(user=user, context_id=context_id)
 
 

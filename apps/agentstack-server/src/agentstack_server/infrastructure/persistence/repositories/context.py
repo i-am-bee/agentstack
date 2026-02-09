@@ -58,7 +58,7 @@ class SqlAlchemyContextRepository(IContextRepository):
     def __init__(self, connection: AsyncConnection):
         self._connection = connection
 
-    async def list(
+    async def list(  # pyrefly: ignore[bad-override]
         self, user_id: UUID | None = None, last_active_before: datetime | None = None
     ) -> AsyncIterator[Context]:
         query = select(contexts_table)

@@ -25,7 +25,7 @@ async def get_configuration(
     configuration_service: ConfigurationServiceDependency,
 ) -> EntityModel[SystemConfiguration]:
     configuration = await configuration_service.get_system_configuration(user=user.user)
-    return EntityModel(configuration)
+    return EntityModel(configuration)  # pyrefly: ignore[bad-return]
 
 
 @router.put("/system")
@@ -50,4 +50,4 @@ async def update_configuration(
         user=user.user,
     )
 
-    return EntityModel(result)
+    return EntityModel(result)  # pyrefly: ignore[bad-return]

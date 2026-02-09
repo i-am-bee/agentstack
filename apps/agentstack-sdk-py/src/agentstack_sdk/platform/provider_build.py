@@ -175,6 +175,7 @@ class ProviderBuild(pydantic.BaseModel):
                     await platform_client.get(
                         url="/api/v1/provider_builds",
                         params=filter_dict(
+                            # pyrefly: ignore [bad-argument-type]
                             {
                                 "page_token": page_token,
                                 "limit": limit,

@@ -61,6 +61,7 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
         )
 
         description = f"Select one or more of the provided files:\n\n{file_descriptions}"
+        # pyrefly: ignore [invalid-literal]
         literal = Literal[tuple(file.filename for file in files)]
     else:
         literal = Literal["__None__"]
@@ -95,6 +96,7 @@ def create_file_reader_tool_class(files: list[File]) -> type[Tool]:
             self.files = files
             self.files_dict = {file.filename: file for file in files}
 
+        # pyrefly: ignore [bad-override]
         async def _run(self, input: FileReadInputBase, options, context) -> FileReaderToolOutput:
             if len(input.filenames) == 1 and input.filenames[0] == "__None__":
                 return FileReaderToolOutput(

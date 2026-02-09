@@ -53,6 +53,7 @@ async def canvas_agent(
         yield "Hi, how can I help you?"
         return
 
+    # pyrefly: ignore [missing-attribute]
     (llm_config,) = llm.data.llm_fulfillments.values()
     client = AsyncOpenAI(
         api_key=llm_config.api_key,

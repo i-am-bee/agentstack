@@ -54,7 +54,7 @@ class ManifestResponse(NamedTuple):
 
 
 class DockerImageID(RootModel):
-    root: str
+    root: str  # pyrefly: ignore[bad-override]
     model_config = ConfigDict(frozen=True)
 
     _registry: str | None = PrivateAttr(None)
@@ -74,7 +74,7 @@ class DockerImageID(RootModel):
 
         if registry.endswith("docker.io"):
             registry = "registry-1.docker.io"
-        return f"{self.registry_config.protocol}://{registry}"
+        return f"{self.registry_config.protocol}://{registry}"  # pyrefly: ignore[missing-attribute]
 
     @cached_property
     def manifest_base_url(self) -> str:
@@ -244,7 +244,7 @@ class ResolvedDockerImageID(BaseModel):
         return str(self.image_id)
 
 
-@alru_cache(ttl=timedelta(minutes=5).total_seconds())  # ty:ignore[invalid-argument-type]
+@alru_cache(ttl=timedelta(minutes=5).total_seconds())  # pyrefly: ignore[bad-argument-type]
 @inject
 async def get_registry_token(
     *,
@@ -268,7 +268,7 @@ async def get_registry_token(
                     token_endpoint,
                     follow_redirects=True,
                     headers={"Authorization": f"Basic {docker_image_id.registry_config.basic_auth_str}"}
-                    if docker_image_id.registry_config.basic_auth_str
+                    if docker_image_id.registry_config.basic_auth_str  # pyrefly: ignore[missing-attribute]
                     else {},
                 )
                 if auth_resp.status_code != 200:

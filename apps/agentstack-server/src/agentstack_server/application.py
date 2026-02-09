@@ -202,14 +202,15 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     bootstrap_dependencies_sync(dependency_overrides=dependency_overrides)
     configuration = di[Configuration]
 
-    @asynccontextmanager  # ty:ignore[no-matching-overload]
     @inject
+    @asynccontextmanager
     async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, user_feedback: UserFeedbackService):
         try:
             register_telemetry()
             async with (
                 procrastinate_app.open_async(),
                 user_feedback,
+                # pyrefly: ignore[bad-context-manager, bad-argument-count, unexpected-keyword]
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
                 # Force initial synchronization job
@@ -228,7 +229,7 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
             raise
 
     app = FastAPI(
-        lifespan=lifespan,
+        lifespan=lifespan,  # pyrefly: ignore[bad-argument-type]
         default_response_class=ORJSONResponse,  # better performance then default + handle NaN floats
         docs_url=None,
         openapi_url=None,
@@ -241,14 +242,14 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     # Execution order is important here: https://fastapi.tiangolo.com/tutorial/middleware/#multiple-middleware-execution-order
     if configuration.cors.enabled:
         app.add_middleware(
-            CORSMiddleware,  # ty:ignore[invalid-argument-type]
+            CORSMiddleware,
             allow_origins=configuration.cors.allow_origins,
             allow_credentials=configuration.cors.allow_credentials,
             allow_methods=configuration.cors.allow_methods,
             allow_headers=configuration.cors.allow_headers,
         )
-    app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)  # ty:ignore[invalid-argument-type]
-    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")  # ty:ignore[invalid-argument-type]
+    app.add_middleware(RateLimitMiddleware, limiter_storage=di[Storage], configuration=configuration.rate_limit)
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*" if configuration.trust_proxy_headers else "")
 
     register_global_exception_handlers(app)
     return app

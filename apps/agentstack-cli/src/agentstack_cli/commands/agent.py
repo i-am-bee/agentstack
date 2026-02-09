@@ -96,7 +96,8 @@ from agentstack_cli.configuration import Configuration
 if sys.platform != "win32":
     try:
         # This is necessary for proper handling of arrow keys in interactive input
-        import gnureadline as readline  # ty:ignore[unresolved-import]
+        # pyrefly: ignore [missing-import]
+        import gnureadline as readline
     except ImportError:
         import readline  # noqa: F401
 
@@ -894,6 +895,7 @@ class ShowConfig(InteractiveCommand):
                 schema_table.add_row(
                     prop,
                     json.dumps(required_schema),
+                    # pyrefly: ignore [bad-argument-type]
                     json.dumps(generate_schema_example(required_schema)),
                 )
 

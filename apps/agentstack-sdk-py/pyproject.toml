@@ -30,11 +30,11 @@ dependencies = [
 [dependency-groups]
 dev = [
     "beeai-framework[duckduckgo,wikipedia]>=0.1.76",
+    "pyrefly>=0.52.0",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "pytest-httpx>=0.35.0",
     "ruff>=0.12.3",
-    "ty>=0.0.15",
 ]
 
 [build-system]
@@ -73,3 +73,9 @@ markers = ["e2e", "unit"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "-v"
+
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]

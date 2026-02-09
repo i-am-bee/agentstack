@@ -37,7 +37,7 @@ async def create_vector_store(
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(vector_stores={"write"}))],
 ) -> EntityModel[VectorStore]:
     """Create a new vector store."""
-    return EntityModel(
+    return EntityModel(  # pyrefly: ignore[bad-return]
         await vector_store_service.create(
             name=request.name,
             dimension=request.dimension,
@@ -55,7 +55,7 @@ async def get_vector_store(
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(vector_stores={"read"}))],
 ) -> EntityModel[VectorStore]:
     """Get a vector store by ID."""
-    return EntityModel(
+    return EntityModel(  # pyrefly: ignore[bad-return]
         await vector_store_service.get(vector_store_id=vector_store_id, user=user.user, context_id=user.context_id)
     )
 

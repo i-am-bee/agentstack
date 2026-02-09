@@ -42,7 +42,7 @@ async def upload_file(
 ) -> EntityModel[File]:
     if not file.filename or not file.content_type:
         raise fastapi.HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing filename or content type")
-    return EntityModel(
+    return EntityModel(  # pyrefly: ignore[bad-return]
         await file_service.upload_file(
             file=AsyncFile(filename=file.filename, content_type=file.content_type, read=file.read, size=file.size),
             user=user.user,
@@ -66,6 +66,7 @@ async def get_file(
     file_service: FileServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"read"}))],
 ) -> EntityModel[File]:
+    # pyrefly: ignore[bad-return]
     return EntityModel(await file_service.get(file_id=file_id, user=user.user, context_id=user.context_id))
 
 
@@ -157,6 +158,7 @@ async def create_text_extraction(
 
     settings = request.settings if request.settings is not None else TextExtractionSettings()
 
+    # pyrefly: ignore[bad-return]
     return EntityModel(
         await file_service.create_extraction(
             file_id=file_id, user=user.user, context_id=user.context_id, settings=settings
@@ -170,6 +172,7 @@ async def get_text_extraction(
     file_service: FileServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissions(files={"read"}))],
 ) -> EntityModel[TextExtraction]:
+    # pyrefly: ignore[bad-return]
     return EntityModel(await file_service.get_extraction(file_id=file_id, user=user.user, context_id=user.context_id))
 
 
