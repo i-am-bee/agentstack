@@ -297,7 +297,7 @@ keycloak:
         roles: ["agentstack-admin"]
 ' > "$CONFIG_FILE"
 
-{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} -f "$CONFIG_FILE"
+{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} -f "$CONFIG_FILE" --set ui.enabled=false
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"

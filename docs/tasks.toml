@@ -60,6 +60,36 @@ sources = ["**/*.mdx"]
 outputs = { auto = true }
 run = "pnpm mintlify broken-links"
 
+
+["docs:check:snippets"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/docs"
+run = """
+pnpm embedme --source-root=.. ./development/**/*.mdx --verify --silent || {
+  echo ""
+  echo "Documentation snippets are out of sync with example source files."
+  echo "This happens when you modify code in examples/ that is embedded in docs."
+  echo ""
+  echo "Run 'mise run docs:fix:snippets' to update the documentation."
+  exit 1
+}
+"""
+sources = ["./development/**/*.mdx", "../examples/**/*"]
+outputs = { auto = true }
+
+# fix
+
+["docs:fix"]
+depends = ["docs:fix:*"]
+
+["docs:fix:snippets"]
+depends = ["common:setup:pnpm"]
+dir = "{{config_root}}/docs"
+run = "pnpm embedme --source-root=.. ./development/**/*.mdx --silent"
+sources = ["./development/**/*.mdx", "../examples/**/*"]
+outputs = { auto = true }
+
+
 ## manual check
 
 ["docs:manual-check:external-links"]

@@ -1,15 +1,23 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import re
 from enum import StrEnum
 from typing import Literal
 from uuid import UUID, uuid4
 
 from openai.types import Model as OpenAIModel
-from pydantic import AwareDatetime, BaseModel, Field, HttpUrl, computed_field, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, HttpUrl, computed_field, model_validator
 
+from agentstack_server.domain.models.registry import ModelProviderRegistryLocation
 from agentstack_server.utils.utils import utc_now
+
+
+class ModelProviderState(StrEnum):
+    ONLINE = "online"
+    OFFLINE = "offline"
 
 
 class ModelProviderType(StrEnum):
@@ -73,6 +81,10 @@ class ModelProvider(BaseModel):
         description="WatsonX space ID (alternative to project ID)",
         exclude=True,
     )
+    registry: ModelProviderRegistryLocation | None = None
+    state: ModelProviderState = Field(default=ModelProviderState.ONLINE)
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @model_validator(mode="after")
     def validate_watsonx_config(self):

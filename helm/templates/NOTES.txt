@@ -36,7 +36,7 @@ Getting started:
 
 {{- if .Values.auth.enabled }}
 
-{{- if or (hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl) (hasPrefix "http://localhost" .Values.auth.nextauthUrl) (hasPrefix "http://localhost" .Values.auth.apiUrl) }}
+{{- if or (and .Values.keycloak.enabled (hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl)) (hasPrefix "http://localhost" .Values.auth.nextauthUrl) (hasPrefix "http://localhost" .Values.auth.apiUrl) }}
   {{- if hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl }}
   - Keycloak:
       NOTE: Keycloak is running in clustered-native mode, but with http only. This configuration is for development only.

@@ -49,6 +49,10 @@
       "path": "agents/canvas",
     },
     {
+      "name": "examples",
+      "path": "examples",
+    },
+    {
       "name": "helm",
       "path": "helm",
     },

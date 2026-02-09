@@ -205,3 +205,130 @@ The presets are injected into the platform via the `CONNECTOR__PRESETS` environm
 - Customize metadata (names, descriptions) for better user experience
 
 After modifying preset configuration in Helm values, redeploy the platform for changes to take effect.
+
+## Python SDK
+
+The AgentStack Python SDK provides a convenient wrapper around the connectors API, handling common patterns and reducing boilerplate. While it maps directly to API endpoints, the SDK adds extra functionality for smoother interaction patterns such as methods to wait until a connector reaches a desired state or until it is deleted.
+
+### Getting Started
+```python
+from agentstack_sdk.platform.connector import Connector, ConnectorState
+```
+
+### Core Operations
+
+#### Create a Connector
+```python
+connector = await Connector.create(
+    url="https://api.githubcopilot.com/mcp",
+    client_id="optional_id",
+    client_secret="optional_secret",
+    metadata={"custom": "data"},
+    match_preset=True
+)
+```
+
+#### Delete a Connector
+```python
+await connector.delete()
+await connecrtor.wait_for_deletion(). # Wait until the connector is deleted from the platform
+```
+
+#### List Connectors
+```python
+result = await Connector.list()
+for connector in result.items:
+    print(f"{connector.id}: {connector.url} ({connector.state})")
+```
+
+#### Get or Refresh a Connector
+```python
+# Get a specific connector
+connector = await Connector.get(connector_id)
+
+# Refresh an existing connector instance
+connector = await connector.refresh()
+```
+
+#### List Presets
+```python
+presets = await Connector.presets()
+for preset in presets.items:
+    print(preset)
+```
+
+### Authentication & Connection
+
+#### OAuth Authentication
+
+For OAuth-enabled servers, the SDK automatically opens the browser when `connect()` is called. Use `wait_for_state()` to poll until authorization completes.
+```python
+# Connect with OAuth (browser will open automatically)
+connector = await connector.connect(
+    redirect_url="https://localhost:8080/callback"  # Optional
+)
+
+# Wait for authorization to complete
+connector = await connector.wait_for_state(
+    state=ConnectorState.connected,
+    poll_interval=1  # Optional, seconds between polls
+)
+```
+
+#### Token-Based Authentication
+
+For services that use access tokens instead of OAuth:
+```python
+connector = await Connector.create(url="https://api.example.com/mcp")
+connector = await connector.connect(access_token="your_api_token")
+connector = await connector.wait_for_state(state=ConnectorState.connected)
+```
+
+#### Disconnect
+```python
+await connector.disconnect()
+connector = await connector.wait_for_state(state=ConnectorState.disconnected)
+```
+
+### Advanced Features
+
+#### Stream MCP Proxy Requests
+```python
+response_chunks = []
+async for response in connector.mcp_proxy(
+    method="POST",
+    headers={"Accept": "application/json, text/event-stream"},
+    content=json.dumps(mcp_request).encode()
+):
+    response_chunks.append(response.chunk)
+
+response_text = b"".join(response_chunks).decode()
+```
+
+
+### Complete Workflow Example
+```python
+import asyncio
+from agentstack_sdk.platform.connector import Connector, ConnectorState
+
+async def main():
+    # Create connector
+    connector = await Connector.create(url="https://mcp.stripe.com")
+    
+    # Connect (browser opens for OAuth if needed)
+    connector = await connector.connect()
+    connector = await connector.wait_for_state(state=ConnectorState.connected)
+    
+    # Use the connector
+    for k, v in connector.model_dump().items():
+        print(f"{k}: {v}")
+    
+    # Cleanup
+    await connector.disconnect()
+    await connector.delete()
+    await connector.wait_for_deletion()
+
+asyncio.run(main())
+```
+
+Check out the repository for more examples.

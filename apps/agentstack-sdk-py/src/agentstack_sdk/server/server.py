@@ -158,6 +158,8 @@ class Server:
 
         from agentstack_sdk.server.app import create_app
 
+        self_registration = False if self._production_mode else self_registration
+
         @asynccontextmanager
         async def _lifespan_fn(app: FastAPI) -> AsyncGenerator[None, None]:
             async with self._self_registration_client or nullcontext():

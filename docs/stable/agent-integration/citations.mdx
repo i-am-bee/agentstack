@@ -3,7 +3,21 @@ title: Add Citations to Agent Responses
 description: Add source references to agent responses with clickable links
 ---
 
-## Basic Usage
+The Citation extension allows agents to include source references in their responses.
+Citations appear as highlighted text with hover tooltips and clickable source links in the Agent Stack UI,
+making it easy for users to verify the information.
+
+Each citation requires:
+
+| Field | Description |
+|-------|-------------|
+| `url` | Source link |
+| `title` | Display title |
+| `description` | Brief explanation |
+| `start_index` | Start position in text |
+| `end_index` | End position in text |
+
+## Example: Basic Usage
 
 ```python
 from typing import Annotated
@@ -39,16 +53,24 @@ async def research_agent(
     yield citation.message(text=response_text, citations=citations)
 ```
 
-## Citation Format
+<Steps>
+<Step title="Import the citation extension">
+Import `CitationExtensionServer` and `CitationExtensionSpec` from `agentstack_sdk.a2a.extensions`.
+</Step>
 
-Each citation requires:
-- `url`: Source link
-- `title`: Display title
-- `description`: Brief explanation
-- `start_index`: Start position in text
-- `end_index`: End position in text
+<Step title="Inject the extension">
+  Add a citation parameter to your agent function using the `Annotated` type hint
+  with `CitationExtensionSpec()`.
+</Step>
+
+<Step title="Yield citation message">
+  Call `yield citation.message()` with `text` and `citations`.
+</Step>
+</Steps>
 
 ## Multiple Citations
+
+Yield multiple citations in a single response:
 
 ```python
 response_text = "Python leads AI development while JavaScript dominates web development."
@@ -71,4 +93,6 @@ citations = [
 ]
 ```
 
-Citations appear as highlighted text with hover tooltips and clickable source links in the UI.
+## Example: Advanced Usage
+
+For a more advanced example, see [citation_agent.py](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/citation_agent.py).

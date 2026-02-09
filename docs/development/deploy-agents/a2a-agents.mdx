@@ -1,0 +1,64 @@
+---
+title: "Connect A2A Agents"
+description: "Instant UI for existing A2A agents"
+---
+
+Got an existing A2A agent that is not wrapped using Agent Stack SDK? No problem, you can still connect it to Agent Stack by providing a Docker image or its running URL.
+
+## Add Docker A2A Agent
+
+When you want your agent to be managed via Agent Stack, provide a Docker image:
+
+```bash
+agentstack add <docker-image-url>
+```
+
+For example:
+```bash
+agentstack add ghcr.io/my-org/my-agent:latest
+```
+
+### Requirements
+
+Your A2A agent Docker image must:
+
+1. **Expose a valid agent card** at `/.well-known/agent-card.json`
+2. **Start without required environment variables** — Agent Stack temporarily runs the container to extract metadata, then terminates it. Your image must be able to start with sensible defaults (no mandatory env vars).
+
+### How It Works
+
+When you register an A2A agent:
+
+1. Agent Stack pulls and starts your Docker image
+2. Probes `/.well-known/agent-card.json` to extract agent metadata
+3. Terminates the container
+4. Uses the metadata to make the agent available in the interface
+
+When users interact with your agent, Agent Stack manages the container lifecycle automatically.
+
+## Add Unmanaged A2A Agent
+
+<Tip>
+An **unmanaged agent** is an A2A agent whose lifecycle is not controlled by Agent Stack. You are responsible for starting, stopping, and maintaining it. Agent Stack only proxies requests to it.
+</Tip>
+
+If your A2A agent is already running and you don't want Agent Stack to manage its lifecycle (unmanaged), you can add it directly via its URL:
+
+```bash
+agentstack add <agent-url>
+```
+
+For example:
+```bash
+agentstack add http://localhost:8080
+```
+
+### Requirements
+
+Your running A2A agent must expose a valid agent card at `/.well-known/agent-card.json`. For the example above, this would be at `http://localhost:8080/.well-known/agent-card.json`.
+
+### How It Works
+
+When you register an unmanaged A2A agent, Agent Stack fetches the agent card from the `/.well-known/agent-card.json` endpoint of the provided URL. It then enhances the metadata from the card to make the agent available in the interface.
+
+Agent Stack will not manage the lifecycle of this agent. When users interact with it, requests are proxied to the provided agent URL.

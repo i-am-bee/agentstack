@@ -8,14 +8,11 @@ import json
 import logging
 import uuid
 from collections.abc import AsyncIterator, Callable
-from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
 from a2a.types import AgentCard, AgentExtension
-from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import HTTPException
-from httpx import AsyncClient
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_422_UNPROCESSABLE_CONTENT
 
@@ -64,6 +61,7 @@ class ProviderService:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
+            agent_card = self._inject_default_agent_detail_extension(agent_card)
             version_info = await location.get_version_info()
 
             if isinstance(origin, ResolvedGithubUrl):
@@ -101,50 +99,13 @@ class ProviderService:
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
 
-    async def _fetch_agent_card_from_container(self, location: DockerImageProviderLocation) -> AgentCard:
-        from a2a.types import AgentCapabilities
-
-        placeholder_card = AgentCard(
-            name="discovery",
-            description="",
-            url="",
-            version="",
-            capabilities=AgentCapabilities(),
-            default_input_modes=["text"],
-            default_output_modes=["text"],
-            skills=[],
-        )
-        temp_provider = Provider(
-            source=location,
-            origin=str(location.root),
-            created_by=uuid.UUID("00000000-0000-0000-0000-000000000000"),
-            agent_card=placeholder_card,
-        )
-        try:
-            await self._deployment_manager.create_or_replace(provider=temp_provider)
-            await self._deployment_manager.wait_for_startup(provider_id=temp_provider.id, timeout=timedelta(minutes=1))
-            url = await self._deployment_manager.get_provider_url(provider_id=temp_provider.id)
-            async with AsyncClient(base_url=str(url)) as client:
-                response = await client.get(AGENT_CARD_WELL_KNOWN_PATH, timeout=10)
-                response.raise_for_status()
-                agent_card = AgentCard.model_validate(response.json())
-                return self._inject_default_agent_detail_extension(agent_card, location)
-        finally:
-            with suppress(Exception):
-                await self._deployment_manager.delete(provider_id=temp_provider.id)
-
-    def _inject_default_agent_detail_extension(
-        self, agent_card: AgentCard, location: DockerImageProviderLocation
-    ) -> AgentCard:
+    def _inject_default_agent_detail_extension(self, agent_card: AgentCard) -> AgentCard:
         if get_extension(agent_card, AGENT_DETAIL_EXTENSION_URI):
             return agent_card
 
         default_extension = AgentExtension(
             uri=AGENT_DETAIL_EXTENSION_URI,
-            params={
-                "interaction_mode": "multi-turn",
-                "container_image_url": str(location.root),
-            },
+            params={"interaction_mode": "multi-turn"},
         )
 
         extensions = list(agent_card.capabilities.extensions or [])
@@ -188,7 +149,8 @@ class ProviderService:
 
         updated_provider = provider.model_copy()
         updated_provider.source = location or updated_provider.source
-        updated_provider.agent_card = agent_card or updated_provider.agent_card
+        if agent_card:
+            updated_provider.agent_card = self._inject_default_agent_detail_extension(agent_card)
         updated_provider.origin = origin or updated_provider.source.origin
 
         if auto_stop_timeout is not None:
@@ -214,7 +176,8 @@ class ProviderService:
 
             if not agent_card:
                 try:
-                    updated_provider.agent_card = await location.load_agent_card()
+                    loaded_card = await location.load_agent_card()
+                    updated_provider.agent_card = self._inject_default_agent_detail_extension(loaded_card)
                 except ValueError as ex:
                     raise ManifestLoadError(
                         location=location, message=str(ex), status_code=HTTP_400_BAD_REQUEST
@@ -252,6 +215,7 @@ class ProviderService:
         try:
             if not agent_card:
                 agent_card = await location.load_agent_card()
+            agent_card = self._inject_default_agent_detail_extension(agent_card)
             provider = Provider(
                 source=location,
                 origin=location.origin,

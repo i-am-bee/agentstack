@@ -15,31 +15,6 @@ The Agent Stack platform allows you to declare environment variable requirements
 Environment variables declared in `AgentDetail` are automatically provided by the Agent Stack platform when your agent is deployed via `agentstack add`. When running your agent locally or with auto-registration via SDK, you're responsible for providing these variables yourself.
 </Tip>
 
-## Quickstart
-
-<Steps>
-<Step title="Import AgentDetail and EnvVar">
-Import the necessary components from the Agent Stack SDK.
-</Step>
-
-<Step title="Declare environment variables">
-Add an `EnvVar` list to the `variables` field in your `AgentDetail` configuration.
-</Step>
-
-<Step title="Deploy your agent to the Agent Stack">
-Use `agentstack add` command to [deploy your agent in Agent Stack](../deploy-agents/deploy-your-agents)
-</Step>
-
-<Step title="Configure the variables via CLI">
-Configure environment variables for your agent using `agentstack env add "Name or ID of your Agent" KEY=VALUE`.
-</Step>
-
-
-<Step title="Access environment variables">
-Use `os.getenv()` to access the environment variables in your agent code.
-</Step>
-</Steps>
-
 ## Basic Environment Variables Example
 
 Here's how to request environment variables for your agent:
@@ -86,6 +61,29 @@ if __name__ == "__main__":
     run()
 ```
 
+<Steps>
+<Step title="Import AgentDetail and EnvVar">
+Import the necessary components from the Agent Stack SDK.
+</Step>
+
+<Step title="Declare environment variables">
+Add an `EnvVar` list to the `variables` field in your `AgentDetail` configuration.
+</Step>
+
+<Step title="Deploy your agent to the Agent Stack">
+Use `agentstack add` command to [deploy your agent in Agent Stack](../deploy-agents/deploy-your-agents)
+</Step>
+
+<Step title="Configure the variables via CLI">
+Configure environment variables for your agent using `agentstack env add "Name or ID of your Agent" KEY=VALUE`.
+</Step>
+
+
+<Step title="Access environment variables">
+Use `os.getenv()` to access the environment variables in your agent code.
+</Step>
+</Steps>
+
 ## Managing Environment Variables
 
 Once your agent is deployed to Agent Stack, you need to provide the environment variables it requires. You can manage these variables using the `agentstack env` CLI commands.
@@ -120,4 +118,4 @@ agentstack env remove "Name or ID of the agent" VARIABLE_NAME
 
 ### Checking Missing Variables
 
-When a required variable hasn't been provided, you can see this in the agent list. Use `agentstack list` to view all agents - the `MISSING ENV` column shows which variables still need to be configured.
+When a required variable hasn't been provided, you can see this in the agent list. Use `agentstack list` to view all agents - the `INFO` column shows which variables still need to be configured.

@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Get a running instance in minutes and explore pre-built agents"
+description: "Get Agent Stack up and running in minutes. Then explore running pre-built agents."
 ---
 
 ## Prerequisites
@@ -22,19 +22,26 @@ Open the terminal and run this command to install Agent Stack:
 sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/install/install.sh)"
 ```
 
-This interactive script installs Agent Stack CLI, downloads and starts the platform, prompts you to configure your LLM API key, then launches the web interface.
+<Info> 
+
+The installer sets up `uv` and the `agentstack-cli` on your host machine. Agent Stack uses a virtual machine (managed via a bundled [Lima](https://github.com/lima-vm/lima) binary) to keep your host machine clean. The Kubernetes cluster running the Agent Stack server, agent containers, and associated storage and services live entirely inside the VM and not on your host directly. 
+
+
+For details on what happens under the hood, refer to the Manual Install section or read the [`install.sh`](https://github.com/i-am-bee/agentstack/blob/install/install.sh) source code.
+
+</Info>
 
 <Accordion title="Manual Install">
 
 <Steps>
 <Step title="Install uv">
 
-Follow the [installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
+Follow the [installation instructions](https://docs.astral.sh/uv/getting-started/installation/). Agent Stack uses `uv` to manage its own internal Python environment.
 
 </Step>
 <Step title="Linux only: Install QEMU">
 
-Install QEMU via package manager ([instructions](https://www.qemu.org/download/)).
+On Linux, Lima requires QEMU. Install it via these ([instructions](https://www.qemu.org/download/)).
 
 </Step>
 <Step title="Install Agent Stack">
@@ -45,7 +52,7 @@ Open a new terminal and run:
 uv python install --quiet --python-preference=only-managed --no-bin 3.13 && uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli && agentstack self install
 ```
 
-Follow the interactive prompts to finish installation and setup.
+Follow the interactive prompts to finish setup and optionally start the VM.
 
 </Step>
 </Steps>
@@ -167,12 +174,12 @@ Follow the interactive prompts to finish the installation and setup.
 ## Usage
 
 ```sh
-agentstack ui                     # Launch web interface
-agentstack list                   # See what agents are available
-agentstack run chat "Hi!"         # Send a message to chat agent
-agentstack run chat               # Try interactive mode
-agentstack info chat              # View agent details
-agentstack --help                 # See all options
+agentstack ui                          # Launch web interface
+agentstack list                        # See what agents are available
+agentstack run chat "Hi, who are you"  # Send a message to chat agent
+agentstack run chat                    # Try interactive mode
+agentstack info chat                   # View agent details
+agentstack --help                      # See all options
 ```
 
 ## Platform Management
