@@ -138,7 +138,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         self, request: ChatCompletionRequest, model: ibm_watsonx_ai.foundation_models.ModelInference
     ) -> Iterator[openai.types.chat.ChatCompletionChunk]:
         for chunk in model.chat_stream(
-            messages=[typing.cast(pydantic.BaseModel, message).model_dump() for message in request.messages],
+            messages=request.messages,
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
