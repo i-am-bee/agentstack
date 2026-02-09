@@ -27,9 +27,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pyright>=1.1.407", # note: pyright 1.1.408 has a bug with multiple-inheritance
     "pytest>=9.0.2",
     "ruff>=0.14.14",
+    "ty>=0.0.15",
     "wheel>=0.46.3",
 ]
 

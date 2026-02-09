@@ -96,7 +96,7 @@ from agentstack_cli.configuration import Configuration
 if sys.platform != "win32":
     try:
         # This is necessary for proper handling of arrow keys in interactive input
-        import gnureadline as readline
+        import gnureadline as readline  # ty: ignore[unresolved-import]
     except ImportError:
         import readline  # noqa: F401
 
@@ -675,11 +675,7 @@ async def _run_agent(
                 else {}
             )
             | (
-                {
-                    FormServiceExtensionSpec.URI: {
-                        "form_fulfillments": {"initial_form": typing.cast(FormResponse, input).model_dump(mode="json")}
-                    }
-                }
+                {FormServiceExtensionSpec.URI: {"form_fulfillments": {"initial_form": input.model_dump(mode="json")}}}
                 if isinstance(input, FormResponse)
                 else {}
             )
