@@ -51,14 +51,8 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
     Description to be attached with the extension spec.
     """
 
-    Params: type[ParamsT]
-    """
-    Type of the extension params, attached to the agent card.
-    """
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        # pyrefly: ignore [no-access]
         cls.Params = _get_generic_args(cls, BaseExtensionSpec)[0]
 
     params: ParamsT
@@ -73,13 +67,12 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
         self.params = params
 
     @classmethod
-    def from_agent_card(cls, agent: AgentCard) -> typing.Self | None:
+    def from_agent_card(cls: type[BaseExtensionSpec], agent: AgentCard) -> typing.Self | None:
         """
         Client should construct an extension instance using this classmethod.
         """
         try:
             return cls(
-                # pyrefly: ignore [missing-attribute]
                 params=pydantic.TypeAdapter(cls.Params).validate_python(
                     next(x for x in agent.capabilities.extensions or [] if x.uri == cls.URI).params
                 ),

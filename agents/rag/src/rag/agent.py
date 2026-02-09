@@ -47,8 +47,9 @@ from rag.tools.general.act import ActAlwaysFirstRequirement, ActTool, act_tool_m
 from rag.tools.general.clarification import ClarificationTool, clarification_tool_middleware
 from rag.tools.general.current_time import CurrentTimeTool
 
-# pyrefly: ignore [missing-attribute]
-BeeAIInstrumentor().instrument()
+beeai_instrumentor = BeeAIInstrumentor()
+if beeai_instrumentor:
+    beeai_instrumentor.instrument()
 
 logger = logging.getLogger(__name__)
 
@@ -301,8 +302,7 @@ def _get_clients(
     llm.set_context(llm_ext)
 
     embedding_conf = None
-    if embedding_ext:
-        # pyrefly: ignore [missing-attribute]
+    if embedding_ext and embedding_ext.data:
         [embedding_conf] = embedding_ext.data.embedding_fulfillments.values()
 
     embedding_client = AsyncOpenAI(

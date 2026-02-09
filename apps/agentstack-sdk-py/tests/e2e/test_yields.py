@@ -70,7 +70,7 @@ def create_streaming_request_object(text: str | None = None, task_id: str | None
 async def sync_function_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
     def sync_function_agent(message: Message):
         """Synchronous function agent that returns a string directly."""
-        # pyrefly: ignore [missing-attribute]
+
         return f"sync_function_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(sync_function_agent) as (server, client):
@@ -82,7 +82,7 @@ async def sync_function_with_context_agent(create_server_with_agent) -> AsyncGen
     def sync_function_with_context_agent(message: Message, context: RunContext):
         """Synchronous function agent with context that uses context.yield_sync."""
         context.yield_sync("first sync yield")
-        # pyrefly: ignore [missing-attribute]
+
         return f"sync_function_with_context_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(sync_function_with_context_agent) as (server, client):
@@ -107,7 +107,7 @@ async def sync_generator_with_context_agent(create_server_with_agent) -> AsyncGe
         yield "sync_generator_with_context yield 1"
         context.yield_sync("sync_generator_with_context context yield")
         yield "sync_generator_with_context yield 2"
-        # pyrefly: ignore [missing-attribute]
+
         yield f"sync_generator_with_context_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(sync_generator_with_context_agent) as (server, client):
@@ -119,7 +119,7 @@ async def async_function_agent(create_server_with_agent) -> AsyncGenerator[tuple
     async def async_function_agent(message: Message):
         """Asynchronous function agent that returns a string directly."""
         await asyncio.sleep(0.01)
-        # pyrefly: ignore [missing-attribute]
+
         return f"async_function_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(async_function_agent) as (server, client):
@@ -132,7 +132,7 @@ async def async_function_with_context_agent(create_server_with_agent) -> AsyncGe
         """Asynchronous function agent with context that uses context.yield_async."""
         await context.yield_async("first async yield")
         await asyncio.sleep(0.01)
-        # pyrefly: ignore [missing-attribute]
+
         return f"async_function_with_context_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(async_function_with_context_agent) as (server, client):
@@ -146,7 +146,7 @@ async def async_generator_agent(create_server_with_agent) -> AsyncGenerator[tupl
         yield "async_generator yield 1"
         await asyncio.sleep(0.01)
         yield "async_generator yield 2"
-        # pyrefly: ignore [missing-attribute]
+
         yield f"async_generator_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(async_generator_agent) as (server, client):
@@ -161,7 +161,7 @@ async def async_generator_with_context_agent(create_server_with_agent) -> AsyncG
         await context.yield_async("async_generator_with_context context yield")
         await asyncio.sleep(0.01)
         yield "async_generator_with_context yield 2"
-        # pyrefly: ignore [missing-attribute]
+
         yield f"async_generator_with_context_agent: {message.parts[0].root.text}"
 
     async with create_server_with_agent(async_generator_with_context_agent) as (server, client):
@@ -178,7 +178,7 @@ async def sync_function_resume_agent(create_server_with_agent) -> AsyncGenerator
                 message=create_text_message_object(content="Need input"),
             )
         )
-        # pyrefly: ignore [missing-attribute]
+
         return f"sync_function_resume_agent: received {resume_message.parts[0].root.text}"
 
     async with create_server_with_agent(sync_function_resume_agent) as (server, client):
@@ -204,7 +204,7 @@ async def async_function_resume_agent(create_server_with_agent) -> AsyncGenerato
         resume_message = await context.yield_async(
             TaskStatus(state=TaskState.input_required, message=create_text_message_object(content="Need input"))
         )
-        # pyrefly: ignore [missing-attribute]
+
         return f"async_function_resume_agent: received {resume_message.parts[0].root.text}"
 
     async with create_server_with_agent(async_function_resume_agent) as (server, client):

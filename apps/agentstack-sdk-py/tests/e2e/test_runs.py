@@ -73,7 +73,7 @@ async def test_run_sync(echo: tuple[Server, Client]) -> None:
     # pyrefly: ignore [not-iterable]
     agent_messages = [msg for msg in final_task.history if msg.role.value == "agent"]
     assert len(agent_messages) >= 1
-    # pyrefly: ignore [missing-attribute]
+
     assert agent_messages[0].parts[0].root.text == message.parts[0].root.text
 
 
@@ -342,11 +342,11 @@ async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client
     assert final_chunk.append is True
 
     # Verify artifact content
-    # pyrefly: ignore [missing-attribute]
+
     assert "first chunk" in first_chunk.artifact.parts[0].root.text
-    # pyrefly: ignore [missing-attribute]
+
     assert "second chunk" in second_chunk.artifact.parts[0].root.text
-    # pyrefly: ignore [missing-attribute]
+
     assert "final chunk" in final_chunk.artifact.parts[0].root.text
 
 

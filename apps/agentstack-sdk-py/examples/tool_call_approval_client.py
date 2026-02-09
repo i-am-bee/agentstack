@@ -1,13 +1,13 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from a2a.types import Task
 import asyncio
 import uuid
 
 import a2a.client
 import a2a.types
 import httpx
+from a2a.types import Task
 
 import agentstack_sdk.a2a.extensions
 from agentstack_sdk.a2a.extensions.interactions.approval import ApprovalResponse

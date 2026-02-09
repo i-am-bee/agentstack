@@ -44,6 +44,10 @@ async def canvas_agent(
     canvas: Annotated[CanvasExtensionServer, CanvasExtensionSpec()],
     llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
 ):
+    if not llm.data:
+        yield "Can't run without a LLM."
+        return
+
     await context.store(message)
     edit_request = await canvas.parse_canvas_edit_request(message=message)
 
@@ -53,7 +57,6 @@ async def canvas_agent(
         yield "Hi, how can I help you?"
         return
 
-    # pyrefly: ignore [missing-attribute]
     (llm_config,) = llm.data.llm_fulfillments.values()
     client = AsyncOpenAI(
         api_key=llm_config.api_key,

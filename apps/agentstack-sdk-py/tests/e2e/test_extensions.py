@@ -44,7 +44,7 @@ async def llm_extension_agent(create_server_with_agent) -> AsyncGenerator[tuple[
     ) -> AsyncGenerator[RunYield, Message]:
         # Agent producing chunked artifacts
         await asyncio.sleep(random() * 0.5)
-        # pyrefly: ignore [missing-attribute]
+
         api_key = next(iter(llm_ext.data.llm_fulfillments.values())).api_key
         yield api_key
 
@@ -113,7 +113,6 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
     error_message = None
     # pyrefly: ignore [not-iterable]
     for msg in task.history:
-        # pyrefly: ignore [missing-attribute]
         if msg.metadata and error_spec.URI in msg.metadata:
             error_message = msg
             break
@@ -123,13 +122,13 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
     # Validate error metadata
     # pyrefly: ignore [missing-attribute, unsupported-operation]
     error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
-    # pyrefly: ignore [missing-attribute]
+
     assert error_metadata.error.title == "ValueError"
     assert error_metadata.error.message == "Something went wrong!"
     assert error_metadata.stack_trace is None
 
     # Check message text
-    # pyrefly: ignore [missing-attribute]
+
     message_text = error_message.parts[0].root.text
     assert "## ValueError" in message_text
     assert "Something went wrong!" in message_text
@@ -149,7 +148,6 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
     error_message = None
     # pyrefly: ignore [not-iterable]
     for msg in task.history:
-        # pyrefly: ignore [missing-attribute]
         if msg.metadata and error_spec.URI in msg.metadata:
             error_message = msg
             break
@@ -160,7 +158,7 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
     # pyrefly: ignore [missing-attribute, unsupported-operation]
     error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
     assert error_metadata.error.message.startswith("Multiple failures")
-    # pyrefly: ignore [missing-attribute]
+
     assert len(error_metadata.error.errors) == 2
     # pyrefly: ignore [bad-index]
     assert error_metadata.error.errors[0].title == "ValueError"
@@ -178,7 +176,7 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
     assert "TypeError: Second error" in error_metadata.stack_trace
 
     # Check message text
-    # pyrefly: ignore [missing-attribute]
+
     message_text = error_message.parts[0].root.text
     assert "## Multiple failures" in message_text
     assert "### ValueError" in message_text
@@ -243,7 +241,6 @@ async def test_error_extension_context_isolation(context_isolation_agent):
         error_message = None
         # pyrefly: ignore [not-iterable]
         for msg in task.history:
-            # pyrefly: ignore [missing-attribute]
             if msg.metadata and error_spec.URI in msg.metadata:
                 error_message = msg
                 break
@@ -253,7 +250,7 @@ async def test_error_extension_context_isolation(context_isolation_agent):
         # Validate error metadata
         # pyrefly: ignore [missing-attribute, unsupported-operation]
         error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
-        # pyrefly: ignore [missing-attribute]
+
         assert error_metadata.error.title == "ValueError"
         assert error_metadata.error.message == f"Error for request {expected_id}"
 

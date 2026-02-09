@@ -54,8 +54,9 @@ from chat.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from chat.tools.files.file_reader import FileReaderTool
 from chat.tools.files.utils import extract_files, to_framework_message
 
-# pyrefly: ignore [missing-attribute]
-BeeAIInstrumentor().instrument()
+beeai_instrumentor = BeeAIInstrumentor()
+if beeai_instrumentor:
+    beeai_instrumentor.instrument()
 
 logger = logging.getLogger(__name__)
 
@@ -249,16 +250,14 @@ async def chat(
                     final_answer = state.answer
 
                     last_step = state.steps[-1]
-                    # pyrefly: ignore [missing-attribute]
-                    if last_step.tool.name == FinalAnswerTool.name:  # internal tool
+                    if last_step.tool and last_step.tool.name == FinalAnswerTool.name:  # internal tool
                         continue
 
                     trajectory_content = TrajectoryContent(
                         input=last_step.input, output=last_step.output, error=last_step.error
                     )
                     metadata = trajectory.trajectory_metadata(
-                        # pyrefly: ignore [bad-argument-type]
-                        title=last_step.tool.name, content=trajectory_content.model_dump_json(), group_id=last_step.id
+                        title=last_step.tool.name if last_step.tool else None, content=trajectory_content.model_dump_json(), group_id=last_step.id
                     )
                     yield metadata
                     await context.store(AgentMessage(metadata=metadata))

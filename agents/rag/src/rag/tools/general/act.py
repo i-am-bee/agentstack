@@ -219,7 +219,7 @@ def act_tool_middleware(ctx: RunContext) -> None:
 
     def handle_start(data: RequirementAgentStartEvent, event: EventMeta) -> None:
         allowed_tools = [t.name for t in data.request.tools if t.name != "act"]
-        # pyrefly: ignore [missing-attribute]
-        act_tool.allowed_tools_names = allowed_tools
+        if act_tool:
+            act_tool.allowed_tools_names = allowed_tools
 
     ctx.emitter.on("start", handle_start)
