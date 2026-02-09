@@ -15,6 +15,7 @@ from typing import Annotated, Any
 
 from a2a.types import (
     Message,
+    TextPart
 )
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
@@ -57,7 +58,7 @@ async def tool_call_agent(
         requirements=[AskPermissionRequirement([think_tool], handler=handler)],
     )
 
-    result = await agent.run("".join(part.root.text for part in input.parts if part.root.kind == "text"))
+    result = await agent.run("".join(part.root.text for part in input.parts if isinstance(part.root, TextPart)))
     yield result.output[0].text
 
 

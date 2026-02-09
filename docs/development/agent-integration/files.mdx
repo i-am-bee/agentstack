@@ -14,7 +14,7 @@ import os
 from typing import Annotated
 
 from agentstack_sdk.server import Server
-from a2a.types import Message
+from a2a.types import Message, FilePart
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
@@ -39,7 +39,7 @@ async def file_processor_agent(
     for file_part in input.parts:
         file_part_root = file_part.root
 
-        if file_part_root.kind == "file":
+        if isinstance(file_part_root, FilePart):
             mime_type = file_part_root.file.mime_type or "application/octet-stream"
 
             async with load_file(file_part_root) as loaded_content:

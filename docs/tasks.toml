@@ -10,7 +10,7 @@ run = "pnpm dev"
 ["docs:check"]
 depends = ["docs:check:*"]
 
-["docs:check:pyright"]
+["docs:check:ty"]
 depends = ["agentstack-sdk-py:build"]
 dir = "{{config_root}}"
 sources = ["docs/development/**/*.md", "docs/development/**/*.mdx", "apps/agentstack-sdk-py/dist/agentstack_sdk-*.whl"]
@@ -49,9 +49,9 @@ uv pip install --quiet \
   langchain_text_splitters \
   beeai-framework \
   openai \
-  pyright
+  ty
 
-pyright "$TMPDIR/snippets"
+ty check "$TMPDIR/snippets"
 """
 
 ["docs:check:links"]
