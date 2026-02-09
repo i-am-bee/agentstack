@@ -117,6 +117,42 @@
       "cwd": "${workspaceFolder}/agent-integration/env-variables/basic-environment-variables",
       "program": "src/basic_environment_variables/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/standard-error-reporting",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/standard-error-reporting",
+      "program": "src/standard_error_reporting/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/advanced-error-reporting",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/advanced-error-reporting",
+      "program": "src/advanced_error_reporting/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/multiple-errors-handling",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/multiple-errors-handling",
+      "program": "src/multiple_errors_handling/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/adding-error-context",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/adding-error-context",
+      "program": "src/adding_error_context/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
