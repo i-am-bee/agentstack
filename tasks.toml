@@ -584,3 +584,17 @@ arg "<path>" help="Path relative to examples/ (e.g., agent-integration/multi-tur
 arg "<description>" help="Short description of the example"
 '''
 run = "examples/create-example.sh {{arg(name=\"path\")}} {{arg(name=\"description\")}}"
+
+# please
+
+["please"]
+dir = "{{config_root}}"
+run = """
+#!/bin/bash
+set -eu -o pipefail
+{{mise_bin}} uninstall --all
+rm -rf **/.venv **/node_modules **/.next
+brew upgrade mise || mise self-update || true
+{{mise_bin}} install
+{{mise_bin}} run --force setup ::: check
+"""
