@@ -508,7 +508,7 @@ class Configuration(BaseSettings):
                             aliases.add(url.host)
                     else:
                         aliases.add(registry.strip("/"))
-                    if any(alias and "index.docker.io" in alias for alias in aliases):
+                    if any(alias in {"index.docker.io", "docker.io"} for alias in aliases):
                         aliases.add("docker.io")
                     for alias in aliases:
                         if not alias:
