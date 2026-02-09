@@ -81,6 +81,15 @@
       "cwd": "${workspaceFolder}/agent-integration/trajectory/trajectory-basic-usage",
       "program": "src/trajectory_basic_usage/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/citation-basic-usage",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/citations/citation-basic-usage",
+      "program": "src/citation_basic_usage/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
