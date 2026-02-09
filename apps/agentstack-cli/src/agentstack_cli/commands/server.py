@@ -255,7 +255,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             )
             if not client_id:
                 raise RuntimeError("Client ID is mandatory. Action cancelled.")
-            client_secret = await inquirer.text(message="Enter Client Secret (optional):").execute_async() or None
+            client_secret = await inquirer.secret(message="Enter Client Secret (optional):").execute_async() or None
 
         code_verifier = generate_token(64)
 
