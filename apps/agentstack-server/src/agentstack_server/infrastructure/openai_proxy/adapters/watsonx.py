@@ -8,7 +8,6 @@ from typing import Final, override
 
 import ibm_watsonx_ai.foundation_models.embeddings
 import openai.types.chat
-import pydantic
 from httpx import AsyncClient
 
 from agentstack_server.api.schema.openai import ChatCompletionRequest, EmbeddingsRequest, MultiformatEmbedding
@@ -89,7 +88,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         api_key: str,
     ) -> openai.types.chat.ChatCompletion:
         response = await asyncio.to_thread(
-            self._get_watsonx_model(request, api_key).chat,
+            self._get_watsonx_model(request, api_key).chat,  # ty:ignore[invalid-argument-type]
             messages=request.messages,
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
@@ -138,7 +137,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         self, request: ChatCompletionRequest, model: ibm_watsonx_ai.foundation_models.ModelInference
     ) -> Iterator[openai.types.chat.ChatCompletionChunk]:
         for chunk in model.chat_stream(
-            messages=request.messages,
+            messages=request.messages,  # ty:ignore[invalid-argument-type]
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,

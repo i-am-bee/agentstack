@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-from typing import Annotated, Any
+from typing import Annotated
 
 from a2a.types import Artifact, Message, TextPart
 from agentstack_sdk.a2a.extensions import (
