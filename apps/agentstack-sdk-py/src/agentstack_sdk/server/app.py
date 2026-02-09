@@ -16,8 +16,9 @@ from a2a.server.tasks import (
     TaskStore,
 )
 from a2a.types import AgentInterface, TransportProtocol
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.applications import AppType
+from fastapi.params import Depends
 from starlette.types import Lifespan
 
 from agentstack_sdk.server.agent import Agent, Executor
@@ -34,7 +35,7 @@ def create_app(
     push_sender: PushNotificationSender | None = None,
     request_context_builder: RequestContextBuilder | None = None,
     lifespan: Lifespan[AppType] | None = None,
-    dependencies: list[Depends] | None = None,  # pyright: ignore [reportGeneralTypeIssues]
+    dependencies: list[Depends] | None = None,
     override_interfaces: bool = True,
     task_timeout: timedelta = timedelta(minutes=10),
     **kwargs,

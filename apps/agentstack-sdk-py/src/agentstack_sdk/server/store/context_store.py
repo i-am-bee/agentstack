@@ -20,7 +20,7 @@ class ContextStoreInstance(Protocol):
     async def load_history(
         self, load_history_items: bool = False
     ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
-        yield ...  # type: ignore
+        yield ...
 
     async def store(self, data: Message | Artifact) -> None: ...
 

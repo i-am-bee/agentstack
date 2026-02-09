@@ -54,8 +54,8 @@ def configure_logger(level: int | str | None = None) -> None:
     if level is not None:
         level = level if isinstance(level, int) else logging.getLevelNamesMapping()[level.upper()]
         logging.config.dictConfig(
-            {
-                **LOGGING_CONFIG,
+            LOGGING_CONFIG
+            | {
                 "loggers": {"root": {"level": getLevelName(level), "handlers": ["console"]}},
             }
         )

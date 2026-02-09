@@ -213,7 +213,7 @@ class Server:
             def on_error(connection: HTTPConnection, error: AuthenticationError) -> PlainTextResponse:
                 return PlainTextResponse("Unauthorized", status_code=401)
 
-            app.add_middleware(AuthenticationMiddleware, backend=auth_backend, on_error=on_error)
+            app.add_middleware(AuthenticationMiddleware, backend=auth_backend, on_error=on_error)  # ty: ignore[invalid-argument-type] (probably a bug in ty?)
 
         if configure_logger:
             configure_logger_func(log_level)

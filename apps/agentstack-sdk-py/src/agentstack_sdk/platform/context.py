@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import builtins
 from collections.abc import AsyncIterator
 from typing import Literal
 from uuid import UUID, uuid4
@@ -181,7 +182,7 @@ class Context(pydantic.BaseModel):
     async def generate_token(
         self: Context | str,
         *,
-        providers: list[str] | list[Provider] | None = None,
+        providers: builtins.list[str] | builtins.list[Provider] | None = None,
         client: PlatformClient | None = None,
         grant_global_permissions: Permissions | None = None,
         grant_context_permissions: ContextPermissions | None = None,

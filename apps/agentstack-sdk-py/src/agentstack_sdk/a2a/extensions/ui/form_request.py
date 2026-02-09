@@ -1,9 +1,9 @@
-# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# Copyright 2026 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, overload
 
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
@@ -34,19 +34,27 @@ class FormRequestExtensionServer(BaseExtensionServer[FormRequestExtensionSpec, F
         super().handle_incoming_message(message, run_context, request_context)
         self.context = run_context
 
-    async def request_form(self, *, form: FormRender, model: type[T] = FormResponse) -> T | None:
+    @overload
+    async def request_form(self, *, form: FormRender, model: None = None) -> FormResponse | None: ...
+    @overload
+    async def request_form(self, *, form: FormRender, model: type[T]) -> T | None: ...
+    async def request_form(self, *, form: FormRender, model: type[T] | None = None) -> T | FormResponse | None:
         message = await self.context.yield_async(
             InputRequired(message=AgentMessage(text=form.title, metadata={self.spec.URI: form}))
         )
-        return self.parse_form_response(message=message, model=model) if message else None
+        return self.parse_form_response(message=message, model=model or FormResponse) if message else None
 
-    def parse_form_response(self, *, message: A2AMessage, model: type[T] = FormResponse) -> T | None:
+    @overload
+    def parse_form_response(self, *, message: A2AMessage, model: None = None) -> FormResponse | None: ...
+    @overload
+    def parse_form_response(self, *, message: A2AMessage, model: type[T]) -> T | None: ...
+    def parse_form_response(self, *, message: A2AMessage, model: type[T] | None = None) -> T | FormResponse | None:
         form_response = self.parse_client_metadata(message)
-        if form_response is None:
-            return None
-        if model is FormResponse:
-            return cast(T, form_response)
-        return TypeAdapter(model).validate_python(dict(form_response))
+        return (
+            TypeAdapter(model).validate_python(dict(form_response))
+            if form_response is not None and model is not None
+            else form_response
+        )
 
 
 class FormRequestExtensionClient(BaseExtensionClient[FormRequestExtensionSpec, FormRender]): ...

@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Self, TypeVar, cast
+from typing import Any, Self, TypeVar
 
 from pydantic import BaseModel, TypeAdapter
 from typing_extensions import TypedDict
@@ -38,17 +38,13 @@ T = TypeVar("T")
 
 
 class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]):
-    def parse_initial_form(self, *, model: type[T] = FormResponse) -> T | None:
-        if self.data is None:
-            return None
-
-        initial_form = self.data.form_fulfillments.get("initial_form")
-
-        if initial_form is None:
-            return None
-        if model is FormResponse:
-            return cast(T, initial_form)
-        return TypeAdapter(model).validate_python(dict(initial_form))
+    def parse_initial_form(self, *, model: type[T] | None = None) -> T | None:
+        initial_form = getattr(self.data, "form_fulfillments", {}).get("initial_form")
+        return (
+            TypeAdapter(model).validate_python(dict(initial_form))
+            if initial_form is not None and model is not None
+            else initial_form
+        )
 
 
 class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]):

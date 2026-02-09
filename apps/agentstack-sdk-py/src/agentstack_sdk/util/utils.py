@@ -13,7 +13,7 @@ T = TypeVar("T")
 V = TypeVar("V")
 
 
-def filter_dict(map: dict[str, T | V], value_to_exclude: V = None) -> dict[str, T]:
+def filter_dict(map: dict[str, T | V], value_to_exclude: V | None = None) -> dict[str, T]:
     """Remove entries with unwanted values (None by default) from dictionary."""
     return {key: cast(T, value) for key, value in map.items() if value is not value_to_exclude}
 

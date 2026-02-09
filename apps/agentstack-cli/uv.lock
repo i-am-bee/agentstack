@@ -131,11 +131,11 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "beeai-framework", extras = ["duckduckgo", "wikipedia"], specifier = ">=0.1.76" },
-    { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=1.1.0" },
     { name = "pytest-httpx", specifier = ">=0.35.0" },
     { name = "ruff", specifier = ">=0.12.3" },
+    { name = "ty", specifier = ">=0.0.15" },
 ]
 
 [[package]]
