@@ -6,7 +6,7 @@ import re
 import time
 from datetime import timedelta
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from async_lru import alru_cache
@@ -31,17 +31,15 @@ async def get_github_token(host: str) -> str | None:
 
     if not (conf := di[Configuration].github_registry.get(host)):
         return None
-    if conf.type == "pat":
-        pat_conf = cast(GithubPATConfiguration, conf)
-        return pat_conf.token.get_secret_value()
-    else:
-        app_conf = cast(GithubAppConfiguration, conf)
+    if isinstance(conf, GithubPATConfiguration):
+        return conf.token.get_secret_value()
+    elif isinstance(conf, GithubAppConfiguration):
         now = time.time()
-        payload = {"iat": int(now), "exp": int(now) + 600, "iss": app_conf.app_id}
-        encoded_jwt = jwt.encode({"alg": "RS256"}, payload, app_conf.private_key.get_secret_value()).decode("utf-8")
+        payload = {"iat": int(now), "exp": int(now) + 600, "iss": conf.app_id}
+        encoded_jwt = jwt.encode({"alg": "RS256"}, payload, conf.private_key.get_secret_value()).decode("utf-8")
         async with httpx.AsyncClient() as client:
             resp = await client.post(
-                f"https://{host}/api/v3/app/installations/{app_conf.installation_id}/access_tokens",
+                f"https://{host}/api/v3/app/installations/{conf.installation_id}/access_tokens",
                 headers={
                     "Authorization": f"Bearer {encoded_jwt}",
                     "Accept": "application/vnd.github+json",
