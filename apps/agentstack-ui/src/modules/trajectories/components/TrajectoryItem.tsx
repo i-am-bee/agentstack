@@ -9,20 +9,21 @@ import { useMemo } from 'react';
 import { match } from 'ts-pattern';
 import { v5 as uuidv5 } from 'uuid';
 
-import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
-import { AnimatedText } from './AnimatedText.tsx';
+import { AnimatedCodeContent } from './AnimatedCodeContent.tsx';
+import { AnimatedTextContent } from './AnimatedTextContent.tsx';
 import classes from './TrajectoryItem.module.scss';
 
 interface Props {
   trajectory: UITrajectoryPart;
   isPending?: boolean;
+  canClampContent?: boolean;
 }
 
-export function TrajectoryItem({ trajectory, isPending }: Props) {
+export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props) {
   const { title, content, createdAt } = trajectory;
 
   const parsed = useMemo(() => maybeParseJson(content), [content]);
@@ -39,26 +40,29 @@ export function TrajectoryItem({ trajectory, isPending }: Props) {
     <div className={clsx(classes.root, { [classes.isAnimating]: shouldAnimateText })}>
       {title && (
         <motion.h3 {...fadeProps()} className={classes.title} key={title}>
-          <AnimatedText shouldAnimate={shouldAnimateText}>{title}</AnimatedText>
+          <AnimatedTextContent shouldAnimate={shouldAnimateText} totalDurationMs={TEXT_ANIMATION_DURATION_MS}>
+            {title}
+          </AnimatedTextContent>
         </motion.h3>
       )}
 
       <motion.div {...fadeProps()} className={classes.body} key={contentKey}>
         {match(parsed)
           .with({ type: 'string' }, ({ value }) => (
-            <AnimatedText
+            <AnimatedTextContent
               shouldAnimate={shouldAnimateText}
+              totalDurationMs={TEXT_ANIMATION_DURATION_MS}
               className={classes.content}
-              lineClamp={!isPending ? { lines: 5, useBlockElement: true } : undefined}
+              linesClamp={!isPending && canClampContent ? 5 : undefined}
             >
               {value}
-            </AnimatedText>
+            </AnimatedTextContent>
           ))
           .otherwise(({ value }) => {
             return (
-              <CodeSnippet canCopy withBorder>
+              <AnimatedCodeContent shouldAnimate={shouldAnimateText} totalDurationMs={TEXT_ANIMATION_DURATION_MS}>
                 {value}
-              </CodeSnippet>
+              </AnimatedCodeContent>
             );
           })}
       </motion.div>

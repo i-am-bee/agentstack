@@ -5,8 +5,9 @@
 
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { usePrevious } from '#hooks/usePrevious.ts';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
@@ -22,6 +23,17 @@ interface Props {
 export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
   const listRef = useRef<HTMLUListElement>(null);
 
+  const [canClampContent, setCanClampContent] = useState(!isPending);
+
+  const previouslyOpen = usePrevious(isOpen);
+  useEffect(() => {
+    // Re-enable clamping when closed while no longer pending - ensuring trajectories
+    // are not clamped when pending, or on first open after being in pending state
+    if (previouslyOpen && !isOpen && !isPending) {
+      setCanClampContent(true);
+    }
+  }, [isOpen, isPending, previouslyOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -36,7 +48,7 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
           <ul className={classes.list} ref={listRef}>
             {trajectories.map((trajectory) => (
               <li key={trajectory.id}>
-                <TrajectoryItem trajectory={trajectory} isPending={isPending} />
+                <TrajectoryItem trajectory={trajectory} isPending={isPending} canClampContent={canClampContent} />
               </li>
             ))}
           </ul>

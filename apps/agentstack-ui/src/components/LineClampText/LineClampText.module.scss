@@ -14,8 +14,11 @@
 
 .clamped {
   @include line-clamp(0);
-  > * {
-    display: inline-block;
+
+  .root:not(.useBlockElement) & {
+    > * {
+      display: inline-block;
+    }
   }
 }
 
@@ -24,6 +27,11 @@
   inline-size: 1px;
   block-size: 1px;
   margin-inline-start: -1px;
+
+  .useBlockElement & {
+    display: block;
+    margin-inline-start: 0;
+  }
 }
 
 .button {

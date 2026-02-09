@@ -38,7 +38,7 @@ async def example_agent(
     )
     yield metadata
     await context.store(AgentMessage(metadata=metadata))
-    
+
     await asyncio.sleep(2.5)
 
     for i in range(1, 4):
@@ -58,13 +58,13 @@ async def example_agent(
         yield metadata
         await context.store(AgentMessage(metadata=metadata))
         await asyncio.sleep(2)
-        
+
     await asyncio.sleep(2)
-        
+
     metadata = trajectory.trajectory_metadata(
-            title="Step with long content",
-            content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-        )
+        title="Step with long content",
+        content="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    )
     yield metadata
     await context.store(AgentMessage(metadata=metadata))
     await asyncio.sleep(2)
@@ -134,8 +134,43 @@ def extract_entities(text):
     return entities
 """,
     )
-    # yield metadata
-    # await context.store(AgentMessage(metadata=metadata))
+    yield metadata
+    await context.store(AgentMessage(metadata=metadata))
+
+    await asyncio.sleep(2)
+
+    metadata = trajectory.trajectory_metadata(
+        title="Test JSON rendering",
+        content="""{
+  "status": "success",
+  "data": {
+    "results": [
+      {
+        "id": 1,
+        "name": "Alice Johnson",
+        "email": "alice@example.com",
+        "role": "developer",
+        "active": true
+      },
+      {
+        "id": 2,
+        "name": "Bob Smith",
+        "email": "bob@example.com",
+        "role": "designer",
+        "active": false
+      }
+    ],
+    "metadata": {
+      "total": 2,
+      "page": 1,
+      "limit": 10
+    }
+  },
+  "timestamp": "2025-11-12T14:30:00Z"
+}""",
+    )
+    yield metadata
+    await context.store(AgentMessage(metadata=metadata))
 
     await asyncio.sleep(1)
 

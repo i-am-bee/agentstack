@@ -91,7 +91,7 @@ export function LineClampText({
   }, [autoExpandOnContentChange, isExpanded]);
 
   return (
-    <Component className={clsx(classes.root, className)}>
+    <Component className={clsx(classes.root, className, { [classes.useBlockElement]: useBlockElement })}>
       <Component
         ref={textRef}
         id={id}
