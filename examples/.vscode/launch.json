@@ -90,6 +90,15 @@
       "cwd": "${workspaceFolder}/agent-integration/citations/citation-basic-usage",
       "program": "src/citation_basic_usage/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-settings",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/agent-settings/basic-settings",
+      "program": "src/basic_settings/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
