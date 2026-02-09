@@ -108,6 +108,15 @@
       "cwd": "${workspaceFolder}/agent-integration/secrets/basic-secrets",
       "program": "src/basic_secrets/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-environment-variables",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/env-variables/basic-environment-variables",
+      "program": "src/basic_environment_variables/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
