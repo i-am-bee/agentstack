@@ -63,6 +63,15 @@
       "cwd": "${workspaceFolder}/agent-integration/llm-proxy-service/example-of-llm-access",
       "program": "src/example_of_llm_access/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/dynamic-form-requests",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/forms/dynamic-form-requests",
+      "program": "src/dynamic_form_requests/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }

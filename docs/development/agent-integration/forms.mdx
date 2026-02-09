@@ -116,18 +116,23 @@ Call `await form_request.request_form(form=FormRender(...), model=YourModel)` wh
 </Step>
 </Steps>
 
+{/* <!-- embedme examples/agent-integration/forms/dynamic-form-requests/src/dynamic_form_requests/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import os
 from typing import Annotated
 
 from a2a.types import Message
 from a2a.utils.message import get_message_text
-from pydantic import BaseModel
-from agentstack_sdk.server import Server
 from agentstack_sdk.a2a.extensions.common.form import FormRender, TextField
 from agentstack_sdk.a2a.extensions.ui.form_request import (
     FormRequestExtensionServer,
     FormRequestExtensionSpec,
 )
+from agentstack_sdk.server import Server
+from pydantic import BaseModel
 
 server = Server()
 
@@ -139,7 +144,7 @@ class ContactInfo(BaseModel):
 
 
 @server.agent()
-async def dynamic_form_agent(
+async def dynamic_form_requests_example(
     message: Message,
     form_request: Annotated[
         FormRequestExtensionServer,
@@ -147,9 +152,9 @@ async def dynamic_form_agent(
     ],
 ):
     """Agent that requests forms dynamically during conversation"""
-    
+
     user_input = get_message_text(message)
-    
+
     # Check if user wants to provide contact information
     if "contact" in user_input.lower() or "reach" in user_input.lower():
         # Request contact form dynamically
@@ -165,7 +170,7 @@ async def dynamic_form_agent(
             ),
             model=ContactInfo,
         )
-        
+
         if contact_info is None:
             yield "No contact information received."
         else:
@@ -174,8 +179,13 @@ async def dynamic_form_agent(
         yield "Hello! If you'd like me to contact you, just let me know and I'll ask for your details."
 
 
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
 if __name__ == "__main__":
-    server.run()
+    run()
+
 ```
 
 ## How to work with forms

@@ -20,7 +20,7 @@ async def test_example_of_file_processing_example(subtests, get_final_task_from_
     example_path = "agent-integration/files/example-of-file-processing"
 
     async with run_example(example_path, a2a_client_factory) as running_example:
-        with subtests.test("test case description"):
+        with subtests.test("agent processes uploaded file and returns it"):
             # upload test file
             file = await File.create(
                 filename="f.txt",
