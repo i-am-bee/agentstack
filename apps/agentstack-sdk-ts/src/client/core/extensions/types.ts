@@ -11,6 +11,12 @@ import type { FormRender, FormValues } from '../../a2a/extensions/common/form/ty
 import type { ApprovalRequest, ApprovalResponse } from '../../a2a/extensions/interactions/approval/types';
 import type { EmbeddingDemands, EmbeddingFulfillments } from '../../a2a/extensions/services/embedding/types';
 import type { FormDemands, FormFulfillments } from '../../a2a/extensions/services/form/types';
+import type {
+  GenerativeInterfaceDemands,
+  GenerativeInterfaceFulfillments,
+  GenerativeInterfaceResponse,
+  GenerativeInterfaceSpec,
+} from '../../a2a/extensions/services/generative-interface/types';
 import type { LLMDemands, LLMFulfillments } from '../../a2a/extensions/services/llm/types';
 import type { MCPDemands, MCPFulfillments } from '../../a2a/extensions/services/mcp/types';
 import type { CanvasEditRequest } from '../../a2a/extensions/ui/canvas/types';
@@ -38,6 +44,7 @@ export type Fulfillments = Partial<{
   settings: (demand: SettingsDemands) => Promise<SettingsFulfillments>;
   secrets: (demand: SecretDemands) => Promise<SecretFulfillments>;
   form: (demand: FormDemands) => Promise<FormFulfillments>;
+  generativeInterface: (demand: GenerativeInterfaceDemands) => Promise<GenerativeInterfaceFulfillments>;
   oauthRedirectUri: () => string | null;
   /**
    * @deprecated - keeping this for backwards compatibility, context token is now passed via A2A client headers
@@ -49,6 +56,7 @@ export type UserMetadataInputs = Partial<{
   form: FormValues;
   canvasEditRequest: CanvasEditRequest;
   approvalResponse: ApprovalResponse;
+  generativeInterfaceResponse: GenerativeInterfaceResponse;
 }>;
 
 export enum TaskStatusUpdateType {
@@ -56,6 +64,7 @@ export enum TaskStatusUpdateType {
   FormRequired = 'form-required',
   OAuthRequired = 'oauth-required',
   ApprovalRequired = 'approval-required',
+  GenerativeInterfaceRequired = 'generative-interface-required',
 }
 
 export interface SecretRequiredResult {
@@ -78,8 +87,14 @@ export interface ApprovalRequiredResult {
   request: ApprovalRequest;
 }
 
+export interface GenerativeInterfaceRequiredResult {
+  type: TaskStatusUpdateType.GenerativeInterfaceRequired;
+  spec: GenerativeInterfaceSpec;
+}
+
 export type TaskStatusUpdateResult =
   | SecretRequiredResult
   | FormRequiredResult
   | OAuthRequiredResult
-  | ApprovalRequiredResult;
+  | ApprovalRequiredResult
+  | GenerativeInterfaceRequiredResult;

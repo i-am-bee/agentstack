@@ -1,0 +1,36 @@
+[project]
+name = "generative-interface"
+version = "0.1.0"
+description = "Agent demonstrating generative interface extension."
+authors = [
+    { name = "IBM Corp." },
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "agentstack-sdk",
+    "openinference-instrumentation-beeai>=0.1.14",
+    "pydantic-settings>=2.9.0",
+    "uvicorn>=0.35.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
+
+[project.scripts]
+server = "generative_interface.agent:serve"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "watchfiles>=1.1.0",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

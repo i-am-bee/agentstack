@@ -13,6 +13,7 @@ import { MessageApproval } from '#modules/form/components/MessageApproval.tsx';
 import { MessageAuth } from '#modules/form/components/MessageAuth.tsx';
 import { MessageForm } from '#modules/form/components/MessageForm.tsx';
 import { MessageSecretsForm } from '#modules/form/components/MessageSecretsForm.tsx';
+import { MessageGenerativeInterface } from '#modules/generative-interface/index.ts';
 import { MessageActions } from '#modules/messages/components/MessageActions.tsx';
 import { MessageContent } from '#modules/messages/components/MessageContent.tsx';
 import { MessageError } from '#modules/messages/components/MessageError.tsx';
@@ -116,6 +117,8 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
       <MessageSecretsForm message={message} />
 
       <MessageApproval message={message} />
+
+      <MessageGenerativeInterface message={message} />
 
       <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending} />
 

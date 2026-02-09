@@ -7,6 +7,7 @@ import type {
   ApprovalRequest,
   ApprovalResponse,
   FormRender,
+  GenerativeInterfaceSpec,
   SecretDemands,
   Task,
   TaskArtifactUpdateEvent,
@@ -57,7 +58,8 @@ export type UIMessagePart =
   | UISecretPart
   | UIArtifactPart
   | UIApprovalPart
-  | UIApprovalResponsePart;
+  | UIApprovalResponsePart
+  | UIGenerativeInterfacePart;
 
 export type UITextPart = {
   kind: UIMessagePartKind.Text;
@@ -122,6 +124,12 @@ export type UIApprovalResponsePart = {
   result: ApprovalResponse;
 };
 
+export type UIGenerativeInterfacePart = {
+  kind: UIMessagePartKind.GenerativeInterfaceRequired;
+  spec: GenerativeInterfaceSpec;
+  taskId: TaskId;
+};
+
 export type UITransformPart = {
   kind: UIMessagePartKind.Transform;
   id: string;
@@ -164,6 +172,7 @@ export enum UIMessagePartKind {
   Artifact = 'artifact',
   ApprovalRequired = 'approval-required',
   ApprovalResponse = 'approval-response',
+  GenerativeInterfaceRequired = 'generative-interface-required',
 }
 
 export enum UIMessageStatus {

@@ -9,6 +9,7 @@ export * from './interactions/approval';
 export * from './schemas';
 export * from './services/embedding';
 export * from './services/form';
+export * from './services/generative-interface';
 export * from './services/llm';
 export * from './services/mcp';
 export * from './services/platform-api';

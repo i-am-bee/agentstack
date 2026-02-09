@@ -5,7 +5,7 @@
 
 'use client';
 import { useQueryClient } from '@tanstack/react-query';
-import type { ApprovalDecision } from 'agentstack-sdk';
+import type { ApprovalDecision, GenerativeInterfaceResponse } from 'agentstack-sdk';
 import { TaskStatusUpdateType } from 'agentstack-sdk';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -194,7 +194,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       });
 
       const { form, canvasEditParams } = message;
-      const { approvalDecision } = fulfillmentsContext;
+      const { approvalDecision, generativeInterfaceResponse } = fulfillmentsContext;
 
       try {
         const run = agentClient.chat({
@@ -205,6 +205,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
             form: form?.response,
             canvasEditRequest: canvasEditParams ? getCanvasEditRequest(canvasEditParams) : undefined,
             approvalResponse: approvalDecision ? { decision: approvalDecision } : undefined,
+            generativeInterfaceResponse,
           },
           taskId: fulfillmentsContext.taskId,
         });
@@ -257,6 +258,15 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
             message.parts.push({
               kind: UIMessagePartKind.ApprovalRequired,
               request: result.request,
+              taskId: result.taskId,
+            });
+          });
+        } else if (result && result.type === TaskStatusUpdateType.GenerativeInterfaceRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({
+              kind: UIMessagePartKind.GenerativeInterfaceRequired,
+              spec: result.spec,
               taskId: result.taskId,
             });
           });
@@ -388,6 +398,21 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     [checkPendingRun, run],
   );
 
+  const submitGenerativeInterface = useCallback(
+    (response: GenerativeInterfaceResponse, taskId: TaskId) => {
+      checkPendingRun();
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [],
+      };
+
+      return run(message, { taskId, generativeInterfaceResponse: response });
+    },
+    [checkPendingRun, run],
+  );
+
   const submitCanvasEditRequest = useCallback(
     (params: UICanvasEditRequestParams) => {
       checkPendingRun();
@@ -439,6 +464,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       startAuth,
       submitSecrets,
       submitApproval,
+      submitGenerativeInterface,
       submitCanvasEditRequest,
       initialFormRender,
       cancel,
@@ -457,6 +483,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     startAuth,
     submitSecrets,
     submitApproval,
+    submitGenerativeInterface,
     submitCanvasEditRequest,
     initialFormRender,
     cancel,

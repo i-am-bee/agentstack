@@ -3,6 +3,7 @@
 
 from .embedding import *
 from .form import *
+from .generative_interface import *
 from .llm import *
 from .mcp import *
 from .platform import *

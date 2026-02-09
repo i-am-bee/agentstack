@@ -3,7 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ApprovalDecision, FormDemands, Fulfillments, SettingsDemands, SettingsValues } from 'agentstack-sdk';
+import type {
+  ApprovalDecision,
+  FormDemands,
+  Fulfillments,
+  GenerativeInterfaceResponse,
+  SettingsDemands,
+  SettingsValues,
+} from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { RunFormValues } from '#modules/form/types.ts';
@@ -16,6 +23,7 @@ export type FulfillmentsContext = Partial<{
   oauthRedirectUri: string;
   approvalDecision: ApprovalDecision;
   form: UIMessageForm;
+  generativeInterfaceResponse: GenerativeInterfaceResponse;
 }>;
 
 export interface ModelProvidersContextValue {

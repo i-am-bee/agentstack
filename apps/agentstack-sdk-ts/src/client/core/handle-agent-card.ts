@@ -7,6 +7,7 @@ import { oauthExtension, oauthRequestExtension } from '../a2a/extensions/auth/oa
 import { secretsExtension } from '../a2a/extensions/auth/secrets';
 import { embeddingExtension } from '../a2a/extensions/services/embedding';
 import { formExtension } from '../a2a/extensions/services/form';
+import { generativeInterfaceExtension } from '../a2a/extensions/services/generative-interface';
 import { llmExtension } from '../a2a/extensions/services/llm';
 import { mcpExtension } from '../a2a/extensions/services/mcp';
 import { platformApiExtension } from '../a2a/extensions/services/platform-api';
@@ -23,6 +24,7 @@ const oauthExtensionExtractor = extractServiceExtensionDemands(oauthExtension);
 const settingsExtensionExtractor = extractServiceExtensionDemands(settingsExtension);
 const secretExtensionExtractor = extractServiceExtensionDemands(secretsExtension);
 const formExtensionExtractor = extractServiceExtensionDemands(formExtension);
+const generativeInterfaceExtensionExtractor = extractServiceExtensionDemands(generativeInterfaceExtension);
 
 const fulfillMcpDemand = fulfillServiceExtensionDemand(mcpExtension);
 const fulfillLlmDemand = fulfillServiceExtensionDemand(llmExtension);
@@ -31,6 +33,7 @@ const fulfillOAuthDemand = fulfillServiceExtensionDemand(oauthExtension);
 const fulfillSettingsDemand = fulfillServiceExtensionDemand(settingsExtension);
 const fulfillSecretDemand = fulfillServiceExtensionDemand(secretsExtension);
 const fulfillFormDemand = fulfillServiceExtensionDemand(formExtension);
+const fulfillGenerativeInterfaceDemand = fulfillServiceExtensionDemand(generativeInterfaceExtension);
 
 export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) => {
   const extensions = agentCard.capabilities.extensions ?? [];
@@ -42,6 +45,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
   const settingsDemands = settingsExtensionExtractor(extensions);
   const secretDemands = secretExtensionExtractor(extensions);
   const formDemands = formExtensionExtractor(extensions);
+  const generativeInterfaceDemands = generativeInterfaceExtensionExtractor(extensions);
 
   const resolveMetadata = async (fulfillments: Fulfillments) => {
     let fulfilledMetadata: Record<string, unknown> = {};
@@ -78,6 +82,14 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       fulfilledMetadata = fulfillFormDemand(fulfilledMetadata, await fulfillments.form(formDemands));
     }
 
+    console.log(generativeInterfaceDemands);
+    if (generativeInterfaceDemands && fulfillments.generativeInterface) {
+      fulfilledMetadata = fulfillGenerativeInterfaceDemand(
+        fulfilledMetadata,
+        await fulfillments.generativeInterface(generativeInterfaceDemands),
+      );
+    }
+
     const oauthRedirectUri = fulfillments.oauthRedirectUri?.();
 
     if (oauthRedirectUri) {
@@ -102,6 +114,7 @@ export const handleAgentCard = (agentCard: { capabilities: AgentCapabilities }) 
       settingsDemands,
       secretDemands,
       formDemands,
+      generativeInterfaceDemands,
     },
   };
 };

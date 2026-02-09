@@ -15,6 +15,7 @@ import type {
 import { ConnectorState, MCPTransportType } from 'agentstack-sdk';
 
 import { BASE_URL } from '#utils/constants.ts';
+import { catalog } from '#modules/generative-interface/GenerativeInterfaceRenderer.tsx';
 
 interface BuildFulfillmentsParams {
   contextToken: ContextToken;
@@ -153,6 +154,13 @@ export const buildFulfillments = ({
     },
     oauthRedirectUri: () => {
       return oauthRedirectUri;
+    },
+    generativeInterface: async () => {
+      return {
+        generative_interface_fulfillments: {
+          catalog_prompt: catalog.prompt(),
+        },
+      };
     },
   };
 };

@@ -103,6 +103,14 @@ export function getMessageApproval(message: UIMessage) {
   return approval;
 }
 
+export function getMessageGenerativeInterface(message: UIMessage) {
+  const generativeInterface = message.parts.findLast(
+    (part) => part.kind === UIMessagePartKind.GenerativeInterfaceRequired,
+  );
+
+  return generativeInterface;
+}
+
 function hasMessageApprovalResponse(message: UIMessage) {
   return message.parts.some((part) => part.kind === UIMessagePartKind.ApprovalResponse);
 }

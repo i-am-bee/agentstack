@@ -6,6 +6,7 @@
 import { oauthRequestExtension } from '../a2a/extensions/auth/oauth';
 import { secretsRequestExtension } from '../a2a/extensions/auth/secrets';
 import { approvalExtension } from '../a2a/extensions/interactions/approval';
+import { generativeInterfaceUiExtension } from '../a2a/extensions/services/generative-interface';
 import { formRequestExtension } from '../a2a/extensions/ui/form-request';
 import type { TaskStatusUpdateEvent } from '../a2a/protocol/types';
 import { extractUiExtensionData } from './extensions/extract';
@@ -16,6 +17,7 @@ const secretsRequestExtensionExtractor = extractUiExtensionData(secretsRequestEx
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
 const formRequestExtensionExtractor = extractUiExtensionData(formRequestExtension);
 const approvalExtensionExtractor = extractUiExtensionData(approvalExtension);
+const generativeInterfaceExtensionExtractor = extractUiExtensionData(generativeInterfaceUiExtension);
 
 export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatusUpdateResult[] => {
   const results: TaskStatusUpdateResult[] = [];
@@ -52,6 +54,14 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
       results.push({
         type: TaskStatusUpdateType.ApprovalRequired,
         request: approvalRequired,
+      });
+    }
+
+    const generativeInterfaceRequired = generativeInterfaceExtensionExtractor(event.status.message?.metadata);
+    if (generativeInterfaceRequired) {
+      results.push({
+        type: TaskStatusUpdateType.GenerativeInterfaceRequired,
+        spec: generativeInterfaceRequired,
       });
     }
   }

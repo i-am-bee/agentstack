@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 'use client';
-import type { ApprovalDecision, FormRender } from 'agentstack-sdk';
+import type { ApprovalDecision, FormRender, GenerativeInterfaceResponse } from 'agentstack-sdk';
 import { createContext } from 'react';
 
 import type { AgentA2AClient } from '#api/a2a/types.ts';
@@ -34,6 +34,7 @@ interface AgentRunContextValue {
   startAuth: (url: string, taskId: TaskId) => void;
   submitSecrets: (taskId: TaskId, secrets: Record<string, string>) => Promise<void>;
   submitApproval: (taskId: TaskId, decision: ApprovalDecision) => Promise<void>;
+  submitGenerativeInterface: (response: GenerativeInterfaceResponse, taskId: TaskId) => Promise<void>;
   submitCanvasEditRequest: (canvasEditRequest: UICanvasEditRequestParams) => Promise<void>;
   cancel: () => void;
   clear: () => void;
