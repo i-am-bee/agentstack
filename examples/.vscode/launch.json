@@ -99,6 +99,15 @@
       "cwd": "${workspaceFolder}/agent-integration/agent-settings/basic-settings",
       "program": "src/basic_settings/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-secrets",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/secrets/basic-secrets",
+      "program": "src/basic_secrets/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
