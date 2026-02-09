@@ -90,7 +90,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
     ) -> openai.types.chat.ChatCompletion:
         response = await asyncio.to_thread(
             self._get_watsonx_model(request, api_key).chat,
-            messages=[typing.cast(pydantic.BaseModel, message).model_dump() for message in request.messages],
+            messages=request.messages,
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
