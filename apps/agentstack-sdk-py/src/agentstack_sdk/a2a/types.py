@@ -52,7 +52,7 @@ class AgentArtifact(Artifact):
 
     @model_validator(mode="after")
     def text_message_validate(self):
-        self.parts = [part if isinstance(part, Part) else Part(root=part) for part in self.parts]  # pyright: ignore [reportIncompatibleVariableOverride]
+        self.parts = [part if isinstance(part, Part) else Part(root=part) for part in self.parts]
         return self
 
 
@@ -62,19 +62,19 @@ class ArtifactChunk(Artifact):
 
     @model_validator(mode="after")
     def text_message_validate(self):
-        self.parts = [part if isinstance(part, Part) else Part(root=part) for part in self.parts]  # pyright: ignore [reportIncompatibleVariableOverride]
+        self.parts = [part if isinstance(part, Part) else Part(root=part) for part in self.parts]
         return self
 
 
 class AgentMessage(Message):
     message_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    role: Literal[Role.agent] = Role.agent  # pyright: ignore [reportIncompatibleVariableOverride]
+    role: Literal[Role.agent] = Role.agent
     text: str | None = Field(default=None, exclude=True)
     parts: list[Part | TextPart | FilePart | DataPart] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def text_message_validate(self):
-        self.parts = [part if isinstance(part, Part) else Part(root=part) for part in self.parts]  # pyright: ignore [reportIncompatibleVariableOverride]
+        self.parts = [part if isinstance(part, Part) else Part(root=part) for part in self.parts]
         if self.parts and self.text is not None:
             raise ValueError("Message cannot have both parts and text")
         if self.text is not None:
@@ -84,7 +84,7 @@ class AgentMessage(Message):
 
 class InputRequired(TaskStatus):
     message: Message | None = None
-    state: Literal[TaskState.input_required] = TaskState.input_required  # pyright: ignore [reportIncompatibleVariableOverride]
+    state: Literal[TaskState.input_required] = TaskState.input_required
     text: str | None = Field(default=None, exclude=True)
     parts: list[Part | TextPart | DataPart | FilePart] = Field(exclude=True, default_factory=list)
 
@@ -101,4 +101,4 @@ class InputRequired(TaskStatus):
 
 
 class AuthRequired(InputRequired):
-    state: Literal[TaskState.auth_required] = TaskState.auth_required  # pyright: ignore [reportIncompatibleVariableOverride]
+    state: Literal[TaskState.auth_required] = TaskState.auth_required

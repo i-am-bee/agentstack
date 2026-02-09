@@ -238,7 +238,7 @@ async def add_agent(
     """
     if location is None:
         repo_input = (
-            await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+            await inquirer.text(
                 message="Enter GitHub repository (owner/repo or full URL):",
             ).execute_async()
             or ""
@@ -258,13 +258,13 @@ async def add_agent(
             tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
 
         if tags:
-            selected_tag = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            selected_tag = await inquirer.fuzzy(
                 message="Select a tag to use:",
                 choices=tags,
             ).execute_async()
         else:
             selected_tag = (
-                await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                await inquirer.text(
                     message="Enter tag to use:",
                 ).execute_async()
                 or "main"
@@ -327,7 +327,7 @@ async def update_agent(
             provider_choices = [
                 Choice(value=p, name=f"{p.agent_card.name} ({ProviderUtils.short_location(p)})") for p in providers
             ]
-            provider = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            provider = await inquirer.fuzzy(
                 message="Select an agent to update:",
                 choices=provider_choices,
             ).execute_async()
@@ -350,7 +350,7 @@ async def update_agent(
                     tags = [tag["name"] for tag in response.json()] if response.status_code == 200 else []
 
                 if tags:
-                    selected_tag = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+                    selected_tag = await inquirer.fuzzy(
                         message="Select a new tag to use:",
                         choices=tags,
                     ).execute_async()
@@ -359,7 +359,7 @@ async def update_agent(
 
         if location is None:
             location = (
-                await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+                await inquirer.text(
                     message="Enter new agent location (public docker image or github url):",
                     default=provider.source,
                 ).execute_async()
@@ -428,7 +428,7 @@ async def select_providers_multi(search_path: str, providers: list[Provider]) ->
     # Multiple matches - show selection menu
     choices = [Choice(value=p.id, name=f"{p.agent_card.name} - {p.id}") for p in provider_candidates.values()]
 
-    selected_ids = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
+    selected_ids = await inquirer.checkbox(
         message="Select agents to remove (use ↑/↓ to navigate, Space to select):", choices=choices
     ).execute_async()
 
@@ -512,7 +512,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
 
     for field in form_render.fields:
         if isinstance(field, TextField):
-            answer = await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+            answer = await inquirer.text(
                 message=field.label + ":",
                 default=field.default_value or "",
                 validate=EmptyInputValidator() if field.required else None,
@@ -520,7 +520,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             form_values[field.id] = TextFieldValue(value=answer)
         elif isinstance(field, SingleSelectField):
             choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
-            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            answer = await inquirer.fuzzy(
                 message=field.label + ":",
                 choices=choices,
                 default=field.default_value,
@@ -529,7 +529,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             form_values[field.id] = SingleSelectFieldValue(value=answer)
         elif isinstance(field, MultiSelectField):
             choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
-            answer = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
+            answer = await inquirer.checkbox(
                 message=field.label + ":",
                 choices=choices,
                 default=field.default_value,
@@ -538,14 +538,14 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             form_values[field.id] = MultiSelectFieldValue(value=answer)
 
         elif isinstance(field, DateField):
-            year = await inquirer.text(  # pyright: ignore[reportPrivateImportUsage]
+            year = await inquirer.text(
                 message=f"{field.label} (year):",
                 validate=EmptyInputValidator() if field.required else None,
                 filter=lambda y: y.strip(),
             ).execute_async()
             if not year:
                 continue
-            month = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            month = await inquirer.fuzzy(
                 message=f"{field.label} (month):",
                 validate=EmptyInputValidator() if field.required else None,
                 choices=[
@@ -558,7 +558,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             ).execute_async()
             if not month:
                 continue
-            day = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            day = await inquirer.fuzzy(
                 message=f"{field.label} (day):",
                 validate=EmptyInputValidator() if field.required else None,
                 choices=[
@@ -571,7 +571,7 @@ async def _ask_form_questions(form_render: FormRender) -> FormResponse:
             full_date = f"{year}-{month}-{day}"
             form_values[field.id] = DateFieldValue(value=full_date)
         elif isinstance(field, CheckboxField):
-            answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+            answer = await inquirer.confirm(
                 message=field.label + ":",
                 default=field.default_value,
                 long_instruction=field.content or "",
@@ -591,7 +591,7 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
         if isinstance(field, CheckboxGroupField):
             checkbox_values: dict[str, SettingsCheckboxFieldValue] = {}
             for checkbox in field.fields:
-                answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+                answer = await inquirer.confirm(
                     message=checkbox.label + ":",
                     default=checkbox.default_value,
                 ).execute_async()
@@ -599,7 +599,7 @@ async def _ask_settings_questions(settings_render: SettingsRender) -> AgentRunSe
             settings_values[field.id] = CheckboxGroupFieldValue(values=checkbox_values)
         elif isinstance(field, SettingsSingleSelectField):
             choices = [Choice(value=opt.value, name=opt.label) for opt in field.options]
-            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            answer = await inquirer.fuzzy(
                 message=field.label + ":",
                 choices=choices,
                 default=field.default_value,
@@ -894,7 +894,7 @@ class ShowConfig(InteractiveCommand):
                 schema_table.add_row(
                     prop,
                     json.dumps(required_schema),
-                    json.dumps(generate_schema_example(required_schema)),  # pyright: ignore [reportArgumentType]
+                    json.dumps(generate_schema_example(required_schema)),
                 )
 
         renderables = [
@@ -1067,7 +1067,7 @@ async def run_agent(
             if not providers:
                 err_console.error("No agents found. Add an agent first using 'agentstack agent add'.")
                 sys.exit(1)
-            search_path = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            search_path = await inquirer.fuzzy(
                 message="Select an agent to run:",
                 choices=[provider.agent_card.name for provider in providers],
             ).execute_async()

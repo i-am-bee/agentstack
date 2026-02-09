@@ -62,7 +62,7 @@ class Server:
             raise ValueError("Server can have only one agent.")
 
         def decorator(fn: Callable) -> Callable:
-            self._agent_factory = agent_decorator(*other_args, **kwargs)(fn)  # pyright: ignore [reportArgumentType]
+            self._agent_factory = agent_decorator(*other_args, **kwargs)(fn)
             return fn
 
         return decorator
@@ -167,7 +167,7 @@ class Server:
                 reload_task = asyncio.create_task(self._reload_variables_periodically()) if self_registration else None
 
                 try:
-                    async with lifespan_fn(app) if lifespan_fn else nullcontext():  # pyright: ignore [reportArgumentType]
+                    async with lifespan_fn(app) if lifespan_fn else nullcontext():
                         yield
                 finally:
                     if register_task:
