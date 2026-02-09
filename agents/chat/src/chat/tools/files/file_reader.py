@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import typing
 from typing import List, Literal
 
 from beeai_framework.context import RunContext
@@ -52,14 +53,16 @@ class FileReaderTool(Tool[FileReadInputBase, ToolRunOptions, FileReaderToolOutpu
             literal = Literal["__None__"]
             description = "There aren't any generated or attached file to read at the moment."
 
-        # pyrefly: ignore [bad-return]
-        return create_model(
-            "FileReadInput",
-            filenames=(
-                List[literal],
-                Field(
-                    ...,
-                    description=description,
+        return typing.cast(
+            type[FileReadInputBase],
+            create_model(
+                "FileReadInput",
+                filenames=(
+                    List[literal],
+                    Field(
+                        ...,
+                        description=description,
+                    ),
                 ),
             ),
         )

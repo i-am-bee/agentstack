@@ -27,13 +27,12 @@ from agentstack_sdk.server.context import RunContext
 pytestmark = pytest.mark.e2e
 
 
-async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task:
+async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task | None:
     final_task = None
     async for event in stream:
         match event:
             case (task, _):
                 final_task = task
-    # pyrefly: ignore [bad-return]
     return final_task
 
 
