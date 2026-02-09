@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from a2a.types import Task
 import asyncio
 import uuid
 
@@ -33,8 +34,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
             card=card
         )
 
-        task = None
-        # pyrefly: ignore [bad-assignment]
+        task: Task | None = None
         while True:
             async for event in client.send_message(message):
                 if isinstance(event, a2a.types.Message):

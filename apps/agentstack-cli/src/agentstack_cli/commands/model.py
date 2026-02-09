@@ -19,7 +19,6 @@ from agentstack_sdk.platform import (
 )
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
-from InquirerPy.validator import EmptyInputValidator
 from rich.table import Column
 
 from agentstack_cli.api import openai_client
@@ -233,16 +232,17 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
         watsonx_project_id = watsonx_project_or_space_id if watsonx_project_or_space == "project" else None
         watsonx_space_id = watsonx_project_or_space_id if watsonx_project_or_space == "space" else None
 
-    # pyrefly: ignore [bad-assignment]
-    if (api_key := os.environ.get(f"{provider_type.upper()}_API_KEY")) is None or not await inquirer.confirm(
-        message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
-        default=True,
-    ).execute_async():
-        api_key: str = (
-            "dummy"
-            if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
-            else await inquirer.secret(message="Enter API key:", validate=EmptyInputValidator()).execute_async() or ""
-        )
+    api_key: str = (
+        "dummy"
+        if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
+        else env_api_key
+        if (env_api_key := os.environ.get(f"{provider_type.upper()}_API_KEY"))
+        and await inquirer.confirm(
+            message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
+            default=True,
+        ).execute_async()
+        else await inquirer.secret(message="Enter API key:").execute_async() or ""
+    )
 
     try:
         if provider_type == ModelProviderType.OLLAMA:
