@@ -10,6 +10,7 @@ from procrastinate.app import WorkerOptions
 from agentstack_server.configuration import Configuration
 from agentstack_server.jobs.crons.cleanup import blueprint as cleanup_crons
 from agentstack_server.jobs.crons.connector import blueprint as connector_crons
+from agentstack_server.jobs.crons.model_provider import blueprint as model_provider_crons
 from agentstack_server.jobs.crons.provider import blueprint as provider_crons
 from agentstack_server.jobs.tasks.context import blueprint as context_tasks
 from agentstack_server.jobs.tasks.file import blueprint as file_tasks
@@ -59,6 +60,7 @@ def create_app(configuration: Configuration) -> procrastinate.App:
     app.add_tasks_from(blueprint=provider_build_tasks, namespace="provider_build_tasks")
     app.add_tasks_from(blueprint=provider_discovery_tasks, namespace="provider_discovery_tasks")
     app.add_tasks_from(blueprint=provider_crons, namespace="cron_provider")
+    app.add_tasks_from(blueprint=model_provider_crons, namespace="cron_model_provider")
     app.add_tasks_from(blueprint=cleanup_crons, namespace="cron_cleanup")
     app.add_tasks_from(blueprint=connector_crons, namespace="cron_connector")
     _app_created = True

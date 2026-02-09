@@ -5,13 +5,22 @@ metadata:
   name: agentstack-providers-secret
 type: Opaque
 stringData:
-  registry.yaml: |
+  providers_registry.yaml: |
     {{- if or .Values.providers .Values.unmanagedProviders }}
     providers:
       {{- range $idx, $p := $root.Values.unmanagedProviders }}
       - location: "http://{{ include "agent.fullname" (dict "root" $root "image" $p.location) }}:{{ $root.Values.agent.service.port }}"
       {{- end }}
       {{- range $idx, $p := $root.Values.providers }}
+      - {{ $p | toYaml | nindent 8 | trim }}
+      {{- end }}
+    {{- else }}
+    providers: [ ]
+    {{- end }}
+  model_providers_registry.yaml: |
+    {{- if .Values.modelProviders }}
+    providers:
+      {{- range $idx, $p := $root.Values.modelProviders }}
       - {{ $p | toYaml | nindent 8 | trim }}
       {{- end }}
     {{- else }}

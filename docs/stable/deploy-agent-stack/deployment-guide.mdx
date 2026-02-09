@@ -140,6 +140,8 @@ auth:
 A straightforward method requiring an admin password for certain endpoints.
 
 ```yaml
+trustProxyHeaders: true # This is important if validate_audience is enabled
+
 auth:
   enabled: true
   basic:
@@ -153,8 +155,6 @@ Use an internal Keycloak instance to handle OIDC and bridge to GitHub, Google, o
 Keycloak is deployed automatically when `auth.enabled` is `true`.
 
 ```yaml
-trustProxyHeaders: true # This is important if validate_audience is enabled
-
 auth:
   enabled: true
 

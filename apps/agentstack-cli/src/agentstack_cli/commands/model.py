@@ -518,9 +518,17 @@ app.add_typer(model_provider_app, name="provider")
 
 
 def _list_providers(providers: list[ModelProvider]):
-    with create_table(Column("Type"), Column("Name"), Column("Base URL", ratio=1)) as provider_table:
+    with create_table(Column("Type"), Column("Name"), Column("State"), Column("Base URL", ratio=1)) as provider_table:
         for provider in providers:
-            provider_table.add_row(provider.type, provider.name, str(provider.base_url))
+            provider_table.add_row(
+                provider.type,
+                provider.name,
+                {
+                    "online": "[green]● connected[/green]",
+                    "offline": "[bright_black]○ disconnected[/bright_black]",
+                }.get(provider.state, provider.state or "<unknown>"),
+                str(provider.base_url),
+            )
     console.print(provider_table)
 
 

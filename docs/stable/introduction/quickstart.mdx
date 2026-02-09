@@ -158,6 +158,8 @@ This will make local agents accessible over the local network, which is needed f
 </Step>
 <Step title="Install Agent Stack">
 
+Run in PowerShell:
+
 ```bash
 uv python install --quiet --python-preference=only-managed --no-bin 3.13; uv tool install --refresh --force --python-preference=only-managed --python=3.13 agentstack-cli; agentstack self install
 ```

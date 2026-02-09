@@ -44,6 +44,11 @@ class ModelCapability(StrEnum):
     EMBEDDING = "embedding"
 
 
+class ModelProviderState(StrEnum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+
 class ModelProvider(pydantic.BaseModel):
     id: str
     name: str | None = None
@@ -54,6 +59,7 @@ class ModelProvider(pydantic.BaseModel):
     watsonx_space_id: str | None = None
     created_at: pydantic.AwareDatetime
     capabilities: set[ModelCapability]
+    state: ModelProviderState
 
     @staticmethod
     async def create(

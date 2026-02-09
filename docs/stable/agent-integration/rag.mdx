@@ -38,7 +38,7 @@ from agentstack_sdk.a2a.extensions import (
 )
 from agentstack_sdk.server.context import RunContext
 
-# Fileformats supported by the text-extraction service (docling)
+# File formats supported by the text-extraction service (docling)
 default_input_modes = [
     "text/plain",
     "application/pdf",
@@ -74,7 +74,7 @@ async def rag_agent(
 ```
 
 Agent Stack uses [docling](https://docling-project.github.io/docling/) for extracting text out of documents in various
-[supoported formats](https://docling-project.github.io/docling/usage/supported_formats/). To select which formats the
+[supported formats](https://docling-project.github.io/docling/usage/supported_formats/). To select which formats the
 agent can accept, use the `default_input_modes` parameter in the agent decorator.
 
 First, let's build a set of functions to process the documents which we will then use in the agent.
@@ -368,6 +368,6 @@ async def rag_agent(
 To further improve the agent, learn how to use other parts of the platform such as LLMs,
 file uploads and conversations:
 
-- [LLM extension](/stable/agent-integration/llm-proxy-service)
-- [Multi-turn conversations](/stable/agent-integration/multi-turn)
-- [File handling](/stable/agent-integration/files)
+- [LLM extension](./llm-proxy-service)
+- [Multi-turn conversations](./multi-turn)
+- [File handling](./files)
