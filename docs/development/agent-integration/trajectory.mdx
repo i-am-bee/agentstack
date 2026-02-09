@@ -9,35 +9,35 @@ making the interaction more transparent and trustworthy.
 
 ## Example: Basic Usage
 
+{/* <!-- embedme examples/agent-integration/trajectory/trajectory-basic-usage/src/trajectory_basic_usage/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from time import sleep
 from typing import Annotated
+
 from a2a.types import Message
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
-from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 
 server = Server()
+
 
 @server.agent(
     name="Docs Trajectory Agent",
 )
-async def docs_trajectory_agent(
-    input: Message,
-    context: RunContext,
-    trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+async def trajectory_basic_usage_example(
+    input: Message, context: RunContext, trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
 ):
     yield trajectory.trajectory_metadata(
-        title="Planning",
-        content="Analyzing the user request to determine the best approach..."
+        title="Planning", content="Analyzing the user request to determine the best approach..."
     )
     sleep(3)  # Sleep so that you can watch the trajectory steps unfold
 
-    yield trajectory.trajectory_metadata(
-        title="Execution",
-        content="Processing data with temperature=0.7..."
-    )
+    yield trajectory.trajectory_metadata(title="Execution", content="Processing data with temperature=0.7...")
     sleep(3)
 
     yield "Final result goes here"
@@ -49,6 +49,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 ```
 
 <Steps>

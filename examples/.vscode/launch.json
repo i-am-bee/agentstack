@@ -72,6 +72,15 @@
       "cwd": "${workspaceFolder}/agent-integration/forms/dynamic-form-requests",
       "program": "src/dynamic_form_requests/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/trajectory-basic-usage",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/trajectory/trajectory-basic-usage",
+      "program": "src/trajectory_basic_usage/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
