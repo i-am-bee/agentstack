@@ -11,7 +11,7 @@ from typing import Any, NamedTuple
 
 import httpx
 from async_lru import alru_cache
-from kink import inject
+from kink import di
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -53,8 +53,7 @@ class ManifestResponse(NamedTuple):
     digest: str
 
 
-class DockerImageID(RootModel):
-    root: str  # pyrefly: ignore[bad-override]
+class DockerImageID(RootModel[str]):
     model_config = ConfigDict(frozen=True)
 
     _registry: str | None = PrivateAttr(None)
@@ -64,9 +63,8 @@ class DockerImageID(RootModel):
     _manifest: dict[str, Any] | None = PrivateAttr(None)
 
     @property
-    @inject
-    def registry_config(self, configuration: Configuration) -> OCIRegistryConfiguration:
-        return configuration.oci_registry[self.registry]
+    def registry_config(self) -> OCIRegistryConfiguration:
+        return di[Configuration].oci_registry[self.registry]
 
     @cached_property
     def registry_base_url(self) -> str:
@@ -74,7 +72,7 @@ class DockerImageID(RootModel):
 
         if registry.endswith("docker.io"):
             registry = "registry-1.docker.io"
-        return f"{self.registry_config.protocol}://{registry}"  # pyrefly: ignore[missing-attribute]
+        return f"{self.registry_config.protocol}://{registry}"
 
     @cached_property
     def manifest_base_url(self) -> str:
@@ -184,7 +182,6 @@ class DockerImageID(RootModel):
                 digest=manifest_resp.headers["Docker-Content-Digest"],
             )
 
-    @inject
     async def resolve_version(self) -> ResolvedDockerImageID:
         manifest = await self.get_manifest()
         digest = manifest.digest
@@ -244,8 +241,7 @@ class ResolvedDockerImageID(BaseModel):
         return str(self.image_id)
 
 
-@alru_cache(ttl=timedelta(minutes=5).total_seconds())  # pyrefly: ignore[bad-argument-type]
-@inject
+@alru_cache(ttl=timedelta(minutes=5).total_seconds())
 async def get_registry_token(
     *,
     docker_image_id: DockerImageID,
@@ -268,7 +264,7 @@ async def get_registry_token(
                     token_endpoint,
                     follow_redirects=True,
                     headers={"Authorization": f"Basic {docker_image_id.registry_config.basic_auth_str}"}
-                    if docker_image_id.registry_config.basic_auth_str  # pyrefly: ignore[missing-attribute]
+                    if docker_image_id.registry_config.basic_auth_str
                     else {},
                 )
                 if auth_resp.status_code != 200:

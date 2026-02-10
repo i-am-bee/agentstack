@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import Protocol
 from uuid import UUID
 
-from kink import inject
+from kink import di
 from pydantic import HttpUrl
 
 from agentstack_server.configuration import Configuration
@@ -13,8 +13,8 @@ from agentstack_server.domain.models.provider import Provider, ProviderDeploymen
 from agentstack_server.utils.logs_container import LogsContainer
 
 
-@inject
-def global_provider_variables(configuration: Configuration, provider_url: HttpUrl):
+def global_provider_variables(provider_url: HttpUrl):
+    configuration = di[Configuration]
     return {
         "PORT": "8000",
         "HOST": "0.0.0.0",

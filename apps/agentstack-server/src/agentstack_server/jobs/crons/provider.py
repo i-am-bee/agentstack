@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint()
 
 
-@blueprint.periodic(cron="*/1 * * * *")  # pyrefly: ignore[bad-argument-type]
+@blueprint.periodic(cron="*/1 * * * *")  # pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
 @blueprint.task(queueing_lock="scale_down_providers", queue=str(Queues.CRON_PROVIDER))
 @inject
 async def scale_down_providers(timestamp: int, service: ProviderService, configuration: Configuration):
@@ -38,7 +38,8 @@ async def scale_down_providers(timestamp: int, service: ProviderService, configu
 
 
 # TODO: Can't use DI here because it's not initialized yet
-@blueprint.periodic(cron=get_configuration().agent_registry.sync_period_cron)  # pyrefly: ignore[bad-argument-type]
+# pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
+@blueprint.periodic(cron=get_configuration().agent_registry.sync_period_cron)
 @blueprint.task(queueing_lock="check_registry", queue=str(Queues.CRON_PROVIDER))
 @inject
 async def check_registry(
@@ -124,7 +125,7 @@ async def check_registry(
         raise ExceptionGroup("Exceptions occurred when reloading providers", errors)
 
 
-@blueprint.periodic(cron="* * * * * */5")  # pyrefly: ignore[bad-argument-type]
+@blueprint.periodic(cron="* * * * * */5")  # pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
 @blueprint.task(queueing_lock="check_unmanaged_providers", queue=str(Queues.CRON_PROVIDER))
 @inject
 async def refresh_unmanaged_provider_state(

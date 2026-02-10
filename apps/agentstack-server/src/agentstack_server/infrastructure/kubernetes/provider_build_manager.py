@@ -159,7 +159,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
     async def state(self, *, provider_build_ids: list[UUID]) -> dict[UUID, BuildState]:
         async with self.api() as api:
             jobs = {
-                self._get_build_id_from_name(job.metadata.name): cast(Job, job)  # pyrefly: ignore[missing-attribute]
+                self._get_build_id_from_name(cast(Job, job).metadata.name): cast(Job, job)
                 async for job in kr8s.asyncio.get(kind="job", label_selector={"managedBy": "agentstack"}, api=api)
             }
             return {build_id: self._get_build_status(jobs.get(build_id)) for build_id in provider_build_ids}

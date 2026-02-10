@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 from async_lru import alru_cache
 from authlib.jose import jwt
-from kink import di, inject
+from kink import di
 from pydantic import AnyUrl, BaseModel, ModelWrapValidatorHandler, RootModel, model_validator
 
 if TYPE_CHECKING:
@@ -176,7 +176,6 @@ class GithubUrl(RootModel):
         url.root = str(url)  # normalize url
         return url
 
-    @inject
     async def _resolve_version_public(self) -> ResolvedGithubUrl:
         version = self._version or "HEAD"
         try:
@@ -261,7 +260,7 @@ class GithubUrl(RootModel):
     async def resolve_version(self) -> ResolvedGithubUrl:
         if not (token := await get_github_token(self._host)):
             if self._host == "github.com":
-                return await self._resolve_version_public()  # pyrefly: ignore[not-async, bad-argument-count]
+                return await self._resolve_version_public()
             raise ValueError(f"GitHub token not configured for host {self._host}")
         return await self._resolve_version_api(token=token)
 

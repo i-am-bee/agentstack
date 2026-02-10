@@ -176,7 +176,7 @@ class ProviderService:
 
             if not agent_card:
                 try:
-                    loaded_card = await location.load_agent_card()  # pyrefly: ignore[not-async, bad-argument-count]
+                    loaded_card = await location.load_agent_card()
                     updated_provider.agent_card = self._inject_default_agent_detail_extension(loaded_card)
                 except ValueError as ex:
                     raise ManifestLoadError(

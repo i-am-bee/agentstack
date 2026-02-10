@@ -40,7 +40,7 @@ async def create_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(  # pyrefly: ignore[bad-return]
+    return EntityModel(  # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
         await context_service.create(user=user.user, metadata=request.metadata or {}, provider_id=request.provider_id)
     )
 
@@ -62,7 +62,8 @@ async def get_context(
     context_service: ContextServiceDependency,
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"read"}))],
 ) -> EntityModel[Context]:
-    return EntityModel(await context_service.get(context_id=context_id, user=user.user))  # pyrefly: ignore[bad-return]
+    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    return EntityModel(await context_service.get(context_id=context_id, user=user.user))
 
 
 @router.delete("/{context_id}", status_code=fastapi.status.HTTP_204_NO_CONTENT)
@@ -82,7 +83,8 @@ async def update_context(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(contexts={"write"}))],
 ) -> EntityModel[Context]:
     context = await context_service.update(metadata=request.metadata, context_id=context_id, user=user.user)
-    return EntityModel(context)  # pyrefly: ignore[bad-return]
+    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    return EntityModel(context)
 
 
 @router.patch("/{context_id}/metadata")
@@ -97,7 +99,8 @@ async def patch_context_metadata(
         metadata_patch=request.metadata,
         user=user.user,
     )
-    return EntityModel(context)  # pyrefly: ignore[bad-return]
+    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    return EntityModel(context)
 
 
 @router.post("/{context_id}/token")
