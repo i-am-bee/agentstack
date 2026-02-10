@@ -42,7 +42,7 @@ flowchart TD
 
 ---
 
-Agent Stack is a lightweight runtime for turning your AI agents into real, callable services. Run agents locally or in your environment, wire them into your app over HTTP, and ship agent-powered features without building deployment infrastructure from scratch. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, Agent Stack ensures you aren't locked into a proprietary vendor's ecosystem.
+Agent Stack is open infrastructure for turning AI agents into running services in minutes. Run agents locally or in your environment, wire them into your app over HTTP, and ship agent-powered features without building deployment infrastructure from scratch. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, Agent Stack ensures you aren't locked into a proprietary vendor's ecosystem.
 
 If you’re building agent-powered features or want your agents to run outside a prototype, Agent Stack gives you a fast path from code to deployment-ready service.
 
