@@ -9,7 +9,7 @@ from agentstack_sdk.platform import File
 
 
 @tool
-def web_search(
+async def web_search(
     query: str,
     max_results: int = 5,
     topic: Literal["general", "news"] = "general",
@@ -25,17 +25,14 @@ def web_search(
         Search results with titles, URLs, and content excerpts.
     """
     try:
-        from tavily import TavilyClient
+        from tavily import AsyncTavilyClient
 
         api_key = os.environ.get("TAVILY_API_KEY")
         if not api_key:
             return {"error": "TAVILY_API_KEY not set"}
 
-        client = TavilyClient(api_key=api_key)
-        # The original code calls client.search.
-        # We assume TavilyClient is synchronous or we run it in a thread if it blocks,
-        # but deepagents tools are often sync.
-        return client.search(query, max_results=max_results, topic=topic)
+        client = AsyncTavilyClient(api_key=api_key)
+        return await client.search(query, max_results=max_results, topic=topic)
     except Exception as e:
         return {"error": f"Search failed: {e}"}
 
@@ -50,8 +47,6 @@ async def generate_cover(prompt: str, slug: str) -> str:
     """
     try:
         from google import genai
-
-        print("generating cover image...")
 
         client = genai.Client().aio
         response = await client.models.generate_content(
@@ -93,8 +88,6 @@ async def generate_social_image(prompt: str, platform: str, slug: str) -> str:
             if part.inline_data is not None:
                 image = part.as_image()
                 output_path = f"{platform}/{slug}/image.png"
-                # output_path.parent.mkdir(parents=True, exist_ok=True)
-                # image.save(str(output_path))
                 await File.create(filename=output_path, content=image.image_bytes, content_type="image/png")
                 return f"Image saved to {output_path}"
 

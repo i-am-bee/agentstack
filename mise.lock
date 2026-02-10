@@ -9,20 +9,12 @@ backend = "aqua:sharkdp/fd"
 [[tools."github:google/addlicense"]]
 version = "1.2.0"
 backend = "github:google/addlicense"
-
-[tools."github:google/addlicense".platforms.macos-arm64]
-checksum = "blake3:576fdd357643180167f2b5a393d5664d628a64196ee65430f12c50b6c6fd7884"
-size = 1257313
-url = "https://github.com/google/addlicense/releases/download/v1.2.0/addlicense_v1.2.0_macOS_arm64.tar.gz"
+"platforms.macos-arm64" = { checksum = "blake3:576fdd357643180167f2b5a393d5664d628a64196ee65430f12c50b6c6fd7884", url = "https://github.com/google/addlicense/releases/download/v1.2.0/addlicense_v1.2.0_macOS_arm64.tar.gz"}
 
 [[tools."github:telepresenceio/telepresence"]]
 version = "2.25.2"
 backend = "github:telepresenceio/telepresence"
-
-[tools."github:telepresenceio/telepresence".platforms.macos-arm64]
-checksum = "blake3:acbf066f04780697f673552ef37cb49ee13cba7936c6cfbf81b1ba971869215f"
-size = 28927268
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-windows-arm64.zip"
+"platforms.macos-arm64" = { checksum = "blake3:acbf066f04780697f673552ef37cb49ee13cba7936c6cfbf81b1ba971869215f", url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-windows-arm64.zip"}
 
 [[tools.gum]]
 version = "0.17.0"
@@ -35,11 +27,7 @@ backend = "aqua:helm/helm"
 [[tools.java]]
 version = "21.0.2"
 backend = "core:java"
-
-[tools.java.platforms.macos-arm64]
-checksum = "sha256:b3d588e16ec1e0ef9805d8a696591bd518a5cea62567da8f53b5ce32d11d22e4"
-size = 197537405
-url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-aarch64_bin.tar.gz"
+"platforms.macos-arm64" = { checksum = "sha256:b3d588e16ec1e0ef9805d8a696591bd518a5cea62567da8f53b5ce32d11d22e4", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-aarch64_bin.tar.gz"}
 
 [[tools.kubeconform]]
 version = "0.7.0"
@@ -48,20 +36,12 @@ backend = "aqua:yannh/kubeconform"
 [[tools.lychee]]
 version = "0.22.0"
 backend = "aqua:lycheeverse/lychee"
-
-[tools.lychee.platforms.macos-arm64]
-checksum = "blake3:771c7c755af637a683b54ff48f79add6fff3d0eef22bdaabd976d74aa1e8c2a6"
-size = 7947359
-url = "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.22.0/lychee-arm64-macos.dmg"
+"platforms.macos-arm64" = { checksum = "blake3:771c7c755af637a683b54ff48f79add6fff3d0eef22bdaabd976d74aa1e8c2a6", url = "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.22.0/lychee-arm64-macos.dmg"}
 
 [[tools.maven]]
 version = "3.9.12"
 backend = "aqua:apache/maven"
-
-[tools.maven.platforms.macos-arm64]
-checksum = "blake3:07cf3b70c8b3c50ac71d7a4fae12a7fc78e8fd2f768eb2e3dfe13a7704fefa7e"
-size = 9233336
-url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"
+"platforms.macos-arm64" = { checksum = "blake3:07cf3b70c8b3c50ac71d7a4fae12a7fc78e8fd2f768eb2e3dfe13a7704fefa7e", url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
 
 [[tools.node]]
 version = "22.19.0"

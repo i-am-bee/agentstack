@@ -3,13 +3,15 @@
 
 import dataclasses
 from pathlib import Path
-
+import itertools
 import yaml
 from deepagents import SubAgent
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
-
+from a2a.types import Role
+from a2a.types import Message as A2AMessage
+from langchain.messages import AIMessage, HumanMessage
 from agentstack_sdk.a2a.extensions import LLMFulfillment
 
 
@@ -59,13 +61,6 @@ def create_chat_model(llm_config: LLMFulfillment) -> ChatOpenAI:
         stream_usage=True,
         # temperature=0,
     )
-
-
-import itertools
-
-from a2a.types import Role
-from a2a.types import Message as A2AMessage
-from langchain.messages import AIMessage, HumanMessage
 
 
 ROLE_TO_MESSAGE: dict[Role, type[HumanMessage] | type[AIMessage]] = {

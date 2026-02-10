@@ -45,7 +45,7 @@
       "path": "agents/rag",
     },
     {
-        "name": "agent-deepagents-content-creator",
+        "name": "agent-deepagents-content-builder",
         "path": "agents/deepagents_content_builder"
     },
     {
