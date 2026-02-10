@@ -6,7 +6,6 @@ import logging
 from contextlib import asynccontextmanager
 
 import procrastinate
-from kink import inject
 from procrastinate.app import WorkerOptions
 
 from agentstack_server.jobs.queues import Queues
@@ -14,7 +13,6 @@ from agentstack_server.jobs.queues import Queues
 logger = logging.getLogger(__name__)
 
 
-@inject
 @asynccontextmanager
 async def run_workers(app: procrastinate.App):
     worker_options: list[WorkerOptions] = [

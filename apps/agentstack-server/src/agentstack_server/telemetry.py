@@ -10,7 +10,7 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.metrics.export import MetricExportResult, PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import SERVICE_INSTANCE_ID, SERVICE_NAME, SERVICE_VERSION, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, SpanExportResult
@@ -24,8 +24,13 @@ OTEL_HTTP_ENDPOINT = str(get_configuration().telemetry.collector_url)
 
 INSTRUMENTATION_NAME = "agentstack-server"
 
-FastAPIInstrumentor().instrument()  # pyrefly: ignore[missing-attribute]
-HTTPXClientInstrumentor().instrument()  # pyrefly: ignore[missing-attribute]
+fastapi_instrumentor = FastAPIInstrumentor()
+if fastapi_instrumentor:
+    fastapi_instrumentor.instrument()
+
+httpxclient_instrumentor = HTTPXClientInstrumentor()
+if httpxclient_instrumentor:
+    httpxclient_instrumentor.instrument()
 
 
 class SilentOTLPSpanExporter(OTLPSpanExporter):
@@ -38,12 +43,12 @@ class SilentOTLPSpanExporter(OTLPSpanExporter):
 
 
 class SilentOTLPMetricExporter(OTLPMetricExporter):
-    def export(self, *args, **kwargs):  # pyrefly: ignore[bad-override]
+    def export(self, *args, **kwargs):
         try:
             return super().export(*args, **kwargs)
         except Exception as e:
             logger.debug(f"OpenTelemetry Exporter failed silently: {e}")
-            return SpanExportResult.FAILURE
+            return MetricExportResult.FAILURE
 
 
 def configure_telemetry():
@@ -57,7 +62,7 @@ def configure_telemetry():
     trace.set_tracer_provider(
         tracer_provider=TracerProvider(
             resource=resource,
-            # pyrefly: ignore[bad-argument-type]
+            # pyrefly: ignore[bad-argument-type] TODO: active_span_processor explicitly allows only certain span processors, is that an issue?
             active_span_processor=BatchSpanProcessor(SilentOTLPSpanExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/traces")),
         )
     )

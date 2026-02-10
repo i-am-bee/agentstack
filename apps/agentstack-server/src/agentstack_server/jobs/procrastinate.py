@@ -4,7 +4,6 @@ import logging
 import re
 
 import procrastinate
-from kink import inject
 from procrastinate.app import WorkerOptions
 
 from agentstack_server.configuration import Configuration
@@ -22,7 +21,6 @@ logger = logging.getLogger(__name__)
 _app_created = False
 
 
-@inject
 def create_app(configuration: Configuration) -> procrastinate.App:
     global _app_created
 

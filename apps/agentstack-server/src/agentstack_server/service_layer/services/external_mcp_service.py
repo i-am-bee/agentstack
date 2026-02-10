@@ -4,10 +4,9 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from datetime import timedelta
 from secrets import token_urlsafe
-from types import CoroutineType
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
@@ -164,7 +163,7 @@ class ExternalMcpService:
         state: str,
         error: str | None,
         error_description: str | None,
-        probe_fn: Callable[[Connector], CoroutineType[Any, Any, None]],
+        probe_fn: Callable[[Connector], Coroutine[Any, Any, None]],
     ):
         redirect_url = None
         try:

@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, ORJSONResponse
-from kink import Container, di, inject
+from kink import Container, di
 from limits.aio.storage import Storage
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
 from procrastinate.exceptions import AlreadyEnqueued
@@ -202,15 +202,15 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     bootstrap_dependencies_sync(dependency_overrides=dependency_overrides)
     configuration = di[Configuration]
 
-    @inject
     @asynccontextmanager
-    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, user_feedback: UserFeedbackService):
+    async def lifespan(_: FastAPI):
+        procrastinate_app = di[procrastinate.App]
+        user_feedback = di[UserFeedbackService]
         try:
             register_telemetry()
             async with (
                 procrastinate_app.open_async(),
                 user_feedback,
-                # pyrefly: ignore[bad-context-manager, bad-argument-count, unexpected-keyword]
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
                 # Force initial synchronization job
@@ -229,7 +229,7 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
             raise
 
     app = FastAPI(
-        lifespan=lifespan,  # pyrefly: ignore[bad-argument-type]
+        lifespan=lifespan,
         default_response_class=ORJSONResponse,  # better performance then default + handle NaN floats
         docs_url=None,
         openapi_url=None,

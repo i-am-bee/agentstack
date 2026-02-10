@@ -27,7 +27,7 @@ def protected_resource_metadata(
 def jwks():
     config = get_configuration()
     key = JsonWebKey.import_key(
-        # pyrefly: ignore[bad-argument-type]
+        # pyrefly: ignore[bad-argument-type] -- typeshed issue
         config.auth.jwt_public_key.get_secret_value(),
         {"use": "sig", "alg": "RS256"},
     )

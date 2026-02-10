@@ -136,7 +136,6 @@ async def oauth_callback(
         state=state,
         error=error,
         error_description=error_description,
-        # pyrefly: ignore[bad-argument-type]
         probe_fn=lambda connector: connector_service.probe_connector(connector=connector),
     )
 

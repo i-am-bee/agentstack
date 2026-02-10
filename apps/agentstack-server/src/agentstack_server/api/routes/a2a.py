@@ -119,19 +119,22 @@ async def a2a_proxy_http_transport(
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
     path: str = "",
 ) -> Response:
-    user = RequiresPermissions(a2a_proxy={provider_id})(user)
     provider = await provider_service.get_provider(provider_id=provider_id)
-    agent_card = create_proxy_agent_card(
-        provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+    handler = (
+        RESTAdapter(
+            agent_card=create_proxy_agent_card(
+                provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+            ),
+            http_handler=await a2a_proxy.get_request_handler(
+                provider=provider, user=RequiresPermissions(a2a_proxy={provider_id})(user).user
+            ),
+        )
+        .routes()
+        .get((f"/{path.rstrip('/')}", request.method), None)
     )
-
-    handler = await a2a_proxy.get_request_handler(provider=provider, user=user.user)
-    adapter = RESTAdapter(agent_card=agent_card, http_handler=handler)
-
-    if not (handler := adapter.routes().get((f"/{path.rstrip('/')}", request.method), None)):
+    if not handler:
         raise HTTPException(status_code=404, detail="Not found")
-
-    return await handler(request)  # pyrefly: ignore[not-callable]
+    return await handler(request)
 
 
 # TODO: extra a2a routes are not supported
