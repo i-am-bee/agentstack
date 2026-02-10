@@ -85,9 +85,16 @@ To extract text from a `File` uploaded to the Platform API, simply use `file.cre
 the result. After extraction is completed, the `extraction` object will contain
 `extracted_files`, which is a list of extracted files in different formats.
 
+
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/extraction.py--> */}
 ```python
-from agentstack_sdk.platform import File, Extraction
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import asyncio
+
+from agentstack_sdk.platform import File
+
 
 async def extract_file(file: File):
     extraction = await file.create_extraction()
@@ -96,6 +103,7 @@ async def extract_file(file: File):
         extraction = await file.get_extraction()
     if extraction.status != "completed":
         raise ValueError(f"Extraction failed with status: {extraction.status}")
+
 ```
 
 #### Extraction Formats
@@ -114,11 +122,17 @@ In this example we will use `MarkdownTextSplitter` from the
 [langchain-text-splitters](https://reference.langchain.com/python/langchain_text_splitters/) package.
 This will split a long document into reasonably sized chunks based on the Markdown header structure.
 
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/text_splitting.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from langchain_text_splitters import MarkdownTextSplitter
+
 
 def chunk_markdown(markdown_text: str) -> list[str]:
     return MarkdownTextSplitter().split_text(markdown_text)
+
 ```
 
 ### Embedding
@@ -127,9 +141,14 @@ Now we need to embed each chunk using the embedding service. Similarly to LLM, A
 OpenAI-compatible embedding API. You can use any preferred client, in this example we will use the embedding extension
 to create an `AsyncOpenAI` client:
 
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/embedding/client.py--> */}
 ```python
-from openai import AsyncOpenAI
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from agentstack_sdk.a2a.extensions import EmbeddingServiceExtensionServer
+from openai import AsyncOpenAI
+
 
 def get_embedding_client(
     embedding: EmbeddingServiceExtensionServer,
@@ -141,20 +160,21 @@ def get_embedding_client(
     if not embedding_config:
         raise ValueError("Default embedding configuration not found")
 
-    embedding_client = AsyncOpenAI(
-        api_key=embedding_config.api_key, base_url=embedding_config.api_base
-    )
+    embedding_client = AsyncOpenAI(api_key=embedding_config.api_key, base_url=embedding_config.api_base)
     embedding_model = embedding_config.api_model
     return embedding_client, embedding_model
-
 
 ```
 
 Now we can use this client to embed our chunks and create vector store items:
 
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/embedding/embed.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+from agentstack_sdk.platform import File, VectorStoreItem
 from openai import AsyncOpenAI
-from agentstack_sdk.platform import VectorStoreItem, File
 
 
 async def embed_chunks(
@@ -177,6 +197,7 @@ async def embed_chunks(
         )
         vector_store_items.append(item)
     return vector_store_items
+
 ```
 
 ### Store
@@ -185,21 +206,24 @@ Finally, to insert the prepared items, we need a function to create a vector sto
 the dimension of the embeddings and model_id. Because the model is chosen by the embedding extension and we don't know
 it in advance, we will create a test embedding request to calculate the dimension:
 
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/vector_store/create.py--> */}
 ```python
-from openai import AsyncOpenAI
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from agentstack_sdk.platform import VectorStore
+from openai import AsyncOpenAI
 
 
 async def create_vector_store(embedding_client: AsyncOpenAI, embedding_model: str):
-    embedding_response = await embedding_client.embeddings.create(
-        input="test", model=embedding_model
-    )
+    embedding_response = await embedding_client.embeddings.create(input="test", model=embedding_model)
     dimension = len(embedding_response.data[0].embedding)
     return await VectorStore.create(
         name="rag-example",
         dimension=dimension,
         model_id=embedding_model,
     )
+
 ```
 
 We can then add the prepared items using `vector_store.add_documents`, this will become clear in the final example.
@@ -209,9 +233,14 @@ We can then add the prepared items using `vector_store.add_documents`, this will
 Assuming we have our knowledge base of documents prepared, we can now easily search the store according to the user
 query. The following function will retrieve five document chunks most similar to the query embedding:
 
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/vector_store/search.py--> */}
 ```python
-from openai import AsyncOpenAI
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 from agentstack_sdk.platform import VectorStore, VectorStoreSearchResult
+from openai import AsyncOpenAI
+
 
 async def search_vector_store(
     vector_store: VectorStore,
@@ -219,11 +248,10 @@ async def search_vector_store(
     embedding_client: AsyncOpenAI,
     embedding_model: str,
 ) -> list[VectorStoreSearchResult]:
-    embedding_response = await embedding_client.embeddings.create(
-        input=query, model=embedding_model
-    )
+    embedding_response = await embedding_client.embeddings.create(input=query, model=embedding_model)
     query_vector = embedding_response.data[0].embedding
     return await vector_store.search(query_vector=query_vector, limit=5)
+
 ```
 
 ## Putting all together
@@ -235,6 +263,7 @@ Having all the pieces in place, we can now build the agent.
 This is a simplified agent that expects a message with one or more files attached as `FilePart` and a
 user query as `TextPart`. A new vector store is created for each message.
 
+{/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/agent.py--> */}
 ```python
 @server.agent(
     default_input_modes=default_input_modes,
