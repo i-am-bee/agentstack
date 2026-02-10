@@ -1,31 +1,3 @@
----
-title: "Approve Tool Calls"
-description: "Have tool calls approved by the user before execution"
----
-
-Many agent frameworks support the ability to request user approval before executing certain actions. This is especially useful when an agent is calling external tools that may have significant effects or costs associated with their usage.
-
-The Approval extension provides a mechanism for implementing this functionality over A2A connection.
-
-## Usage
-
-<Steps>
-<Step title="Add Approval extension to your agent">
-  Inject the `ApprovalExtension` into your agent function using the `Annotated`
-  type hint.
-</Step>
-
-<Step title="Implement the approval logic in your agent">
-  Use `request_approval()` method to request tool call approval from the A2A client side.
-</Step>
-</Steps>
-
-## Basic Example
-
-Here's how to use this extension with the [BeeAI Framework](https://framework.beeai.dev/modules/agents/requirement-agent#ask-permission-requirement) to request user approval before executing a tool call:
-
-{/* <!-- embedme examples/agent-integration/tool-calls/basic-approve/src/basic_approve/agent.py --> */}
-```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 import os
@@ -84,5 +56,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-
-```

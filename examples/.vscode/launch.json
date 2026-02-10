@@ -153,6 +153,15 @@
       "cwd": "${workspaceFolder}/agent-integration/error/adding-error-context",
       "program": "src/adding_error_context/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-approve",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}//agent-integration/tool-calls/basic-approve",
+      "program": "src/basic_approve/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
