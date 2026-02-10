@@ -31,13 +31,10 @@
 
 Agent Stack is open infrastructure for turning AI agents into running services in minutes. Run agents locally or in your environment, wire them into your app over HTTP, and ship agent-powered features without building deployment infrastructure from scratch. Built on the [Agent2Agent (A2A) Protocol](https://a2a-protocol.org/) and hosted by the **Linux Foundation**, Agent Stack ensures you aren't locked into a proprietary vendor's ecosystem.
 
-If you’re building agent-powered features or want your agents to run outside a prototype, Agent Stack gives you a fast path from code to deployment-ready service.
+If you’re building agent-powered features or want your agents to run outside a prototype, Agent Stack gives you a fast path from code to deployment-ready service by providing LLM routing, vector storage, authentication, file handling, deployment tooling, and more out of the box.
 
----
 
-## Key Features
-
-| Feature | Description |
+|   |  |
 |:---------|:-------------|
 | 🎯 <b>Run agents as services</b> | Expose agents over HTTP for consumption in real applications and call them like any other backend service |
 | 🔄 <b>Fast local dev loop</b> | Spin up agents locally and iterate quickly |
@@ -45,6 +42,24 @@ If you’re building agent-powered features or want your agents to run outside a
 | 🚀 <b>Deployment-ready architecture</b> | The same agents can move from local to deployed environments |
 
 ---
+
+## Core Capabilities
+
+| Component | What's Included |
+|---------|--------------|
+| **Agent Runtime** | - Self-hostable server to run agents in production |
+| **LLM & AI Services** | - LLM service with support for 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) <br>- Embeddings and vector search for RAG and semantic search |
+| **Agent Deployment & Management** | - CLI for deploying, updating, and managing agents |
+| **Storage & Documents** | - S3-compatible file storage for uploads and downloads<br>- Document text extraction via Docling |
+| **Interfaces & Tooling** | - Out-of-the-box Web UI for testing and sharing agents<br>- Client SDK for building custom UIs and applications |
+| **Integrations** | - External integrations via MCP protocol (APIs, Slack, Google Drive, etc.) with OAuth |
+| **Security** | - Secrets management for API keys and credentials<br>- OAuth support for secure external integrations  |
+| **Agent Stack Deployment** | - Helm chart for Kubernetes with customizable storage, databases, and authentication |
+| **Framework Interoperability** | - Build agents using LangGraph, CrewAI, or your own framework<br>- All agents are automatically exposed as A2A-compatible agents for interoperability<br>- SDK handles runtime service requests and agent-to-agent communication |
+
+> **Note**: Agent Stack ships with fully functional defaults to get you running quickly. Every component is modular and can be replaced to integrate with your organization’s existing services, providers, and infrastructure.
+
+
 
 ## Quickstart
 
