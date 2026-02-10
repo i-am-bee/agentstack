@@ -14,7 +14,7 @@ server = Server()
 
 
 @server.agent()
-async def example_agent(
+async def llm_access_example(
     input: Message,
     llm: Annotated[
         LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))

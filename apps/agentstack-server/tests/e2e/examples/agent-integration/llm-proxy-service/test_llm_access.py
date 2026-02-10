@@ -12,8 +12,8 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_example_of_llm_access_example(subtests, get_final_task_from_stream, a2a_client_factory):
-    example_path = "agent-integration/llm-proxy-service/example-of-llm-access"
+async def test_llm_access_example(subtests, get_final_task_from_stream, a2a_client_factory):
+    example_path = "agent-integration/llm-proxy-service/llm-access"
 
     async with run_example(example_path, a2a_client_factory) as running_example:
         spec = LLMServiceExtensionSpec.from_agent_card(running_example.provider.agent_card)

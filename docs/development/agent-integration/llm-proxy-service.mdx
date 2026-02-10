@@ -126,7 +126,7 @@ These credentials work with any OpenAI-compatible client library, making it easy
 
 This complete example shows how to receive a user message and respond using the credentials provided by the LLM Proxy Service:
 
-{/* <!-- embedme examples/agent-integration/llm-proxy-service/example-of-llm-access/src/example_of_llm_access/agent.py --> */}
+{/* <!-- embedme examples/agent-integration/llm-proxy-service/llm-access/src/llm_access/agent.py --> */}
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -144,7 +144,7 @@ server = Server()
 
 
 @server.agent()
-async def example_agent(
+async def llm_access_example(
     input: Message,
     llm: Annotated[
         LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))

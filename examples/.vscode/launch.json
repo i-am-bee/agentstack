@@ -56,12 +56,12 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "examples/example-of-llm-access",
+      "name": "examples/llm-access",
       "type": "debugpy",
       "justMyCode": false,
       "request": "launch",
-      "cwd": "${workspaceFolder}/agent-integration/llm-proxy-service/example-of-llm-access",
-      "program": "src/example_of_llm_access/agent.py",
+      "cwd": "${workspaceFolder}/agent-integration/llm-proxy-service/llm-access",
+      "program": "src/llm_access/agent.py",
       "console": "integratedTerminal"
     },
     {
