@@ -29,3 +29,7 @@ build-backend = "uv_build"
 dev = [
     "watchfiles>=1.1.0",
 ]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

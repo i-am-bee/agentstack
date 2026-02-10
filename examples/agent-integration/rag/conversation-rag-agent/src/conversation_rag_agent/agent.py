@@ -1,21 +1,22 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 import json
 import os
-from collections.abc import AsyncGenerator
 from typing import Annotated
 
-from a2a.types import FilePart, FileWithUri, Message, TextPart
+from a2a.types import DataPart, FilePart, FileWithUri, Message, Part, TextPart
 from agentstack_sdk.a2a.extensions import (
     EmbeddingServiceExtensionServer,
     EmbeddingServiceExtensionSpec,
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
-from agentstack_sdk.a2a.types import RunYield
-from agentstack_sdk.platform import File, PlatformFileUrl
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.platform import File, PlatformFileUrl, VectorStore
 from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 
 from .embedding.client import get_embedding_client
 from .embedding.embed import embed_chunks
@@ -43,15 +44,20 @@ default_input_modes = [
     "image/webp",  # WEBP
 ]
 
+
 server = Server()
 
 
-@server.agent(default_input_modes=default_input_modes, default_output_modes=["text/plain"])
-async def simple_rag_agent_example(
+@server.agent(
+    default_input_modes=default_input_modes,
+    default_output_modes=["text/plain"],
+)
+async def conversation_rag_agent_example(
     input: Message,
+    context: RunContext,
     embedding: Annotated[EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
-) -> AsyncGenerator[RunYield, None]:
+):
     # Create embedding client
     embedding_client, embedding_model = get_embedding_client(embedding)
 
@@ -67,11 +73,19 @@ async def simple_rag_agent_example(
             case _:
                 raise NotImplementedError(f"Unsupported part: {type(part.root)}")
 
-    if not files or not query:
-        raise ValueError("No files or query provided")
+    # Check if vector store exists
+    vector_store = None
+    async for message in context.load_history():
+        match message:
+            case Message(parts=[Part(root=DataPart(data=data))]):
+                vector_store = await VectorStore.get(data["vector_store_id"])
 
-    # Create vector store
-    vector_store = await create_vector_store(embedding_client, embedding_model)
+    # Create vector store if it does not exist
+    if not vector_store:
+        vector_store = await create_vector_store(embedding_client, embedding_model)
+        # store vector store id in context for future messages
+        data_part = DataPart(data={"vector_store_id": vector_store.id})
+        await context.store(AgentMessage(parts=[data_part]))
 
     # Process files, add to vector store
     for file in files:
@@ -82,12 +96,17 @@ async def simple_rag_agent_example(
         await vector_store.add_documents(items=items)
 
     # Search vector store
-    results = await search_vector_store(vector_store, query, embedding_client, embedding_model)
+    if query:
+        results = await search_vector_store(vector_store, query, embedding_client, embedding_model)
+        snippet = [res.model_dump() for res in results]
 
-    # TODO: You can add LLM result processing here
+        # TODO: You can add LLM result processing here
 
-    snippet = [res.model_dump() for res in results]
-    yield f"# Results:\n{json.dumps(snippet, indent=2)}"
+        yield f"# Results:\n{json.dumps(snippet, indent=2)}"
+    elif files:
+        yield f"{len(files)} file(s) processed"
+    else:
+        yield "Nothing to do"
 
 
 def run():

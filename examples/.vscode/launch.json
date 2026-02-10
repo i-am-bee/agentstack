@@ -180,6 +180,15 @@
       "cwd": "${workspaceFolder}/agent-integration/rag/simple-rag-agent",
       "program": "src/simple_rag_agent/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/conversation-rag-agent",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/rag/conversation-rag-agent",
+      "program": "src/conversation_rag_agent/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
