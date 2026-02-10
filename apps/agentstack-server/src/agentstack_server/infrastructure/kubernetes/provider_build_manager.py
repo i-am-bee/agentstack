@@ -77,7 +77,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
     def _get_build_status(self, job: Job | None) -> BuildState:
         if not job:
             return BuildState.MISSING
-        conditions = job.status.get("conditions", [])
+        conditions: list = cast(list, job.status.get("conditions", []))
         for condition in conditions:
             if condition.get("type") == "Complete" and condition.get("status") == "True":
                 return BuildState.BUILD_COMPLETED
@@ -213,7 +213,7 @@ class KubernetesProviderBuildManager(IProviderBuildManager):
                         logs_container.add_stdout(f"[{container_name}]: Unexpected error during streaming: {e}")
 
                 # Get container names from pod spec (init containers + regular containers)
-                containers = pod.spec.get("initContainers", []) + pod.spec.get("containers", [])
+                containers = cast(list, pod.spec.get("initContainers", [])) + cast(list, pod.spec.get("containers", []))
                 async with TaskGroup() as tg:
                     for container in containers:
                         tg.create_task(stream_container_logs(container["name"]))

@@ -130,7 +130,9 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             deployment = Deployment(deployment_manifest, api=api)
             async with self._create_lock:
                 try:
+                    # pyrefly: ignore[bad-argument-type]
                     existing_deployment = await Deployment.get(deployment.metadata.name, api=api)
+                    # pyrefly: ignore[unsupported-operation]
                     if existing_deployment.metadata.labels["deployment-hash"] == deployment_hash:
                         if existing_deployment.replicas == 0:
                             await deployment.scale(1)
