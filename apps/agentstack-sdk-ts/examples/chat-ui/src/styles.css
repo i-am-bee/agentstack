@@ -1,0 +1,114 @@
+/**
+ * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+:root {
+  font-family: sans-serif;
+  color: #161616;
+  background: #f3f4f6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.app {
+  max-inline-size: 48rem;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.meta {
+  font-size: 0.875rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.meta p {
+  margin: 0;
+}
+
+.error {
+  color: #da1e28;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.button {
+  padding: 0.5rem 0.75rem;
+  background: #161616;
+  color: #ffffff;
+  border: 1px solid #161616;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.375;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.messages {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.message {
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid;
+}
+
+.message.user {
+  border-color: #78a9ff;
+  background-color: #edf5ff;
+}
+
+.message.agent {
+  border-color: #42be65;
+  background-color: #defbe6;
+}
+
+.message header {
+  margin-block-end: 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #8d8d8d;
+}
+
+.message p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.input {
+  inline-size: 100%;
+  padding:  0.5rem;
+  border: 1px solid #d1d1d1;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.375;
+}

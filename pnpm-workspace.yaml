@@ -3,6 +3,7 @@ packages:
   - apps/beeai-web
   - apps/lint-config
   - apps/agentstack-sdk-ts
+  - apps/agentstack-sdk-ts/examples/chat-ui
   - apps/keycloak-theme
   - docs
 
