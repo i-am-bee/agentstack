@@ -1,5 +1,5 @@
 [project]
-name = "example-of-file-processing"
+name = "file-processing"
 version = "0.1.0"
 description = "Example demonstrating how to build an AI agent that can accept, process, and modify files."
 authors = [
@@ -19,7 +19,7 @@ target-version = "py313"
 agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
 
 [project.scripts]
-server = "example_of_file_processing.agent:run"
+server = "file_processing.agent:run"
 
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]

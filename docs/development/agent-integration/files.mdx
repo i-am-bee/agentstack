@@ -30,7 +30,7 @@ Use the `File.create()` method to generate new files and yield them as `FilePart
 Here's how to build an agent that can accept and modify files:
 
 
-{/* <!-- embedme examples/agent-integration/files/example-of-file-processing/src/example_of_file_processing/agent.py--> */}
+{/* <!-- embedme examples/agent-integration/files/file-processing/src/file_processing/agent.py--> */}
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -51,7 +51,7 @@ server = Server()
 
 
 @server.agent(default_input_modes=["text/plain"], default_output_modes=["text/plain"])
-async def example_of_file_processing_example(
+async def file_processing_example(
     input: Message,
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):

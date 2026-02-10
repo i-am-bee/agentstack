@@ -17,7 +17,7 @@ server = Server()
 
 
 @server.agent(default_input_modes=["text/plain"], default_output_modes=["text/plain"])
-async def example_of_file_processing_example(
+async def file_processing_example(
     input: Message,
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):

@@ -38,12 +38,12 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "examples/example-of-file-processing",
+      "name": "examples/file-processing",
       "type": "debugpy",
       "justMyCode": false,
       "request": "launch",
-      "cwd": "${workspaceFolder}/agent-integration/files/example-of-file-processing",
-      "program": "src/example_of_file_processing/agent.py",
+      "cwd": "${workspaceFolder}/agent-integration/files/file-processing",
+      "program": "src/file_processing/agent.py",
       "console": "integratedTerminal"
     },
     {
