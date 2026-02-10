@@ -162,6 +162,15 @@
       "cwd": "${workspaceFolder}//agent-integration/tool-calls/basic-approve",
       "program": "src/basic_approve/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/canvas-with-llm",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/canvas/canvas-with-llm",
+      "program": "src/canvas_with_llm/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
