@@ -95,11 +95,9 @@ spec:
                   key: {{ include "agentstack.oidc.uiClientSecretKey" . }}
                   name: {{ include "agentstack.oidc.uiClientSecretName" . }}
             - name: OIDC_PROVIDER_ISSUER
-              value: {{ include "agentstack.oidc.issuerUrl" . | quote }}
-              {{- if .Values.keycloak.enabled }}
+              value: {{ include "agentstack.oidc.internalIssuerUrl" . | quote }}
             - name: OIDC_PROVIDER_EXTERNAL_ISSUER
-              value: {{ if hasPrefix "http://keycloak" (include "agentstack.oidc.issuerUrl" .) }}"http://localhost:8336/realms/agentstack"{{ else }}{{ include "agentstack.oidc.issuerUrl" . | quote }}{{ end }}
-              {{- end }}
+              value: {{ include "agentstack.oidc.publicIssuerUrl" . | quote }}
             - name: OIDC_KEYCLOAK_LOGOUT
               value: {{ .Values.keycloak.enabled | quote }}
           {{- else}}

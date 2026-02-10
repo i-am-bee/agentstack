@@ -545,13 +545,17 @@ Return the Phoenix API KEY
 {{/*
 Return the OIDC Issuer URL
 */}}
-{{- define "agentstack.oidc.issuerUrl" -}}
+{{- define "agentstack.oidc.internalIssuerUrl" -}}
 {{- if .Values.keycloak.enabled -}}
-    {{- if .Values.keycloak.publicIssuerUrl -}}
-        {{- print .Values.keycloak.publicIssuerUrl -}}
-    {{- else -}}
-        {{- printf "http://keycloak:%d/realms/agentstack" (.Values.keycloak.service.port | int) -}}
-    {{- end -}}
+    {{- print .Values.keycloak.internalIssuerUrl -}}
+{{- else -}}
+    {{- print .Values.externalOidcProvider.issuerUrl -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "agentstack.oidc.publicIssuerUrl" -}}
+{{- if .Values.keycloak.enabled -}}
+    {{- print .Values.keycloak.publicIssuerUrl -}}
 {{- else -}}
     {{- print .Values.externalOidcProvider.issuerUrl -}}
 {{- end -}}

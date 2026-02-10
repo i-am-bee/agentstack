@@ -71,9 +71,8 @@ spec:
               value: {{ .Values.keycloak.httpEnabled | quote }}
             - name: KC_HTTP_MANAGEMENT_SCHEME
               value: http
-            # Keycloak Hostname Configuration
             - name: KC_HOSTNAME
-              value: {{ if hasPrefix "http://keycloak" .Values.keycloak.publicIssuerUrl }}"http://localhost:8336"{{ else }}{{ regexReplaceAll "/realms/.*" .Values.keycloak.publicIssuerUrl "" | quote }}{{ end }}
+              value: {{ regexReplaceAll "/realms/.*" (include "agentstack.oidc.publicIssuerUrl" .) "" | quote }}
             - name: KC_HOSTNAME_STRICT
               value: "true"
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC

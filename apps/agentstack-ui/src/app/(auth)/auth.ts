@@ -18,11 +18,12 @@ export const AUTH_COOKIE_NAME = 'agentstack';
 const { isAuthEnabled } = runtimeConfig;
 
 function createOIDCProvider(config: ProviderConfig): OIDCConfig<unknown> {
+  const useInternalBackChannel = config.external_issuer && config.external_issuer !== config.issuer;
   const options = {
     clientId: config.client_id,
     clientSecret: config.client_secret,
     issuer: config.external_issuer ?? config.issuer,
-    ...(config.external_issuer
+    ...(useInternalBackChannel
       ? {
           authorization: {
             params: { scope: 'openid email profile' },

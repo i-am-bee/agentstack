@@ -153,8 +153,9 @@ keycloak:
 
   # This URL is used by server to validate tokens from keycloak
   # WARNING: if the keycloak URL is internal, the server is configured to allow insecure issuer (http)
-  # CHANGE TO A PUBLIC KEYCLOAK URL FOR PRODUCTION
-  publicIssuerUrl: "http://keycloak:8336/realms/agentstack"
+  # CHANGE BOTH TO A PUBLIC KEYCLOAK URL FOR PRODUCTION
+  internalIssuerUrl: "http://keycloak:8336/realms/agentstack"
+  publicIssuerUrl: "http://localhost:8336/realms/agentstack"
   replicaCount: 1
   # Warning: set this to false if you want TLS in keycloak, make sure to provide certs in extraVolumes
   httpEnabled: true

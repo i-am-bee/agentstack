@@ -164,7 +164,10 @@ auth:
 
 keycloak:
   enabled: true
-  publicIssuerUrl: "https://keycloak.example.com/realms/agentstack" # Public URL of keycloak
+  # Internal URL used by the server for token validation (default shown)
+  internalIssuerUrl: "http://keycloak:8336/realms/agentstack"
+  # Public URL used by the browser
+  publicIssuerUrl: "https://keycloak.example.com/realms/agentstack"
 ```
 
 #### External OIDC Provider
