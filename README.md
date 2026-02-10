@@ -25,19 +25,6 @@
 
 </div>
 
-```mermaid
-flowchart TD
-  classDef box fill:#f9fafb,stroke:#d1d5db,stroke-width:1px,color:#111827,rx:6,ry:6
-
-  A["<b>Your Agent Code</b>"]
-  B["<b>Agent Stack CLI</b>"]
-  C["<b>Running Agent Service</b><br>localhost / deployment"]
-  D["<b>App</b><br>API / curl"]
-
-  A --> B --> C --> D
-
-  class A,B,C,D box
-``` 
 <p align="center"><em> Build agents → run them as services → call them from your app. </em></p>
 
 ---
