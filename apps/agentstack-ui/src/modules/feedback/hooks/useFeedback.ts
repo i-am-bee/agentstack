@@ -4,7 +4,7 @@
  */
 
 import { CheckmarkFilled } from '@carbon/icons-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { SubmitErrorHandler, SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
@@ -52,107 +52,84 @@ export function useFeedback({ message, onOpenChange }: Props) {
 
   const currentVote = getValues('vote');
 
-  const openForm = useCallback(() => {
+  const openForm = () => {
     setFormOpen(true);
     onOpenChange(true);
-  }, [onOpenChange]);
+  };
 
-  const closeForm = useCallback(() => {
+  const closeForm = () => {
     setFormOpen(false);
     onOpenChange(false);
     reset();
-  }, [onOpenChange, reset]);
-
-  const onSubmit: (params?: { shouldCloseFrom?: boolean }) => SubmitHandler<FeedbackForm> = useCallback(
+  };
+  const onSubmit: (params?: { shouldCloseFrom?: boolean }) => SubmitHandler<FeedbackForm> =
     ({ shouldCloseFrom } = {}) =>
-      async (values) => {
-        const contextId = getContextId();
+    async (values) => {
+      const contextId = getContextId();
 
-        try {
-          await sendFeedback(createSendFeedbackPayload({ agent, message, values, contextId }));
+      try {
+        await sendFeedback(createSendFeedbackPayload({ agent, message, values, contextId }));
 
-          addToast({
-            title: 'Thank you for your feedback!',
-            icon: CheckmarkFilled,
-            timeout: 5_000,
-            hideDate: true,
-          });
-        } catch (error) {
-          addToast({
-            kind: 'error',
-            title: 'Failed to send feedback',
-            message: getErrorMessage(error) || 'An unknown error occurred',
-          });
-        }
-
-        if (shouldCloseFrom) {
-          closeForm();
-        }
-      },
-    [addToast, agent, closeForm, getContextId, message, sendFeedback],
-  );
-
-  const onError: SubmitErrorHandler<FeedbackForm> = useCallback(
-    (errors) => {
-      const errorMessages = Object.values(errors).map(({ message }) => message);
-
-      addToast({
-        kind: 'error',
-        title: 'Form contains errors',
-        message: errorMessages.join('\n'),
-      });
-    },
-    [addToast],
-  );
-
-  const handleVote = useCallback(
-    (vote: FeedbackVote) => {
-      if (currentVote !== vote) {
-        reset({ ...FEEDBACK_FORM_DEFAULTS, vote });
+        addToast({
+          title: 'Thank you for your feedback!',
+          icon: CheckmarkFilled,
+          timeout: 5_000,
+          hideDate: true,
+        });
+      } catch (error) {
+        addToast({
+          kind: 'error',
+          title: 'Failed to send feedback',
+          message: getErrorMessage(error) || 'An unknown error occurred',
+        });
       }
 
-      if (vote === FeedbackVote.Up) {
-        handleSubmit(onSubmit(), onError)();
-      } else {
-        openForm();
+      if (shouldCloseFrom) {
+        closeForm();
       }
-    },
-    [currentVote, reset, handleSubmit, onSubmit, onError, openForm],
-  );
+    };
+  const onError: SubmitErrorHandler<FeedbackForm> = (errors) => {
+    const errorMessages = Object.values(errors).map(({ message }) => message);
 
-  const getVoteUpProps = useCallback(
-    () => ({
-      onClick: () => handleVote(FeedbackVote.Up),
-    }),
-    [handleVote],
-  );
+    addToast({
+      kind: 'error',
+      title: 'Form contains errors',
+      message: errorMessages.join('\n'),
+    });
+  };
+  const handleVote = (vote: FeedbackVote) => {
+    if (currentVote !== vote) {
+      reset({ ...FEEDBACK_FORM_DEFAULTS, vote });
+    }
 
-  const getVoteDownProps = useCallback(
-    () => ({
-      ...getReferenceProps({
-        onClick: () => handleVote(FeedbackVote.Down),
-      }),
-    }),
-    [handleVote, getReferenceProps],
-  );
+    if (vote === FeedbackVote.Up) {
+      handleSubmit(onSubmit(), onError)();
+    } else {
+      openForm();
+    }
+  };
 
-  const getDialogProps = useCallback(
-    () => ({
-      ref: refs.setFloating,
-      style: floatingStyles,
-      ...getFloatingProps(),
-    }),
-    [refs.setFloating, floatingStyles, getFloatingProps],
-  );
+  const getVoteUpProps = () => ({
+    onClick: () => handleVote(FeedbackVote.Up),
+  });
 
-  const getFormProps = useCallback(
-    () => ({
-      form,
-      onSubmit: handleSubmit(onSubmit({ shouldCloseFrom: true }), onError),
-      onCloseClick: closeForm,
+  const getVoteDownProps = () => ({
+    ...getReferenceProps({
+      onClick: () => handleVote(FeedbackVote.Down),
     }),
-    [form, handleSubmit, onSubmit, onError, closeForm],
-  );
+  });
+
+  const getDialogProps = () => ({
+    ref: refs.setFloating,
+    style: floatingStyles,
+    ...getFloatingProps(),
+  });
+
+  const getFormProps = () => ({
+    form,
+    onSubmit: handleSubmit(onSubmit({ shouldCloseFrom: true }), onError),
+    onCloseClick: closeForm,
+  });
 
   const positionRef = useMemo(() => refs.setReference, [refs.setReference]);
 

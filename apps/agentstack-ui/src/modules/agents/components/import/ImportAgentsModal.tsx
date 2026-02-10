@@ -17,7 +17,7 @@ import {
   TextInput,
 } from '@carbon/react';
 import clsx from 'clsx';
-import { useCallback, useEffect, useId } from 'react';
+import { useEffect, useId } from 'react';
 import { useController, useForm } from 'react-hook-form';
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
@@ -58,15 +58,12 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
 
   const showLogs = isPending && logs.length > 0;
 
-  const onSubmit = useCallback(
-    async (values: ImportAgentFormValues) => {
-      await importAgent(values);
+  const onSubmit = async (values: ImportAgentFormValues) => {
+    await importAgent(values);
 
-      resetField('action');
-      resetField('providerId');
-    },
-    [importAgent, resetField],
-  );
+    resetField('action');
+    resetField('providerId');
+  };
 
   useEffect(() => {
     resetField('location');

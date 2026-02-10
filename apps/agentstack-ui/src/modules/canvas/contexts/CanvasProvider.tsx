@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type PropsWithChildren, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type PropsWithChildren, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
@@ -28,9 +28,9 @@ export function CanvasProvider({ children }: PropsWithChildren) {
   const artifactsRef = useRef(artifacts);
   artifactsRef.current = artifacts;
 
-  const getArtifact = useCallback((id: string) => {
+  const getArtifact = (id: string) => {
     return artifactsRef.current?.find(({ artifactId }) => id === artifactId);
-  }, []);
+  };
 
   const lastArtifact = artifacts?.at(-1);
 
@@ -45,15 +45,12 @@ export function CanvasProvider({ children }: PropsWithChildren) {
     return artifacts?.find(({ artifactId }) => artifactId === activeArtifactId) ?? null;
   }, [activeArtifactId, artifacts]);
 
-  const value = useMemo<CanvasContextValue>(
-    () => ({
-      artifacts,
-      activeArtifact,
-      setActiveArtifactId,
-      getArtifact,
-    }),
-    [activeArtifact, artifacts, getArtifact],
-  );
+  const value: CanvasContextValue = {
+    artifacts,
+    activeArtifact,
+    setActiveArtifactId,
+    getArtifact,
+  };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;
 }

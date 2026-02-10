@@ -6,7 +6,7 @@
 'use client';
 
 import type { PropsWithChildren } from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useLocalStorage, useMediaQuery } from 'usehooks-ts';
 
 import { THEME_STORAGE_KEY } from '#utils/constants.ts';
@@ -28,14 +28,11 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     themePreference === ThemePreference.System ? isDarkModeOS : themePreference === ThemePreference.Dark;
   const theme = isDarkMode ? Theme.Dark : Theme.Light;
 
-  const toggleTheme = useCallback(
-    () =>
-      setThemePreference((userTheme) => {
-        const isDarkMode = userTheme === ThemePreference.System ? isDarkModeOS : userTheme === ThemePreference.Dark;
-        return isDarkMode ? ThemePreference.Light : ThemePreference.Dark;
-      }),
-    [isDarkModeOS, setThemePreference],
-  );
+  const toggleTheme = () =>
+    setThemePreference((userTheme) => {
+      const isDarkMode = userTheme === ThemePreference.System ? isDarkModeOS : userTheme === ThemePreference.Dark;
+      return isDarkMode ? ThemePreference.Light : ThemePreference.Dark;
+    });
 
   useEffect(() => {
     const html = document.documentElement;
@@ -44,10 +41,7 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     html.classList.toggle(getThemeClassName(Theme.Light), !isDarkMode);
   }, [isDarkMode]);
 
-  const contextValue = useMemo(
-    () => ({ theme, themePreference, toggleTheme, setThemePreference }),
-    [setThemePreference, theme, themePreference, toggleTheme],
-  );
+  const contextValue = { theme, themePreference, toggleTheme, setThemePreference };
 
   return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 }

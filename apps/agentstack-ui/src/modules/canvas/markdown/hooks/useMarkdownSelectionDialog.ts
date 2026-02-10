@@ -11,7 +11,7 @@ import { type TextSelectionInfo, useTextSelection } from './useTextSelection';
 export function useMarkdownSelectionDialog(containerRef: React.RefObject<HTMLElement | null>) {
   const [selection, setSelection] = useState<TextSelectionInfo | null>(null);
 
-  const handleSelectionChange = useCallback((selection: TextSelectionInfo | null) => {
+  const handleSelectionChange = (selection: TextSelectionInfo | null) => {
     if (!selection || !selection.firstVisibleRect) {
       return;
     }
@@ -19,7 +19,7 @@ export function useMarkdownSelectionDialog(containerRef: React.RefObject<HTMLEle
     setSelection(selection);
     const highlight = new Highlight(selection.range);
     CSS.highlights.set(HIGHLIGHT_NAME, highlight);
-  }, []);
+  };
 
   useTextSelection({ containerRef, onSelectionChange: handleSelectionChange });
 

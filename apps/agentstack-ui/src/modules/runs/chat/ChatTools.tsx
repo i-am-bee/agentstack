@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { ErrorMessage } from '#components/ErrorMessage/ErrorMessage.tsx';
@@ -21,16 +20,13 @@ export function ChatTools() {
   const tools = data?.tools.filter(({ name }) => ChatSupportedTools.includes(name));
   const chatTools = watch('tools');
 
-  const handleToggle = useCallback(
-    ({ tool, checked }: { tool: string; checked: boolean }) => {
-      if (checked) {
-        setValue('tools', chatTools ? [...chatTools, tool] : [tool]);
-      } else {
-        setValue('tools', chatTools ? chatTools.filter((item) => item !== tool) : []);
-      }
-    },
-    [chatTools, setValue],
-  );
+  const handleToggle = ({ tool, checked }: { tool: string; checked: boolean }) => {
+    if (checked) {
+      setValue('tools', chatTools ? [...chatTools, tool] : [tool]);
+    } else {
+      setValue('tools', chatTools ? chatTools.filter((item) => item !== tool) : []);
+    }
+  };
 
   if (error && !tools) {
     return (

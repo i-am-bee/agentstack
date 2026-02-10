@@ -32,15 +32,12 @@ export function ProvidersView() {
 
   const agentsByProvider = useMemo(() => groupAgentsByProvider(agents), [agents]);
 
-  const headers = useMemo(
-    () => [
-      { key: 'source', header: 'Source', className: classes.source },
-      { key: 'runtime', header: 'Runtime' },
-      { key: 'agents', header: <>#&nbsp;of&nbsp;agents</>, className: classes.agents },
-      { key: 'actions', header: '' },
-    ],
-    [],
-  );
+  const headers = [
+    { key: 'source', header: 'Source', className: classes.source },
+    { key: 'runtime', header: 'Runtime' },
+    { key: 'agents', header: <>#&nbsp;of&nbsp;agents</>, className: classes.agents },
+    { key: 'actions', header: '' },
+  ];
 
   const entries = useMemo(() => {
     if (!providers) {

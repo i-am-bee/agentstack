@@ -22,15 +22,12 @@ export function VariablesView() {
 
   const { data, isPending } = useListAllProvidersVariables();
 
-  const headers = useMemo(
-    () => [
-      { key: 'agent', header: 'Agent', className: classes.agent },
-      { key: 'name', header: 'Name', className: classes.name },
-      { key: 'value', header: 'Value', className: classes.value },
-      { key: 'actions', header: '' },
-    ],
-    [],
-  );
+  const headers = [
+    { key: 'agent', header: 'Agent', className: classes.agent },
+    { key: 'name', header: 'Name', className: classes.name },
+    { key: 'value', header: 'Value', className: classes.value },
+    { key: 'actions', header: '' },
+  ];
 
   const entries = useMemo(() => {
     if (!data) {

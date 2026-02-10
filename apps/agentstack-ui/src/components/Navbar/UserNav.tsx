@@ -7,7 +7,6 @@
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 import { signOut } from 'next-auth/react';
 import type { PropsWithChildren } from 'react';
-import { useMemo } from 'react';
 
 import UserAvatar from '#components/Navbar/UserAvatar.tsx';
 import { useRouteTransition } from '#contexts/TransitionContext/index.ts';
@@ -22,20 +21,17 @@ export function UserNav() {
   const { transitionTo } = useRouteTransition();
   const { providerId } = useParamsFromUrl();
 
-  const items: NavItemProps[] = useMemo(
-    () => [
-      {
-        label: 'Global settings',
-        href: routes.settings({ providerId }),
-      },
-      {
-        label: 'Log out',
-        hasDivider: true,
-        onClick: () => signOut({ redirectTo: routes.signIn() }),
-      },
-    ],
-    [providerId],
-  );
+  const items: NavItemProps[] = [
+    {
+      label: 'Global settings',
+      href: routes.settings({ providerId }),
+    },
+    {
+      label: 'Log out',
+      hasDivider: true,
+      onClick: () => signOut({ redirectTo: routes.signIn() }),
+    },
+  ];
 
   return (
     <div className={classes.root}>

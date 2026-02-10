@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { type PropsWithChildren, useEffect, useMemo, useState } from 'react';
+import { type PropsWithChildren, useEffect, useState } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
@@ -28,14 +28,11 @@ export function SourcesProvider({ sources, children }: PropsWithChildren<Props>)
     }
   }, [isOpen]);
 
-  const contextValue = useMemo(
-    () => ({
-      sources,
-      activeSource,
-      setActiveSource,
-    }),
-    [sources, activeSource, setActiveSource],
-  );
+  const contextValue = {
+    sources,
+    activeSource,
+    setActiveSource,
+  };
 
   return <SourcesContext.Provider value={contextValue}>{children}</SourcesContext.Provider>;
 }

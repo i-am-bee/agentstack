@@ -12,6 +12,7 @@ const withBundleAnalyzer = nextBundleAnalyzer({ enabled: process.env.ANALYZE ===
 const nextConfig: NextConfig = withBundleAnalyzer({
   output: 'standalone',
   basePath: process.env.NEXT_PUBLIC_BASE_PATH,
+  reactCompiler: true,
   outputFileTracingRoot: path.join(__dirname, '../../'),
   sassOptions: {
     additionalData: `@use 'styles/common' as *; @use 'sass:math';`,
@@ -19,7 +20,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     api: 'modern',
     implementation: 'sass-embedded',
     quietDeps: true,
-    includePaths: [path.join(__dirname, 'node_modules'), path.join(__dirname, 'src')],
+    loadPaths: [path.join(__dirname, 'node_modules'), path.join(__dirname, 'src')],
   },
   webpack(config) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,6 +88,18 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   },
   devIndicators: {
     position: 'bottom-right',
+  },
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+    resolveAlias: {
+      // Carbon styles use tilde imports for IBM Plex fonts which is a webpack convention
+      '~@ibm/plex': '@ibm/plex',
+    },
   },
 });
 

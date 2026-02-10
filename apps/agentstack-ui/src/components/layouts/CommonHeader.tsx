@@ -7,7 +7,6 @@
 import { Link, Share } from '@carbon/icons-react';
 import { Button } from '@carbon/react';
 import { usePathname } from 'next/navigation';
-import { useCallback } from 'react';
 
 import { AppName } from '#components/AppName/AppName.tsx';
 import { AppHeader } from '#components/layouts/AppHeader.tsx';
@@ -20,11 +19,11 @@ export function CommonHeader() {
   const { addToast } = useToast();
   const pathname = usePathname();
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = () => {
     const url = `${window.location.origin}${routes.home()}`;
     navigator.clipboard.writeText(url);
     addToast({ title: 'Link copied to clipboard', icon: Link, timeout: 10_000 });
-  }, [addToast]);
+  };
 
   const isHome = pathname === routes.home();
 

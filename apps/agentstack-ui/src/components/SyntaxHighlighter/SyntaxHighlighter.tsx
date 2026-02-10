@@ -24,8 +24,8 @@ const Highlighter = dynamic(
   () =>
     import('react-syntax-highlighter').then(({ Light }) => {
       registerLanguagesAsync(Light);
-
-      return Light;
+      // Type assertion needed due to React 18/19 contextType incompatibility in react-syntax-highlighter types
+      return Light as React.ComponentType<React.ComponentProps<typeof Light>>;
     }),
   {
     ssr: false,

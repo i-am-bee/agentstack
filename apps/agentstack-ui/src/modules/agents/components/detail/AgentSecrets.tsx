@@ -4,7 +4,7 @@
  */
 
 import { Button, PasswordInput, TextInputSkeleton } from '@carbon/react';
-import { useCallback, useEffect, useId, useMemo } from 'react';
+import { useEffect, useId } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
@@ -22,14 +22,10 @@ export function AgentSecrets() {
 
   const hasSecrets = demandedSecrets.length > 0;
 
-  const defaultValues = useMemo(
-    () =>
-      demandedSecrets.reduce<SecretsForm>((acc, secret) => {
-        acc[secret.key] = secret.isReady ? secret.value : '';
-        return acc;
-      }, {}),
-    [demandedSecrets],
-  );
+  const defaultValues = demandedSecrets.reduce<SecretsForm>((acc, secret) => {
+    acc[secret.key] = secret.isReady ? secret.value : '';
+    return acc;
+  }, {});
 
   const {
     register,
@@ -48,12 +44,9 @@ export function AgentSecrets() {
 
   const { mutateAsync: updateVariables } = useUpdateVariables();
 
-  const onSubmit: SubmitHandler<SecretsForm> = useCallback(
-    async (data) => {
-      updateVariables({ variables: data });
-    },
-    [updateVariables],
-  );
+  const onSubmit: SubmitHandler<SecretsForm> = async (data) => {
+    updateVariables({ variables: data });
+  };
 
   return (
     <div className={classes.root}>

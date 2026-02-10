@@ -6,7 +6,7 @@
 import { Button } from '@carbon/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { PropsWithChildren } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { v4 as uuid } from 'uuid';
 
 import { Toast } from '#components/Toast/Toast.tsx';
@@ -22,21 +22,18 @@ export function ToastProvider({ children }: PropsWithChildren) {
 
   const { ref: scrollbarRef, ...scrollbarProps } = useScrollbar();
 
-  const addToast = useCallback(
-    (toast: ToastProps) => {
-      setToasts((existing) => {
-        const defaults = {
-          key: uuid(),
-          date: new Date(),
-          timeout: 10_000,
-        };
-        return [{ ...defaults, ...toast }, ...existing];
-      });
-    },
-    [setToasts],
-  );
+  const addToast = (toast: ToastProps) => {
+    setToasts((existing) => {
+      const defaults = {
+        key: uuid(),
+        date: new Date(),
+        timeout: 10_000,
+      };
+      return [{ ...defaults, ...toast }, ...existing];
+    });
+  };
 
-  const contextValue = useMemo(() => ({ addToast }), [addToast]);
+  const contextValue = { addToast };
 
   const hasToasts = toasts.length > 1;
 

@@ -5,7 +5,7 @@
 
 import { Button, InlineLoading, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -28,20 +28,17 @@ export function AddConnectorModal({ onRequestClose, ...modalProps }: ModalProps)
     resolver: zodResolver(addConnectorFormSchema),
   });
 
-  const onSubmit: SubmitHandler<AddConnectorForm> = useCallback(
-    ({ url, clientId, clientSecret, name }) => {
-      createConnector({
-        url,
-        match_preset: false,
-        client_id: clientId,
-        client_secret: clientSecret,
-        metadata: { name },
-      });
-    },
-    [createConnector],
-  );
+  const onSubmit: SubmitHandler<AddConnectorForm> = ({ url, clientId, clientSecret, name }) => {
+    createConnector({
+      url,
+      match_preset: false,
+      client_id: clientId,
+      client_secret: clientSecret,
+      metadata: { name },
+    });
+  };
 
-  const toggleView = useCallback(() => setView((view) => (view === View.Add ? View.Browse : View.Add)), []);
+  const toggleView = () => setView((view) => (view === View.Add ? View.Browse : View.Add));
 
   const {
     handleSubmit,

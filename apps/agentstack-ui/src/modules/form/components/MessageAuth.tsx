@@ -4,7 +4,6 @@
  */
 
 import { Button } from '@carbon/react';
-import { useCallback } from 'react';
 
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageOAuth } from '#modules/messages/utils.ts';
@@ -18,13 +17,13 @@ export function MessageAuth({ message }: Props) {
   const authPart = getMessageOAuth(message);
   const { startAuth } = useAgentRun();
 
-  const onHandleAuth = useCallback(() => {
+  const onHandleAuth = () => {
     if (!authPart) {
       return;
     }
 
     startAuth(authPart.url, authPart.taskId);
-  }, [startAuth, authPart]);
+  };
 
   if (!authPart) {
     return null;

@@ -5,7 +5,7 @@
 
 import { useMergeRefs } from '@floating-ui/react';
 import clsx from 'clsx';
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { rehypeSourcePosition } from '#components/MarkdownContent/rehype/rehypeSourcePosition.ts';
@@ -34,36 +34,33 @@ export function CanvasMarkdownContent({ className, artifactId, children, enableS
 
   const { refs, selection } = dialog;
 
-  const handleEditRequest = useCallback(
-    (description: string) => {
-      if (!selection || !children) {
-        return;
-      }
+  const handleEditRequest = (description: string) => {
+    if (!selection || !children) {
+      return;
+    }
 
-      try {
-        const markdownSelection = mapDOMSelectionToMarkdown(selection.range, children);
+    try {
+      const markdownSelection = mapDOMSelectionToMarkdown(selection.range, children);
 
-        if (markdownSelection) {
-          submitCanvasEditRequest({
-            ...markdownSelection,
-            description,
-            artifactId,
-          });
-        }
-      } catch (error) {
-        addToast({
-          kind: 'error',
-          title: 'Error submitting edit request',
-          message: 'An error occurred while processing your selection. Please try again.',
+      if (markdownSelection) {
+        submitCanvasEditRequest({
+          ...markdownSelection,
+          description,
+          artifactId,
         });
-
-        console.error('Error submitting canvas edit request:', error);
-
-        return;
       }
-    },
-    [addToast, artifactId, children, selection, submitCanvasEditRequest],
-  );
+    } catch (error) {
+      addToast({
+        kind: 'error',
+        title: 'Error submitting edit request',
+        message: 'An error occurred while processing your selection. Please try again.',
+      });
+
+      console.error('Error submitting canvas edit request:', error);
+
+      return;
+    }
+  };
 
   const containerRefs = useMergeRefs([containerRef, refs.setPositionReference]);
 

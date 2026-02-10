@@ -5,7 +5,6 @@
 
 import { Button, InlineLoading } from '@carbon/react';
 import clsx from 'clsx';
-import { useCallback, useMemo } from 'react';
 
 import { useCreateConnector } from '../api/mutations/useCreateConnector';
 import { useListConnectors } from '../api/queries/useListConnectors';
@@ -28,12 +27,9 @@ export function ConnectPresetButton({ preset, className }: Props) {
   const { connect, isPending: isConnectPending } = useConnect();
   const { disconnect, isPending: isDisconnectPending } = useDisconnect();
 
-  const connector = useMemo(
-    () => connectors?.items.find((connector) => connector.url === url),
-    [connectors?.items, url],
-  );
+  const connector = connectors?.items.find((connector) => connector.url === url);
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     if (connector) {
       if (connector.state === 'connected') {
         disconnect(connector.id);
@@ -43,7 +39,7 @@ export function ConnectPresetButton({ preset, className }: Props) {
     } else {
       createConnector({ url, match_preset: true });
     }
-  }, [connector, url, createConnector, connect, disconnect]);
+  };
 
   const isPending = isCreatePending || isConnectPending || isDisconnectPending;
 

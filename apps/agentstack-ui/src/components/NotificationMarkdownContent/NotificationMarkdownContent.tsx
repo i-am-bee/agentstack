@@ -4,7 +4,6 @@
  */
 
 import clsx from 'clsx';
-import { useMemo } from 'react';
 import type { Components } from 'react-markdown';
 
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
@@ -18,12 +17,9 @@ interface Props {
 }
 
 export function NotificationMarkdownContent({ children }: Props) {
-  const components: Components = useMemo(
-    () => ({
-      code: ({ className, ...props }) => <Code {...props} className={clsx(className, classes.code)} />,
-    }),
-    [],
-  );
+  const components: Components = {
+    code: ({ className, ...props }) => <Code {...props} className={clsx(className, classes.code)} />,
+  };
 
   return (
     <LineClampText className={classes.root} lines={4} useBlockElement autoExpandOnContentChange>

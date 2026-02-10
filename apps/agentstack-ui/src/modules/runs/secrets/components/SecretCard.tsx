@@ -5,7 +5,6 @@
 
 import { OverflowMenu, OverflowMenuItem } from '@carbon/react';
 import clsx from 'clsx';
-import { useCallback } from 'react';
 
 import { useModal } from '#contexts/Modal/index.tsx';
 import type { AgentSecret } from '#modules/runs/contexts/agent-secrets/types.ts';
@@ -26,7 +25,7 @@ export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpe
   const { openModal } = useModal();
   const { revokeSecret } = useRevokeSecret();
 
-  const openAddModal = useCallback(() => {
+  const openAddModal = () => {
     onOpenAddModal?.();
 
     openModal(({ onRequestClose, ...props }) => (
@@ -41,7 +40,7 @@ export function SecretCard({ secret, variant = 'default', onCloseAddModal, onOpe
         }}
       />
     ));
-  }, [onOpenAddModal, openModal, secret, onCloseAddModal]);
+  };
 
   const { name, description, isReady } = secret;
 

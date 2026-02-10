@@ -69,7 +69,8 @@ run = "pnpm next start"
 depends = ["common:setup:pnpm"]
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 dir = "{{config_root}}/apps/beeai-web"
-run = "pnpm next dev"
+# Turbopack doesn't support MDX with custom remark/rehype plugins (functions aren't serializable)
+run = "pnpm next dev --webpack"
 
 # build
 
@@ -82,6 +83,7 @@ run = "docker build -t ghcr.io/i-am-bee/agentstack/beeai-web:local -f ./apps/bee
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
 dir = "{{config_root}}/apps/beeai-web"
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
-run = "pnpm next build"
+# Turbopack doesn't support MDX with custom remark/rehype plugins (functions aren't serializable)
+run = "pnpm next build --webpack"
 sources = ["*.json", "*.js", "*.mjs", "*.ts", "public/**/*", "src/**/*"]
 outputs = { auto = true }

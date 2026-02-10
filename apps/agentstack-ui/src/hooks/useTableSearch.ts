@@ -4,7 +4,7 @@
  */
 
 import type { ChangeEvent } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface Props<T> {
   entries: T[];
@@ -14,9 +14,9 @@ interface Props<T> {
 export function useTableSearch<T>({ entries, fields }: Props<T>) {
   const [search, setSearch] = useState('');
 
-  const onSearch = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+  const onSearch = (event: ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value);
-  }, []);
+  };
 
   const items = useMemo(() => {
     const searchQuery = search.trim().toLowerCase();
@@ -26,7 +26,7 @@ export function useTableSearch<T>({ entries, fields }: Props<T>) {
     }
 
     return entries.filter((item) => fields.some((field) => String(item[field]).toLowerCase().includes(searchQuery)));
-  }, [search, entries, fields]);
+  }, [entries, fields, search]);
 
   return {
     items,

@@ -17,11 +17,7 @@ export function Canvas() {
   const { activeArtifact } = useCanvas();
   const contentRef = useRef(null);
 
-  const content = useMemo(
-    () => activeArtifact?.parts.map((part) => (part.kind === UIMessagePartKind.Text ? part.text : '')).join(''),
-    [activeArtifact],
-  );
-
+  const content = activeArtifact?.parts.map((part) => (part.kind === UIMessagePartKind.Text ? part.text : '')).join('');
   const isCode = useMemo(() => {
     const containsCodeBlockRegex = /.+```.+/;
     return Boolean(content && content.startsWith('```') && !containsCodeBlockRegex.test(content));

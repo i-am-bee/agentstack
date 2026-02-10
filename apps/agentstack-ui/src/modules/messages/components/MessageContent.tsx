@@ -4,7 +4,6 @@
  */
 
 import clsx from 'clsx';
-import { memo } from 'react';
 
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import type { UIMessage } from '#modules/messages/types.ts';
@@ -25,7 +24,7 @@ interface Props {
   message: UIMessage;
 }
 
-export const MessageContent = memo(function MessageContent({ message }: Props) {
+export function MessageContent({ message }: Props) {
   const content = getMessageContent(message);
   const isUser = isUserMessage(message);
   const form = isUser ? message.form : null;
@@ -74,4 +73,4 @@ export const MessageContent = memo(function MessageContent({ message }: Props) {
   } else {
     return <div className={clsx(classes.empty, classes.root)}>Message has no content</div>;
   }
-});
+}

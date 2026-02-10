@@ -4,7 +4,6 @@
  */
 
 import type { JSX } from 'react';
-import { useMemo } from 'react';
 import type { Components } from 'react-markdown';
 
 import type { MarkdownContentProps } from '#components/MarkdownContent/MarkdownContent.tsx';
@@ -29,13 +28,10 @@ interface Props extends Omit<MarkdownContentProps, 'remarkPlugins' | 'components
 const remarkPlugins = [remarkCitationLink, remarkCanvasLink];
 
 export function ChatMarkdownContent({ sources, ...props }: Props) {
-  const components: ChatComponents = useMemo(
-    () => ({
-      citationLink: ({ ...props }) => <CitationLink {...props} sources={sources} />,
-      canvasLink: ({ ...props }) => <MessageCanvasCard {...props} />,
-    }),
-    [sources],
-  );
+  const components: ChatComponents = {
+    citationLink: ({ ...props }) => <CitationLink {...props} sources={sources} />,
+    canvasLink: ({ ...props }) => <MessageCanvasCard {...props} />,
+  };
 
   return <MarkdownContent {...props} components={components} remarkPlugins={remarkPlugins} />;
 }

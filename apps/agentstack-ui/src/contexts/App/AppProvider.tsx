@@ -4,7 +4,7 @@
  */
 'use client';
 import type { PropsWithChildren } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { AppContext } from './app-context';
 import type { RuntimeConfig, SidePanelVariant } from './types';
@@ -17,34 +17,31 @@ export function AppProvider({ config, children }: PropsWithChildren<Props>) {
   const [navbarOpen, setNavbarOpen] = useState(true);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelVariant | null>(null);
 
-  const openNavbar = useCallback(() => {
+  const openNavbar = () => {
     setNavbarOpen(true);
-  }, []);
+  };
 
-  const closeNavbar = useCallback(() => {
+  const closeNavbar = () => {
     setNavbarOpen(false);
-  }, []);
+  };
 
-  const openSidePanel = useCallback((variant: SidePanelVariant) => {
+  const openSidePanel = (variant: SidePanelVariant) => {
     setActiveSidePanel(variant);
-  }, []);
+  };
 
-  const closeSidePanel = useCallback(() => {
+  const closeSidePanel = () => {
     setActiveSidePanel(null);
-  }, []);
+  };
 
-  const contextValue = useMemo(
-    () => ({
-      config,
-      navbarOpen,
-      activeSidePanel,
-      openNavbar,
-      closeNavbar,
-      openSidePanel,
-      closeSidePanel,
-    }),
-    [config, navbarOpen, activeSidePanel, openNavbar, closeNavbar, openSidePanel, closeSidePanel],
-  );
+  const contextValue = {
+    config,
+    navbarOpen,
+    activeSidePanel,
+    openNavbar,
+    closeNavbar,
+    openSidePanel,
+    closeSidePanel,
+  };
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 }

@@ -7,7 +7,7 @@
 import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import type { TransitionEvent, TransitionEventHandler } from 'react';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useApp } from '#contexts/App/index.ts';
 import { useParamsFromUrl } from '#hooks/useParamsFromUrl.ts';
@@ -34,7 +34,7 @@ export function Navbar({ className }: Props) {
 
   const { navbarOpen } = useApp();
 
-  const checkTransition = useCallback((event: TransitionEvent) => {
+  const checkTransition = (event: TransitionEvent) => {
     const {
       target,
       currentTarget,
@@ -42,25 +42,19 @@ export function Navbar({ className }: Props) {
     } = event;
 
     return target === currentTarget && propertyName === 'width';
-  }, []);
+  };
 
-  const handleTransitionStart: TransitionEventHandler = useCallback(
-    (event) => {
-      if (checkTransition(event)) {
-        setIsAnimating(true);
-      }
-    },
-    [checkTransition],
-  );
+  const handleTransitionStart: TransitionEventHandler = (event) => {
+    if (checkTransition(event)) {
+      setIsAnimating(true);
+    }
+  };
 
-  const handleTransitionEnd: TransitionEventHandler = useCallback(
-    (event) => {
-      if (checkTransition(event)) {
-        setIsAnimating(false);
-      }
-    },
-    [checkTransition],
-  );
+  const handleTransitionEnd: TransitionEventHandler = (event) => {
+    if (checkTransition(event)) {
+      setIsAnimating(false);
+    }
+  };
 
   if (!providerId) {
     return null;

@@ -4,7 +4,7 @@
  */
 
 import { Button, PasswordInput } from '@carbon/react';
-import { useCallback, useId } from 'react';
+import { useId } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
@@ -39,12 +39,9 @@ export function EditSecretForm({ secret, onSuccess }: Props) {
     },
   });
 
-  const onSubmit: SubmitHandler<EditSecretForm> = useCallback(
-    ({ value }) => {
-      updateVariable({ key, value });
-    },
-    [key, updateVariable],
-  );
+  const onSubmit: SubmitHandler<EditSecretForm> = ({ value }) => {
+    updateVariable({ key, value });
+  };
 
   return (
     <form className={classes.root} onSubmit={handleSubmit(onSubmit)}>

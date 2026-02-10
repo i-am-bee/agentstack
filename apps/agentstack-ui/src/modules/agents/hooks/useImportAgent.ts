@@ -4,7 +4,7 @@
  */
 
 import type { Provider, ProviderBuildOnCompleteAction } from 'agentstack-sdk';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 import { useCreateProviderBuild } from '#modules/provider-builds/api/mutations/useCreateProviderBuild.ts';
@@ -66,127 +66,111 @@ export function useImportAgent() {
 
   const { data: agent } = useAgent({ providerId });
 
-  const logs = useMemo(
-    () =>
-      buildLogs
-        ?.map(({ data }) => {
-          const parsed = maybeParseJson(data);
+  const logs =
+    buildLogs
+      ?.map(({ data }) => {
+        const parsed = maybeParseJson(data);
 
-          if (!parsed) {
-            return null;
+        if (!parsed) {
+          return null;
+        }
+
+        const { type, value } = parsed;
+
+        if (type === 'json') {
+          const json = JSON.parse(value);
+          const message = json.message;
+
+          if (message && typeof message === 'string') {
+            return message;
           }
+        }
 
-          const { type, value } = parsed;
+        return value;
+      })
+      .filter(isNotNull) ?? [];
 
-          if (type === 'json') {
-            const json = JSON.parse(value);
-            const message = json.message;
-
-            if (message && typeof message === 'string') {
-              return message;
-            }
-          }
-
-          return value;
-        })
-        .filter(isNotNull) ?? [],
-    [buildLogs],
-  );
-
-  const isBuildPending = useMemo(
-    () => isCreateBuildPending || (buildId && buildStatus !== 'completed' && buildStatus !== 'failed'),
-    [isCreateBuildPending, buildId, buildStatus],
-  );
-
-  const isPending = useMemo(
-    () => isPreviewPending || isProvidersFetching || isBuildPending || isImportPending || Boolean(providerId && !agent),
-    [isPreviewPending, isProvidersFetching, isBuildPending, isImportPending, providerId, agent],
-  );
-
-  const resetState = useCallback(() => {
+  const isBuildPending = isCreateBuildPending || (buildId && buildStatus !== 'completed' && buildStatus !== 'failed');
+  const isPending =
+    isPreviewPending || isProvidersFetching || isBuildPending || isImportPending || Boolean(providerId && !agent);
+  const resetState = () => {
     setErrorMessage(null);
     setProviderOrigin(null);
     setBuildId(undefined);
     setActionRequired(false);
     setProvidersToUpdate(undefined);
-  }, []);
+  };
 
-  const createBuild = useCallback(
-    async ({
-      location,
-      action = 'add_provider',
-      providerId = '',
-    }: Pick<ImportAgentFormValues, 'location' | 'action' | 'providerId'>) => {
-      let onCompleteAction: ProviderBuildOnCompleteAction = { type: 'no_action' };
+  const createBuild = async ({
+    location,
+    action = 'add_provider',
+    providerId = '',
+  }: Pick<ImportAgentFormValues, 'location' | 'action' | 'providerId'>) => {
+    let onCompleteAction: ProviderBuildOnCompleteAction = { type: 'no_action' };
 
-      switch (action) {
-        case 'update_provider':
-          onCompleteAction = { type: 'update_provider', provider_id: providerId };
+    switch (action) {
+      case 'update_provider':
+        onCompleteAction = { type: 'update_provider', provider_id: providerId };
 
-          break;
-        case 'add_provider':
-          onCompleteAction = { type: 'add_provider' };
+        break;
+      case 'add_provider':
+        onCompleteAction = { type: 'add_provider' };
 
-          break;
+        break;
+    }
+
+    const createdBuild = await createProviderBuild({ location, on_complete: onCompleteAction });
+
+    setBuildId(createdBuild?.id);
+  };
+
+  const importAgent = async ({ source, location, action, providerId }: ImportAgentFormValues) => {
+    resetState();
+
+    if (source === ProviderSource.GitHub) {
+      if (action) {
+        createBuild({ location, action, providerId });
+
+        return;
       }
 
-      const createdBuild = await createProviderBuild({ location, on_complete: onCompleteAction });
+      const buildPreview = await previewProviderBuild({ location });
 
-      setBuildId(createdBuild?.id);
-    },
-    [createProviderBuild],
-  );
-
-  const importAgent = useCallback(
-    async ({ source, location, action, providerId }: ImportAgentFormValues) => {
-      resetState();
-
-      if (source === ProviderSource.GitHub) {
-        if (action) {
-          createBuild({ location, action, providerId });
-
-          return;
-        }
-
-        const buildPreview = await previewProviderBuild({ location });
-
-        if (!buildPreview) {
-          return;
-        }
-
-        const { provider_origin: providerOrigin, destination } = buildPreview;
-
-        flushSync(() => setProviderOrigin(providerOrigin));
-
-        const { data: providers } = await fetchProviders();
-
-        if (!providers) {
-          return;
-        }
-
-        const { total_count: providersCount, items } = providers;
-        const provider = items.find((provider) => provider.source === destination);
-
-        if (provider) {
-          setErrorMessage(`Duplicate provider found: source='${destination}' already exists`);
-
-          return;
-        }
-
-        if (providersCount !== 0) {
-          setActionRequired(true);
-          setProvidersToUpdate(items);
-
-          return;
-        }
-
-        createBuild({ location, action });
-      } else if (source === ProviderSource.Docker) {
-        await importProvider({ location: `${ProviderSourcePrefixes[source]}${location}` });
+      if (!buildPreview) {
+        return;
       }
-    },
-    [resetState, previewProviderBuild, fetchProviders, createBuild, importProvider],
-  );
+
+      const { provider_origin: providerOrigin, destination } = buildPreview;
+
+      flushSync(() => setProviderOrigin(providerOrigin));
+
+      const { data: providers } = await fetchProviders();
+
+      if (!providers) {
+        return;
+      }
+
+      const { total_count: providersCount, items } = providers;
+      const provider = items.find((provider) => provider.source === destination);
+
+      if (provider) {
+        setErrorMessage(`Duplicate provider found: source='${destination}' already exists`);
+
+        return;
+      }
+
+      if (providersCount !== 0) {
+        setActionRequired(true);
+        setProvidersToUpdate(items);
+
+        return;
+      }
+
+      createBuild({ location, action });
+    } else if (source === ProviderSource.Docker) {
+      await importProvider({ location: `${ProviderSourcePrefixes[source]}${location}` });
+    }
+  };
 
   const error = useMemo(() => {
     if (!errorMessage) {

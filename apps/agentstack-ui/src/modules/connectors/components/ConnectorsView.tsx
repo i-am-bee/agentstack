@@ -21,15 +21,12 @@ export function ConnectorsView() {
 
   const { data: connectors, isPending } = useListConnectors();
 
-  const headers = useMemo(
-    () => [
-      { key: 'url', header: 'URL', className: classes.url },
-      { key: 'name', header: 'Name', className: classes.name },
-      { key: 'state', header: 'Status' },
-      { key: 'actions', header: '' },
-    ],
-    [],
-  );
+  const headers = [
+    { key: 'url', header: 'URL', className: classes.url },
+    { key: 'name', header: 'Name', className: classes.name },
+    { key: 'state', header: 'Status' },
+    { key: 'actions', header: '' },
+  ];
 
   const entries = useMemo(() => {
     if (!connectors) {

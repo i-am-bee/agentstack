@@ -4,7 +4,6 @@
  */
 
 import { oauthMessageSchema } from 'agentstack-sdk';
-import { useCallback } from 'react';
 
 import type { TaskId } from '#modules/tasks/api/types.ts';
 
@@ -13,40 +12,37 @@ interface Props {
 }
 
 export function useStartOAuth({ onSuccess }: Props) {
-  const startAuth = useCallback(
-    (url: string, taskId: TaskId) => {
-      const popup = window.open(url);
-      if (!popup) {
-        throw new Error('Failed to open popup');
+  const startAuth = (url: string, taskId: TaskId) => {
+    const popup = window.open(url);
+    if (!popup) {
+      throw new Error('Failed to open popup');
+    }
+    popup.focus();
+
+    // Check the status of opened window nad remove message listener, when it was closed
+    const timer = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(timer);
+        window.removeEventListener('message', handler);
       }
-      popup.focus();
+    }, 500);
 
-      // Check the status of opened window nad remove message listener, when it was closed
-      const timer = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(timer);
-          window.removeEventListener('message', handler);
-        }
-      }, 500);
-
-      async function handler(message: unknown) {
-        const { success, data: parsedMessage } = oauthMessageSchema.safeParse(message);
-        if (!success) {
-          return;
-        }
-
-        if (popup) {
-          window.removeEventListener('message', handler);
-          popup.close();
-
-          await onSuccess(taskId, parsedMessage.data.redirect_uri);
-        }
+    async function handler(message: unknown) {
+      const { success, data: parsedMessage } = oauthMessageSchema.safeParse(message);
+      if (!success) {
+        return;
       }
 
-      window.addEventListener('message', handler);
-    },
-    [onSuccess],
-  );
+      if (popup) {
+        window.removeEventListener('message', handler);
+        popup.close();
+
+        await onSuccess(taskId, parsedMessage.data.redirect_uri);
+      }
+    }
+
+    window.addEventListener('message', handler);
+  };
 
   return { startAuth };
 }

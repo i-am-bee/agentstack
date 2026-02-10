@@ -6,7 +6,7 @@
 import { Close } from '@carbon/icons-react';
 import { Button, IconButton, OperationalTag, TextArea } from '@carbon/react';
 import clsx from 'clsx';
-import { useCallback, useId, useMemo } from 'react';
+import { useId } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 
 import { FEEDBACK_CATEGORIES } from '../constants';
@@ -73,15 +73,15 @@ function FeedbackCategory({ category, form }: FeedbackCategoryProps) {
   const { watch, setValue } = form;
 
   const categories = watch('categories');
-  const value = useMemo(() => categories ?? [], [categories]);
+  const value = categories ?? [];
 
-  const isSelected = useMemo(() => value.some(({ id }) => id === category.id), [value, category]);
+  const isSelected = value.some(({ id }) => id === category.id);
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     const newValue = isSelected ? value.filter(({ id }) => id !== category.id) : [...value, category];
 
     setValue('categories', newValue, { shouldDirty: true });
-  }, [isSelected, value, category, setValue]);
+  };
 
   return (
     <li>

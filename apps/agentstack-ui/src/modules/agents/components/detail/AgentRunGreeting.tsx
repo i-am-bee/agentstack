@@ -4,7 +4,6 @@
  */
 
 import { InteractionMode } from 'agentstack-sdk';
-import { memo } from 'react';
 
 import type { Agent } from '../../api/types';
 import { AgentWelcomeMessage } from './AgentWelcomeMessage';
@@ -14,7 +13,7 @@ interface Props {
   defaultGreeting?: string;
 }
 
-export const AgentRunGreeting = memo(function AgentRunGreeting({ agent }: Props) {
+export function AgentRunGreeting({ agent }: Props) {
   const {
     name,
     ui: { user_greeting, interaction_mode },
@@ -25,7 +24,7 @@ export const AgentRunGreeting = memo(function AgentRunGreeting({ agent }: Props)
   const userGreeting = renderVariables(user_greeting ?? defaultGreeting, { name });
 
   return <AgentWelcomeMessage>{userGreeting}</AgentWelcomeMessage>;
-});
+}
 
 function renderVariables(str: string, variables: Record<string, string>): string {
   return str.replace(/{(.*?)}/g, (_, key) => variables[key] ?? `{${key}}`);

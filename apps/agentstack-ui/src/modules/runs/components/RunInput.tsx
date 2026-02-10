@@ -6,7 +6,7 @@
 import { InlineLoading } from '@carbon/react';
 import { useMergeRefs } from '@floating-ui/react';
 import { InteractionMode } from 'agentstack-sdk';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
 
@@ -71,7 +71,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
   const isLoadingModelProviders = llmProviders.isLoading || embeddingProviders.isLoading;
   const isSubmitDisabled = !isReady || isFileUploadPending || !inputValue || isLoadingModelProviders;
 
-  const dispatchInputEventAndFocus = useCallback(() => {
+  const dispatchInputEventAndFocus = () => {
     const inputElem = inputRef.current;
 
     if (!inputElem) {
@@ -80,23 +80,20 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
     inputElem.focus();
     dispatchInputEventOnTextarea(inputElem);
-  }, []);
+  };
 
-  const resetForm = useCallback(() => {
+  const resetForm = () => {
     const formElem = formRef.current;
 
     formElem?.reset();
     dispatchInputEventAndFocus();
-  }, [dispatchInputEventAndFocus]);
+  };
 
-  const fillWithInput = useCallback(
-    (value: string) => {
-      setValue('input', value, { shouldValidate: true });
-      setPromptExamplesOpen(false);
-      dispatchInputEventAndFocus();
-    },
-    [setValue, dispatchInputEventAndFocus],
-  );
+  const fillWithInput = (value: string) => {
+    setValue('input', value, { shouldValidate: true });
+    setPromptExamplesOpen(false);
+    dispatchInputEventAndFocus();
+  };
 
   const modelsDialog = useRunSettingsDialog({
     maxWidth: hasMessages ? undefined : MODELS_DIALOG_MAX_WIDTH,

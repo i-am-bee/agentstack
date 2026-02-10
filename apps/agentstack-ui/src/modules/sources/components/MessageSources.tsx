@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback } from 'react';
-
 import { useApp } from '#contexts/App/index.ts';
 import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
@@ -30,7 +28,7 @@ export function MessageSources({ message }: Props) {
   const isMessageActive = isNotNull(taskId) && taskId === activeSource?.taskId;
   const isActive = isPanelOpen && isMessageActive;
 
-  const handleButtonClick = useCallback(() => {
+  const handleButtonClick = () => {
     if (isMessageActive) {
       if (isPanelOpen) {
         closeSidePanel();
@@ -41,7 +39,7 @@ export function MessageSources({ message }: Props) {
       setActiveSource({ number: null, taskId });
       openSidePanel(SidePanelVariant.Sources);
     }
-  }, [isMessageActive, isPanelOpen, taskId, openSidePanel, closeSidePanel, setActiveSource]);
+  };
 
   if (!hasSources) {
     return null;

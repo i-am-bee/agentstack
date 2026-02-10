@@ -4,7 +4,7 @@
  */
 
 import type { PropsWithChildren } from 'react';
-import { memo, useCallback, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { v4 as uuid } from 'uuid';
 
@@ -16,7 +16,7 @@ import { ModalContext } from './modal-context';
 export function ModalProvider({ children }: PropsWithChildren) {
   const [modals, setModals] = useState<Record<string, ModalState>>(Object.create(null));
 
-  const openModal: OpenModalFn = useCallback((renderModal) => {
+  const openModal: OpenModalFn = (renderModal) => {
     const modalId = uuid();
 
     const closeModal = () => {
@@ -47,7 +47,7 @@ export function ModalProvider({ children }: PropsWithChildren) {
     }));
 
     return closeModal;
-  }, []);
+  };
 
   useLayoutEffect(() => {
     // removes possible focus from activeElement behind a modal
@@ -71,7 +71,7 @@ export function ModalProvider({ children }: PropsWithChildren) {
   );
 }
 
-const ModalWrapper = memo(function ModalWrapper({ renderModal, ...props }: ModalState) {
+function ModalWrapper({ renderModal, ...props }: ModalState) {
   return (
     <ErrorBoundary
       fallbackRender={(fallbackProps) => {
@@ -81,4 +81,4 @@ const ModalWrapper = memo(function ModalWrapper({ renderModal, ...props }: Modal
       {renderModal(props)}
     </ErrorBoundary>
   );
-});
+}

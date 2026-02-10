@@ -4,7 +4,6 @@
  */
 
 import type { AgentDetailContributor } from 'agentstack-sdk';
-import { memo, useMemo } from 'react';
 
 import { ExternalLink } from '#components/MarkdownContent/components/ExternalLink.tsx';
 import { Tooltip } from '#components/Tooltip/Tooltip.tsx';
@@ -16,11 +15,8 @@ interface Props {
   contributors?: AgentDetailContributor[] | null;
 }
 
-export const AgentCredits = memo(function AgentCredits({ author, contributors }: Props) {
-  const validContributors = useMemo(
-    () => contributors?.filter(({ name, email }) => Boolean(name || email)),
-    [contributors],
-  );
+export function AgentCredits({ author, contributors }: Props) {
+  const validContributors = contributors?.filter(({ name, email }) => Boolean(name || email));
 
   const hasContributors = !!validContributors && validContributors.length > 0;
 
@@ -55,7 +51,7 @@ export const AgentCredits = memo(function AgentCredits({ author, contributors }:
       )}
     </dl>
   );
-});
+}
 
 function AuthorView({ name, email, url }: AgentDetailContributor) {
   const displayName = name ? name : email;

@@ -6,7 +6,6 @@
 import { FormGroup, OperationalTag } from '@carbon/react';
 import type { MultiSelectField } from 'agentstack-sdk';
 import clsx from 'clsx';
-import { useCallback } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { FormRequirement } from '#components/FormRequirement/FormRequirement.tsx';
@@ -27,15 +26,12 @@ export function MultiSelectField({ field, autoFocus }: Props) {
   const { control, formState } = useFormContext<ValuesOfField<MultiSelectField>>();
   const { rules, invalid, invalidText } = useFormFieldValidation({ field, formState });
 
-  const toggle = useCallback(
-    ({ value, id, onChange }: { value: string[]; id: string; onChange: (value: string[]) => void }) => {
-      const isSelected = value.includes(id);
-      const newValue = isSelected ? value.filter((item) => item !== id) : [...value, id];
+  const toggle = ({ value, id, onChange }: { value: string[]; id: string; onChange: (value: string[]) => void }) => {
+    const isSelected = value.includes(id);
+    const newValue = isSelected ? value.filter((item) => item !== id) : [...value, id];
 
-      onChange(newValue);
-    },
-    [],
-  );
+    onChange(newValue);
+  };
 
   return (
     <FormGroup legendText={label}>

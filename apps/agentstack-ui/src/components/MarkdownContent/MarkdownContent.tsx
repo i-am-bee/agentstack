@@ -6,7 +6,6 @@
 import 'katex/dist/katex.min.css';
 
 import clsx from 'clsx';
-import { useMemo } from 'react';
 import type { Components } from 'react-markdown';
 import Markdown from 'react-markdown';
 import type { PluggableList } from 'unified';
@@ -39,18 +38,15 @@ export function MarkdownContent({
   components: componentsProps,
   children,
 }: MarkdownContentProps) {
-  const extendedComponents: ExtendedComponents = useMemo(
-    () => ({
-      ...components,
-      code: ({ ...props }) => <Code {...props} forceExpand={codeBlocksExpanded} />,
-      mermaidDiagram: (props) => <MermaidDiagram {...props} isStreaming={isStreaming} />,
-      ...componentsProps,
-    }),
-    [codeBlocksExpanded, componentsProps, isStreaming],
-  );
+  const extendedComponents: ExtendedComponents = {
+    ...components,
+    code: ({ ...props }) => <Code {...props} forceExpand={codeBlocksExpanded} />,
+    mermaidDiagram: (props) => <MermaidDiagram {...props} isStreaming={isStreaming} />,
+    ...componentsProps,
+  };
 
-  const extendedRemarkPlugins = useMemo(() => [...remarkPlugins, ...(remarkPluginsProps ?? [])], [remarkPluginsProps]);
-  const extendedRehypePlugins = useMemo(() => [...rehypePlugins, ...(rehypePluginsProps ?? [])], [rehypePluginsProps]);
+  const extendedRemarkPlugins = [...remarkPlugins, ...(remarkPluginsProps ?? [])];
+  const extendedRehypePlugins = [...rehypePlugins, ...(rehypePluginsProps ?? [])];
 
   return (
     <MermaidProvider>

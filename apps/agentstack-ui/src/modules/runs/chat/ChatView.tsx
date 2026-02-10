@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback } from 'react';
-
 import { MainContent } from '#components/layouts/MainContent.tsx';
 import type { Agent } from '#modules/agents/api/types.ts';
 import { usePlatformContext } from '#modules/platform-context/contexts/index.ts';
@@ -37,7 +35,7 @@ function Chat() {
 
   useSyncRunStateWithRoute();
 
-  const handleMessageSent = useCallback(() => {
+  const handleMessageSent = () => {
     if (contextId) {
       window.history.pushState(
         null,
@@ -48,7 +46,7 @@ function Chat() {
         }),
       );
     }
-  }, [agent, contextId]);
+  };
 
   const isLanding = !isPending && !hasMessages;
 

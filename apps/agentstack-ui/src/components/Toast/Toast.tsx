@@ -33,9 +33,9 @@ export function Toast({
     setIsOpen(false);
   }, []);
 
-  const handleUserInteraction = useCallback(() => {
+  const handleUserInteraction = () => {
     setHasUserInteracted(true);
-  }, []);
+  };
 
   const Icon = icon ?? iconTypes[kind];
 

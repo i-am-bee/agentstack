@@ -6,7 +6,6 @@
 'use client';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@carbon/react';
 import type { ComponentType } from 'react';
-import { useMemo } from 'react';
 
 import { Container } from '#components/layouts/Container.tsx';
 import { MainContent } from '#components/layouts/MainContent.tsx';
@@ -28,17 +27,13 @@ export function SettingsView() {
 
   const canManageProviders = useCanManageProviders();
 
-  const items = useMemo(
-    () =>
-      ITEMS.filter(({ featureName }) => {
-        if (featureName === 'Providers') {
-          return featureFlags[featureName] && canManageProviders;
-        }
+  const items = ITEMS.filter(({ featureName }) => {
+    if (featureName === 'Providers') {
+      return featureFlags[featureName] && canManageProviders;
+    }
 
-        return !featureName || featureFlags[featureName];
-      }),
-    [featureFlags, canManageProviders],
-  );
+    return !featureName || featureFlags[featureName];
+  });
 
   return (
     <MainContent>

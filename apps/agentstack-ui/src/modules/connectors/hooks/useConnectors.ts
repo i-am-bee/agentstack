@@ -4,7 +4,7 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import z from 'zod';
 
 import { useToast } from '#contexts/Toast/index.ts';
@@ -70,12 +70,9 @@ const authorizeOAuth = (
 export const useDisconnect = () => {
   const { mutateAsync: disconnectConnector, isPending } = useDisconnectConnector();
 
-  const disconnect = useCallback(
-    async (connectorId: string) => {
-      await disconnectConnector({ connector_id: connectorId });
-    },
-    [disconnectConnector],
-  );
+  const disconnect = async (connectorId: string) => {
+    await disconnectConnector({ connector_id: connectorId });
+  };
 
   return {
     disconnect,
@@ -87,20 +84,17 @@ const useHandleAuthorizeCallback = () => {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useCallback(
-    ({ error, errorDescription }: { error: string | null; errorDescription: string | null }) => {
-      if (error) {
-        addToast({
-          kind: 'error',
-          title: error,
-          message: errorDescription ?? 'An unknown error occurred',
-        });
-      } else {
-        queryClient.invalidateQueries({ queryKey: connectorKeys.list() });
-      }
-    },
-    [addToast, queryClient],
-  );
+  return ({ error, errorDescription }: { error: string | null; errorDescription: string | null }) => {
+    if (error) {
+      addToast({
+        kind: 'error',
+        title: error,
+        message: errorDescription ?? 'An unknown error occurred',
+      });
+    } else {
+      queryClient.invalidateQueries({ queryKey: connectorKeys.list() });
+    }
+  };
 };
 
 export const useConnect = () => {
@@ -109,20 +103,17 @@ export const useConnect = () => {
   const { mutateAsync: connectConnector, isPending } = useConnectConnector();
   const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
-  const connect = useCallback(
-    async (connectorId: string) => {
-      const result = await connectConnector({ connector_id: connectorId });
+  const connect = async (connectorId: string) => {
+    const result = await connectConnector({ connector_id: connectorId });
 
-      if (result?.auth_request) {
-        setIsAuthorizing(true);
-        authorizeOAuth(result.auth_request.authorization_endpoint, (props) => {
-          handleAuthorizeCallback(props);
-          setIsAuthorizing(false);
-        });
-      }
-    },
-    [connectConnector, handleAuthorizeCallback],
-  );
+    if (result?.auth_request) {
+      setIsAuthorizing(true);
+      authorizeOAuth(result.auth_request.authorization_endpoint, (props) => {
+        handleAuthorizeCallback(props);
+        setIsAuthorizing(false);
+      });
+    }
+  };
 
   return {
     connect,
@@ -135,16 +126,13 @@ export const useAuthorize = () => {
 
   const handleAuthorizeCallback = useHandleAuthorizeCallback();
 
-  const authorize = useCallback(
-    (authorizationEndpoint: string) => {
-      setIsPending(true);
-      authorizeOAuth(authorizationEndpoint, (props) => {
-        handleAuthorizeCallback(props);
-        setIsPending(false);
-      });
-    },
-    [handleAuthorizeCallback],
-  );
+  const authorize = (authorizationEndpoint: string) => {
+    setIsPending(true);
+    authorizeOAuth(authorizationEndpoint, (props) => {
+      handleAuthorizeCallback(props);
+      setIsPending(false);
+    });
+  };
 
   return {
     authorize,

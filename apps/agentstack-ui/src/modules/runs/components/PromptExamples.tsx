@@ -67,7 +67,7 @@ export function PromptExamples({ inputRef, isOpen, examples, setIsOpen, onSubmit
     };
   });
 
-  const visibleExamples = useMemo(() => examples.slice(0, ITEMS_MAX_LENGTH), [examples]);
+  const visibleExamples = examples.slice(0, ITEMS_MAX_LENGTH);
 
   if (!examples.length) {
     return null;

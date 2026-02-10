@@ -1,11 +1,10 @@
 /**
- * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { useMemo } from 'react';
 import { match } from 'ts-pattern';
 import { v5 as uuidv5 } from 'uuid';
 
@@ -27,9 +26,9 @@ interface Props {
 export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props) {
   const { title, content, createdAt } = trajectory;
 
-  const parsed = useMemo(() => maybeParseJson(content), [content]);
+  const parsed = maybeParseJson(content);
 
-  const contentKey = useMemo(() => (content ? uuidv5(content, TRAJECTORY_NAMESPACE) : undefined), [content]);
+  const contentKey = content ? uuidv5(content, TRAJECTORY_NAMESPACE) : undefined;
 
   if (!parsed) {
     return null;

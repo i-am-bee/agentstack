@@ -5,7 +5,7 @@
 
 import { Checkmark, Copy } from '@carbon/icons-react';
 import { IconButton, type IconButtonProps } from '@carbon/react';
-import { type RefObject, useCallback, useState } from 'react';
+import { type RefObject, useState } from 'react';
 
 interface Props {
   contentRef: RefObject<HTMLElement | null>;
@@ -18,7 +18,7 @@ interface Props {
 export function CopyButton({ contentRef, kind = 'ghost', size = 'md', align, wrapperClasses }: Props) {
   const [copied, setCopied] = useState(false);
 
-  const handleClick = useCallback(() => {
+  const handleClick = () => {
     const text = contentRef.current?.innerText.trim();
 
     if (!text) {
@@ -32,7 +32,7 @@ export function CopyButton({ contentRef, kind = 'ghost', size = 'md', align, wra
     setTimeout(() => {
       setCopied(false);
     }, COPIED_RESET_TIMEOUT);
-  }, [contentRef]);
+  };
 
   return (
     <IconButton

@@ -4,7 +4,7 @@
  */
 
 import { Button, PasswordInput } from '@carbon/react';
-import { useId, useMemo } from 'react';
+import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
@@ -28,10 +28,7 @@ export function MessageSecretsForm({ message }: Props) {
 
   const { register, handleSubmit } = useForm({ mode: 'onChange' });
 
-  const secretDemandsEntries = useMemo(
-    () => (secretPart ? Object.entries(secretPart.secret.secret_demands) : []),
-    [secretPart],
-  );
+  const secretDemandsEntries = secretPart ? Object.entries(secretPart.secret.secret_demands) : [];
 
   if (!secretPart) {
     return null;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useContext } from 'react';
+import { useContext } from 'react';
 
 import type { ConfirmDialogProps } from '#components/ConfirmDialog/ConfirmDialog.tsx';
 import { ConfirmDialog } from '#components/ConfirmDialog/ConfirmDialog.tsx';
@@ -13,12 +13,9 @@ import { ModalContext } from './modal-context';
 export function useModal() {
   const openModal = useContext(ModalContext);
 
-  const openConfirmation = useCallback(
-    (confirmProps: ConfirmDialogProps) => {
-      openModal((props) => <ConfirmDialog {...confirmProps} {...props} />);
-    },
-    [openModal],
-  );
+  const openConfirmation = (confirmProps: ConfirmDialogProps) => {
+    openModal((props) => <ConfirmDialog {...confirmProps} {...props} />);
+  };
 
   return { openModal, openConfirmation };
 }

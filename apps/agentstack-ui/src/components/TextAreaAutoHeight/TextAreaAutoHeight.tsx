@@ -28,9 +28,9 @@ export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(functio
   const containerRef = useRef<HTMLDivElement>(null);
   const [manualHeight, setManualHeight] = useState<number | null>(null);
 
-  const handleInput = useCallback((event: Event) => {
+  const handleInput = (event: Event) => {
     setValue((event.target as HTMLTextAreaElement).value);
-  }, []);
+  };
 
   const updateOverflowValue = useCallback(() => {
     if (textareaRef.current && containerRef.current) {
@@ -39,14 +39,11 @@ export const TextAreaAutoHeight = forwardRef<HTMLTextAreaElement, Props>(functio
     }
   }, []);
 
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      onChange?.(event);
+  const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    onChange?.(event);
 
-      updateOverflowValue();
-    },
-    [onChange, updateOverflowValue],
-  );
+    updateOverflowValue();
+  };
 
   useEffect(() => {
     updateOverflowValue();

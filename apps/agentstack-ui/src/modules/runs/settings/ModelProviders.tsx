@@ -1,9 +1,7 @@
 /**
- * Copyright 2025 © BeeAI a Series of LF Projects, LLC
+ * Copyright 2026 © BeeAI a Series of LF Projects, LLC
  * SPDX-License-Identifier: Apache-2.0
  */
-
-import { useMemo } from 'react';
 
 import { RadioSelect } from '#components/RadioSelect/RadioSelect.tsx';
 
@@ -13,15 +11,12 @@ import classes from './ModelProviders.module.scss';
 export function ModelProviders() {
   const { llmProviders, embeddingProviders } = useAgentDemands();
 
-  const llmProviderList = useMemo(
-    () => Object.entries(llmProviders.matched || {}).map(([key, items]) => ({ key, items })),
-    [llmProviders.matched],
-  );
+  const llmProviderList = Object.entries(llmProviders.matched || {}).map(([key, items]) => ({ key, items }));
 
-  const embeddingProviderList = useMemo(
-    () => Object.entries(embeddingProviders.matched || {}).map(([key, items]) => ({ key, items })),
-    [embeddingProviders.matched],
-  );
+  const embeddingProviderList = Object.entries(embeddingProviders.matched || {}).map(([key, items]) => ({
+    key,
+    items,
+  }));
 
   return (
     <div className={classes.root}>

@@ -14,7 +14,7 @@ import {
   SelectSkeleton,
   TextInput,
 } from '@carbon/react';
-import { useCallback, useId } from 'react';
+import { useId } from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm } from 'react-hook-form';
 
@@ -39,12 +39,9 @@ export function AddVariableModal({ onRequestClose, ...modalProps }: ModalProps) 
     formState: { isValid },
   } = useForm<AddVariableForm>({ mode: 'onChange' });
 
-  const onSubmit: SubmitHandler<AddVariableForm> = useCallback(
-    ({ name, providerId, value }) => {
-      updateVariables({ id: providerId, variables: { [name]: value } });
-    },
-    [updateVariables],
-  );
+  const onSubmit: SubmitHandler<AddVariableForm> = ({ name, providerId, value }) => {
+    updateVariables({ id: providerId, variables: { [name]: value } });
+  };
 
   return (
     <Modal {...modalProps}>

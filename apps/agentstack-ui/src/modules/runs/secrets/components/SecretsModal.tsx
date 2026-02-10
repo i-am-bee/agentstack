@@ -5,7 +5,7 @@
 
 import { Button, ModalBody, ModalFooter, ModalHeader } from '@carbon/react';
 import clsx from 'clsx';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { Modal } from '#components/Modal/Modal.tsx';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
@@ -21,12 +21,12 @@ export function SecretsModal({ onRequestClose, ...modalProps }: ModalProps) {
 
   const isLanding = step === Step.Landing;
 
-  const handleOpendAddModal = useCallback(() => {
+  const handleOpendAddModal = () => {
     setStep(Step.Add);
-  }, []);
-  const handleCloseAddModal = useCallback(() => {
+  };
+  const handleCloseAddModal = () => {
     setStep(Step.Landing);
-  }, []);
+  };
 
   return (
     <Modal
