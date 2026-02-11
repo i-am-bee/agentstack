@@ -8,7 +8,9 @@ TypeScript/JavaScript client SDK for building applications that interact with Ag
 
 ## Overview
 
-The `agentstack-sdk` provides TypeScript and JavaScript tools for building client applications that communicate with agents deployed on Agent Stack. It includes utilities for handling the A2A (Agent2Agent) protocol, working with extensions, and calling the Agent Stack platform API.
+The `agentstack-sdk` provides TypeScript and JavaScript tools for building client applications that communicate with
+agents deployed on Agent Stack. It includes utilities for handling the A2A (Agent2Agent) protocol, working with
+extensions, and calling the Agent Stack platform API.
 
 ## Key Features
 
@@ -36,16 +38,16 @@ import {
   resolveUserMetadata,
   type TaskStatusUpdateType,
   type Fulfillments,
-} from "agentstack-sdk";
+} from 'agentstack-sdk';
 import {
   ClientFactory,
   ClientFactoryOptions,
   DefaultAgentCardResolver,
   JsonRpcTransportFactory,
-} from "@a2a-js/sdk/client";
+} from '@a2a-js/sdk/client';
 
-const baseUrl = "https://your-agentstack-instance.com";
-const accessToken = "<user-access-token>";
+const baseUrl = 'https://your-agentstack-instance.com';
+const accessToken = '<user-access-token>';
 
 const api = buildApiClient({
   baseUrl,
@@ -60,14 +62,14 @@ const contextToken = unwrapResult(
   await api.createContextToken({
     context_id: context.id,
     grant_global_permissions: {
-      llm: ["*"],
-      embeddings: ["*"],
-      a2a_proxy: ["*"],
+      llm: ['*'],
+      embeddings: ['*'],
+      a2a_proxy: ['*'],
     },
     grant_context_permissions: {
-      files: ["*"],
-      vector_stores: ["*"],
-      context_data: ["*"],
+      files: ['*'],
+      vector_stores: ['*'],
+      context_data: ['*'],
     },
   }),
 );
@@ -86,7 +88,7 @@ const client = await factory.createFromUrl(baseUrl, agentCardPath);
 const card = await client.getAgentCard();
 const { resolveMetadata, demands } = handleAgentCard(card);
 
-const selectedLlmModels: Record<string, string> = { default: "gpt-4o" };
+const selectedLlmModels: Record<string, string> = { default: 'gpt-4o' };
 
 const fulfillments: Fulfillments = {
   llm: demands.llmDemands
@@ -95,7 +97,7 @@ const fulfillments: Fulfillments = {
           Object.keys(llm_demands).map((key) => [
             key,
             {
-              identifier: "llm_proxy",
+              identifier: 'llm_proxy',
               api_base: `${baseUrl}/api/v1/openai/`,
               api_key: contextToken.token,
               api_model: selectedLlmModels[key],
@@ -110,40 +112,42 @@ const agentMetadata = await resolveMetadata(fulfillments);
 
 const stream = client.sendMessageStream({
   message: {
-    kind: "message",
-    role: "user",
+    kind: 'message',
+    role: 'user',
     messageId: crypto.randomUUID(),
     contextId: context.id,
-    parts: [{ kind: "text", text: "Hello" }],
+    parts: [{ kind: 'text', text: 'Hello' }],
     metadata: agentMetadata,
-  }
+  },
 });
 
 let taskId: string | undefined;
 
 for await (const event of stream) {
   switch (event.kind) {
-    case "task":
+    case 'task':
       taskId = event.id;
-    case "status-update":
+    case 'status-update':
       taskId = event.taskId;
 
       for (const update of handleTaskStatusUpdate(event)) {
         switch (update.type) {
           case TaskStatusUpdateType.FormRequired:
-            // Render form
+          // Render form
           case TaskStatusUpdateType.OAuthRequired:
-            // Redirect to update.url
+          // Redirect to update.url
           case TaskStatusUpdateType.SecretRequired:
-            // Prompt for secrets
+          // Prompt for secrets
           case TaskStatusUpdateType.ApprovalRequired:
-            // Request approval
+          // Request approval
+          case TaskStatusUpdateType.TextInputRequired:
+          // Prompt for text input
         }
       }
-    case "message":
-      // Render message parts and metadata
-    case "artifact-update":
-      // Render artifacts
+    case 'message':
+    // Render message parts and metadata
+    case 'artifact-update':
+    // Render artifacts
   }
 }
 ```
@@ -196,7 +200,8 @@ UI extensions (message metadata your UI can render):
 
 ## Contributing
 
-Contributions are welcome! Please see the [Contributing Guide](https://github.com/i-am-bee/agentstack/blob/main/CONTRIBUTING.md) for details.
+Contributions are welcome! Please see the
+[Contributing Guide](https://github.com/i-am-bee/agentstack/blob/main/CONTRIBUTING.md) for details.
 
 ## Support
 
@@ -205,4 +210,6 @@ Contributions are welcome! Please see the [Contributing Guide](https://github.co
 
 ---
 
-Developed by contributors to the BeeAI project, this initiative is part of the [Linux Foundation AI & Data program](https://lfaidata.foundation/projects/). Its development follows open, collaborative, and community-driven practices.
+Developed by contributors to the BeeAI project, this initiative is part of the
+[Linux Foundation AI & Data program](https://lfaidata.foundation/projects/). Its development follows open,
+collaborative, and community-driven practices.

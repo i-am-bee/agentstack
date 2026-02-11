@@ -580,6 +580,9 @@ importers:
 
   docs:
     devDependencies:
+      '@i-am-bee/lint-config':
+        specifier: workspace:*
+        version: link:../apps/lint-config
       embedme:
         specifier: ^1.22.1
         version: 1.22.1

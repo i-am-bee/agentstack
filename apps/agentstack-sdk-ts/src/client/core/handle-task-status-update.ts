@@ -52,9 +52,8 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
         request: approvalRequired,
       });
     } else {
-      // Handle generic input required - extract text from message
-      const textPart = event.status.message?.parts?.[0];
-      if (textPart && 'text' in textPart) {
+      const textPart = event.status.message?.parts?.find(({ kind }) => kind === 'text');
+      if (textPart && textPart.kind === 'text') {
         results.push({
           type: TaskStatusUpdateType.TextInputRequired,
           text: textPart.text,

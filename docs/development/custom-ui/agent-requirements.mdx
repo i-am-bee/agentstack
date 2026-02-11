@@ -3,11 +3,14 @@ title: Agent Requirements
 description: Fulfill agent service demands and render UI extensions in your custom interface
 ---
 
-Agent Stack extends the [A2A Protocol](https://a2a-protocol.org/) with [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/) that enable agents to access platform services and enhance the user interface beyond what the base protocol provides.
+Agent Stack extends the [A2A Protocol](https://a2a-protocol.org/) with
+[A2A extensions](https://a2a-protocol.org/latest/topics/extensions/) that enable agents to access platform services and
+enhance the user interface beyond what the base protocol provides.
 
 Extensions fall into two categories:
+
 1. **Service extensions:** Demands in the agent card that your client fulfills (LLMs, embeddings, OAuth, secrets)
-2. **UI extensions:**  Message metadata your UI renders (forms, approvals, citations, trajectories)
+2. **UI extensions:** Message metadata your UI renders (forms, approvals, citations, trajectories)
 
 All extension definitions are exported from `agentstack-sdk/extensions` if you prefer a narrower import surface.
 
@@ -25,7 +28,8 @@ The SDK includes helpers for reading and producing extension metadata:
 
 Use these directly when you want fine grained control beyond `handleAgentCard`.
 
-`extractServiceExtensionDemands`, `fulfillServiceExtensionDemand`, and `extractUiExtensionData` are factories. You pass an extension definition once and reuse the returned function for that extension.
+`extractServiceExtensionDemands`, `fulfillServiceExtensionDemand`, and `extractUiExtensionData` are factories. You pass
+an extension definition once and reuse the returned function for that extension.
 
 For end to end usage, see **[A2A Client Integration](./a2a-client)** and **[User Messages](./user-messages)**.
 
@@ -38,7 +42,7 @@ Service extensions use a dependency injection pattern. The agent declares demand
 Provides OpenAI compatible LLM access with `api_base`, `api_key`, and `api_model`.
 
 ```typescript
-import { buildLLMExtensionFulfillmentResolver, handleAgentCard } from "agentstack-sdk";
+import { buildLLMExtensionFulfillmentResolver, handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 const llmResolver = buildLLMExtensionFulfillmentResolver(api, contextToken);
@@ -53,7 +57,7 @@ const metadata = await resolveMetadata({
 Provides OpenAI compatible embedding access with `api_base`, `api_key`, and `api_model`.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
@@ -63,10 +67,10 @@ const metadata = await resolveMetadata({
       Object.keys(demands.embedding_demands).map((key) => [
         key,
         {
-          identifier: "openai/text-embedding-3-small",
-          api_base: "https://api.openai.com/v1",
-          api_key: "your-api-key",
-          api_model: "text-embedding-3-small",
+          identifier: 'openai/text-embedding-3-small',
+          api_base: 'https://api.openai.com/v1',
+          api_key: 'your-api-key',
+          api_model: 'text-embedding-3-small',
         },
       ]),
     ),
@@ -79,7 +83,7 @@ const metadata = await resolveMetadata({
 Provides Model Context Protocol transports for tool and connector access.
 
 ```typescript
-import { MCPTransportType, handleAgentCard } from "agentstack-sdk";
+import { MCPTransportType, handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
@@ -91,8 +95,8 @@ const metadata = await resolveMetadata({
         {
           transport: {
             type: MCPTransportType.StreamableHttp,
-            url: "https://mcp.example.com",
-            headers: { Authorization: "Bearer token" },
+            url: 'https://mcp.example.com',
+            headers: { Authorization: 'Bearer token' },
           },
         },
       ]),
@@ -106,17 +110,20 @@ const metadata = await resolveMetadata({
 Provides OAuth redirect metadata for authentication flows.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
 const metadata = await resolveMetadata({
   oauth: async (demands) => ({
     oauth_fulfillments: Object.fromEntries(
-      Object.keys(demands.oauth_demands).map((key) => [key, { redirect_uri: "https://app.example.com/oauth/callback" }]),
+      Object.keys(demands.oauth_demands).map((key) => [
+        key,
+        { redirect_uri: 'https://app.example.com/oauth/callback' },
+      ]),
     ),
   }),
-  oauthRedirectUri: () => "https://app.example.com/oauth/callback",
+  oauthRedirectUri: () => 'https://app.example.com/oauth/callback',
 });
 ```
 
@@ -125,14 +132,14 @@ const metadata = await resolveMetadata({
 Provides secret values required by the agent.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
 const metadata = await resolveMetadata({
   secrets: async (demands) => ({
     secret_fulfillments: Object.fromEntries(
-      Object.keys(demands.secret_demands).map((key) => [key, { secret: "your-secret" }]),
+      Object.keys(demands.secret_demands).map((key) => [key, { secret: 'your-secret' }]),
     ),
   }),
 });
@@ -142,10 +149,11 @@ const metadata = await resolveMetadata({
 
 Provides runtime configuration values that match the requested fields.
 
-This extension lives under `ui/settings` in the SDK, but it is treated as a service extension because it carries demands and fulfillments.
+This extension lives under `ui/settings` in the SDK, but it is treated as a service extension because it carries demands
+and fulfillments.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
@@ -153,13 +161,13 @@ const metadata = await resolveMetadata({
   settings: async (demands) => ({
     values: Object.fromEntries(
       demands.fields.map((field) => {
-        if (field.type === "single_select") {
-          return [field.id, { type: "single_select", value: field.default_value }];
+        if (field.type === 'single_select') {
+          return [field.id, { type: 'single_select', value: field.default_value }];
         }
         return [
           field.id,
           {
-            type: "checkbox_group",
+            type: 'checkbox_group',
             values: Object.fromEntries(
               field.fields.map((checkbox) => [checkbox.id, { value: checkbox.default_value }]),
             ),
@@ -176,7 +184,7 @@ const metadata = await resolveMetadata({
 Provides form responses when the agent requests structured input.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
@@ -184,7 +192,7 @@ const metadata = await resolveMetadata({
   form: async () => ({
     form_fulfillments: {
       default: {
-        values: { name: "Ada" },
+        values: { name: 'Ada' },
       },
     },
   }),
@@ -193,11 +201,12 @@ const metadata = await resolveMetadata({
 
 ### Platform API
 
-Adds context token metadata so the agent can call platform services. This is typically used only when you cannot pass the token through A2A client headers.
-`getContextToken` is deprecated and kept for backward compatibility. Prefer passing the context token via A2A client headers when possible.
+Adds context token metadata so the agent can call platform services. This is typically used only when you cannot pass
+the token through A2A client headers. `getContextToken` is deprecated and kept for backward compatibility. Prefer
+passing the context token via A2A client headers when possible.
 
 ```typescript
-import { handleAgentCard } from "agentstack-sdk";
+import { handleAgentCard } from 'agentstack-sdk';
 
 const { resolveMetadata } = handleAgentCard(agentCard);
 
@@ -217,7 +226,7 @@ UI extensions are message metadata your UI can render. The SDK includes typed sc
 Requests a form render payload.
 
 ```typescript
-import { extractUiExtensionData, formRequestExtension } from "agentstack-sdk";
+import { extractUiExtensionData, formRequestExtension } from 'agentstack-sdk';
 
 const readForm = extractUiExtensionData(formRequestExtension);
 const form = readForm(message.metadata);
@@ -228,7 +237,7 @@ const form = readForm(message.metadata);
 Requests user approval for an action or tool call.
 
 ```typescript
-import { approvalExtension, extractUiExtensionData } from "agentstack-sdk";
+import { approvalExtension, extractUiExtensionData } from 'agentstack-sdk';
 
 const readApproval = extractUiExtensionData(approvalExtension);
 const approval = readApproval(message.metadata);
@@ -239,7 +248,7 @@ const approval = readApproval(message.metadata);
 Requests a canvas edit with indices and description.
 
 ```typescript
-import { canvasExtension, extractUiExtensionData } from "agentstack-sdk";
+import { canvasExtension, extractUiExtensionData } from 'agentstack-sdk';
 
 const readCanvas = extractUiExtensionData(canvasExtension);
 const request = readCanvas(message.metadata);
@@ -250,7 +259,7 @@ const request = readCanvas(message.metadata);
 Provides citation ranges and URLs for inline references.
 
 ```typescript
-import { citationExtension, extractUiExtensionData } from "agentstack-sdk";
+import { citationExtension, extractUiExtensionData } from 'agentstack-sdk';
 
 const readCitations = extractUiExtensionData(citationExtension);
 const citations = readCitations(message.metadata);
@@ -261,7 +270,7 @@ const citations = readCitations(message.metadata);
 Provides trace entries for reasoning or execution steps.
 
 ```typescript
-import { extractUiExtensionData, trajectoryExtension } from "agentstack-sdk";
+import { extractUiExtensionData, trajectoryExtension } from 'agentstack-sdk';
 
 const readTrajectory = extractUiExtensionData(trajectoryExtension);
 const trajectory = readTrajectory(message.metadata);
@@ -269,10 +278,11 @@ const trajectory = readTrajectory(message.metadata);
 
 ### Agent Detail
 
-Provides agent metadata to display in the UI. This extension is sent in the agent card capabilities, not in message metadata.
+Provides agent metadata to display in the UI. This extension is sent in the agent card capabilities, not in message
+metadata.
 
 ```typescript
-import { agentDetailExtension, extractUiExtensionData } from "agentstack-sdk";
+import { agentDetailExtension, extractUiExtensionData } from 'agentstack-sdk';
 
 const readAgentDetail = extractUiExtensionData(agentDetailExtension);
 const uri = agentDetailExtension.getUri();
@@ -286,7 +296,7 @@ const agentDetail = params ? readAgentDetail({ [uri]: params }) : null;
 Provides structured error information.
 
 ```typescript
-import { errorExtension, extractUiExtensionData } from "agentstack-sdk";
+import { errorExtension, extractUiExtensionData } from 'agentstack-sdk';
 
 const readError = extractUiExtensionData(errorExtension);
 const error = readError(message.metadata);
@@ -297,7 +307,7 @@ const error = readError(message.metadata);
 Provides an OAuth authorization endpoint to redirect the user.
 
 ```typescript
-import { extractUiExtensionData, oauthRequestExtension } from "agentstack-sdk";
+import { extractUiExtensionData, oauthRequestExtension } from 'agentstack-sdk';
 
 const readOAuth = extractUiExtensionData(oauthRequestExtension);
 const oauthRequest = readOAuth(message.metadata);
@@ -308,7 +318,7 @@ const oauthRequest = readOAuth(message.metadata);
 Provides secret demand prompts.
 
 ```typescript
-import { extractUiExtensionData, secretsRequestExtension } from "agentstack-sdk";
+import { extractUiExtensionData, secretsRequestExtension } from 'agentstack-sdk';
 
 const readSecrets = extractUiExtensionData(secretsRequestExtension);
 const secretDemands = readSecrets(message.metadata);
@@ -316,13 +326,14 @@ const secretDemands = readSecrets(message.metadata);
 
 ### Handling task status updates
 
-Use `handleTaskStatusUpdate` to parse status updates into UI actions. This covers OAuth, secrets, forms, and approval flows.
+Use `handleTaskStatusUpdate` to parse status updates into UI actions. This covers OAuth, secrets, forms, and approval
+flows.
 
 ```typescript
-import { handleTaskStatusUpdate, TaskStatusUpdateType } from "agentstack-sdk";
+import { handleTaskStatusUpdate, TaskStatusUpdateType } from 'agentstack-sdk';
 
 for await (const event of stream) {
-  if (event.kind === "status-update") {
+  if (event.kind === 'status-update') {
     handleTaskStatusUpdate(event).forEach((result) => {
       switch (result.type) {
         case TaskStatusUpdateType.FormRequired:
@@ -337,6 +348,8 @@ for await (const event of stream) {
         case TaskStatusUpdateType.ApprovalRequired:
           // Ask the user to approve result.request
           break;
+        case TaskStatusUpdateType.TextInputRequired:
+        // Prompt for text input
       }
     });
   }
@@ -348,20 +361,21 @@ for await (const event of stream) {
 When the user responds to a form, approval, or canvas request, use `resolveUserMetadata` to build message metadata:
 
 ```typescript
-import { resolveUserMetadata } from "agentstack-sdk";
+import { resolveUserMetadata } from 'agentstack-sdk';
 
 const metadata = await resolveUserMetadata({
   form: formValues,
-  approvalResponse: { decision: "approve" },
+  approvalResponse: { decision: 'approve' },
   canvasEditRequest: {
     start_index: 0,
     end_index: 12,
-    artifact_id: "artifact-id",
-    description: "Replace the title",
+    artifact_id: 'artifact-id',
+    description: 'Replace the title',
   },
 });
 ```
 
 ## Type Safety
 
-All extension schemas are typed in TypeScript and validated with Zod at runtime. This helps catch malformed extension payloads early and keeps your UI logic aligned with the protocol.
+All extension schemas are typed in TypeScript and validated with Zod at runtime. This helps catch malformed extension
+payloads early and keeps your UI logic aligned with the protocol.
