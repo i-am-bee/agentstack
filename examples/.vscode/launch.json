@@ -198,6 +198,15 @@
       "cwd": "${workspaceFolder}/agent-integration/mcp/github-mcp-agent",
       "program": "src/github_mcp_agent/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/custom-mcp-client-with-oauth",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/mcp/custom-mcp-client-with-oauth",
+      "program": "src/custom_mcp_client_with_oauth/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
