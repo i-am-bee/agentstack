@@ -56,14 +56,12 @@ class Server:
         self._all_configured_variables: set[str] = set()
 
     @functools.wraps(agent_decorator)
-    def agent(*args, **kwargs) -> Callable:
-        self, other_args = args[0], args[1:]  # TODO(typing): resolve without hiding `self`
+    def agent(self, *args, **kwargs) -> Callable:
         if self._agent_factory:
             raise ValueError("Server can have only one agent.")
 
         def decorator(fn: Callable) -> Callable:
-            # pyrefly: ignore [bad-argument-type]
-            self._agent_factory = agent_decorator(*other_args, **kwargs)(fn)
+            self._agent_factory = agent_decorator(*args, **kwargs)(fn)
             return fn
 
         return decorator
@@ -168,7 +166,7 @@ class Server:
                 reload_task = asyncio.create_task(self._reload_variables_periodically()) if self_registration else None
 
                 try:
-                    # pyrefly: ignore [bad-argument-type]
+                    # pyrefly: ignore [bad-argument-type] -- probably bug in Pyrefly
                     async with lifespan_fn(app) if lifespan_fn else nullcontext():
                         yield
                 finally:

@@ -93,13 +93,14 @@ from agentstack_cli.commands.build import _server_side_build
 from agentstack_cli.commands.model import ensure_llm_provider
 from agentstack_cli.configuration import Configuration
 
+# This is necessary for proper handling of arrow keys in interactive input
 if sys.platform != "win32":
+    import importlib
+
     try:
-        # This is necessary for proper handling of arrow keys in interactive input
-        # pyrefly: ignore [missing-import]
-        import gnureadline as readline
+        readline = importlib.import_module("gnureadline")
     except ImportError:
-        import readline  # noqa: F401
+        readline = importlib.import_module("readline")
 
 from collections.abc import Callable
 from pathlib import Path
@@ -895,7 +896,7 @@ class ShowConfig(InteractiveCommand):
                 schema_table.add_row(
                     prop,
                     json.dumps(required_schema),
-                    # pyrefly: ignore [bad-argument-type]
+                    # pyrefly: ignore [bad-argument-type] -- probably a bug in Pyrefly
                     json.dumps(generate_schema_example(required_schema)),
                 )
 

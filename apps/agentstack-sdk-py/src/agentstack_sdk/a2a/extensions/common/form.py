@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Generator
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -137,7 +138,7 @@ FormFieldValue = (
 class FormResponse(BaseModel):
     values: dict[str, FormFieldValue]
 
-    def __iter__(self):
+    def __iter__(self) -> Generator[tuple[str, list[dict[str, str | None]] | list[str] | str | bool | None]]:
         for key, value in self.values.items():
             match value:
                 case FileFieldValue():

@@ -62,7 +62,7 @@ def configure_telemetry():
     trace.set_tracer_provider(
         tracer_provider=TracerProvider(
             resource=resource,
-            # pyrefly: ignore[bad-argument-type] TODO: active_span_processor explicitly allows only certain span processors, is that an issue?
+            # pyrefly: ignore [bad-argument-type] TODO: active_span_processor explicitly allows only certain span processors, is that an issue?
             active_span_processor=BatchSpanProcessor(SilentOTLPSpanExporter(endpoint=OTEL_HTTP_ENDPOINT + "v1/traces")),
         )
     )

@@ -49,10 +49,9 @@ class FormRequestExtensionServer(BaseExtensionServer[FormRequestExtensionSpec, F
     @overload
     def parse_form_response(self, *, message: A2AMessage, model: type[T]) -> T | None: ...
     def parse_form_response(self, *, message: A2AMessage, model: type[T] | None = None) -> T | FormResponse | None:
-        form_response = self.parse_client_metadata(message)
+        form_response: FormResponse | None = self.parse_client_metadata(message)
         return (
-            # pyrefly: ignore [no-matching-overload]
-            TypeAdapter(model).validate_python(dict(form_response))
+            TypeAdapter(model).validate_python(dict(iter(form_response)))
             if form_response is not None and model is not None
             else form_response
         )

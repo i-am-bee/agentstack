@@ -47,7 +47,7 @@ class FileReaderTool(Tool[FileReadInputBase, ToolRunOptions, FileReaderToolOutpu
             file_descriptions = "\n".join(file.description for file in self.files)
 
             description = f"Select one or more of the provided files:\n\n{file_descriptions}"
-            # pyrefly: ignore [invalid-literal]
+            # pyrefly: ignore [invalid-literal] -- it's a hack for JSON Schema generation
             literal = Literal[tuple(file.display_filename for file in self.files)]
         else:
             literal = Literal["__None__"]

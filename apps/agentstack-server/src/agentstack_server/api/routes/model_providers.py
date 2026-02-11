@@ -35,7 +35,7 @@ async def create_model_provider(
         watsonx_space_id=request.watsonx_space_id,
         api_key=request.api_key.get_secret_value(),
     )
-    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
     return EntityModel(model_provider)
 
 
@@ -55,7 +55,7 @@ async def get_model_provider(
     model_provider_service: ModelProviderServiceDependency,
 ) -> EntityModel[ModelProvider]:
     provider = await model_provider_service.get_provider(model_provider_id=model_provider_id)
-    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
     return EntityModel(provider)
 
 

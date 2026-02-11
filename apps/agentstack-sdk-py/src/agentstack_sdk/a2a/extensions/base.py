@@ -115,14 +115,12 @@ ExtensionSpecT = typing.TypeVar("ExtensionSpecT", bound=BaseExtensionSpec[typing
 
 
 class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromClientT]):
-    MetadataFromClient: type[MetadataFromClientT]
     """
     Type of the extension metadata, attached to messages.
     """
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        # pyrefly: ignore [no-access]
         cls.MetadataFromClient = _get_generic_args(cls, BaseExtensionServer)[1]
 
     _metadata_from_client: MetadataFromClientT | None = None
@@ -178,14 +176,12 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
 
 
 class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromServerT]):
-    MetadataFromServer: type[MetadataFromServerT]
     """
     Type of the extension metadata, attached to messages.
     """
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        # pyrefly: ignore [no-access]
         cls.MetadataFromServer = _get_generic_args(cls, BaseExtensionClient)[1]
 
     def __init__(self, spec: ExtensionSpecT) -> None:

@@ -90,7 +90,7 @@ async def list_providers(
             }
         )
         providers.append(
-            # pyrefly: ignore[bad-argument-type] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+            # pyrefly: ignore [bad-argument-type] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
             EntityModel(new_provider)
         )
 
@@ -106,7 +106,7 @@ async def get_provider(
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
 ) -> EntityModel[ProviderWithState]:
     provider = await provider_service.get_provider(provider_id=id)
-    return EntityModel(  # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    return EntityModel(  # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
         provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(
@@ -130,7 +130,7 @@ async def get_provider_by_location(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     provider = await provider_service.get_provider(location=parsed_location)
-    return EntityModel(  # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    return EntityModel(  # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
         provider.model_copy(
             update={
                 "agent_card": create_proxy_agent_card(

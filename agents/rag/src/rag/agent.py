@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from typing import cast
 import functools
 import json
 import logging
@@ -140,13 +141,13 @@ async def rag(
 "Based on [Doc1_file.pdf](https://platform.com/files/123/content), the findings show..."
 """
 
-    tools = [
+    tools: list[Tool] = [
         # Auxiliary tools
         ActTool(),  # Enforces correct thinking sequence by requiring tool selection before execution
         ClarificationTool(),  # Allows agent to ask clarifying questions when user requirements are unclear
         CurrentTimeTool(),
         file_reader_tool_class(),
-        FileCreatorTool(),
+        cast(Tool, FileCreatorTool()),
     ]
 
     if extracted_files:
@@ -174,8 +175,7 @@ async def rag(
             yield vector_store_create_metadata
             await context.store(AgentMessage(metadata=vector_store_create_metadata))
 
-        # pyrefly: ignore [bad-argument-type]
-        tools.append(VectorSearchTool(vector_store_id=vector_store_id, embedding_function=embedding))
+        tools.append(cast(Tool, VectorSearchTool(vector_store_id=vector_store_id, embedding_function=embedding)))
         async for item in embed_all_files(
             embedding_function=embedding,
             all_files=extracted_files,

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import typing
 from beeai_framework.emitter import Emitter
 from beeai_framework.tools import JSONToolOutput, Tool, ToolRunOptions
 from agentstack_sdk.platform import File
@@ -31,7 +30,7 @@ class FileCreatorToolOutput(JSONToolOutput[FileCreatorToolResult]):
 
 
 class FileCreatorTool(
-    Tool[FileCreatorInput, ToolRunOptions, FileCreatorToolOutput]  # type: ignore
+    Tool[FileCreatorInput, ToolRunOptions, FileCreatorToolOutput]
 ):
     """
     Creates a new file and writes the provided content into it.
@@ -41,11 +40,6 @@ class FileCreatorTool(
     description: str = "Create a new file with the specified content."
     input_schema: type[FileCreatorInput] = FileCreatorInput
 
-    def __init__(
-        self,
-    ) -> None:
-        super().__init__()
-
     def _create_emitter(self) -> Emitter:
         return Emitter.root().child(
             namespace=["tool", "file_creator"],
@@ -53,8 +47,7 @@ class FileCreatorTool(
         )
 
     async def _run(self, input: FileCreatorInput, options, context) -> FileCreatorToolOutput:
-        # pyrefly: ignore [unknown-name]
-        files: list[FileCreatorFile] = []
+        files = []
         for item in input.files:
             file = await File.create(
                 filename=item.filename,

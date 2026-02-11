@@ -87,7 +87,7 @@ class ActTool(Tool[ActToolInput]):
                 ),
             ),
             selected_tool=(
-                # pyrefly: ignore [invalid-literal]
+                # pyrefly: ignore [invalid-literal] -- it's a hack for JSON Schema generation
                 Literal[tuple(tool_name for tool_name in allowed_tools_names)],
                 Field(
                     ...,
@@ -143,7 +143,7 @@ class ActAlwaysFirstRequirement(Requirement[RequirementAgentRunState]):
         self.tools = tools
 
     @run_with_context
-    # pyrefly: ignore[bad-override] -- Pyrefly incorrectly types @run_with_context
+    # pyrefly: ignore [bad-override] -- Pyrefly incorrectly types @run_with_context
     async def run(self, state: RequirementAgentRunState, ctx: RunContext) -> list[Rule]:
         last_step = state.steps[-1] if state.steps else None
 

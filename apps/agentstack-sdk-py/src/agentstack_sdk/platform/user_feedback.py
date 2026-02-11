@@ -32,7 +32,6 @@ class UserFeedback(pydantic.BaseModel):
         client: PlatformClient | None = None,
     ) -> "ListUserFeedbackResponse":
         async with client or get_platform_client() as client:
-            # pyrefly: ignore [bad-argument-type]
             params = filter_dict({"provider_id": provider_id, "limit": limit, "after_cursor": after_cursor})
             return pydantic.TypeAdapter(ListUserFeedbackResponse).validate_python(
                 (await client.get(url="/api/v1/user_feedback", params=params)).raise_for_status().json()

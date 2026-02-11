@@ -5,7 +5,7 @@ from typing import Annotated
 
 from a2a.types import Message
 from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client  # pyrefly: ignore [deprecated]
+from mcp.client.streamable_http import streamablehttp_client  # pyrefly: ignore [deprecated] -- TODO: upgrade
 from mcp.types import TextContent
 
 from agentstack_sdk.a2a.extensions.interactions.approval import (
@@ -27,7 +27,7 @@ async def tool_call_approval_agent(
     mcp_tool_call: Annotated[ApprovalExtensionServer, ApprovalExtensionSpec(params=ApprovalExtensionParams())],
 ):
     async with (
-        # pyrefly: ignore [deprecated]
+        # pyrefly: ignore [deprecated] -- TODO: upgrade
         streamablehttp_client(url="https://hf.co/mcp") as (read, write, _),
         ClientSession(read, write) as session,
     ):

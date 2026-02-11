@@ -17,14 +17,10 @@ if TYPE_CHECKING:
 
 
 class ContextStoreInstance(Protocol):
-    async def load_history(
+    def load_history(
         self, load_history_items: bool = False
-    ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
-        # pyrefly: ignore [invalid-yield]
-        yield ...
-
+    ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]: ...
     async def store(self, data: Message | Artifact) -> None: ...
-
     async def delete_history_from_id(self, from_id: UUID) -> None: ...
 
 

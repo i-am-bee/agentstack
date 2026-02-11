@@ -15,7 +15,7 @@ blueprint = Blueprint()
 logger = logging.getLogger(__name__)
 
 
-@blueprint.periodic(cron="5 * * * *")  # pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
+@blueprint.periodic(cron="5 * * * *")  # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
 @blueprint.task(queueing_lock="cleanup_expired_context_resources", queue=str(Queues.CRON_CLEANUP))
 @inject
 async def cleanup_expired_context_resources(timestamp: int, context: ContextService) -> None:
@@ -24,7 +24,7 @@ async def cleanup_expired_context_resources(timestamp: int, context: ContextServ
     logger.info(f"Deleted: {deleted_stats}")
 
 
-@blueprint.periodic(cron="10 * * * *")  # pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
+@blueprint.periodic(cron="10 * * * *")  # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
 @blueprint.task(queueing_lock="cleanup_expired_a2a_requests", queue=str(Queues.CRON_CLEANUP))
 @inject
 async def cleanup_expired_a2a_tasks(timestamp: int, a2a_proxy: A2AProxyService) -> None:
@@ -33,7 +33,7 @@ async def cleanup_expired_a2a_tasks(timestamp: int, a2a_proxy: A2AProxyService) 
     logger.info(f"Deleted: {deleted_stats}")
 
 
-@blueprint.periodic(cron="15 * * * *")  # pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
+@blueprint.periodic(cron="15 * * * *")  # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
 @blueprint.task(queueing_lock="cleanup_expired_provider_discoveries", queue=str(Queues.CRON_CLEANUP))
 @inject
 async def cleanup_expired_provider_discoveries(timestamp: int, service: ProviderDiscoveryService) -> None:
@@ -42,10 +42,10 @@ async def cleanup_expired_provider_discoveries(timestamp: int, service: Provider
     logger.info(f"Deleted {deleted_count} expired provider discoveries")
 
 
-@blueprint.periodic(cron="*/10 * * * *")  # pyrefly: ignore[bad-argument-type] -- bad typing in blueprint library
+@blueprint.periodic(cron="*/10 * * * *")  # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
 @blueprint.task(queueing_lock="remove_old_jobs", queue=str(Queues.CRON_CLEANUP), pass_context=True)
 async def remove_old_jobs(context: JobContext, timestamp: int):
-    return await builtin_tasks.remove_old_jobs(  # pyrefly: ignore[invalid-param-spec] -- bad typing in procrastinate library
+    return await builtin_tasks.remove_old_jobs(  # pyrefly: ignore [invalid-param-spec] -- bad typing in procrastinate library
         context,
         max_hours=1,
         remove_failed=True,

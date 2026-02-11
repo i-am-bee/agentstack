@@ -15,9 +15,8 @@ from datetime import UTC, datetime
 from typing import Any, cast, overload
 
 
-def filter_dict[T, V](map: dict[str, T | V], value_to_exclude: V | None = None) -> dict[str, T]:
-    """Remove entries with unwanted values (None by default) from dictionary."""
-    return {key: cast(T, value) for key, value in map.items() if value is not value_to_exclude}
+def filter_dict[T](d: dict):
+    return {k: v for k, v in d.items() if v is not None}
 
 
 @overload

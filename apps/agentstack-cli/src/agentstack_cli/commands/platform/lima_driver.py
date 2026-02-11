@@ -9,6 +9,7 @@ import tempfile
 import typing
 import uuid
 from subprocess import CompletedProcess
+from typing import TypedDict
 
 import anyio
 import psutil
@@ -62,10 +63,12 @@ class LimaDriver(BaseDriver):
             for line in result.stdout.decode().split("\n"):
                 if not line:
                     continue
-                # pyrefly: ignore [not-callable]
-                status = pydantic.TypeAdapter(typing.TypedDict("Status", {"name": str, "status": str})).validate_json(
-                    line
-                )
+
+                class Status(TypedDict):
+                    name: str
+                    status: str
+
+                status = pydantic.TypeAdapter(Status).validate_json(line)
                 if status["name"] == self.vm_name:
                     return status["status"].lower()
             return None

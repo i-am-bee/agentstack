@@ -79,7 +79,6 @@ class Context(pydantic.BaseModel):
                 (
                     await client.post(
                         url="/api/v1/contexts",
-                        # pyrefly: ignore [bad-argument-type]
                         json=filter_dict({"metadata": metadata, "provider_id": provider_id}),
                     )
                 )
@@ -105,7 +104,6 @@ class Context(pydantic.BaseModel):
                     await client.get(
                         url="/api/v1/contexts",
                         params=filter_dict(
-                            # pyrefly: ignore [bad-argument-type]
                             {
                                 "page_token": page_token,
                                 "limit": limit,
@@ -274,7 +272,6 @@ class Context(pydantic.BaseModel):
                     await platform_client.get(
                         url=f"/api/v1/contexts/{target_context_id}/history",
                         params=filter_dict(
-                            # pyrefly: ignore [bad-argument-type]
                             {"page_token": page_token, "limit": limit, "order": order, "order_by": order_by}
                         ),
                     )

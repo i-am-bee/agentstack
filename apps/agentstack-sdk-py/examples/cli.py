@@ -58,8 +58,7 @@ async def cli(base_url: str, context_id: str) -> None:
                         message_id=str(uuid.uuid4()),
                         role=a2a.types.Role.user,
                         parts=[a2a.types.Part(root=a2a.types.TextPart(text=prompt))],
-                        # pyrefly: ignore [bad-argument-type]
-                        task_id=task and task.id,
+                        task_id=task.id if task else None,
                         context_id=context_id,
                         metadata=(
                             agentstack_sdk.a2a.extensions.LLMServiceExtensionClient(llm_spec).fulfillment_metadata(

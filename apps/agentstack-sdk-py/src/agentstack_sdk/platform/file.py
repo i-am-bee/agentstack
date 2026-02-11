@@ -279,7 +279,6 @@ class File(pydantic.BaseModel):
                     await platform_client.get(
                         url="/api/v1/files",
                         params=filter_dict(
-                            # pyrefly: ignore [bad-argument-type]
                             {
                                 "context_id": context_id,
                                 "content_type": content_type,

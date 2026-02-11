@@ -25,7 +25,7 @@ async def get_configuration(
     configuration_service: ConfigurationServiceDependency,
 ) -> EntityModel[SystemConfiguration]:
     configuration = await configuration_service.get_system_configuration(user=user.user)
-    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
     return EntityModel(configuration)
 
 
@@ -50,5 +50,5 @@ async def update_configuration(
         default_embedding_model=request.default_embedding_model,
         user=user.user,
     )
-    # pyrefly: ignore[bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
+    # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
     return EntityModel(result)

@@ -193,8 +193,7 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
     if provider_type == ModelProviderType.OTHER:
         base_url: str = await inquirer.text(
             message="Enter the base URL of your API (OpenAI-compatible):",
-            # pyrefly: ignore [bad-argument-type]
-            validate=lambda url: url.startswith(("http://", "https://")) or "URL must start with http:// or https://",
+            validate=lambda url: url.startswith(("http://", "https://")),
             transformer=lambda url: url.rstrip("/"),
         ).execute_async() or sys.exit(1)
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", base_url):
@@ -289,7 +288,6 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                 name=provider_name,
                 type=ModelProviderType(provider_type),
                 base_url=base_url,
-                # pyrefly: ignore [unbound-name]
                 api_key=api_key,
                 watsonx_space_id=watsonx_space_id,
                 watsonx_project_id=watsonx_project_id,

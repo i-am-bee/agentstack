@@ -48,7 +48,7 @@ RunYieldResume: TypeAlias = Message | None
 
 class AgentArtifact(Artifact):
     artifact_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    # pyrefly: ignore [bad-override]
+    # pyrefly: ignore [bad-override] -- we intentionally broaden the base type
     parts: list[Part | TextPart | FilePart | DataPart]
 
     @model_validator(mode="after")
@@ -59,7 +59,7 @@ class AgentArtifact(Artifact):
 
 class ArtifactChunk(Artifact):
     last_chunk: bool = False
-    # pyrefly: ignore [bad-override]
+    # pyrefly: ignore [bad-override] -- we intentionally broaden the base type
     parts: list[Part | TextPart | FilePart | DataPart]
 
     @model_validator(mode="after")
@@ -70,10 +70,10 @@ class ArtifactChunk(Artifact):
 
 class AgentMessage(Message):
     message_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    # pyrefly: ignore [bad-override]
+    # pyrefly: ignore [bad-override] -- we treat this as read-only
     role: Literal[Role.agent] = Role.agent
     text: str | None = Field(default=None, exclude=True)
-    # pyrefly: ignore [bad-override]
+    # pyrefly: ignore [bad-override] -- we intentionally broaden the base type
     parts: list[Part | TextPart | FilePart | DataPart] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -88,7 +88,7 @@ class AgentMessage(Message):
 
 class InputRequired(TaskStatus):
     message: Message | None = None
-    # pyrefly: ignore [bad-override]
+    # pyrefly: ignore [bad-override] -- we treat this as read-only
     state: Literal[TaskState.input_required] = TaskState.input_required
     text: str | None = Field(default=None, exclude=True)
     parts: list[Part | TextPart | DataPart | FilePart] = Field(exclude=True, default_factory=list)
@@ -106,5 +106,5 @@ class InputRequired(TaskStatus):
 
 
 class AuthRequired(InputRequired):
-    # pyrefly: ignore [bad-override]
+    # pyrefly: ignore [bad-override] -- we treat this as read-only
     state: Literal[TaskState.auth_required] = TaskState.auth_required
