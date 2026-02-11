@@ -311,7 +311,7 @@ def is_github_url(url: str) -> bool:
     return bool(re.match(github_url_verbose_pattern, url, re.VERBOSE))
 
 
-def get_github_token() -> str | None:
+def get_local_github_token() -> str | None:
     """Get GitHub token from standard local sources for authenticated API requests.
 
     Checks multiple sources in order of preference:
@@ -347,13 +347,13 @@ async def get_github_repo_tags(host: str, owner: str, repo: str) -> list[str]:
     headers = {"Accept": "application/vnd.github.v3+json"}
 
     # Add authentication if GITHUB_TOKEN is available (avoids rate limiting)
-    if token := get_github_token():
+    if token := get_local_github_token():
         headers["Authorization"] = f"token {token}"
 
     # Determine API host
     if host == "github.com":
         api_host = "api.github.com"
-        if not get_github_token():
+        if not get_local_github_token():
             console.info(
                 "No GitHub token found. Using unauthenticated API (60 requests/hour limit).\n"
                 "For higher limits, run [green]gh auth login[/green] or set GITHUB_TOKEN or GH_TOKEN env variable."
