@@ -189,6 +189,15 @@
       "cwd": "${workspaceFolder}/agent-integration/rag/conversation-rag-agent",
       "program": "src/conversation_rag_agent/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/github-mcp-agent",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/mcp/github-mcp-agent",
+      "program": "src/github_mcp_agent/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }

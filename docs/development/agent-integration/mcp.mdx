@@ -62,23 +62,28 @@ Use the MCP client session to call tools, list resources, or interact with promp
 
 Here's a complete example of an agent that uses the GitHub MCP connector:
 
+
+{/* <!-- embedme examples/agent-integration/mcp/github-mcp-agent/src/github_mcp_agent/agent.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import json
+import os
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from a2a.types import Message
-from mcp import ClientSession
-
 from agentstack_sdk.a2a.extensions.services.mcp import MCPServiceExtensionServer, MCPServiceExtensionSpec
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.server import Server
+from mcp import ClientSession
 
 server = Server()
 
 
 @server.agent()
-async def github_mcp_agent(
+async def github_mcp_agent_example(
     mcp_service: Annotated[
         MCPServiceExtensionServer,
         MCPServiceExtensionSpec.single_demand(suggested=("github",)),
@@ -97,14 +102,19 @@ async def github_mcp_agent(
 
         read, write = client
         async with ClientSession(read_stream=read, write_stream=write) as session:
-            await session.initialize()
+            _ = await session.initialize()
             me_result = await session.call_tool("get_me", {})
             result_dict = me_result.model_dump() if hasattr(me_result, "model_dump") else me_result
             yield json.dumps(result_dict, indent=2, default=str)
 
 
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
 if __name__ == "__main__":
-    server.run()
+    run()
+
 ```
 
 ## Custom MCP Client with OAuth
