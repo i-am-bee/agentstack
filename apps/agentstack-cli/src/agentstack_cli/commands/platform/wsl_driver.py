@@ -6,8 +6,10 @@ import os
 import pathlib
 import platform
 import sys
+import tempfile
 import textwrap
 import typing
+import uuid
 
 import anyio
 import pydantic
@@ -132,9 +134,6 @@ class WSLDriver(BaseDriver):
         values_file: pathlib.Path | None = None,
         image_pull_mode: ImagePullMode = ImagePullMode.guest,
     ) -> None:
-        if image_pull_mode in {ImagePullMode.host, ImagePullMode.hybrid}:
-            raise NotImplementedError("Importing host images is not supported on Windows.")
-
         host_ip = (
             (
                 await self.run_in_vm(
@@ -209,11 +208,131 @@ class WSLDriver(BaseDriver):
 
     @typing.override
     async def import_images(self, *tags: str) -> None:
-        raise NotImplementedError("Importing images is not supported on this platform.")
+        if not tags:
+            return
+
+        # Create a temporary file on Windows
+        with tempfile.NamedTemporaryFile(suffix=".tar", delete=False) as tmp_file:
+            windows_path = pathlib.Path(tmp_file.name)
+            tmp_file.close()
+
+        try:
+            # Export images from Docker on Windows host
+            await run_command(
+                ["docker", "image", "save", "-o", str(windows_path), *tags],
+                f"Exporting image{'' if len(tags) == 1 else 's'} {', '.join(tags)} from Docker",
+            )
+
+            # Convert Windows path to WSL path
+            # Example: C:\Users\...\temp.tar -> /mnt/c/Users/.../temp.tar
+            wsl_path = self._windows_path_to_wsl(windows_path)
+
+            # Import images into k3s inside WSL2
+            await self.run_in_vm(
+                ["/bin/sh", "-c", f"k3s ctr images import {wsl_path}"],
+                f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
+            )
+        finally:
+            # Clean up the temporary file
+            windows_path.unlink(missing_ok=True)
+
+    def _windows_path_to_wsl(self, windows_path: pathlib.Path) -> str:
+        """Convert a Windows path to WSL path format.
+
+        Example: C:\\Users\\name\\temp.tar -> /mnt/c/Users/name/temp.tar
+        """
+        # Get the absolute path
+        abs_path = windows_path.resolve()
+        path_str = str(abs_path)
+
+        # Handle drive letter (e.g., C:\ -> /mnt/c/)
+        if len(path_str) >= 2 and path_str[1] == ":":
+            drive = path_str[0].lower()
+            rest_of_path = path_str[2:].replace("\\", "/")
+            # Remove leading slash if present
+            if rest_of_path.startswith("/"):
+                rest_of_path = rest_of_path[1:]
+            return f"/mnt/{drive}/{rest_of_path}"
+
+        # If no drive letter, just convert backslashes to forward slashes
+        return path_str.replace("\\", "/")
 
     @typing.override
     async def import_image_to_internal_registry(self, tag: str) -> None:
-        raise NotImplementedError("Importing images to internal registry is not supported on this platform.")
+        # 1. Check if registry is running
+        try:
+            await self.run_in_vm(
+                ["k3s", "kubectl", "get", "svc", "agentstack-registry-svc"],
+                "Checking internal registry availability",
+            )
+        except Exception as e:
+            console.warning(f"Internal registry service not found. Push might fail: {e}")
+
+        # 2. Export image from Docker on Windows host to temporary file
+        with tempfile.NamedTemporaryFile(suffix=".tar", delete=False) as tmp_file:
+            windows_path = pathlib.Path(tmp_file.name)
+            tmp_file.close()
+
+        try:
+            await run_command(
+                ["docker", "image", "save", "-o", str(windows_path), tag],
+                f"Exporting image {tag} from Docker",
+            )
+
+            # Convert Windows path to WSL path
+            wsl_path = self._windows_path_to_wsl(windows_path)
+            image_filename = windows_path.name
+            # Get parent directory using POSIX path to preserve forward slashes
+            wsl_parent_dir = str(pathlib.PurePosixPath(wsl_path).parent)
+
+            # 3 & 4. Run Crane Job to push to internal registry
+            crane_image = "ghcr.io/i-am-bee/alpine/crane:0.20.6"
+            for image in self.loaded_images:
+                if "alpine/crane" in image:
+                    crane_image = image
+                    break
+
+            job_name = f"push-{uuid.uuid4().hex[:6]}"
+            job_def = {
+                "apiVersion": "batch/v1",
+                "kind": "Job",
+                "metadata": {"name": job_name, "namespace": "default"},
+                "spec": {
+                    "backoffLimit": 0,
+                    "ttlSecondsAfterFinished": 60,
+                    "template": {
+                        "spec": {
+                            "restartPolicy": "Never",
+                            "containers": [
+                                {
+                                    "name": "crane",
+                                    "image": crane_image,
+                                    "command": ["crane", "push", f"/workspace/{image_filename}", tag, "--insecure"],
+                                    "volumeMounts": [{"name": "workspace", "mountPath": "/workspace"}],
+                                }
+                            ],
+                            "volumes": [
+                                {
+                                    "name": "workspace",
+                                    "hostPath": {"path": wsl_parent_dir},
+                                }
+                            ],
+                        }
+                    },
+                },
+            }
+
+            await self.run_in_vm(
+                ["k3s", "kubectl", "apply", "-f", "-"], "Starting push job", input=yaml.dump(job_def).encode()
+            )
+            await self.run_in_vm(
+                ["k3s", "kubectl", "wait", "--for=condition=complete", f"job/{job_name}", "--timeout=300s"],
+                "Waiting for push to complete",
+            )
+            await self.run_in_vm(["k3s", "kubectl", "delete", "job", job_name], "Cleaning up push job")
+        finally:
+            # Clean up the temporary file
+            windows_path.unlink(missing_ok=True)
 
     @typing.override
     async def exec(self, command: list[str]):

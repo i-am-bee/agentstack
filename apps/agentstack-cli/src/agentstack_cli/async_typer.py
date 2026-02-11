@@ -4,6 +4,7 @@
 import asyncio
 import functools
 import inspect
+import platform
 import re
 import sys
 from collections.abc import Iterator
@@ -78,6 +79,12 @@ class AsyncTyper(typer.Typer):
             def wrapped_f(*args, **kwargs):
                 try:
                     if inspect.iscoroutinefunction(f):
+                        # Suppress benign cleanup errors
+                        sys.unraisablehook = (
+                            lambda e: None
+                            if "closed pipe" in str(e.exc_value) and "asyncio" in str(e.object)
+                            else sys.__unraisablehook__(e)
+                        )
                         return asyncio.run(f(*args, **kwargs))
                     else:
                         return f(*args, **kwargs)
