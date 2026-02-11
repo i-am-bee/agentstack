@@ -18,9 +18,10 @@ import classes from './MultiSelect.module.scss';
 
 interface Props {
   field: MultiSelectField;
+  autoFocus?: boolean;
 }
 
-export function MultiSelectField({ field }: Props) {
+export function MultiSelectField({ field, autoFocus }: Props) {
   const { label, options } = field;
 
   const { control, formState } = useFormContext<ValuesOfField<MultiSelectField>>();
@@ -44,7 +45,7 @@ export function MultiSelectField({ field }: Props) {
         rules={rules}
         render={({ field: { value, onChange } }) => (
           <ul className={clsx(classes.root, 'cds--text-input__field-wrapper')} data-invalid={invalid}>
-            {options.map(({ id, label }) => {
+            {options.map(({ id, label }, index) => {
               const isSelected = value?.includes(id);
 
               return (
@@ -54,6 +55,7 @@ export function MultiSelectField({ field }: Props) {
                     size="lg"
                     className={clsx(classes.option, { ['cds--tag--selected']: isSelected })}
                     onClick={() => toggle({ value: value ?? [], id, onChange })}
+                    autoFocus={autoFocus && index === 0}
                   />
                 </li>
               );

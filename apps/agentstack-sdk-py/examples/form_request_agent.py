@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import os
 from typing import Annotated
 
 from a2a.types import Message
@@ -83,4 +84,4 @@ async def form_request_agent(
 
 
 if __name__ == "__main__":
-    server.run()
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))

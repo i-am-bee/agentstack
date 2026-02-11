@@ -13,9 +13,10 @@ import { getFieldName } from '#modules/form/utils.ts';
 
 interface Props {
   field: CheckboxField;
+  autoFocus?: boolean;
 }
 
-export function CheckboxField({ field }: Props) {
+export function CheckboxField({ field, autoFocus }: Props) {
   const { id, label, content } = field;
 
   const { register, formState } = useFormContext<ValuesOfField<CheckboxField>>();
@@ -25,7 +26,14 @@ export function CheckboxField({ field }: Props) {
 
   return (
     <FormGroup legendText={label}>
-      <Checkbox id={id} labelText={content} invalid={invalid} invalidText={invalidText} {...inputProps} />
+      <Checkbox
+        id={id}
+        labelText={content}
+        invalid={invalid}
+        invalidText={invalidText}
+        autoFocus={autoFocus}
+        {...inputProps}
+      />
     </FormGroup>
   );
 }

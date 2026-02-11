@@ -24,17 +24,18 @@ import classes from './FileField.module.scss';
 
 interface Props {
   field: FileField;
+  autoFocus?: boolean;
 }
 
-export function FileField({ field }: Props) {
+export function FileField({ field, autoFocus }: Props) {
   return (
     <FileUploadProvider allowedContentTypes={field.accept}>
-      <FileFieldComponent field={field} />
+      <FileFieldComponent field={field} autoFocus={autoFocus} />
     </FileUploadProvider>
   );
 }
 
-export function FileFieldComponent({ field }: Props) {
+export function FileFieldComponent({ field, autoFocus }: Props) {
   const { label } = field;
 
   const { dropzone, isDisabled, isPending, files, removeFile } = useFileUpload();
@@ -87,6 +88,7 @@ export function FileFieldComponent({ field }: Props) {
           renderIcon={Add}
           className={classes.button}
           disabled={isDisabled}
+          autoFocus={autoFocus}
         >
           Upload
         </Button>

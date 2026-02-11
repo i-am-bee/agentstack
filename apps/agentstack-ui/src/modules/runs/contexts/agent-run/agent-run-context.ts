@@ -34,6 +34,7 @@ interface AgentRunContextValue {
   startAuth: (url: string, taskId: TaskId) => void;
   submitSecrets: (taskId: TaskId, secrets: Record<string, string>) => Promise<void>;
   submitApproval: (taskId: TaskId, decision: ApprovalDecision) => Promise<void>;
+  submitTextInput: (text: string, taskId: TaskId) => Promise<void>;
   submitCanvasEditRequest: (canvasEditRequest: UICanvasEditRequestParams) => Promise<void>;
   cancel: () => void;
   clear: () => void;

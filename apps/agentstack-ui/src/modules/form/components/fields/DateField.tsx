@@ -13,9 +13,10 @@ import { getFieldName } from '#modules/form/utils.ts';
 
 interface Props {
   field: DateField;
+  autoFocus?: boolean;
 }
 
-export function DateField({ field }: Props) {
+export function DateField({ field, autoFocus }: Props) {
   const { id, label, placeholder } = field;
 
   const { control, formState } = useFormContext<ValuesOfField<DateField>>();
@@ -40,6 +41,7 @@ export function DateField({ field }: Props) {
             labelText={label}
             placeholder={placeholder ?? undefined}
             invalidText={invalidText}
+            autoFocus={autoFocus}
           />
         </DatePicker>
       )}

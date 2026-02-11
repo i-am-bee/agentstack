@@ -57,7 +57,8 @@ export type UIMessagePart =
   | UISecretPart
   | UIArtifactPart
   | UIApprovalPart
-  | UIApprovalResponsePart;
+  | UIApprovalResponsePart
+  | UITextInputPart;
 
 export type UITextPart = {
   kind: UIMessagePartKind.Text;
@@ -123,6 +124,12 @@ export type UIApprovalResponsePart = {
   result: ApprovalResponse;
 };
 
+export type UITextInputPart = {
+  kind: UIMessagePartKind.TextInput;
+  text: string;
+  taskId: TaskId;
+};
+
 export type UITransformPart = {
   kind: UIMessagePartKind.Transform;
   id: string;
@@ -165,6 +172,7 @@ export enum UIMessagePartKind {
   Artifact = 'artifact',
   ApprovalRequired = 'approval-required',
   ApprovalResponse = 'approval-response',
+  TextInput = 'text-input',
 }
 
 export enum UIMessageStatus {

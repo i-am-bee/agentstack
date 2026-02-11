@@ -46,13 +46,20 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
         type: TaskStatusUpdateType.FormRequired,
         form: formRequired,
       });
-    }
-
-    if (approvalRequired) {
+    } else if (approvalRequired) {
       results.push({
         type: TaskStatusUpdateType.ApprovalRequired,
         request: approvalRequired,
       });
+    } else {
+      // Handle generic input required - extract text from message
+      const textPart = event.status.message?.parts?.[0];
+      if (textPart && 'text' in textPart) {
+        results.push({
+          type: TaskStatusUpdateType.TextInputRequired,
+          text: textPart.text,
+        });
+      }
     }
   }
 

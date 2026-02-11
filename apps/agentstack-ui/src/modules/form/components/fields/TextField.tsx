@@ -17,9 +17,10 @@ import { FormLabel } from '../FormLabel';
 
 interface Props {
   field: TextField;
+  autoFocus?: boolean;
 }
 
-export function TextField({ field }: Props) {
+export function TextField({ field, autoFocus }: Props) {
   const { id, label, placeholder, auto_resize } = field;
 
   const { register, formState } = useFormContext<ValuesOfField<TextField>>();
@@ -42,6 +43,7 @@ export function TextField({ field }: Props) {
           rows={1}
           maxRows={8}
           invalid={invalid}
+          autoFocus={autoFocus}
           {...inputProps}
         />
 
@@ -50,5 +52,14 @@ export function TextField({ field }: Props) {
     );
   }
 
-  return <TextInput size="lg" labelText={label} invalid={invalid} invalidText={invalidText} {...inputProps} />;
+  return (
+    <TextInput
+      size="lg"
+      labelText={label}
+      invalid={invalid}
+      invalidText={invalidText}
+      autoFocus={autoFocus}
+      {...inputProps}
+    />
+  );
 }

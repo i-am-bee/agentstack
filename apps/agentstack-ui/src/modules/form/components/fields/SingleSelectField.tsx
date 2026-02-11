@@ -13,9 +13,10 @@ import { getFieldName } from '#modules/form/utils.ts';
 
 interface Props {
   field: SingleSelectField;
+  autoFocus?: boolean;
 }
 
-export function SingleSelectField({ field }: Props) {
+export function SingleSelectField({ field, autoFocus }: Props) {
   const { id, label, options } = field;
 
   const { register, formState } = useFormContext<ValuesOfField<SingleSelectField>>();
@@ -24,7 +25,15 @@ export function SingleSelectField({ field }: Props) {
   const inputProps = register(getFieldName(field), rules);
 
   return (
-    <Select id={id} size="lg" labelText={label} invalid={invalid} invalidText={invalidText} {...inputProps}>
+    <Select
+      id={id}
+      size="lg"
+      labelText={label}
+      invalid={invalid}
+      invalidText={invalidText}
+      autoFocus={autoFocus}
+      {...inputProps}
+    >
       {options.map(({ id, label }) => (
         <SelectItem key={id} text={label} value={id} />
       ))}

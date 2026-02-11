@@ -14,13 +14,16 @@ interface Props {
   fields: FormRender['fields'];
   columns: FormRender['columns'];
   values?: RunFormValues;
+  autoFocus?: boolean;
 }
 
-export function FormFields({ fields, columns, values }: Props) {
+export function FormFields({ fields, columns, values, autoFocus }: Props) {
   return (
     <div className={classes.root} style={{ '--grid-columns': columns } as CSSProperties}>
-      {fields.map((field) => {
-        return <FormField key={field.id} field={field} value={values?.[field.id]} />;
+      {fields.map((field, index) => {
+        return (
+          <FormField key={field.id} field={field} value={values?.[field.id]} autoFocus={autoFocus && index === 0} />
+        );
       })}
     </div>
   );

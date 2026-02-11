@@ -22,7 +22,9 @@ interface Props {
   showHeading?: boolean;
   isDisabled?: boolean;
   showRunSettings?: boolean;
+  autoFocus?: boolean;
   onSubmit: (values: RunFormValues) => void;
+  className?: string;
 }
 
 export function FormRenderer({
@@ -31,7 +33,9 @@ export function FormRenderer({
   showHeading: showHeadingProp = true,
   showRunSettings,
   isDisabled,
+  autoFocus = true,
   onSubmit,
+  className,
 }: Props) {
   const { title: heading = defaultHeading, description, columns, submit_label, fields } = definition;
 
@@ -48,7 +52,7 @@ export function FormRenderer({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} className={className}>
         <fieldset disabled={isDisabled} className={classes.root}>
           {showHeader && (
             <AgentRunHeader heading={showHeading ? heading : undefined}>
@@ -56,7 +60,7 @@ export function FormRenderer({
             </AgentRunHeader>
           )}
 
-          <FormFields fields={fields} columns={columns} />
+          <FormFields fields={fields} columns={columns} autoFocus={autoFocus} />
 
           <FormActionBar
             submitLabel={submit_label ?? 'Submit'}

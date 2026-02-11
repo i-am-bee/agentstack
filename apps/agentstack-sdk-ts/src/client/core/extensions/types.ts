@@ -56,6 +56,7 @@ export enum TaskStatusUpdateType {
   FormRequired = 'form-required',
   OAuthRequired = 'oauth-required',
   ApprovalRequired = 'approval-required',
+  TextInputRequired = 'text-input-required',
 }
 
 export interface SecretRequiredResult {
@@ -78,8 +79,14 @@ export interface ApprovalRequiredResult {
   request: ApprovalRequest;
 }
 
+export interface TextInputRequiredResult {
+  type: TaskStatusUpdateType.TextInputRequired;
+  text: string;
+}
+
 export type TaskStatusUpdateResult =
   | SecretRequiredResult
   | FormRequiredResult
   | OAuthRequiredResult
-  | ApprovalRequiredResult;
+  | ApprovalRequiredResult
+  | TextInputRequiredResult;

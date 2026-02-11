@@ -260,6 +260,15 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
               taskId: result.taskId,
             });
           });
+        } else if (result && result.type === TaskStatusUpdateType.TextInputRequired) {
+          updateCurrentAgentMessage((message) => {
+            message.status = UIMessageStatus.InputRequired;
+            message.parts.push({
+              kind: UIMessagePartKind.TextInput,
+              text: result.text,
+              taskId: result.taskId,
+            });
+          });
         } else {
           updateCurrentAgentMessage((message) => {
             message.status = UIMessageStatus.Completed;
@@ -388,6 +397,21 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     [checkPendingRun, run],
   );
 
+  const submitTextInput = useCallback(
+    (text: string, taskId: TaskId) => {
+      checkPendingRun();
+
+      const message: UIUserMessage = {
+        id: uuid(),
+        role: Role.User,
+        parts: [createTextPart(text)],
+      };
+
+      return run(message, { taskId });
+    },
+    [checkPendingRun, run],
+  );
+
   const submitCanvasEditRequest = useCallback(
     (params: UICanvasEditRequestParams) => {
       checkPendingRun();
@@ -439,6 +463,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
       startAuth,
       submitSecrets,
       submitApproval,
+      submitTextInput,
       submitCanvasEditRequest,
       initialFormRender,
       cancel,
@@ -457,6 +482,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
     startAuth,
     submitSecrets,
     submitApproval,
+    submitTextInput,
     submitCanvasEditRequest,
     initialFormRender,
     cancel,
