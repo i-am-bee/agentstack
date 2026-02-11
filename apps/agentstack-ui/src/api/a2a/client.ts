@@ -5,7 +5,7 @@
 
 import type { Client } from '@a2a-js/sdk/client';
 import type { Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from 'agentstack-sdk';
-import { handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
+import { extractTextFromMessage, handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
 import { match } from 'ts-pattern';
 
@@ -19,7 +19,7 @@ import { AGENT_ERROR_MESSAGE } from './constants';
 import { processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
-import { createUserMessage, extractErrorExtension, extractTextFromMessage } from './utils';
+import { createUserMessage, extractErrorExtension } from './utils';
 
 function handleStatusUpdate<UIGenericPart = never>(
   event: TaskStatusUpdateEvent,

@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { TextField } from 'agentstack-sdk';
 import { useMemo } from 'react';
 
 import { useMessages } from '#modules/messages/contexts/Messages/index.ts';
-import type { UIAgentMessage } from '#modules/messages/types.ts';
+import type { UIAgentMessage, UITextInputPart } from '#modules/messages/types.ts';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 import { blurActiveElement } from '#utils/dom-utils.ts';
@@ -21,8 +22,7 @@ interface Props {
 
 export function MessageTextInput({ message }: Props) {
   const textInputPart = message.parts.find(
-    (part): part is Extract<typeof part, { kind: UIMessagePartKind.TextInput }> =>
-      part.kind === UIMessagePartKind.TextInput,
+    (part): part is UITextInputPart => part.kind === UIMessagePartKind.TextInput,
   );
   const { submitTextInput } = useAgentRun();
   const { isLastMessage } = useMessages();
@@ -31,15 +31,14 @@ export function MessageTextInput({ message }: Props) {
     if (!textInputPart) return null;
 
     return {
-      title: textInputPart.text,
       fields: [
         {
-          id: 'text',
-          type: 'text' as const,
+          id: TEXT_FIELD_ID,
+          type: 'text',
           label: textInputPart.text,
           required: true,
           auto_resize: true,
-        },
+        } satisfies TextField,
       ],
     };
   }, [textInputPart]);
@@ -54,7 +53,7 @@ export function MessageTextInput({ message }: Props) {
       definition={formDefinition}
       showHeading={false}
       onSubmit={(values: RunFormValues) => {
-        const fieldValue = values.text;
+        const fieldValue = values[TEXT_FIELD_ID];
         const textValue = fieldValue?.type === 'text' ? fieldValue.value : null;
 
         submitTextInput(textValue ?? '', textInputPart.taskId);
@@ -63,3 +62,5 @@ export function MessageTextInput({ message }: Props) {
     />
   );
 }
+
+const TEXT_FIELD_ID = 'text';

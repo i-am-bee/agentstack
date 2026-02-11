@@ -39,7 +39,7 @@ export function MessageSecretsForm({ message }: Props) {
 
   const onSubmit = async (values: FormValues) => {
     updateVariables({ variables: values });
-    submitSecrets(secretPart.taskId, values);
+    submitSecrets(values, secretPart.taskId);
   };
 
   const isCurrentMessageLast = isLastMessage(message);

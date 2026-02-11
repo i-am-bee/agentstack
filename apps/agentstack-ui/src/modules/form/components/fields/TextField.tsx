@@ -5,6 +5,7 @@
 
 import { TextInput } from '@carbon/react';
 import type { TextField } from 'agentstack-sdk';
+import { useId } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { FormRequirement } from '#components/FormRequirement/FormRequirement.tsx';
@@ -21,7 +22,8 @@ interface Props {
 }
 
 export function TextField({ field, autoFocus }: Props) {
-  const { id, label, placeholder, auto_resize } = field;
+  const id = useId();
+  const { label, placeholder, auto_resize } = field;
 
   const { register, formState } = useFormContext<ValuesOfField<TextField>>();
   const { rules, invalid, invalidText } = useFormFieldValidation({ field, formState });

@@ -9,6 +9,7 @@ import type { ApprovalDecision } from 'agentstack-sdk';
 import { TaskStatusUpdateType } from 'agentstack-sdk';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { ChatRun } from '#api/a2a/types.ts';
@@ -231,49 +232,56 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
         });
 
         const result = await run.done;
-        if (result && result.type === TaskStatusUpdateType.FormRequired) {
-          updateCurrentAgentMessage((message) => {
-            message.status = UIMessageStatus.InputRequired;
-            message.parts.push({ kind: UIMessagePartKind.Form, render: result.form });
-          });
-        } else if (result && result.type === TaskStatusUpdateType.OAuthRequired) {
-          updateCurrentAgentMessage((message) => {
-            message.status = UIMessageStatus.InputRequired;
-            message.parts.push({ kind: UIMessagePartKind.OAuth, url: result.url, taskId: result.taskId });
-          });
-        } else if (result && result.type === TaskStatusUpdateType.SecretRequired) {
-          updateCurrentAgentMessage((message) => {
-            message.status = UIMessageStatus.InputRequired;
 
-            message.parts.push({
-              kind: UIMessagePartKind.SecretRequired,
-              secret: result.demands,
-              taskId: result.taskId,
+        match(result)
+          .with({ type: TaskStatusUpdateType.FormRequired }, ({ form }) => {
+            updateCurrentAgentMessage((message) => {
+              message.status = UIMessageStatus.InputRequired;
+              message.parts.push({ kind: UIMessagePartKind.Form, render: form });
+            });
+          })
+          .with({ type: TaskStatusUpdateType.OAuthRequired }, ({ url, taskId }) => {
+            updateCurrentAgentMessage((message) => {
+              message.status = UIMessageStatus.InputRequired;
+              message.parts.push({ kind: UIMessagePartKind.OAuth, url, taskId });
+            });
+          })
+          .with({ type: TaskStatusUpdateType.SecretRequired }, ({ demands, taskId }) => {
+            updateCurrentAgentMessage((message) => {
+              message.status = UIMessageStatus.InputRequired;
+
+              message.parts.push({
+                kind: UIMessagePartKind.SecretRequired,
+                secret: demands,
+                taskId,
+              });
+            });
+          })
+          .with({ type: TaskStatusUpdateType.ApprovalRequired }, ({ request, taskId }) => {
+            updateCurrentAgentMessage((message) => {
+              message.status = UIMessageStatus.InputRequired;
+              message.parts.push({
+                kind: UIMessagePartKind.ApprovalRequired,
+                request,
+                taskId,
+              });
+            });
+          })
+          .with({ type: TaskStatusUpdateType.TextInputRequired }, ({ text, taskId }) => {
+            updateCurrentAgentMessage((message) => {
+              message.status = UIMessageStatus.InputRequired;
+              message.parts.push({
+                kind: UIMessagePartKind.TextInput,
+                text,
+                taskId,
+              });
+            });
+          })
+          .otherwise(() => {
+            updateCurrentAgentMessage((message) => {
+              message.status = UIMessageStatus.Completed;
             });
           });
-        } else if (result && result.type === TaskStatusUpdateType.ApprovalRequired) {
-          updateCurrentAgentMessage((message) => {
-            message.status = UIMessageStatus.InputRequired;
-            message.parts.push({
-              kind: UIMessagePartKind.ApprovalRequired,
-              request: result.request,
-              taskId: result.taskId,
-            });
-          });
-        } else if (result && result.type === TaskStatusUpdateType.TextInputRequired) {
-          updateCurrentAgentMessage((message) => {
-            message.status = UIMessageStatus.InputRequired;
-            message.parts.push({
-              kind: UIMessagePartKind.TextInput,
-              text: result.text,
-              taskId: result.taskId,
-            });
-          });
-        } else {
-          updateCurrentAgentMessage((message) => {
-            message.status = UIMessageStatus.Completed;
-          });
-        }
       } catch (error) {
         handleError(error);
       } finally {
@@ -368,7 +376,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   });
 
   const submitSecrets = useCallback(
-    (taskId: TaskId, providedSecrets: Record<string, string>) => {
+    (providedSecrets: Record<string, string>, taskId: TaskId) => {
       checkPendingRun();
 
       const message: UIUserMessage = {
@@ -383,7 +391,7 @@ function AgentRunProvider({ agent, children }: PropsWithChildren<Props>) {
   );
 
   const submitApproval = useCallback(
-    (taskId: TaskId, decision: ApprovalDecision) => {
+    (decision: ApprovalDecision, taskId: TaskId) => {
       checkPendingRun();
 
       const message: UIUserMessage = {

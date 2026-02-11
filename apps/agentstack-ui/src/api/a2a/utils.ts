@@ -33,15 +33,6 @@ export const extractCitation = extractUiExtensionData(citationExtension);
 export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
 export const extractErrorExtension = extractUiExtensionData(errorExtension);
 
-export function extractTextFromMessage(message: Message | undefined) {
-  const text = message?.parts
-    .filter((part) => part.kind === 'text')
-    .map((part) => part.text)
-    .join('\n');
-
-  return text;
-}
-
 export function convertMessageParts(uiParts: UIMessagePart[]): Part[] {
   const parts: Part[] = uiParts
     .map((part) => {

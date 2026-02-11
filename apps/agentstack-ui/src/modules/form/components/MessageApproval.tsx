@@ -36,7 +36,7 @@ export function MessageApproval({ message }: Props) {
 
       setIsSubmitting(true);
       try {
-        await submitApproval(approvalPart.taskId, decision);
+        await submitApproval(decision, approvalPart.taskId);
       } finally {
         setIsSubmitting(false);
       }

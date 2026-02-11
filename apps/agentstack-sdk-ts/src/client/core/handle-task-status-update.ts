@@ -11,6 +11,7 @@ import type { TaskStatusUpdateEvent } from '../a2a/protocol/types';
 import { extractUiExtensionData } from './extensions/extract';
 import type { TaskStatusUpdateResult } from './extensions/types';
 import { TaskStatusUpdateType } from './extensions/types';
+import { extractTextFromMessage } from './utils/extract-text-from-message';
 
 const secretsRequestExtensionExtractor = extractUiExtensionData(secretsRequestExtension);
 const oauthRequestExtensionExtractor = extractUiExtensionData(oauthRequestExtension);
@@ -52,11 +53,11 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
         request: approvalRequired,
       });
     } else {
-      const textPart = event.status.message?.parts?.find(({ kind }) => kind === 'text');
-      if (textPart && textPart.kind === 'text') {
+      const text = extractTextFromMessage(event.status.message);
+      if (text) {
         results.push({
           type: TaskStatusUpdateType.TextInputRequired,
-          text: textPart.text,
+          text,
         });
       }
     }

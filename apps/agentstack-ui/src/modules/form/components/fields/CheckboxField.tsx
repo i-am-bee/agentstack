@@ -5,6 +5,7 @@
 
 import { Checkbox, FormGroup } from '@carbon/react';
 import type { CheckboxField } from 'agentstack-sdk';
+import { useId } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 import { useFormFieldValidation } from '#modules/form/hooks/useFormFieldValidation.ts';
@@ -17,7 +18,8 @@ interface Props {
 }
 
 export function CheckboxField({ field, autoFocus }: Props) {
-  const { id, label, content } = field;
+  const id = useId();
+  const { label, content } = field;
 
   const { register, formState } = useFormContext<ValuesOfField<CheckboxField>>();
   const { rules, invalid, invalidText } = useFormFieldValidation({ field, formState });

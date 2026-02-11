@@ -115,8 +115,6 @@ function Message({ message, isLast, isFirst, containerScrollableRef }: Props) {
 
       <MessageTextInput message={message} />
 
-      <MessageTrajectories message={message} autoScroll={isPending} toggleable={!isPending} />
-
       {!isPending && <MessageActions message={message} className={classes.actions} contentRef={contentRef} />}
     </div>
   );
