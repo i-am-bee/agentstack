@@ -5,21 +5,17 @@
 
 import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 
+import type { UseAnimatedTextOptions } from '../hooks/useAnimatedText';
 import { useAnimatedText } from '../hooks/useAnimatedText';
 
-interface Props {
+interface Props extends UseAnimatedTextOptions {
   children: string;
-  totalDurationMs: number;
-  maxAnimatedChars?: number;
-  shouldAnimate?: boolean;
 }
 
-export function AnimatedCodeContent({ children, shouldAnimate, totalDurationMs, maxAnimatedChars }: Props) {
+export function AnimatedCodeContent({ children, ...textOptions }: Props) {
   const displayedText = useAnimatedText({
+    ...textOptions,
     text: children,
-    shouldAnimate,
-    totalDurationMs,
-    maxAnimatedChars,
   });
 
   return (

@@ -13,6 +13,7 @@ import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { maybeParseJson } from '#modules/runs/utils.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { CHARS_DELAY_MAX_MS } from '../hooks/useAnimatedText.ts';
 import { AnimatedCodeContent } from './AnimatedCodeContent.tsx';
 import { AnimatedTextContent } from './AnimatedTextContent.tsx';
 import classes from './TrajectoryItem.module.scss';
@@ -34,7 +35,8 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props
     return null;
   }
 
-  const shouldAnimateText = isPending && createdAt ? Date.now() - createdAt < TEXT_ANIMATION_DURATION_MS : false;
+  const shouldAnimateText = isPending && createdAt ? Date.now() - createdAt < SHOULD_ANIMATE_THRESHOLD_MS : false;
+  const contentAnimationDelay = Math.min(CHARS_DELAY_MAX_MS * (title?.length ?? 0), TEXT_ANIMATION_DURATION_MS);
 
   return (
     <div className={clsx(classes.root, { [classes.isAnimating]: shouldAnimateText })}>
@@ -52,6 +54,7 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props
             <AnimatedTextContent
               shouldAnimate={shouldAnimateText}
               totalDurationMs={TEXT_ANIMATION_DURATION_MS}
+              delayMs={contentAnimationDelay}
               className={classes.content}
               linesClamp={!isPending && canClampContent ? 5 : undefined}
             >
@@ -60,7 +63,11 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props
           ))
           .otherwise(({ value }) => {
             return (
-              <AnimatedCodeContent shouldAnimate={shouldAnimateText} totalDurationMs={TEXT_ANIMATION_DURATION_MS}>
+              <AnimatedCodeContent
+                shouldAnimate={shouldAnimateText}
+                totalDurationMs={TEXT_ANIMATION_DURATION_MS}
+                delayMs={contentAnimationDelay}
+              >
                 {value}
               </AnimatedCodeContent>
             );
@@ -72,3 +79,4 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props
 
 const TRAJECTORY_NAMESPACE = '1b671a64-40d5-431e-99b0-da01ff1f3341';
 const TEXT_ANIMATION_DURATION_MS = 1500;
+const SHOULD_ANIMATE_THRESHOLD_MS = 2 * TEXT_ANIMATION_DURATION_MS;

@@ -5,7 +5,7 @@
 
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
@@ -21,8 +21,6 @@ interface Props {
 }
 
 export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
-  const listRef = useRef<HTMLUListElement>(null);
-
   const [canClampContent, setCanClampContent] = useState(!isPending);
 
   const previouslyOpen = usePrevious(isOpen);
@@ -45,7 +43,7 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
           className={clsx(classes.root)}
         >
           <div className={classes.border} />
-          <ul className={classes.list} ref={listRef}>
+          <ul className={classes.list}>
             {trajectories.map((trajectory) => (
               <li key={trajectory.id}>
                 <TrajectoryItem trajectory={trajectory} isPending={isPending} canClampContent={canClampContent} />

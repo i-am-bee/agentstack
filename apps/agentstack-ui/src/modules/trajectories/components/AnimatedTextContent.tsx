@@ -8,31 +8,20 @@ import { useMemo } from 'react';
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
 import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 
+import type { UseAnimatedTextOptions } from '../hooks/useAnimatedText';
 import { useAnimatedText } from '../hooks/useAnimatedText';
 import { isMarkdown } from '../utils';
 
-interface Props {
+interface Props extends UseAnimatedTextOptions {
   children: string;
   className?: string;
-  totalDurationMs: number;
-  maxAnimatedChars?: number;
-  shouldAnimate?: boolean;
   linesClamp?: number;
 }
 
-export function AnimatedTextContent({
-  children,
-  className,
-  shouldAnimate,
-  totalDurationMs,
-  maxAnimatedChars,
-  linesClamp,
-}: Props) {
+export function AnimatedTextContent({ children, className, linesClamp, ...textOptions }: Props) {
   const displayedText = useAnimatedText({
+    ...textOptions,
     text: children,
-    shouldAnimate,
-    totalDurationMs,
-    maxAnimatedChars,
   });
 
   const contentIsMarkdown = useMemo(() => isMarkdown(children), [children]);
