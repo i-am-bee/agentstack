@@ -32,6 +32,7 @@ export interface AgentOptions<TDeps = Record<string, never>> {
   detail?: AgentDetail;
   extensions?: ExtensionConfig<TDeps>;
   version?: string;
+  protocolVersion?: string;
   handler: AgentFunction<TDeps>;
 }
 

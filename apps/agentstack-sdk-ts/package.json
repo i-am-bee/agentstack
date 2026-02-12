@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "example:hello-world": "tsx watch src/examples/hello-world.ts",
+    "experimental:example:hello-world": "tsx watch src/examples/hello-world.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

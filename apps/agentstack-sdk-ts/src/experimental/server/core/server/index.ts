@@ -41,7 +41,7 @@ export class Server {
       description: options.description ?? '',
       url: 'http://localhost:8000',
       version: options.version ?? '1.0.0',
-      protocolVersion: '0.2.2',
+      protocolVersion: options.protocolVersion ?? '0.3.0',
       capabilities: {
         streaming: true,
         extensions,
