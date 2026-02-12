@@ -6,7 +6,9 @@ import importlib.resources
 import json
 import pathlib
 import shlex
+import sys
 import typing
+import uuid
 from enum import StrEnum
 from subprocess import CompletedProcess
 from textwrap import dedent
@@ -55,13 +57,96 @@ class BaseDriver(abc.ABC):
     async def delete(self) -> None: ...
 
     @abc.abstractmethod
-    async def import_images(self, *tags: str) -> None: ...
+    def _get_export_import_paths(self) -> tuple[str, str]: ...
 
     @abc.abstractmethod
-    async def import_image_to_internal_registry(self, tag: str) -> None: ...
+    def _get_exec_command_prefix(self) -> list[str]: ...
 
-    @abc.abstractmethod
-    async def exec(self, command: list[str]) -> None: ...
+    async def import_images(self, *tags: str) -> None:
+        if not tags:
+            return
+
+        host_path, guest_path = self._get_export_import_paths()
+
+        try:
+            await run_command(
+                ["docker", "image", "save", "-o", host_path, *tags],
+                f"Exporting image{'' if len(tags) == 1 else 's'} {', '.join(tags)} from Docker",
+            )
+            await self.run_in_vm(
+                ["/bin/sh", "-c", f"k3s ctr images import {guest_path}"],
+                f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
+            )
+        finally:
+            await anyio.Path(host_path).unlink(missing_ok=True)
+
+    async def import_image_to_internal_registry(self, tag: str) -> None:
+        host_path, guest_path = self._get_export_import_paths()
+
+        try:
+            await run_command(
+                ["docker", "image", "save", "-o", str(host_path), tag],
+                f"Exporting image {tag} from Docker",
+            )
+            job_name = f"push-{uuid.uuid4().hex[:6]}"
+            await self.run_in_vm(
+                ["k3s", "kubectl", "apply", "-f", "-"],
+                "Starting push job",
+                input=yaml.dump(
+                    {
+                        "apiVersion": "batch/v1",
+                        "kind": "Job",
+                        "metadata": {"name": job_name, "namespace": "default"},
+                        "spec": {
+                            "backoffLimit": 0,
+                            "ttlSecondsAfterFinished": 60,
+                            "template": {
+                                "spec": {
+                                    "restartPolicy": "Never",
+                                    "containers": [
+                                        {
+                                            "name": "crane",
+                                            "image": next(
+                                                (image for image in self.loaded_images if "alpine/crane" in image),
+                                                "ghcr.io/i-am-bee/alpine/crane:0.20.6",
+                                            ),
+                                            "command": [
+                                                "crane",
+                                                "push",
+                                                f"/workspace/{pathlib.Path(host_path).name}",
+                                                tag,
+                                                "--insecure",
+                                            ],
+                                            "volumeMounts": [{"name": "workspace", "mountPath": "/workspace"}],
+                                        }
+                                    ],
+                                    "volumes": [
+                                        {
+                                            "name": "workspace",
+                                            "hostPath": {"path": str(pathlib.PurePosixPath(guest_path).parent)},
+                                        }
+                                    ],
+                                }
+                            },
+                        },
+                    }
+                ).encode(),
+            )
+            await self.run_in_vm(
+                ["k3s", "kubectl", "wait", "--for=condition=complete", f"job/{job_name}", "--timeout=300s"],
+                "Waiting for push to complete",
+            )
+        finally:
+            await anyio.Path(host_path).unlink(missing_ok=True)
+
+    async def exec(self, command: list[str]) -> None:
+        await anyio.run_process(
+            [*self._get_exec_command_prefix(), *command],
+            input=None if sys.stdin.isatty() else sys.stdin.read().encode(),
+            check=False,
+            stdout=None,
+            stderr=None,
+        )
 
     def _canonify(self, tag: str) -> str:
         return tag if "." in tag.split("/")[0] else f"docker.io/{tag}"

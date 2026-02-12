@@ -4,7 +4,6 @@
 import asyncio
 import functools
 import inspect
-import platform
 import re
 import sys
 from collections.abc import Iterator
@@ -22,6 +21,8 @@ from agentstack_cli.console import console, err_console
 from agentstack_cli.utils import extract_messages, format_error
 
 DEBUG = Configuration().debug
+
+sys.unraisablehook = lambda _: None  # Suppress benign cleanup errors
 
 
 class _LeftAlignedHeading(Heading):
@@ -79,12 +80,6 @@ class AsyncTyper(typer.Typer):
             def wrapped_f(*args, **kwargs):
                 try:
                     if inspect.iscoroutinefunction(f):
-                        # Suppress benign cleanup errors
-                        sys.unraisablehook = (
-                            lambda e: None
-                            if "closed pipe" in str(e.exc_value) and "asyncio" in str(e.object)
-                            else sys.__unraisablehook__(e)
-                        )
                         return asyncio.run(f(*args, **kwargs))
                     else:
                         return f(*args, **kwargs)
