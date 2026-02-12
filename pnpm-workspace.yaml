@@ -7,17 +7,17 @@ packages:
   - docs
 
 catalog:
-  '@carbon/icons-react': ^11.74.0
-  '@carbon/layout': ^11.47.0
-  '@carbon/react': ^1.100.0
-  '@carbon/styles': ^1.99.0
-  '@ibm/plex': ^6.4.1
-  '@svgr/webpack': ^8.1.0
-  '@tanstack/react-query': ^5.90.20
-  '@types/lodash': ^4.17.23
-  '@types/node': ^22.19.10
-  '@types/react': ^19.2.13
-  '@types/react-dom': ^19.2.3
+  "@carbon/icons-react": ^11.74.0
+  "@carbon/layout": ^11.47.0
+  "@carbon/react": ^1.100.0
+  "@carbon/styles": ^1.99.0
+  "@ibm/plex": ^6.4.1
+  "@svgr/webpack": ^8.1.0
+  "@tanstack/react-query": ^5.90.20
+  "@types/lodash": ^4.17.23
+  "@types/node": ^22.19.10
+  "@types/react": ^19.2.13
+  "@types/react-dom": ^19.2.3
   clsx: ^2.1.1
   eslint: ^9.39.2
   lodash: ^4.17.23

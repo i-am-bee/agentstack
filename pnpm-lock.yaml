@@ -13812,11 +13812,11 @@ snapshots:
 
   '@types/react-resizable@3.0.8':
     dependencies:
-      '@types/react': 18.3.28
+      '@types/react': 19.2.13
 
   '@types/react-syntax-highlighter@15.5.13':
     dependencies:
-      '@types/react': 18.3.28
+      '@types/react': 19.2.13
 
   '@types/react@18.3.28':
     dependencies:
