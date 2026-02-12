@@ -6,7 +6,6 @@ import importlib.resources
 import json
 import pathlib
 import shlex
-import sys
 import typing
 import uuid
 from enum import StrEnum
@@ -57,10 +56,10 @@ class BaseDriver(abc.ABC):
     async def delete(self) -> None: ...
 
     @abc.abstractmethod
-    def _get_export_import_paths(self) -> tuple[str, str]: ...
+    async def exec(self, command: list[str]) -> None: ...
 
     @abc.abstractmethod
-    def _get_exec_command_prefix(self) -> list[str]: ...
+    def _get_export_import_paths(self) -> tuple[str, str]: ...
 
     async def import_images(self, *tags: str) -> None:
         if not tags:
@@ -138,15 +137,6 @@ class BaseDriver(abc.ABC):
             )
         finally:
             await anyio.Path(host_path).unlink(missing_ok=True)
-
-    async def exec(self, command: list[str]) -> None:
-        await anyio.run_process(
-            [*self._get_exec_command_prefix(), *command],
-            input=None if sys.stdin.isatty() else sys.stdin.read().encode(),
-            check=False,
-            stdout=None,
-            stderr=None,
-        )
 
     def _canonify(self, tag: str) -> str:
         return tag if "." in tag.split("/")[0] else f"docker.io/{tag}"

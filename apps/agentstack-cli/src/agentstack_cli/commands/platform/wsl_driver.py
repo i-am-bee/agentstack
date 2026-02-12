@@ -10,6 +10,7 @@ import tempfile
 import textwrap
 import typing
 
+import anyio
 import pydantic
 import yaml
 
@@ -205,13 +206,20 @@ class WSLDriver(BaseDriver):
         await run_command(["wsl.exe", "--unregister", self.vm_name], "Deleting Agent Stack platform", check=False)
 
     @typing.override
+    async def exec(self, command: list[str]):
+        await anyio.run_process(
+            ["wsl.exe", "--user", "root", "--distribution", self.vm_name, "--", *command],
+            check=False,
+            stdin=sys.stdin,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            cwd="/",
+        )
+
+    @typing.override
     def _get_export_import_paths(self) -> tuple[str, str]:
         fd, tmp_path = tempfile.mkstemp(suffix=".tar")
         os.close(fd)
         windows_path = str(pathlib.Path(tmp_path).resolve().absolute())
         wsl_path = f"/mnt/{windows_path[0].lower()}/{windows_path[2:].replace('\\', '/').removeprefix('/')}"
         return (windows_path, wsl_path)
-
-    @typing.override
-    def _get_exec_command_prefix(self) -> list[str]:
-        return ["wsl.exe", "--user", "root", "--distribution", self.vm_name, "--"]

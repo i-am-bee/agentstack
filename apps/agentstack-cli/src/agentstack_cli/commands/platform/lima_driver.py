@@ -192,23 +192,13 @@ class LimaDriver(BaseDriver):
         return (image_path, image_path)
 
     @typing.override
-    def _get_exec_command_prefix(self) -> list[str]:
-        return [
-            self.limactl_exe,
-            "shell",
-            f"--tty={sys.stdin.isatty()}",
-            self.vm_name,
-            "--",
-        ]
-
-    @typing.override
     async def exec(self, command: list[str]):
         await anyio.run_process(
             [self.limactl_exe, "shell", f"--tty={sys.stdin.isatty()}", self.vm_name, "--", *command],
-            input=None if sys.stdin.isatty() else sys.stdin.read().encode(),
             check=False,
-            stdout=None,
-            stderr=None,
+            stdin=sys.stdin,
+            stdout=sys.stdout,
+            stderr=sys.stderr,
             env={**os.environ, "LIMA_HOME": str(Configuration().lima_home)},
             cwd="/",
         )
