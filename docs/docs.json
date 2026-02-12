@@ -70,6 +70,7 @@
             "group": "Custom UI Integration",
             "pages": [
               "stable/custom-ui/getting-started",
+              "stable/custom-ui/architecture-guide",
               "stable/custom-ui/a2a-client",
               "stable/custom-ui/agent-requirements",
               "stable/custom-ui/platform-api-client",

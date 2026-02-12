@@ -1,0 +1,224 @@
+---
+title: Custom UI Architecture Guide
+description: Practical approach to building a custom Agent Stack UI using the chat-ui reference example
+---
+
+If you are building your own user interface, start with the reference implementation:
+
+- [chat-ui example source](https://github.com/i-am-bee/agentstack/tree/main/apps/agentstack-sdk-ts/examples/chat-ui)
+- Local path in this monorepo: `apps/agentstack-sdk-ts/examples/chat-ui`
+
+This page explains the approach used in that example and how to extend it into a full custom UI.
+
+The example is intentionally minimal: it runs against one provider/agent at a time, with `VITE_AGENTSTACK_PROVIDER_ID` set manually in `.env`.
+This keeps the core SDK flow easy to follow before you add provider discovery, routing, and richer UI state.
+
+It uses React, TypeScript, and Vite for a clean demonstration and fast local iteration.
+The architecture itself is not tied to this stack. You can apply the same API, context token, and A2A streaming flow in other frontend frameworks.
+
+This example assumes the following runtime setup:
+
+- Your Agent Stack server is running and reachable.
+- The server has at least one provider/agent available.
+- `VITE_AGENTSTACK_PROVIDER_ID` matches an existing provider in that server.
+- When running from the Vite dev server (`http://localhost:5173`), CORS on the Agent Stack server allows that origin.
+
+If your server cannot allow the frontend origin directly, you can route requests through a frontend proxy, but proxy configuration is intentionally out of scope for this basic example.
+
+If you still need the SDK setup basics, start with **[Getting Started](./getting-started)** and then return here.
+
+## What a custom UI needs
+
+Most implementations follow the same core flow:
+
+1. Create a platform API client
+2. Create a context and context token
+3. Create an authenticated A2A client
+4. Resolve agent card demands into metadata
+5. Send messages and stream task events
+6. Add UI flows for forms, approvals, OAuth, errors, and other extension-driven interactions
+
+## 1. Configure environment and target provider
+
+The example keeps runtime configuration in environment variables and injects the target provider ID directly.
+
+`.env` values:
+
+```bash
+VITE_AGENTSTACK_BASE_URL="http://localhost:8333"
+VITE_AGENTSTACK_PROVIDER_ID="your-provider-id"
+```
+
+- `VITE_AGENTSTACK_BASE_URL`: URL of your actual Agent Stack server instance
+- `VITE_AGENTSTACK_PROVIDER_ID`: provider/agent ID the example will call
+
+In the example code, these values are read as:
+
+```typescript
+const BASE_URL = import.meta.env.VITE_AGENTSTACK_BASE_URL;
+const PROVIDER_ID = import.meta.env.VITE_AGENTSTACK_PROVIDER_ID;
+```
+
+## 2. Create a context and context token
+
+Before sending messages, create a conversation context and a token scoped for agent access:
+
+```typescript
+import { buildApiClient, unwrapResult } from "agentstack-sdk";
+
+const api = buildApiClient({ baseUrl: BASE_URL });
+
+const context = unwrapResult(await api.createContext({ provider_id: PROVIDER_ID }));
+
+const contextToken = unwrapResult(
+  await api.createContextToken({
+    context_id: context.id,
+    grant_global_permissions: {
+      a2a_proxy: [PROVIDER_ID],
+      llm: ["*"],
+    },
+    grant_context_permissions: {
+      context_data: ["*"],
+    },
+  }),
+);
+```
+
+If your Agent Stack server requires user authentication, initialize `buildApiClient` with an authenticated fetch (for example, `createAuthenticatedFetch(accessToken)`), as shown in **[Getting Started](./getting-started)**.
+
+Keep permissions minimal for your use case. See **[Permissions and Tokens](./permissions-and-tokens)** for scope details.
+
+## 3. Create an authenticated A2A client
+
+Use the context token with `createAuthenticatedFetch`, then pass it to both the transport and card resolver:
+
+```typescript
+import {
+  ClientFactory,
+  ClientFactoryOptions,
+  DefaultAgentCardResolver,
+  JsonRpcTransportFactory,
+} from "@a2a-js/sdk/client";
+import { createAuthenticatedFetch, getAgentCardPath } from "agentstack-sdk";
+
+const fetchImpl = createAuthenticatedFetch(contextToken.token);
+
+const factory = new ClientFactory(
+  ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
+    transports: [new JsonRpcTransportFactory({ fetchImpl })],
+    cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
+  }),
+);
+
+const agentCardPath = getAgentCardPath(PROVIDER_ID);
+const client = await factory.createFromUrl(BASE_URL, agentCardPath);
+```
+
+## 4. Resolve agent requirements once per session
+
+Read the agent card and resolve demand fulfillments before the first message:
+
+```typescript
+import { buildLLMExtensionFulfillmentResolver, handleAgentCard } from "agentstack-sdk";
+
+const agentCard = await client.getAgentCard();
+const { resolveMetadata } = handleAgentCard(agentCard);
+
+const llmResolver = buildLLMExtensionFulfillmentResolver(api, contextToken);
+const metadata = await resolveMetadata({ llm: llmResolver });
+```
+
+This keeps extension fulfillment logic centralized and reusable. See **[Agent Requirements](./agent-requirements)**.
+
+## 5. Send messages and process stream events
+
+The example sends a user message and reads streamed output from both `status-update` and `message` events:
+
+```typescript
+const stream = client.sendMessageStream({
+  message: {
+    kind: "message",
+    role: "user",
+    messageId: crypto.randomUUID(),
+    contextId,
+    parts: [{ kind: "text", text }],
+    metadata,
+  },
+});
+
+let agentText = "";
+
+for await (const event of stream) {
+  if (event.kind === "status-update" || event.kind === "message") {
+    const message = event.kind === "message" ? event : event.status.message;
+    const text = extractTextFromMessage(message);
+
+    if (text) {
+      agentText += text;
+    }
+  }
+}
+```
+
+This aggregation is intentionally minimal and text-only for readability.
+
+For full handling of `task`, `artifact-update`, cancellation, and failure states, use the patterns in **[A2A Client Integration](./a2a-client)** and **[Error Handling](./error-handling)**.
+
+## 6. Extend the basic chat loop for production
+
+The example intentionally keeps UI logic minimal. Production apps usually add:
+
+- `handleTaskStatusUpdate` to drive form, approval, OAuth, and secret prompts
+- `resolveUserMetadata` to submit structured user responses
+- Citation and trajectory rendering from message metadata
+- Artifact rendering for files and non-text outputs
+- Retry and cancellation controls for long-running tasks
+
+Related guides:
+
+- **[User Messages](./user-messages)**
+- **[Agent Responses](./agent-responses)**
+- **[Agent Requirements](./agent-requirements)**
+
+## Implementation checklist
+
+1. Configure `VITE_AGENTSTACK_BASE_URL` and `VITE_AGENTSTACK_PROVIDER_ID`
+2. Create `context` and `contextToken`
+3. Build authenticated A2A client
+4. Resolve agent card demands to metadata
+5. Send message stream and render updates
+6. Handle structured UI interactions and errors
+
+## Run the reference example
+
+```bash
+cd apps/agentstack-sdk-ts/examples/chat-ui
+cp .env.example .env
+pnpm install
+pnpm dev
+```
+
+Update `.env` with a valid `VITE_AGENTSTACK_BASE_URL` and `VITE_AGENTSTACK_PROVIDER_ID` before starting.
+
+## Troubleshooting
+
+- **`Missing required environment variables.` on startup**
+  `VITE_AGENTSTACK_BASE_URL` or `VITE_AGENTSTACK_PROVIDER_ID` is missing. Check your `.env` file and restart `pnpm dev`.
+
+- **Network errors when creating context/token**
+  `VITE_AGENTSTACK_BASE_URL` is wrong, unreachable, or points to a different environment. Verify the server URL and that the Agent Stack API is running.
+
+- **CORS errors in the browser console**
+  The Agent Stack server must allow the frontend origin (for Vite dev, `http://localhost:5173`). Update server CORS settings or use a proxy.
+
+- **401/403 responses from platform API endpoints**
+  Your server likely requires user auth. Use `buildApiClient` with authenticated fetch (for example, `createAuthenticatedFetch(accessToken)`), as shown in **[Getting Started](./getting-started)**.
+
+- **Context token created, but agent run fails with permission-related errors**
+  The token grants may be too narrow for the provider/agent. Recheck `grant_global_permissions` and `grant_context_permissions` in Step 2.
+
+- **Provider not found / invalid provider ID errors**
+  `VITE_AGENTSTACK_PROVIDER_ID` must match an existing provider on the target server. Confirm the ID in your Agent Stack instance.
+
+- **UI shows little or no useful output even though requests succeed**
+  This example intentionally aggregates only text parts. Agents that return files, data parts, citations, forms, or artifacts need additional rendering logic (see **[Agent Responses](./agent-responses)** and **[A2A Client Integration](./a2a-client)**).
