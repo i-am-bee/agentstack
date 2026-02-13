@@ -3,7 +3,7 @@ name: agentstack-server-debugging
 description: Instructions for debugging agentstack-server during development
 ---
 
-Agentstack runs in a k3s cluster inside Lima VM. Use mise scripts for local development.
+Agentstack runs in a Kubernetes cluster inside Lima VM. Use mise scripts for local development.
 
 ## Prerequisites
 

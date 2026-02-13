@@ -167,7 +167,6 @@ class BaseDriver(abc.ABC):
         }
 
     async def install_tools(self) -> None:
-        # Configure k3s registry for local registry access
         registry_config = dedent(
             """\
             mirrors:
@@ -191,7 +190,7 @@ class BaseDriver(abc.ABC):
                     "sudo tee /etc/rancher/k3s/registries.yaml > /dev/null"
                 ),
             ],
-            "Configuring k3s registry",
+            "Configuring Kubernetes registry",
         )
 
         await self.run_in_vm(
@@ -200,7 +199,7 @@ class BaseDriver(abc.ABC):
                 "-c",
                 "which k3s || curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644 --https-listen-port=16443",
             ],
-            "Installing k3s",
+            "Installing Kubernetes",
         )
         await self.run_in_vm(
             [

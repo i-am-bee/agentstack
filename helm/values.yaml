@@ -527,7 +527,7 @@ agent:
 
 # ----- INFRASTRUCTURE ------
 
-# INSECURE: Only use locally with k3s deployment
+# INSECURE: Only use with local deployments
 localDockerRegistry:
   enabled: false
   service:
