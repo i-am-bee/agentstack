@@ -48,17 +48,15 @@ Here's an example of how to setup the GitHub connector using the Agent Stack SDK
 
 ```python
 import asyncio
-
 from agentstack_sdk.platform.connector import Connector, ConnectorState
 
 async def main():
-
     connector = await Connector.create(url="https://api.githubcopilot.com/mcp")
     connector = await connector.connect(access_token="<your github personal access token goes here>")
     connector = await connector.wait_for_state(state=ConnectorState.connected)
 
-
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 Here's an example agent that uses the GitHub MCP Connector and returns your profile details:
