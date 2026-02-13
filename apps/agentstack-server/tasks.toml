@@ -253,7 +253,10 @@ run = "uv run pytest -m unit"
 
 ["agentstack-server:test:e2e"]
 dir = "{{config_root}}/apps/agentstack-server"
-usage = 'flag "--no-clean"'
+usage = '''
+flag "--no-clean"
+flag "--only <only>"
+'''
 run = """
 #!/bin/bash
 VM_NAME=e2e-test-run
@@ -319,7 +322,7 @@ echo "Waiting for Keycloak provision job to complete..."
 kubectl wait --for=condition=complete --timeout=300s job/keycloak-provision
 
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
-uv run pytest -m e2e
+uv run pytest -m e2e "${usage_only}"
 result=$?
 
 if [ $result -ne 0 ]; then
