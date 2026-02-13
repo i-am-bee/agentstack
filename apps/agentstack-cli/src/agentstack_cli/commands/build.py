@@ -131,20 +131,18 @@ async def client_side_build(
         )
         console.success(f"Successfully built agent: {tag}")
         if import_image:
-            from agentstack_cli.commands.platform import get_driver
+            from agentstack_cli.commands.platform import get_vm_status, import_image_to_internal_registry
 
             if "agentstack-registry-svc.default" not in tag:
                 source_tag = tag
                 tag = re.sub("^[^/]*/", "agentstack-registry-svc.default:5001/", tag)
                 await run_command(["docker", "tag", source_tag, tag], "Tagging image")
 
-            driver = get_driver(vm_name=vm_name)
-
-            if (await driver.status()) != "running":
+            if (await get_vm_status(vm_name)) != "running":
                 console.error("Agent Stack platform is not running.")
                 sys.exit(1)
 
-            await driver.import_image_to_internal_registry(tag)
+            await import_image_to_internal_registry(vm_name, tag)
             console.success(
                 "Agent was imported to the agent stack internal registry.\n"
                 + f"You can add it using [blue]agentstack add {tag}[/blue]"
