@@ -36,6 +36,13 @@ const api = buildApiClient({
 `buildApiClient` exposes the platform API with typed responses and runtime validation.
 Use the user access token from your identity provider (OIDC/OAuth) for UI side API calls.
 
+<Note>
+  **Browser clients require CORS**
+
+  If your custom UI runs on a different origin than your Agent Stack server, enable CORS on the server for your frontend origin. See **[Cross-Origin Resource Sharing Configuration](../deploy-agent-stack/deployment-guide#cross-origin-resource-sharing-configuration)**.
+  If allowing origins directly is not possible, route calls through a same-origin frontend proxy.
+</Note>
+
 ### 3. Create context and context token
 
 ```typescript

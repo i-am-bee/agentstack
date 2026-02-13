@@ -25,6 +25,13 @@ const api = buildApiClient({
 - `baseUrl` (required): The base URL of your AgentStack server instance.
 - `fetch` (optional): Custom fetch implementation. Required in Node.js < 18 or environments without global fetch support. Useful for adding authentication headers or custom request handling.
 
+<Note>
+  **Browser clients require CORS**
+
+  If you call the Agent Stack API from a browser app running on a different origin, enable server-side CORS for your frontend origin. See **[Cross-Origin Resource Sharing Configuration](../deploy-agent-stack/deployment-guide#cross-origin-resource-sharing-configuration)**.
+  If allowing origins directly is not possible, route calls through a same-origin frontend proxy.
+</Note>
+
 ### Example: Authenticated Client
 
 In many applications, you will want to add authentication headers to requests:
