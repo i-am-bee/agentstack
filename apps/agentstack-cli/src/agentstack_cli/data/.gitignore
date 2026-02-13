@@ -1,2 +1,3 @@
 **
 !.gitignore
+!install-microshift.sh

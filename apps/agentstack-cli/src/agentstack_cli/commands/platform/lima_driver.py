@@ -7,6 +7,7 @@ import pathlib
 import shutil
 import sys
 import tempfile
+import textwrap
 import typing
 import uuid
 from subprocess import CompletedProcess
@@ -17,7 +18,7 @@ import psutil
 import pydantic
 import yaml
 
-from agentstack_cli.commands.platform.base_driver import BaseDriver
+from agentstack_cli.commands.platform.base_driver import BaseDriver, ImagePullMode
 from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console
 from agentstack_cli.utils import run_command
@@ -113,6 +114,7 @@ class LimaDriver(BaseDriver):
                 template_file.write(
                     yaml.dump(
                         {
+                            "env": {"KUBECONFIG": "/var/lib/microshift/resources/kubeadmin/kubeconfig"},
                             "images": [
                                 {
                                     "location": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
@@ -164,6 +166,60 @@ class LimaDriver(BaseDriver):
             )
         else:
             console.info("Updating an existing instance.")
+
+    @typing.override
+    async def deploy(
+        self,
+        set_values_list: list[str],
+        values_file: pathlib.Path | None = None,
+        image_pull_mode: ImagePullMode = ImagePullMode.guest,
+    ) -> None:
+        await super().deploy(set_values_list=set_values_list, values_file=values_file, image_pull_mode=image_pull_mode)
+        await self.run_in_vm(
+            ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
+            "Installing systemd unit for port-forwarding",
+            input=textwrap.dedent("""\
+            [Unit]
+            Description=Kubectl Port Forward for service %i
+            After=network.target
+
+            [Service]
+            Type=simple
+            ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i"; exec /usr/bin/kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig port-forward --address=127.0.0.1 svc/$svc $port:$port'
+            Restart=on-failure
+            User=root
+
+            [Install]
+            WantedBy=multi-user.target
+            """).encode(),
+        )
+        await self.run_in_vm(["systemctl", "daemon-reexec"], "Reloading systemd")
+        services_json = (
+            await self.run_in_vm(
+                [
+                    "kubectl",
+                    "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                    "get",
+                    "svc",
+                    "--field-selector=spec.type=LoadBalancer",
+                    "--output=json",
+                ],
+                "Detecting ports to forward",
+            )
+        ).stdout
+        ServicePort = typing.TypedDict("ServicePort", {"port": int, "name": str})
+        ServiceSpec = typing.TypedDict("ServiceSpec", {"ports": list[ServicePort]})
+        ServiceMetadata = typing.TypedDict("ServiceMetadata", {"name": str, "namespace": str})
+        Service = typing.TypedDict("Service", {"metadata": ServiceMetadata, "spec": ServiceSpec})
+        Services = typing.TypedDict("Services", {"items": list[Service]})
+        for service in pydantic.TypeAdapter(Services).validate_json(services_json)["items"]:
+            name = service["metadata"]["name"]
+            for port_item in service["spec"]["ports"]:
+                port = port_item["port"]
+                await self.run_in_vm(
+                    ["systemctl", "enable", "--now", f"kubectl-port-forward@{name}:{port}.service"],
+                    f"Starting port-forward for {name}:{port}",
+                )
 
     @typing.override
     async def stop(self):

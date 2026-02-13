@@ -10,7 +10,6 @@ import typing
 import uuid
 from enum import StrEnum
 from subprocess import CompletedProcess
-from textwrap import dedent
 
 import anyio
 import yaml
@@ -72,8 +71,10 @@ class BaseDriver(abc.ABC):
                 ["docker", "image", "save", "-o", host_path, *tags],
                 f"Exporting image{'' if len(tags) == 1 else 's'} {', '.join(tags)} from Docker",
             )
+            # CRI-O doesn't have a direct import command in crictl
+            # Use podman load which shares the same storage backend with CRI-O
             await self.run_in_vm(
-                ["/bin/sh", "-c", f"k3s ctr images import {guest_path}"],
+                ["podman", "load", "-i", guest_path],
                 f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
             )
         finally:
@@ -89,7 +90,7 @@ class BaseDriver(abc.ABC):
             )
             job_name = f"push-{uuid.uuid4().hex[:6]}"
             await self.run_in_vm(
-                ["k3s", "kubectl", "apply", "-f", "-"],
+                ["kubectl", "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig", "apply", "-f", "-"],
                 "Starting push job",
                 input=yaml.dump(
                     {
@@ -132,7 +133,14 @@ class BaseDriver(abc.ABC):
                 ).encode(),
             )
             await self.run_in_vm(
-                ["k3s", "kubectl", "wait", "--for=condition=complete", f"job/{job_name}", "--timeout=300s"],
+                [
+                    "kubectl",
+                    "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                    "wait",
+                    "--for=condition=complete",
+                    f"job/{job_name}",
+                    "--timeout=300s",
+                ],
                 "Waiting for push to complete",
             )
         finally:
@@ -146,61 +154,61 @@ class BaseDriver(abc.ABC):
         *,
         mode: typing.Literal["guest", "host"],
     ) -> dict[str, str]:
+        # Both docker and crictl use the same format with --digests:
+        # IMAGE/REPOSITORY  TAG  DIGEST  IMAGE-ID  ...
+        # We want x[2] (DIGEST) and x[0]:x[1] (IMAGE:TAG)
+        output = (
+            await run_command(
+                ["docker", "images", "--digests"],
+                "Listing host images",
+            )
+            if mode == "host"
+            else await self.run_in_vm(
+                ["crictl", "images", "--digests"],
+                "Listing guest images",
+            )
+        ).stdout.decode()
+
         return {
             tag: sha
-            for line in (
-                await run_command(
-                    ["docker", "images", "--digests"],
-                    "Listing host images",
-                )
-                if mode == "host"
-                else await self.run_in_vm(
-                    ["k3s", "ctr", "image", "ls"],
-                    "Listing guest images",
-                )
-            )
-            .stdout.decode()
-            .splitlines()[1:]
+            for line in output.splitlines()[1:]
             if (x := line.split())
-            and (sha := x[2])
-            and ((tag := self._canonify((x[0] + ":" + x[1]) if mode == "host" else x[0])) in self.loaded_images)
+            and len(x) >= 4  # At minimum: IMAGE TAG DIGEST ID
+            and (sha := x[2])  # DIGEST column
+            and x[1] != "<none>"  # Skip images without tags
+            and ((tag := self._canonify(x[0] + ":" + x[1])) in self.loaded_images)
         }
 
     async def install_tools(self) -> None:
-        registry_config = dedent(
-            """\
-            mirrors:
-              "agentstack-registry-svc.default:5001":
-                endpoint:
-                  - "http://localhost:30501"
-            configs:
-              "agentstack-registry-svc.default:5001":
-                tls:
-                  insecure_skip_verify: true
-            """
+        # Execute MicroShift installation script by piping to bash
+        await self.run_in_vm(
+            ["bash"],
+            "Installing MicroShift (this may take several minutes)",
+            input=(importlib.resources.files("agentstack_cli") / "data" / "install-microshift.sh").read_bytes(),
         )
 
+        # Wait for MicroShift to be fully ready (topolvm-controller endpoints available)
         await self.run_in_vm(
             [
-                "sh",
+                "bash",
                 "-c",
                 (
-                    f"sudo mkdir -p /etc/rancher/k3s /registry-data && "
-                    f"echo '{registry_config}' | "
-                    "sudo tee /etc/rancher/k3s/registries.yaml > /dev/null"
+                    "for i in {1..120}; do "
+                    "if kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig "
+                    "get endpoints -n topolvm-system topolvm-controller -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null | grep -q '.'; then "
+                    "echo 'MicroShift is ready'; "
+                    "exit 0; "
+                    "fi; "
+                    "echo 'Waiting for MicroShift services to be ready...'; "
+                    "sleep 5; "
+                    "done; "
+                    "echo 'Timeout waiting for MicroShift'; "
+                    "exit 1"
                 ),
             ],
-            "Configuring Kubernetes registry",
+            "Waiting for MicroShift services to be ready",
         )
 
-        await self.run_in_vm(
-            [
-                "sh",
-                "-c",
-                "which k3s || curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644 --https-listen-port=16443",
-            ],
-            "Installing Kubernetes",
-        )
         await self.run_in_vm(
             [
                 "sh",
@@ -286,7 +294,7 @@ class BaseDriver(abc.ABC):
                     with attempt:
                         attempt_num = attempt.retry_state.attempt_number
                         await self.run_in_vm(
-                            ["k3s", "ctr", "image", "pull", image],
+                            ["crictl", "pull", image],
                             f"Pulling image {image}" + (f" (attempt {attempt_num})" if attempt_num > 1 else ""),
                         )
 
@@ -295,7 +303,7 @@ class BaseDriver(abc.ABC):
         await kubeconfig_path.write_text(
             (
                 await self.run_in_vm(
-                    ["/bin/cat", "/etc/rancher/k3s/k3s.yaml"],
+                    ["/bin/cat", "/var/lib/microshift/resources/kubeadmin/kubeconfig"],
                     "Copying kubeconfig from Agent Stack platform",
                 )
             ).stdout.decode()
@@ -313,7 +321,7 @@ class BaseDriver(abc.ABC):
                 "--values=/tmp/agentstack/values.yaml",
                 "--timeout=20m",
                 "--wait",
-                "--kubeconfig=/etc/rancher/k3s/k3s.yaml",
+                "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
                 *(f"--set={value}" for value in set_values_list),
             ],
             "Deploying Agent Stack platform with Helm",
@@ -327,7 +335,15 @@ class BaseDriver(abc.ABC):
                 json.loads(
                     (
                         await self.run_in_vm(
-                            ["k3s", "kubectl", "get", "pods", "-o", "json", "--all-namespaces"],
+                            [
+                                "kubectl",
+                                "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                                "get",
+                                "pods",
+                                "-o",
+                                "json",
+                                "--all-namespaces",
+                            ],
                             "Getting pods",
                         )
                     ).stdout
@@ -341,8 +357,8 @@ class BaseDriver(abc.ABC):
                 ):
                     await self.run_in_vm(
                         [
-                            "k3s",
                             "kubectl",
+                            "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
                             "delete",
                             "pod",
                             pod["metadata"]["name"],
