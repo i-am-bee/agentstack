@@ -13,12 +13,13 @@ from a2a.types import Message as A2AMessage
 from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
+from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
 
-class EmbeddingFulfillment(pydantic.BaseModel):
+class EmbeddingFulfillment(SecureBaseModel):
     identifier: str | None = None
     """
     Name of the model for identification and optimization purposes. Usually corresponds to LiteLLM identifiers.
@@ -31,7 +32,7 @@ class EmbeddingFulfillment(pydantic.BaseModel):
     Base URL for an OpenAI-compatible API. It should provide at least /v1/chat/completions
     """
 
-    api_key: str
+    api_key: pydantic.SecretStr
     """
     API key to attach as a `Authorization: Bearer $api_key` header.
     """
@@ -101,6 +102,6 @@ class EmbeddingServiceExtensionClient(BaseExtensionClient[EmbeddingServiceExtens
     def fulfillment_metadata(self, *, embedding_fulfillments: dict[str, EmbeddingFulfillment]) -> dict[str, Any]:
         return {
             self.spec.URI: EmbeddingServiceExtensionMetadata(embedding_fulfillments=embedding_fulfillments).model_dump(
-                mode="json"
+                mode="json", context={REVEAL_SECRETS: True}
             )
         }

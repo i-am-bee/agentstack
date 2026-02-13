@@ -26,14 +26,15 @@ from agentstack_sdk.platform import use_platform_client
 from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthenticatedUser
 from agentstack_sdk.util.httpx import BearerAuth
+from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
 
-class PlatformApiExtensionMetadata(pydantic.BaseModel):
+class PlatformApiExtensionMetadata(SecureBaseModel):
     base_url: HttpUrl | None = None
-    auth_token: pydantic.Secret[str] | None = None
+    auth_token: pydantic.SecretStr | None = None
     expires_at: pydantic.AwareDatetime | None = None
 
 
@@ -87,7 +88,8 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
         self._metadata_from_client = self._metadata_from_client or PlatformApiExtensionMetadata()
         data = self._metadata_from_client
         data.base_url = data.base_url or HttpUrl(os.getenv("PLATFORM_URL", "http://127.0.0.1:8333"))
-        data.auth_token = data.auth_token or self._get_header_token(request_context)
+        auth_token = data.auth_token or self._get_header_token(request_context)
+        data.auth_token = pydantic.SecretStr(auth_token.get_secret_value()) if auth_token else None
 
         if not data.auth_token:
             raise ExtensionError(self.spec, "Platform extension metadata was not provided")
@@ -118,14 +120,11 @@ class PlatformApiExtensionClient(BaseExtensionClient[PlatformApiExtensionSpec, N
         base_url: HttpUrl | None = None,
     ) -> dict[str, dict[str, str]]:
         return {
-            self.spec.URI: {
-                **PlatformApiExtensionMetadata(
-                    base_url=base_url,
-                    auth_token=pydantic.Secret("replaced below"),
-                    expires_at=expires_at,
-                ).model_dump(mode="json"),
-                "auth_token": auth_token if isinstance(auth_token, str) else auth_token.get_secret_value(),
-            }
+            self.spec.URI: PlatformApiExtensionMetadata(
+                base_url=base_url,
+                auth_token=auth_token,
+                expires_at=expires_at,
+            ).model_dump(mode="json", context={REVEAL_SECRETS: True})
         }
 
 

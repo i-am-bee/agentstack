@@ -13,6 +13,7 @@ from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
 from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.client.streamable_http import streamablehttp_client  # pyrefly: ignore [deprecated] -- TODO: upgrade
+from pydantic import AnyUrl
 from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.auth.oauth.oauth import OAuthExtensionServer
@@ -20,6 +21,7 @@ from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensio
 from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer
 from agentstack_sdk.platform.client import get_platform_client
 from agentstack_sdk.util.logging import logger
+from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel, redact_dict, redact_str
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
@@ -30,19 +32,31 @@ _DEFAULT_DEMAND_NAME = "default"
 _DEFAULT_ALLOWED_TRANSPORTS: list[_TRANSPORT_TYPES] = ["streamable_http"]
 
 
-class StdioTransport(pydantic.BaseModel):
+class StdioTransport(SecureBaseModel):
     type: Literal["stdio"] = "stdio"
 
     command: str
     args: list[str]
     env: dict[str, str] | None = None
 
+    @pydantic.field_serializer("args")
+    def _redact_args(self, v: list[str], info) -> list[str]:
+        return [redact_str(arg, info) for arg in v]
 
-class StreamableHTTPTransport(pydantic.BaseModel):
+    @pydantic.field_serializer("env")
+    def _redact_env(self, v: dict[str, str] | None, info) -> dict[str, str] | None:
+        return redact_dict(v, info) if v is not None else None
+
+
+class StreamableHTTPTransport(SecureBaseModel):
     type: Literal["streamable_http"] = "streamable_http"
 
-    url: str
+    url: AnyUrl
     headers: dict[str, str] | None = None
+
+    @pydantic.field_serializer("headers")
+    def _redact_headers(self, v: dict[str, str] | None, info) -> dict[str, str] | None:
+        return redact_dict(v, info) if v is not None else None
 
 
 MCPTransport = Annotated[StdioTransport | StreamableHTTPTransport, pydantic.Field(discriminator="type")]
@@ -114,7 +128,9 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         for fullfilment in self.data.mcp_fulfillments.values():
             if fullfilment.transport.type == "streamable_http":
                 try:
-                    fullfilment.transport.url = re.sub("^{platform_url}", platform_url, str(fullfilment.transport.url))
+                    fullfilment.transport.url = AnyUrl(
+                        re.sub("^{platform_url}", platform_url, str(fullfilment.transport.url))
+                    )
                 except Exception:
                     logger.warning("Platform URL substitution failed", exc_info=True)
 
@@ -162,7 +178,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         elif isinstance(transport, StreamableHTTPTransport):
             # pyrefly: ignore [deprecated] -- TODO: upgrade
             async with streamablehttp_client(
-                url=transport.url,
+                url=str(transport.url),
                 headers=transport.headers,
                 auth=await self._create_auth(transport),
             ) as (
@@ -180,7 +196,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             platform
             and platform.data
             and platform.data.base_url
-            and transport.url.startswith(str(platform.data.base_url))
+            and str(transport.url).startswith(str(platform.data.base_url))
         ):
             return await platform.create_httpx_auth()
         oauth = self._get_oauth_server()
@@ -191,4 +207,8 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
 
 class MCPServiceExtensionClient(BaseExtensionClient[MCPServiceExtensionSpec, NoneType]):
     def fulfillment_metadata(self, *, mcp_fulfillments: dict[str, MCPFulfillment]) -> dict[str, Any]:
-        return {self.spec.URI: MCPServiceExtensionMetadata(mcp_fulfillments=mcp_fulfillments).model_dump(mode="json")}
+        return {
+            self.spec.URI: MCPServiceExtensionMetadata(mcp_fulfillments=mcp_fulfillments).model_dump(
+                mode="json", context={REVEAL_SECRETS: True}
+            )
+        }

@@ -44,7 +44,7 @@ async def llm_extension_agent(create_server_with_agent) -> AsyncGenerator[tuple[
         # Agent producing chunked artifacts
         await asyncio.sleep(random() * 0.5)
 
-        api_key = next(iter(llm_ext.data.llm_fulfillments.values())).api_key
+        api_key = next(iter(llm_ext.data.llm_fulfillments.values())).api_key.get_secret_value()
         yield api_key
 
     async with create_server_with_agent(chunked_artifact_producer) as (server, test_client):

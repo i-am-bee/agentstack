@@ -13,7 +13,16 @@ import pydantic
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import AgentCard, AgentExtension
 from a2a.types import Message as A2AMessage
+from opentelemetry import trace
+from opentelemetry.trace import SpanKind
+from pydantic import BaseModel
 from typing_extensions import override
+
+from agentstack_sdk.util.pydantic import REDACT_SECRETS
+from agentstack_sdk.util.telemetry import (
+    flatten_dict,
+    trace_class,
+)
 
 ParamsT = typing.TypeVar("ParamsT")
 MetadataFromClientT = typing.TypeVar("MetadataFromClientT")
@@ -23,6 +32,10 @@ MetadataFromServerT = typing.TypeVar("MetadataFromServerT")
 if typing.TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
     from agentstack_sdk.server.dependencies import Dependency
+
+
+A2A_EXTENSION_URI = "a2a_extension.uri"
+A2A_EXTENSION_METADATA_RECEIVED_EVENT = "a2a_extension.metadata.received"
 
 
 def _get_generic_args(cls: type, base_class: type) -> tuple[typing.Any, ...]:
@@ -121,7 +134,14 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        cls.MetadataFromClient = _get_generic_args(cls, BaseExtensionServer)[1]
+
+        generic_args = _get_generic_args(cls, BaseExtensionServer)
+        trace_class(
+            kind=SpanKind.SERVER,
+            exclude_list=["lifespan", "_fork"],
+            attributes={A2A_EXTENSION_URI: generic_args[0].URI},
+        )(cls)
+        cls.MetadataFromClient = generic_args[1]
 
     _metadata_from_client: MetadataFromClientT | None = None
     _dependencies: dict[str, Dependency] = {}  # noqa: RUF012
@@ -151,6 +171,11 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
     def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
         if self._metadata_from_client is None:
             self._metadata_from_client = self.parse_client_metadata(message)
+            if isinstance(self._metadata_from_client, BaseModel):
+                trace.get_current_span().add_event(
+                    A2A_EXTENSION_METADATA_RECEIVED_EVENT,
+                    attributes=flatten_dict(self._metadata_from_client.model_dump(context={REDACT_SECRETS: True})),
+                )
 
     def _fork(self) -> typing.Self:
         """Creates a clone of this instance with the same arguments as the original"""
@@ -182,7 +207,10 @@ class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromSe
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        cls.MetadataFromServer = _get_generic_args(cls, BaseExtensionClient)[1]
+
+        generic_args = _get_generic_args(cls, BaseExtensionClient)
+        trace_class(kind=SpanKind.CLIENT, attributes={A2A_EXTENSION_URI: generic_args[0].URI})(cls)
+        cls.MetadataFromServer = generic_args[1]
 
     def __init__(self, spec: ExtensionSpecT) -> None:
         self.spec = spec

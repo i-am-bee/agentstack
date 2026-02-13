@@ -93,7 +93,7 @@ class ChatAgentExecutor(a2a.server.agent_execution.AgentExecutor):
         agent = beeai_framework.agents.react.ReActAgent(
             llm=beeai_framework.adapters.openai.backend.chat.OpenAIChatModel(
                 model_id=self.context_llm[context.context_id]["default"].api_model,
-                api_key=self.context_llm[context.context_id]["default"].api_key,
+                api_key=self.context_llm[context.context_id]["default"].api_key.get_secret_value(),
                 base_url=self.context_llm[context.context_id]["default"].api_base,
             ),
             tools=[

@@ -9,33 +9,40 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 import a2a.types
 from mcp import Implementation, Tool
+from opentelemetry import trace
 from pydantic import BaseModel, Discriminator, Field, TypeAdapter
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
+from agentstack_sdk.util.pydantic import REDACT_SECRETS, REVEAL_SECRETS, SecureBaseModel
+from agentstack_sdk.util.telemetry import flatten_dict
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+
+A2A_EXTENSION_APPROVAL_REQUESTED = "a2a_extension.approval.requested"
+A2A_EXTENSION_APPROVAL_RESOLVED = "a2a_extension.approval.resolved"
 
 
 class ApprovalRejectionError(RuntimeError):
     pass
 
 
-class GenericApprovalRequest(BaseModel):
+class GenericApprovalRequest(SecureBaseModel):
     action: Literal["generic"] = "generic"
 
     title: str | None = Field(None, description="A human-readable title for the action being approved.")
     description: str | None = Field(None, description="A human-readable description of the action being approved.")
 
 
-class ToolCallServer(BaseModel):
+class ToolCallServer(SecureBaseModel):
     name: str = Field(description="The programmatic name of the server.")
     title: str | None = Field(description="A human-readable title for the server.")
     version: str = Field(description="The version of the server.")
 
 
-class ToolCallApprovalRequest(BaseModel):
+class ToolCallApprovalRequest(SecureBaseModel):
     action: Literal["tool-call"] = "tool-call"
 
     title: str | None = Field(None, description="A human-readable title of the tool.")
@@ -60,7 +67,7 @@ class ToolCallApprovalRequest(BaseModel):
 ApprovalRequest = Annotated[GenericApprovalRequest | ToolCallApprovalRequest, Discriminator("action")]
 
 
-class ApprovalResponse(BaseModel):
+class ApprovalResponse(SecureBaseModel):
     decision: Literal["approve", "reject"]
 
     @property
@@ -86,7 +93,10 @@ class ApprovalExtensionMetadata(BaseModel):
 
 class ApprovalExtensionServer(BaseExtensionServer[ApprovalExtensionSpec, ApprovalExtensionMetadata]):
     def create_request_message(self, *, request: ApprovalRequest):
-        return AgentMessage(text="Approval requested", metadata={self.spec.URI: request.model_dump(mode="json")})
+        return AgentMessage(
+            text="Approval requested",
+            metadata={self.spec.URI: request.model_dump(mode="json", context={REVEAL_SECRETS: True})},
+        )
 
     def parse_response(self, *, message: a2a.types.Message):
         if not message.metadata or not (data := message.metadata.get(self.spec.URI)):
@@ -99,11 +109,21 @@ class ApprovalExtensionServer(BaseExtensionServer[ApprovalExtensionSpec, Approva
         *,
         context: RunContext,
     ) -> ApprovalResponse:
+        span = trace.get_current_span()
+        span.add_event(
+            A2A_EXTENSION_APPROVAL_REQUESTED,
+            attributes=flatten_dict(request.model_dump(context={REDACT_SECRETS: True})),
+        )
         message = self.create_request_message(request=request)
         message = await context.yield_async(InputRequired(message=message))
         if not message:
             raise RuntimeError("Yield did not return a message")
-        return self.parse_response(message=message)
+        response = self.parse_response(message=message)
+        span.add_event(
+            A2A_EXTENSION_APPROVAL_RESOLVED,
+            attributes=flatten_dict(response.model_dump(context={REDACT_SECRETS: True})),
+        )
+        return response
 
 
 class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneType]):
@@ -113,7 +133,7 @@ class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneTyp
             role=a2a.types.Role.user,
             parts=[],
             task_id=task_id,
-            metadata={self.spec.URI: response.model_dump(mode="json")},
+            metadata={self.spec.URI: response.model_dump(mode="json", context={REVEAL_SECRETS: True})},
         )
 
     def parse_request(self, *, message: a2a.types.Message):
@@ -122,4 +142,4 @@ class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneTyp
         return TypeAdapter(ApprovalRequest).validate_python(data)
 
     def metadata(self) -> dict[str, Any]:
-        return {self.spec.URI: ApprovalExtensionMetadata().model_dump(mode="json")}
+        return {self.spec.URI: ApprovalExtensionMetadata().model_dump(mode="json", context={REVEAL_SECRETS: True})}

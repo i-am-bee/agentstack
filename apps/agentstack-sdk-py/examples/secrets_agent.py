@@ -43,7 +43,7 @@ async def secrets_agent(
 ):
     """Agent that uses request a secret that can be provided during runtime"""
     if secrets and secrets.data and secrets.data.secret_fulfillments:
-        yield f"IBM Cloud API key: {secrets.data.secret_fulfillments['ibm_cloud'].secret}"
+        yield f"IBM Cloud API key: {secrets.data.secret_fulfillments['ibm_cloud'].secret.get_secret_value()}"
     else:
         runtime_provided_secrets = await secrets.request_secrets(
             params=SecretsServiceExtensionParams(
@@ -51,7 +51,7 @@ async def secrets_agent(
             )
         )
         if runtime_provided_secrets and runtime_provided_secrets.secret_fulfillments:
-            yield f"IBM Cloud API key: {runtime_provided_secrets.secret_fulfillments['ibm_cloud'].secret}"
+            yield f"IBM Cloud API key: {runtime_provided_secrets.secret_fulfillments['ibm_cloud'].secret.get_secret_value()}"
         else:
             yield "No IBM Cloud API key provided"
 

@@ -8,13 +8,19 @@ from typing import TYPE_CHECKING, Self
 import pydantic
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
+from opentelemetry import trace
 from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, AuthRequired
+from agentstack_sdk.util.pydantic import REDACT_SECRETS, REVEAL_SECRETS, SecureBaseModel
+from agentstack_sdk.util.telemetry import flatten_dict
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+A2A_EXTENSION_SECRETS_REQUESTED = "a2a_extension.secrets.requested"
+A2A_EXTENSION_SECRETS_RESOLVED = "a2a_extension.secrets.resolved"
 
 
 class SecretDemand(pydantic.BaseModel):
@@ -22,8 +28,8 @@ class SecretDemand(pydantic.BaseModel):
     description: str | None = None
 
 
-class SecretFulfillment(pydantic.BaseModel):
-    secret: str
+class SecretFulfillment(SecureBaseModel):
+    secret: pydantic.SecretStr
 
 
 class SecretsServiceExtensionParams(pydantic.BaseModel):
@@ -61,15 +67,25 @@ class SecretsExtensionServer(BaseExtensionServer[SecretsExtensionSpec, SecretsSe
         return SecretsServiceExtensionMetadata.model_validate(data)
 
     async def request_secrets(self, params: SecretsServiceExtensionParams) -> SecretsServiceExtensionMetadata:
+        span = trace.get_current_span()
+        span.add_event(
+            A2A_EXTENSION_SECRETS_REQUESTED,
+            attributes=flatten_dict(params.model_dump(context={REDACT_SECRETS: True})),
+        )
         resume = await self.context.yield_async(
             AuthRequired(
                 message=AgentMessage(
-                    metadata={self.spec.URI: params.model_dump(mode="json")},
+                    metadata={self.spec.URI: params.model_dump(mode="json", context={REVEAL_SECRETS: True})},
                 )
             )
         )
         if isinstance(resume, A2AMessage):
-            return self.parse_secret_response(message=resume)
+            response = self.parse_secret_response(message=resume)
+            span.add_event(
+                A2A_EXTENSION_SECRETS_RESOLVED,
+                attributes=flatten_dict(response.model_dump(context={REDACT_SECRETS: True})),
+            )
+            return response
         else:
             raise ValueError("Secrets has not been provided in response.")
 

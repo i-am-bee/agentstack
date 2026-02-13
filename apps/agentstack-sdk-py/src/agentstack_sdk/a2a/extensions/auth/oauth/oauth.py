@@ -19,6 +19,7 @@ from typing_extensions import override
 from agentstack_sdk.a2a.extensions.auth.oauth.storage import MemoryTokenStorageFactory, TokenStorageFactory
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, AuthRequired, RunYieldResume
+from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
@@ -26,15 +27,15 @@ if TYPE_CHECKING:
 _DEFAULT_DEMAND_NAME = "default"
 
 
-class AuthRequest(pydantic.BaseModel):
+class AuthRequest(SecureBaseModel):
     authorization_endpoint_url: pydantic.AnyUrl
 
 
-class AuthResponse(pydantic.BaseModel):
+class AuthResponse(SecureBaseModel):
     redirect_uri: pydantic.AnyUrl
 
 
-class OAuthFulfillment(pydantic.BaseModel):
+class OAuthFulfillment(SecureBaseModel):
     redirect_uri: pydantic.AnyUrl
 
 
@@ -122,7 +123,10 @@ class OAuthExtensionServer(BaseExtensionServer[OAuthExtensionSpec, OAuthExtensio
 
     def create_auth_request(self, *, authorization_endpoint_url: pydantic.AnyUrl):
         data = AuthRequest(authorization_endpoint_url=authorization_endpoint_url)
-        return AgentMessage(text="Authorization required", metadata={self.spec.URI: data.model_dump(mode="json")})
+        return AgentMessage(
+            text="Authorization required",
+            metadata={self.spec.URI: data.model_dump(mode="json", context={REVEAL_SECRETS: True})},
+        )
 
     def parse_auth_response(self, *, message: A2AMessage):
         if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
@@ -147,5 +151,5 @@ class OAuthExtensionClient(BaseExtensionClient[OAuthExtensionSpec, NoneType]):
             role=Role.user,
             parts=[TextPart(text="Authorization completed")],
             task_id=task_id,
-            metadata={self.spec.URI: data.model_dump(mode="json")},
+            metadata={self.spec.URI: data.model_dump(mode="json", context={REVEAL_SECRETS: True})},
         )

@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionError
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
+from agentstack_sdk.util.pydantic import REVEAL_SECRETS
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
@@ -67,7 +68,8 @@ class ToolCallExtensionMetadata(BaseModel):
 class ToolCallExtensionServer(BaseExtensionServer[ToolCallExtensionSpec, ToolCallExtensionMetadata]):
     def create_request_message(self, *, request: ToolCallRequest):
         return AgentMessage(
-            text="Tool call approval requested", metadata={self.spec.URI: request.model_dump(mode="json")}
+            text="Tool call approval requested",
+            metadata={self.spec.URI: request.model_dump(mode="json", context={REVEAL_SECRETS: True})},
         )
 
     def parse_response(self, *, message: a2a.types.Message):
@@ -102,7 +104,7 @@ class ToolCallExtensionClient(BaseExtensionClient[ToolCallExtensionSpec, NoneTyp
             role=a2a.types.Role.user,
             parts=[],
             task_id=task_id,
-            metadata={self.spec.URI: response.model_dump(mode="json")},
+            metadata={self.spec.URI: response.model_dump(mode="json", context={REVEAL_SECRETS: True})},
         )
 
     def parse_request(self, *, message: a2a.types.Message):
@@ -111,4 +113,4 @@ class ToolCallExtensionClient(BaseExtensionClient[ToolCallExtensionSpec, NoneTyp
         return ToolCallRequest.model_validate(data)
 
     def metadata(self) -> dict[str, Any]:
-        return {self.spec.URI: ToolCallExtensionMetadata().model_dump(mode="json")}
+        return {self.spec.URI: ToolCallExtensionMetadata().model_dump(mode="json", context={REVEAL_SECRETS: True})}

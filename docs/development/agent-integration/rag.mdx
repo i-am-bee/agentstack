@@ -1,11 +1,12 @@
 ---
-title: "Build RAG Pipelines"
-description: "Use vector stores, embedding, and text-extraction services to build RAG pipelines"
+title: 'Build RAG Pipelines'
+description: 'Use vector stores, embedding, and text-extraction services to build RAG pipelines'
 ---
 
-Retrieval Augmented Generation (RAG) is one of the keystones for efficient data processing and search in the age of AI agents. The goal is to surface
-information from a knowledge base relevant to a specific user query and provide curated context to the LLM. This is
-a complex topic with many variants. We will focus on the fundamental building blocks that any RAG pipeline needs.
+Retrieval Augmented Generation (RAG) is one of the keystones for efficient data processing and search in the age of AI
+agents. The goal is to surface information from a knowledge base relevant to a specific user query and provide curated
+context to the LLM. This is a complex topic with many variants. We will focus on the fundamental building blocks that
+any RAG pipeline needs.
 
 The document processing pipeline:
 
@@ -28,17 +29,16 @@ Retrieval:
 </Step>
 
 <Step title="Enable file uploads in your agent">
-Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent. This also specifies which file types users can upload.
+  Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent. This
+  also specifies which file types users can upload.
 </Step>
 
 <Step title="Import the Platform API and Embedding Service extensions">
-Import `PlatformApiExtensionServer`, `PlatformApiExtensionSpec`,
-`EmbeddingServiceExtensionServer` and `EmbeddingServiceExtensionSpec` from `agentstack_sdk.a2a.extensions`.
+  Import `PlatformApiExtensionServer`, `PlatformApiExtensionSpec`, `EmbeddingServiceExtensionServer` and
+  `EmbeddingServiceExtensionSpec` from `agentstack_sdk.a2a.extensions`.
 </Step>
 
-<Step title="Inject the extensions">
-  Add parameters to your agent function using the `Annotated` type hints.
-</Step>
+<Step title="Inject the extensions">Add parameters to your agent function using the `Annotated` type hints.</Step>
 
 <Step title="Implement document processing functions">
   Implement functions to handle text extraction, text splitting, embedding generation, and vector storing.
@@ -65,9 +65,9 @@ Let's break down how each step can be implemented with the Agent Stack API.
 
 ### Enable File Uploads
 
-Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent.
-This also specifies which file types users can upload.
-Agent Stack uses [docling](https://docling-project.github.io/docling/) for extracting text out of documents in various
+Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent. This also
+specifies which file types users can upload. Agent Stack uses [docling](https://docling-project.github.io/docling/) for
+extracting text out of documents in various
 [supported formats](https://docling-project.github.io/docling/usage/supported_formats/).
 
 ```python
@@ -164,12 +164,12 @@ Next, let's build a set of functions to process the documents which we will then
 
 ### Text Extraction
 
-To extract text from a `File` uploaded to the Platform API, simply use `file.create_extraction()` and wait for
-the result. After extraction is completed, the `extraction` object will contain
-`extracted_files`, which is a list of extracted files in different formats.
-
+To extract text from a `File` uploaded to the Platform API, simply use `file.create_extraction()` and wait for the
+result. After extraction is completed, the `extraction` object will contain `extracted_files`, which is a list of
+extracted files in different formats.
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/extraction.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -191,21 +191,23 @@ async def extract_file(file: File):
 
 #### Extraction Formats
 
-Text extraction produces two extraction formats and you can request either subset by passing `formats` to `create_extraction` (e.g., `["markdown"]` if you only need plain text):
+Text extraction produces two extraction formats and you can request either subset by passing `formats` to
+`create_extraction` (e.g., `["markdown"]` if you only need plain text):
 
-- __markdown__: The extracted text formatted as Markdown (`file.load_text_content()`)
-- __vendor_specific_json__: The Docling-specific JSON format containing document structure (`file.load_json_content()`)
+- **markdown**: The extracted text formatted as Markdown (`file.load_text_content()`)
+- **vendor_specific_json**: The Docling-specific JSON format containing document structure (`file.load_json_content()`)
 
-> __WARNING__:
-> The `vendor_specific_json` format is not generated for plain text or markdown files, as Docling does not support these formats as input.
+> **WARNING**: The `vendor_specific_json` format is not generated for plain text or markdown files, as Docling does not
+> support these formats as input.
 
 ### Text Splitting
 
 In this example we will use `MarkdownTextSplitter` from the
-[langchain-text-splitters](https://reference.langchain.com/python/langchain_text_splitters/) package.
-This will split a long document into reasonably sized chunks based on the Markdown header structure.
+[langchain-text-splitters](https://reference.langchain.com/python/langchain_text_splitters/) package. This will split a
+long document into reasonably sized chunks based on the Markdown header structure.
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/text_splitting.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -225,6 +227,7 @@ OpenAI-compatible embedding API. You can use any preferred client, in this examp
 to create an `AsyncOpenAI` client:
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/embedding/client.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -243,7 +246,7 @@ def get_embedding_client(
     if not embedding_config:
         raise ValueError("Default embedding configuration not found")
 
-    embedding_client = AsyncOpenAI(api_key=embedding_config.api_key, base_url=embedding_config.api_base)
+    embedding_client = AsyncOpenAI(api_key=embedding_config.api_key.get_secret_value(), base_url=embedding_config.api_base)
     embedding_model = embedding_config.api_model
     return embedding_client, embedding_model
 
@@ -252,6 +255,7 @@ def get_embedding_client(
 Now we can use this client to generate embeddings for our chunks and create vector store items:
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/embedding/embed.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -285,11 +289,12 @@ async def embed_chunks(
 
 ### Store
 
-Finally, to insert the prepared items, we need a function to create a vector store. For this we will need to know
-the dimension of the embeddings and model_id. Because the model is chosen by the embedding extension and we don't know
-it in advance, we will create a test embedding request to calculate the dimension:
+Finally, to insert the prepared items, we need a function to create a vector store. For this we will need to know the
+dimension of the embeddings and model_id. Because the model is chosen by the embedding extension and we don't know it in
+advance, we will create a test embedding request to calculate the dimension:
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/vector_store/create.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -317,6 +322,7 @@ Assuming we have our knowledge base of documents prepared, we can now easily sea
 query. The following function will retrieve five document chunks most similar to the query embedding:
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/vector_store/search.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -343,11 +349,11 @@ Having all the pieces in place, we can now build the agent.
 
 ### Simple agent
 
-This is a simplified agent that expects a message with one or more files attached as `FilePart` and a
-user query as `TextPart`. A new vector store is created for each message.
-
+This is a simplified agent that expects a message with one or more files attached as `FilePart` and a user query as
+`TextPart`. A new vector store is created for each message.
 
 {/* <!-- embedme examples/agent-integration/rag/simple-rag-agent/src/simple_rag_agent/agent.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -460,6 +466,7 @@ all documents uploaded in the conversation. Below is a version of the agent whic
 messages so you can ask multiple queries and or additional documents later on.
 
 {/* <!-- embedme examples/agent-integration/rag/conversation-rag-agent/src/conversation_rag_agent/agent.py--> */}
+
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -583,9 +590,12 @@ if __name__ == "__main__":
 
 ### Next steps
 
-To further improve the agent, learn how to use other parts of the platform such as LLMs,
-file uploads and conversations:
+To further improve the agent, learn how to use other parts of the platform such as LLMs, file uploads and conversations:
 
 - [LLM extension](./llm-proxy-service)
 - [Multi-turn conversations](./multi-turn)
 - [File handling](./files)
+
+```
+
+```
