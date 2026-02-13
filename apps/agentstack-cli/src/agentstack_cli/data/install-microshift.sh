@@ -1,6 +1,13 @@
 #!/bin/bash
 set -eux -o pipefail
 
+# Check if k3s is already installed (for backward compatibility with old VMs)
+if systemctl is-enabled k3s &>/dev/null; then
+    echo "k3s is already installed (legacy VM), ensuring it is started..."
+    systemctl start k3s || true
+    exit 0
+fi
+
 # Check if MicroShift is already installed
 if systemctl is-enabled microshift &>/dev/null; then
     echo "MicroShift is already installed, ensuring it is started..."
@@ -94,7 +101,7 @@ echo "Installing prerequisites..."
 export DEBIAN_FRONTEND=noninteractive
 export TZ=Etc/UTC
 apt-get update -y -q
-apt-get install -y -q tzdata curl gnupg policycoreutils sosreport podman
+apt-get install -y -q tzdata curl gnupg podman
 
 # Install and configure firewall
 echo "Configuring firewall..."
@@ -104,7 +111,6 @@ ufw allow from 10.42.0.0/16
 ufw route allow from 10.42.0.0/16
 ufw allow from 169.254.169.1
 ufw allow ssh
-ufw reload
 
 # Install CRI-O
 echo "Installing CRI-O..."
@@ -129,17 +135,28 @@ plugin_dirs = [
 ]
 EOF
 
+# Configure CRI-O registry settings for insecure registries (before first start)
+mkdir -p /etc/containers/registries.conf.d
+cat > /etc/containers/registries.conf.d/200-microshift-local.conf <<EOF
+# Configuration for local insecure registry (to be used by Agent Stack)
+[[registry]]
+location = "agentstack-registry-svc.default:5001"
+insecure = true
+
+[[registry.mirror]]
+location = "localhost:30501"
+insecure = true
+EOF
+
 systemctl daemon-reload
 systemctl enable crio
-systemctl restart crio
+systemctl start crio
 
 # Install kubectl and cri-tools
 echo "Installing kubectl and CLI tools..."
 KUBECTL_VERSION_FOUND="$(find_debpkg_version "kubectl" "${CRIO_VERSION}" "https://pkgs.k8s.io/core:/stable:")"
 KUBECTL_RELKEY="https://pkgs.k8s.io/core:/stable:/v${KUBECTL_VERSION_FOUND}/deb/Release.key"
 install_debpkg "kubectl" "${KUBECTL_VERSION_FOUND}" "${KUBECTL_RELKEY}" "cri-tools"
-mkdir -p ~/.kube
-ln -s /var/lib/microshift/resources/kubeadmin/kubeconfig ~/.kube/config
 
 echo "Installing MicroShift packages..."
 find "${WORK_DIR}" -maxdepth 1 -name 'microshift*.deb' -print 2>/dev/null | sort | while read -r deb_package; do
@@ -208,22 +225,6 @@ fi
 echo "Storage configuration complete"
 vgs
 lvs
-
-# Configure CRI-O registry settings for insecure registries
-mkdir -p /etc/containers/registries.conf.d
-cat > /etc/containers/registries.conf.d/200-microshift-local.conf <<EOF
-# Configuration for local insecure registry (to be used by Agent Stack)
-[[registry]]
-location = "agentstack-registry-svc.default:5001"
-insecure = true
-
-[[registry.mirror]]
-location = "localhost:30501"
-insecure = true
-EOF
-
-# Restart CRI-O to pick up registry configuration
-systemctl restart crio
 
 # Start MicroShift
 echo "Starting MicroShift..."

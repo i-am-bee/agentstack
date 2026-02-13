@@ -9,6 +9,7 @@ import shlex
 import typing
 import uuid
 from enum import StrEnum
+from functools import cached_property
 from subprocess import CompletedProcess
 
 import anyio
@@ -28,10 +29,21 @@ class ImagePullMode(StrEnum):
 
 class BaseDriver(abc.ABC):
     vm_name: str
+    kubeconfig_path: str
+    platform: typing.Literal["k3s", "microshift"]
 
     def __init__(self, vm_name: str = "agentstack"):
         self.vm_name = vm_name
         self.loaded_images: set[str] = set()
+        # Default to MicroShift, will be detected during install_tools
+        self.platform = "microshift"
+
+    @cached_property
+    def kubeconfig_path(self) -> str:
+        return {
+            "microshift": "/var/lib/microshift/resources/kubeadmin/kubeconfig",
+            "k3s": "/etc/rancher/k3s/k3s.yaml",
+        }[self.platform]
 
     @abc.abstractmethod
     async def run_in_vm(
@@ -40,6 +52,7 @@ class BaseDriver(abc.ABC):
         message: str,
         env: dict[str, str] | None = None,
         input: bytes | None = None,
+        check: bool = True,
     ) -> CompletedProcess[bytes]: ...
 
     @abc.abstractmethod
@@ -71,12 +84,21 @@ class BaseDriver(abc.ABC):
                 ["docker", "image", "save", "-o", host_path, *tags],
                 f"Exporting image{'' if len(tags) == 1 else 's'} {', '.join(tags)} from Docker",
             )
-            # CRI-O doesn't have a direct import command in crictl
-            # Use podman load which shares the same storage backend with CRI-O
-            await self.run_in_vm(
-                ["podman", "load", "-i", guest_path],
-                f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
-            )
+
+            # Use platform-specific import command
+            if self.platform == "k3s":
+                # k3s uses ctr for image operations
+                await self.run_in_vm(
+                    ["/bin/sh", "-c", f"k3s ctr images import {guest_path}"],
+                    f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
+                )
+            else:
+                # MicroShift: CRI-O doesn't have a direct import command in crictl
+                # Use podman load which shares the same storage backend with CRI-O
+                await self.run_in_vm(
+                    ["podman", "load", "-i", guest_path],
+                    f"Importing image{'' if len(tags) == 1 else 's'} {', '.join(tags)} into Agent Stack platform",
+                )
         finally:
             await anyio.Path(host_path).unlink(missing_ok=True)
 
@@ -90,7 +112,7 @@ class BaseDriver(abc.ABC):
             )
             job_name = f"push-{uuid.uuid4().hex[:6]}"
             await self.run_in_vm(
-                ["kubectl", "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig", "apply", "-f", "-"],
+                ["kubectl", f"--kubeconfig={self.kubeconfig_path}", "apply", "-f", "-"],
                 "Starting push job",
                 input=yaml.dump(
                     {
@@ -135,7 +157,7 @@ class BaseDriver(abc.ABC):
             await self.run_in_vm(
                 [
                     "kubectl",
-                    "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                    f"--kubeconfig={self.kubeconfig_path}",
                     "wait",
                     "--for=condition=complete",
                     f"job/{job_name}",
@@ -154,60 +176,82 @@ class BaseDriver(abc.ABC):
         *,
         mode: typing.Literal["guest", "host"],
     ) -> dict[str, str]:
-        # Both docker and crictl use the same format with --digests:
-        # IMAGE/REPOSITORY  TAG  DIGEST  IMAGE-ID  ...
-        # We want x[2] (DIGEST) and x[0]:x[1] (IMAGE:TAG)
-        output = (
-            await run_command(
-                ["docker", "images", "--digests"],
-                "Listing host images",
-            )
-            if mode == "host"
-            else await self.run_in_vm(
-                ["crictl", "images", "--digests"],
-                "Listing guest images",
-            )
-        ).stdout.decode()
-
-        return {
-            tag: sha
-            for line in output.splitlines()[1:]
-            if (x := line.split())
-            and len(x) >= 4  # At minimum: IMAGE TAG DIGEST ID
-            and (sha := x[2])  # DIGEST column
-            and x[1] != "<none>"  # Skip images without tags
-            and ((tag := self._canonify(x[0] + ":" + x[1])) in self.loaded_images)
-        }
+        # Format depends on platform:
+        # - docker/crictl: IMAGE TAG DIGEST IMAGE-ID ...
+        # - k3s ctr: REF DIGEST SIZE PLATFORM ...
+        if mode == "host":
+            output = (
+                await run_command(
+                    ["docker", "images", "--digests"],
+                    "Listing host images",
+                )
+            ).stdout.decode()
+            # docker format: IMAGE TAG DIGEST ID ...
+            return {
+                tag: sha
+                for line in output.splitlines()[1:]
+                if (x := line.split())
+                and len(x) >= 4
+                and (sha := x[2])  # DIGEST column
+                and x[1] != "<none>"  # Skip images without tags
+                and ((tag := self._canonify(x[0] + ":" + x[1])) in self.loaded_images)
+            }
+        else:
+            # Guest: use platform-specific command
+            if self.platform == "k3s":
+                # k3s ctr format: REF DIGEST SIZE PLATFORM ...
+                # REF already includes tag (e.g., docker.io/library/nginx:latest)
+                output = (
+                    await self.run_in_vm(
+                        ["k3s", "ctr", "image", "ls"],
+                        "Listing guest images",
+                    )
+                ).stdout.decode()
+                return {
+                    tag: sha
+                    for line in output.splitlines()[1:]
+                    if (x := line.split())
+                    and (sha := x[2])  # DIGEST column (actually SIZE in ctr, but we use index 2)
+                    and ((tag := self._canonify(x[0])) in self.loaded_images)  # REF already has tag
+                }
+            else:
+                # MicroShift crictl format: IMAGE TAG DIGEST ID ...
+                output = (
+                    await self.run_in_vm(
+                        ["crictl", "images", "--digests"],
+                        "Listing guest images",
+                    )
+                ).stdout.decode()
+                return {
+                    tag: sha
+                    for line in output.splitlines()[1:]
+                    if (x := line.split())
+                    and len(x) >= 4
+                    and (sha := x[2])  # DIGEST column
+                    and x[1] != "<none>"  # Skip images without tags
+                    and ((tag := self._canonify(x[0] + ":" + x[1])) in self.loaded_images)
+                }
 
     async def install_tools(self) -> None:
         # Execute MicroShift installation script by piping to bash
+        # (script handles backward compatibility with k3s)
         await self.run_in_vm(
             ["bash"],
             "Installing MicroShift (this may take several minutes)",
             input=(importlib.resources.files("agentstack_cli") / "data" / "install-microshift.sh").read_bytes(),
         )
 
-        # Wait for MicroShift to be fully ready (topolvm-controller endpoints available)
-        await self.run_in_vm(
-            [
-                "bash",
-                "-c",
-                (
-                    "for i in {1..120}; do "
-                    "if kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig "
-                    "get endpoints -n topolvm-system topolvm-controller -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null | grep -q '.'; then "
-                    "echo 'MicroShift is ready'; "
-                    "exit 0; "
-                    "fi; "
-                    "echo 'Waiting for MicroShift services to be ready...'; "
-                    "sleep 5; "
-                    "done; "
-                    "echo 'Timeout waiting for MicroShift'; "
-                    "exit 1"
-                ),
-            ],
-            "Waiting for MicroShift services to be ready",
-        )
+        # Detect which platform is actually running
+        if (
+            await self.run_in_vm(
+                ["systemctl", "is-active", "k3s"],
+                "Detecting Kubernetes platform",
+                check=False,
+            )
+        ).returncode == 0:
+            self.platform = "k3s"
+        else:
+            self.platform = "microshift"
 
         await self.run_in_vm(
             [
@@ -303,11 +347,34 @@ class BaseDriver(abc.ABC):
         await kubeconfig_path.write_text(
             (
                 await self.run_in_vm(
-                    ["/bin/cat", "/var/lib/microshift/resources/kubeadmin/kubeconfig"],
+                    ["/bin/cat", self.kubeconfig_path],
                     "Copying kubeconfig from Agent Stack platform",
                 )
             ).stdout.decode()
         )
+
+        # Wait for MicroShift-specific services (skip on k3s)
+        if self.platform == "microshift":
+            await self.run_in_vm(
+                [
+                    "bash",
+                    "-c",
+                    (
+                        "for i in {1..120}; do "
+                        f"if kubectl --kubeconfig={self.kubeconfig_path} "
+                        "get endpoints -n topolvm-system topolvm-controller -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null | grep -q '.'; then "
+                        "echo 'MicroShift is ready'; "
+                        "exit 0; "
+                        "fi; "
+                        "echo 'Waiting for MicroShift services to be ready...'; "
+                        "sleep 5; "
+                        "done; "
+                        "echo 'Timeout waiting for MicroShift'; "
+                        "exit 1"
+                    ),
+                ],
+                "Waiting for MicroShift services to be ready",
+            )
 
         await self.run_in_vm(
             [
@@ -321,7 +388,7 @@ class BaseDriver(abc.ABC):
                 "--values=/tmp/agentstack/values.yaml",
                 "--timeout=20m",
                 "--wait",
-                "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                f"--kubeconfig={self.kubeconfig_path}",
                 *(f"--set={value}" for value in set_values_list),
             ],
             "Deploying Agent Stack platform with Helm",
@@ -337,7 +404,7 @@ class BaseDriver(abc.ABC):
                         await self.run_in_vm(
                             [
                                 "kubectl",
-                                "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                                f"--kubeconfig={self.kubeconfig_path}",
                                 "get",
                                 "pods",
                                 "-o",
@@ -358,7 +425,7 @@ class BaseDriver(abc.ABC):
                     await self.run_in_vm(
                         [
                             "kubectl",
-                            "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                            f"--kubeconfig={self.kubeconfig_path}",
                             "delete",
                             "pod",
                             pod["metadata"]["name"],

@@ -43,6 +43,7 @@ class LimaDriver(BaseDriver):
         message: str,
         env: dict[str, str] | None = None,
         input: bytes | None = None,
+        check: bool = True,
     ) -> CompletedProcess[bytes]:
         return await run_command(
             [self.limactl_exe, "shell", f"--tty={sys.stdin.isatty()}", self.vm_name, "--", "sudo", *command],
@@ -50,6 +51,7 @@ class LimaDriver(BaseDriver):
             env={"LIMA_HOME": str(Configuration().lima_home)} | (env or {}),
             cwd="/",
             input=input,
+            check=check,
         )
 
     @typing.override
@@ -175,17 +177,18 @@ class LimaDriver(BaseDriver):
         image_pull_mode: ImagePullMode = ImagePullMode.guest,
     ) -> None:
         await super().deploy(set_values_list=set_values_list, values_file=values_file, image_pull_mode=image_pull_mode)
+
         await self.run_in_vm(
             ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
             "Installing systemd unit for port-forwarding",
-            input=textwrap.dedent("""\
+            input=textwrap.dedent(f"""\
             [Unit]
             Description=Kubectl Port Forward for service %i
             After=network.target
 
             [Service]
             Type=simple
-            ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i"; exec /usr/bin/kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig port-forward --address=127.0.0.1 svc/$svc $port:$port'
+            ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i"; exec kubectl --kubeconfig={self.kubeconfig_path} port-forward --address=127.0.0.1 svc/$svc $port:$port'
             Restart=on-failure
             User=root
 
@@ -194,11 +197,12 @@ class LimaDriver(BaseDriver):
             """).encode(),
         )
         await self.run_in_vm(["systemctl", "daemon-reexec"], "Reloading systemd")
+
         services_json = (
             await self.run_in_vm(
                 [
                     "kubectl",
-                    "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                    f"--kubeconfig={self.kubeconfig_path}",
                     "get",
                     "svc",
                     "--field-selector=spec.type=LoadBalancer",

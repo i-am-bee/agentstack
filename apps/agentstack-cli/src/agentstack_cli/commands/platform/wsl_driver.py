@@ -9,6 +9,7 @@ import sys
 import tempfile
 import textwrap
 import typing
+from subprocess import CompletedProcess
 
 import anyio
 import pydantic
@@ -28,7 +29,7 @@ class WSLDriver(BaseDriver):
         env: dict[str, str] | None = None,
         input: bytes | None = None,
         check: bool = True,
-    ):
+    ) -> CompletedProcess[bytes]:
         return await run_command(
             ["wsl.exe", "--user", "root", "--distribution", self.vm_name, "--", *command],
             message,
@@ -142,46 +143,50 @@ class WSLDriver(BaseDriver):
             .stdout.decode()
             .strip()
         )
-        # MicroShift uses a different CoreDNS configuration approach than k3s
-        # Instead of coredns-custom in kube-system, we need to patch the CoreDNS configmap in openshift-dns
-        # MicroShift's CoreDNS ConfigMap is named dns-default in the openshift-dns namespace
-        await self.run_in_vm(
-            [
-                "bash",
-                "-c",
-                f"""kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig get configmap -n openshift-dns dns-default -o yaml | \
-sed '/^  Corefile: |/a\\    host.docker.internal:53 {{\\n        hosts {{\\n            {host_ip} host.docker.internal\\n            fallthrough\\n        }}\\n    }}' | \
-kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig apply -f -""",
-            ],
-            "Setting up internal networking",
-        )
 
-        # Restart CoreDNS pods to pick up the configuration change
-        await self.run_in_vm(
-            [
-                "kubectl",
-                "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
-                "delete",
-                "pods",
-                "-n",
-                "openshift-dns",
-                "-l",
-                "dns.operator.openshift.io/daemonset-dns=default",
-            ],
-            "Restarting CoreDNS",
-        )
+        # MicroShift-specific CoreDNS configuration (skip on k3s)
+        if self.platform == "microshift":
+            # MicroShift uses a different CoreDNS configuration approach than k3s
+            # Instead of coredns-custom in kube-system, we need to patch the CoreDNS configmap in openshift-dns
+            # MicroShift's CoreDNS ConfigMap is named dns-default in the openshift-dns namespace
+            await self.run_in_vm(
+                [
+                    "bash",
+                    "-c",
+                    f"""kubectl --kubeconfig={self.kubeconfig_path} get configmap -n openshift-dns dns-default -o yaml | \
+sed '/^  Corefile: |/a\\    host.docker.internal:53 {{\\n        hosts {{\\n            {host_ip} host.docker.internal\\n            fallthrough\\n        }}\\n    }}' | \
+kubectl --kubeconfig={self.kubeconfig_path} apply -f -""",
+                ],
+                "Setting up internal networking",
+            )
+
+            # Restart CoreDNS pods to pick up the configuration change
+            await self.run_in_vm(
+                [
+                    "kubectl",
+                    f"--kubeconfig={self.kubeconfig_path}",
+                    "delete",
+                    "pods",
+                    "-n",
+                    "openshift-dns",
+                    "-l",
+                    "dns.operator.openshift.io/daemonset-dns=default",
+                ],
+                "Restarting CoreDNS",
+            )
         await super().deploy(set_values_list=set_values_list, values_file=values_file, image_pull_mode=image_pull_mode)
+
         await self.run_in_vm(
             ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
             "Installing systemd unit for port-forwarding",
-            input=textwrap.dedent("""\
+            input=textwrap.dedent(f"""\
             [Unit]
             Description=Kubectl Port Forward for service %i
             After=network.target
 
             [Service]
             Type=simple
-            ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i"; exec /usr/bin/kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig port-forward --address=127.0.0.1 svc/$svc $port:$port'
+            ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i"; exec kubectl --kubeconfig={self.kubeconfig_path} port-forward --address=127.0.0.1 svc/$svc $port:$port'
             Restart=on-failure
             User=root
 
@@ -190,11 +195,12 @@ kubectl --kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig apply -f
             """).encode(),
         )
         await self.run_in_vm(["systemctl", "daemon-reexec"], "Reloading systemd")
+
         services_json = (
             await self.run_in_vm(
                 [
                     "kubectl",
-                    "--kubeconfig=/var/lib/microshift/resources/kubeadmin/kubeconfig",
+                    f"--kubeconfig={self.kubeconfig_path}",
                     "get",
                     "svc",
                     "--field-selector=spec.type=LoadBalancer",
