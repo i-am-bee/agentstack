@@ -37,30 +37,29 @@ Service Extensions are a type of [A2A Extension](https://a2a-protocol.org/latest
 Service extensions are optional by definition, so you should always check if they exist before using them.
 </Warning>
 
-
-## Quickstart
-
-<Steps>
-<Step title="Add MCP service extension to your agent">
-Import the necessary components and add the MCP service extension to your agent function.
-</Step>
-
-<Step title="Specify your connector preference">
-Use the `suggested` parameter to indicate which connector you want to use (e.g., `"github"`).
-</Step>
-
-<Step title="Create an MCP client">
-Use `mcp_service.create_client()` to get a connected MCP client session.
-</Step>
-
-<Step title="Use MCP tools">
-Use the MCP client session to call tools, list resources, or interact with prompts.
-</Step>
-</Steps>
-
 ## Example: GitHub MCP Agent
 
-Here's a complete example of an agent that uses the GitHub MCP connector:
+<Tip>
+This GitHub MCP Agent uses the connector-based approach. It requires pre-configuration of a GitHub connector.
+For information on pre-configuration, see [Experimental/MCP Connectors](../experimental/connectors).
+</Tip>
+
+Here's an example of how to setup the GitHub connector using the Agent Stack SDK (use your own personal access token where noted in the example code):
+
+```python
+import asyncio
+from agentstack_sdk.platform.connector import Connector, ConnectorState
+
+async def main():
+    connector = await Connector.create(url="https://api.githubcopilot.com/mcp")
+    connector = await connector.connect(access_token="<your github personal access token goes here>")
+    connector = await connector.wait_for_state(state=ConnectorState.connected)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+Here's an example agent that uses the GitHub MCP Connector and returns your profile details:
 
 ```python
 import json
@@ -84,7 +83,7 @@ async def github_mcp_agent(
         MCPServiceExtensionSpec.single_demand(suggested=("github",)),
     ],
 ) -> AsyncGenerator[RunYield, Message]:
-    """Lists tools"""
+    """Show connected GitHub profile information"""
 
     if not mcp_service:
         yield "MCP extension hasn't been activated, no tools are available"
@@ -106,6 +105,24 @@ async def github_mcp_agent(
 if __name__ == "__main__":
     server.run()
 ```
+
+<Steps>
+<Step title="Add MCP service extension to your agent.">
+Import the necessary components and add the MCP service extension to your agent function.
+</Step>
+
+<Step title="Specify your connector preference.">
+Use the `suggested` parameter to indicate which connector you want to use (e.g., `"github"`).
+</Step>
+
+<Step title="Create an MCP client.">
+Use `mcp_service.create_client()` to get a connected MCP client.
+</Step>
+
+<Step title="Use MCP tools.">
+Use an MCP client session to call tools, list resources, or interact with prompts.
+</Step>
+</Steps>
 
 ## Custom MCP Client with OAuth
 
