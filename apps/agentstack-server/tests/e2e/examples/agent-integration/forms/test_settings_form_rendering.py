@@ -4,7 +4,7 @@
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import TaskState
-from agentstack_sdk.a2a.extensions import SettingsFormResponse, FormServiceExtensionMetadata, FormServiceExtensionSpec
+from agentstack_sdk.a2a.extensions import FormServiceExtensionMetadata, FormServiceExtensionSpec, SettingsFormResponse
 from agentstack_sdk.a2a.extensions.common.form import CheckboxGroupFieldValue, SingleSelectFieldValue
 
 from tests.e2e.examples.conftest import run_example
@@ -26,7 +26,8 @@ async def test_settings_form_rendering_example(subtests, get_final_task_from_str
                     "settings_form": SettingsFormResponse(
                         values={
                             "checkbox_settings": CheckboxGroupFieldValue(value={"thinking": True, "memory": False}),
-                            "response_style": SingleSelectFieldValue(value="humorous")}
+                            "response_style": SingleSelectFieldValue(value="humorous"),
+                        }
                     )
                 }
             ).model_dump(mode="json")
