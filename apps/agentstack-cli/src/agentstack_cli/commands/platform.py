@@ -52,7 +52,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Check for existing installations (k3s backward compatibility)
 systemctl is-enabled k3s &>/dev/null && { systemctl start k3s || true; exit 0; }
-systemctl is-enabled microshift &>/dev/null && { systemctl start microshift || true; exit 0; }
+systemctl is-enabled microshift &>/dev/null && { systemctl start microshift crio || true; exit 0; }
 
 # Download and extract MicroShift
 WORK_DIR="/tmp/microshift-install"
@@ -67,7 +67,7 @@ curl -fsSL "https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/Release.key" 
 echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
-apt-get install -y -q podman cri-o containernetworking-plugins kubectl cri-tools
+apt-get install -y -q podman cri-o containernetworking-plugins kubectl
 
 # Configure CNI and registries
 find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
@@ -86,14 +86,12 @@ insecure = true
 EOF
 
 systemctl daemon-reload
-systemctl enable --now crio
+systemctl start crio
 
 # Install kubectl and MicroShift
 dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
 cd /
 rm -rf "${WORK_DIR}"
-
-systemctl enable microshift
 
 # Configure MicroShift
 mkdir -p /etc/microshift /registry-data
@@ -302,7 +300,7 @@ async def _grab_image_shas(
         }
 
     lines = (
-        (await run_in_vm(vm_name, ["crictl", "images", "--digests"], "Listing guest images"))
+        (await run_in_vm(vm_name, ["podman", "images", "--digests"], "Listing guest images"))
         .stdout.decode()
         .splitlines()[1:]
     )
@@ -664,7 +662,7 @@ async def start(
                     with attempt:
                         await run_in_vm(
                             vm_name,
-                            ["k3s", "ctr", "image", "pull", image] if platform == "k3s" else ["crictl", "pull", image],
+                            ["k3s", "ctr", "image", "pull", image] if platform == "k3s" else ["podman", "pull", image],
                             f"Pulling image {image}"
                             + (
                                 f" (attempt {attempt.retry_state.attempt_number})"
