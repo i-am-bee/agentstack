@@ -62,5 +62,5 @@ export function useAnimatedText({
   return displayedText;
 }
 
-const DEFAULT_MAX_ANIMATED_CHARS = 1000;
+export const DEFAULT_MAX_ANIMATED_CHARS = 1000;
 export const CHARS_DELAY_MAX_MS = 20;
