@@ -62,14 +62,13 @@ esac
 # Download and extract MicroShift
 VERSION="4.21.0_g29f429c21_4.21.0_okd_scos.ec.15"
 WORK_DIR="/tmp/microshift-install"
-mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}"
+mkdir -p "${WORK_DIR}"
+cd "${WORK_DIR}"
 curl -fsSL "https://github.com/microshift-io/microshift/releases/download/${VERSION}/microshift-debs-${ARCH}.tgz" | tar -xz
 
 export DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
-apt-get update -y -q && apt-get install -y -q tzdata curl gnupg podman ufw lvm2
-
-# Configure firewall
-ufw --force enable && ufw allow from 10.42.0.0/16 && ufw route allow from 10.42.0.0/16 && ufw allow from 169.254.169.1 && ufw allow ssh
+apt-get update -y -q
+apt-get install -y -q tzdata curl gnupg podman lvm2
 
 # Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
@@ -82,10 +81,9 @@ apt-get install -y -q cri-o containernetworking-plugins
 # Configure CNI and registries
 find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
 mkdir -p /etc/crio/crio.conf.d /etc/containers/registries.conf.d
-CNI_DIR=$(dpkg -L containernetworking-plugins | grep -E '/portmap$' | tail -1 | xargs dirname)
 cat > /etc/crio/crio.conf.d/14-microshift-cni.conf <<EOF
 [crio.network]
-plugin_dirs = ["${CNI_DIR}"]
+plugin_dirs = ["$(dpkg -L containernetworking-plugins | grep -E '/portmap$' | tail -1 | xargs dirname)"]
 EOF
 cat > /etc/containers/registries.conf.d/200-microshift-local.conf <<EOF
 [[registry]]
@@ -96,7 +94,8 @@ location = "localhost:30501"
 insecure = true
 EOF
 
-systemctl daemon-reload && systemctl enable --now crio
+systemctl daemon-reload
+systemctl enable --now crio
 
 # Install kubectl and MicroShift
 KUBERNETES_VERSION_TAG="v${CRIO_VERSION}"
@@ -105,7 +104,8 @@ echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.
 apt-get update -y -q
 apt-get install -y -q kubectl cri-tools
 find "${WORK_DIR}" -name 'microshift*.deb' | sort | xargs dpkg -i
-apt-get install -y -q -f && systemctl enable microshift
+apt-get install -y -q -f
+systemctl enable microshift
 
 # Configure MicroShift
 mkdir -p /etc/microshift /registry-data
@@ -119,7 +119,8 @@ EOF
 truncate -s 50G /var/lib/microshift-storage.img
 LOOP_DEV=$(losetup -f)
 losetup "$LOOP_DEV" /var/lib/microshift-storage.img
-pvcreate "$LOOP_DEV" && vgcreate myvg1 "$LOOP_DEV"
+pvcreate "$LOOP_DEV"
+vgcreate myvg1 "$LOOP_DEV"
 cat > /etc/systemd/system/microshift-storage-loopback.service <<'EOF'
 [Unit]
 Description=Setup loopback device for MicroShift storage
@@ -138,7 +139,8 @@ systemctl enable microshift-storage-loopback.service
 
 # Start MicroShift
 systemctl start microshift
-cd / && rm -rf "${WORK_DIR}"
+cd /
+rm -rf "${WORK_DIR}"
 """
 
 
