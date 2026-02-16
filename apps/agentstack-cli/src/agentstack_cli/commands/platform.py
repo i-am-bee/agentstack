@@ -47,22 +47,19 @@ configuration = Configuration()
 INSTALL_MICROSHIFT_SCRIPT = """\
 #!/bin/bash
 set -eux -o pipefail
-export DEBIAN_FRONTEND=noninteractive
+
+# Detect if VM is already prepared
 if command -v k3s; then systemctl start k3s || true; exit 0; fi
-if command -v microshift; then systemctl start crio; timeout 30s bash -c "while ! crictl info; do sleep 1; done"; systemctl start microshift; exit 0; fi
-WORK_DIR="/tmp/microshift-install"
-mkdir -p "${WORK_DIR}"
-cd "${WORK_DIR}"
-curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz
-source "${WORK_DIR}/dependencies.txt"
-echo "deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
-echo "deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+if command -v microshift; then systemctl start crio microshift; exit 0; fi
+
+# Set up CRI-O
+echo "deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.33/deb/ /" > /etc/apt/sources.list.d/cri-o.list
+echo "deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
 apt-get install -y -q skopeo cri-o cri-tools containernetworking-plugins kubectl
-mkdir -p /etc/crio/crio.conf.d /etc/containers/registries.conf.d
 cat > /etc/crio/crio.conf.d/14-microshift-cni.conf <<EOF
 [crio.network]
-plugin_dirs = ["$(dpkg -L containernetworking-plugins | grep -E '/portmap$' | tail -1 | xargs dirname)"]
+plugin_dirs = ["/usr/lib/cni"]
 EOF
 cat > /etc/containers/registries.conf.d/200-microshift-local.conf <<EOF
 [[registry]]
@@ -74,9 +71,13 @@ insecure = true
 EOF
 systemctl daemon-reload
 systemctl start crio
+
+# Set up MicroShift
+mkdir -p "/tmp/microshift-install"
+cd "/tmp/microshift-install"
+curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz
 dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
-cd /
-rm -rf "${WORK_DIR}"
+rm -rf "/tmp/microshift-install"
 cat > /etc/microshift/config.yaml <<EOF
 apiServer:
     port: 16443
@@ -87,6 +88,7 @@ telemetry:
 EOF
 mkdir -p /postgresql-data /seaweedfs-data /registry-data
 chmod 777 /postgresql-data /seaweedfs-data /registry-data
+systemctl daemon-reload
 systemctl start microshift
 """
 
