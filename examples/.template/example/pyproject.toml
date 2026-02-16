@@ -26,7 +26,7 @@ project-includes = [
     "**/*.py*",
     "**/*.ipynb",
 ]
-search-path = ['../../../../apps/agentstack-sdk-py/src', '.venv/lib/python3.13/site-packages']
+search-path = ['%{SDK_PATH}/src', '.venv/lib/python3.13/site-packages']
 
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]
