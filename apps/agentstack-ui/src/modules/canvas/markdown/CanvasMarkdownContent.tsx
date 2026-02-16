@@ -7,9 +7,10 @@ import { useMergeRefs } from '@floating-ui/react';
 import clsx from 'clsx';
 import { useRef } from 'react';
 
-import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx';
 import { rehypeSourcePosition } from '#components/MarkdownContent/rehype/rehypeSourcePosition.ts';
 import { useToast } from '#contexts/Toast/index.ts';
+import type { UISourcePart } from '#modules/messages/types.ts';
+import { ChatMarkdownContent } from '#modules/runs/components/ChatMarkdownContent/ChatMarkdownContent.tsx';
 import { useAgentRun } from '#modules/runs/contexts/agent-run/index.ts';
 
 import classes from './CanvasMarkdownContent.module.scss';
@@ -22,9 +23,10 @@ interface Props {
   artifactId: string;
   className?: string;
   enableSelection?: boolean;
+  sources?: UISourcePart[];
 }
 
-export function CanvasMarkdownContent({ className, artifactId, children, enableSelection = true }: Props) {
+export function CanvasMarkdownContent({ className, artifactId, children, enableSelection = true, sources }: Props) {
   const { addToast } = useToast();
   const { submitCanvasEditRequest } = useAgentRun();
 
@@ -66,7 +68,9 @@ export function CanvasMarkdownContent({ className, artifactId, children, enableS
 
   return (
     <div ref={containerRefs} className={clsx(classes.root, className)}>
-      <MarkdownContent rehypePlugins={rehypePlugins}>{children}</MarkdownContent>
+      <ChatMarkdownContent rehypePlugins={rehypePlugins} sources={sources}>
+        {children}
+      </ChatMarkdownContent>
       {enableSelection && <Toolbar dialog={dialog} onEditRequest={handleEditRequest} />}
     </div>
   );

@@ -14,33 +14,49 @@ import {
   type UITransformPart,
   UITransformType,
 } from '#modules/messages/types.ts';
-import { getMessagePartsRawContent, getMessageRawContent } from '#modules/messages/utils.ts';
+import { getMessagePartsRawContent, getMessageRawContent, sortMessageParts } from '#modules/messages/utils.ts';
+import { getSourceTransformPart } from '#modules/sources/utils.ts';
 import { findWithIndex } from '#utils/helpers.ts';
 import { toMarkdownArtifact } from '#utils/markdown.ts';
 
 import type { UICanvasEditRequestParams } from './types';
 
-export function processMessageArtifactPart(
+type ArtifactPartUpdate = {
+  index: number;
+  part: UIMessagePart;
+};
+
+type ProcessArtifactResult = {
+  add?: UIMessagePart[];
+  update?: ArtifactPartUpdate[];
+};
+
+export function getArtifactPartUpdates(
   part: UIArtifactPart,
-  newParts: UIMessagePart[],
+  existingParts: UIMessagePart[],
   message: UIAgentMessage,
-): void {
+): ProcessArtifactResult {
   const { artifactId, parts } = part;
 
+  const sourceParts = parts.filter((p) => p.kind === UIMessagePartKind.Source);
+  const sourceTransformParts = sourceParts.map((sourcePart) => getSourceTransformPart(sourcePart));
+
+  const partsWithTransforms = [...parts, ...sourceTransformParts];
+  const partWithTransforms: UIArtifactPart = { ...part, parts: sortMessageParts(partsWithTransforms) };
+
   const [existingArtifactIndex, existingArtifactPart] = findWithIndex(
-    newParts,
+    existingParts,
     (existingPart) => existingPart.kind === UIMessagePartKind.Artifact && existingPart.artifactId === artifactId,
   );
 
   if (existingArtifactPart && existingArtifactPart.kind === UIMessagePartKind.Artifact) {
-    const updatedArtifactPart = {
+    const updatedArtifactPart: UIArtifactPart = {
       ...existingArtifactPart,
-      parts: [...existingArtifactPart.parts, ...parts],
+      parts: sortMessageParts([...existingArtifactPart.parts, ...partsWithTransforms]),
     };
-    newParts[existingArtifactIndex] = updatedArtifactPart;
 
     const [existingTransformIndex, existingTransformPart] = findWithIndex(
-      newParts,
+      existingParts,
       (existingPart) =>
         existingPart.kind === UIMessagePartKind.Transform &&
         existingPart.type === UITransformType.Artifact &&
@@ -49,16 +65,25 @@ export function processMessageArtifactPart(
 
     if (!existingTransformPart || existingTransformPart.kind !== UIMessagePartKind.Transform) {
       console.error('Artifact is in illegal state: missing corresponding transform part');
-      const transformPart = getArtifactTransformPart(part, message);
-      newParts.push(part, transformPart);
-      return;
+      const transformPart = getArtifactTransformPart(partWithTransforms, message);
+      return {
+        add: [partWithTransforms, transformPart],
+      };
     }
 
     const updatedTransformPart = updateArtifactTransformPart(existingTransformPart, updatedArtifactPart);
-    newParts[existingTransformIndex] = updatedTransformPart;
+
+    return {
+      update: [
+        { index: existingArtifactIndex, part: updatedArtifactPart },
+        { index: existingTransformIndex, part: updatedTransformPart },
+      ],
+    };
   } else {
-    const transformPart = getArtifactTransformPart(part, message);
-    newParts.push(part, transformPart);
+    const transformPart = getArtifactTransformPart(partWithTransforms, message);
+    return {
+      add: [partWithTransforms, transformPart],
+    };
   }
 }
 

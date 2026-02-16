@@ -16,7 +16,7 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 
 import { getAgentClient } from './agent-card';
 import { AGENT_ERROR_MESSAGE } from './constants';
-import { processMessageMetadata, processParts } from './part-processors';
+import { processArtifactMetadata, processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
 import { createUserMessage, extractErrorExtension } from './utils';
@@ -54,6 +54,7 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   const { artifact } = event;
 
   const contentParts = processParts(artifact.parts);
+  const metadataParts = processArtifactMetadata(artifact, event.taskId);
 
   const { artifactId, description, name } = artifact;
   const { textParts, otherParts } = contentParts.reduce<{ textParts: UITextPart[]; otherParts: UIMessagePart[] }>(
@@ -68,11 +69,14 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
     { textParts: [], otherParts: [] },
   );
 
-  if (textParts.length === 0) {
+  if (textParts.length === 0 && metadataParts.length === 0) {
     return otherParts;
   }
 
-  return [{ kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: textParts }, ...otherParts];
+  return [
+    { kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: [...textParts, ...metadataParts] },
+    ...otherParts,
+  ];
 }
 
 async function handleEventError(error: unknown, client: Client, taskId: TaskId | undefined) {

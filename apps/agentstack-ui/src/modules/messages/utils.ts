@@ -5,7 +5,7 @@
 
 import { match } from 'ts-pattern';
 
-import { processMessageArtifactPart } from '#modules/canvas/utils.ts';
+import { getArtifactPartUpdates } from '#modules/canvas/utils.ts';
 import { getFileTransformPart } from '#modules/files/utils.ts';
 import { getSourceTransformPart } from '#modules/sources/utils.ts';
 
@@ -43,11 +43,10 @@ export function getMessageRawContent(message: UIMessage) {
   return getMessagePartsRawContent(message.parts);
 }
 
-export function getMessageContent(message: UIMessage) {
+export function applyTransforms(parts: UIMessagePart[], rawContent: string) {
   let offset = 0;
 
-  const rawContent = getMessageRawContent(message);
-  const transformedContent = message.parts.reduce((content, part) => {
+  return parts.reduce((content, part) => {
     if (part.kind === UIMessagePartKind.Transform) {
       const newContent = part.apply(content, offset);
       offset += newContent.length - content.length;
@@ -57,8 +56,12 @@ export function getMessageContent(message: UIMessage) {
 
     return content;
   }, rawContent);
+}
 
-  return transformedContent;
+export function getMessageContent(message: UIMessage) {
+  const rawContent = getMessageRawContent(message);
+
+  return applyTransforms(message.parts, rawContent);
 }
 
 export function getMessageFiles(message: UIMessage) {
@@ -67,8 +70,16 @@ export function getMessageFiles(message: UIMessage) {
   return files;
 }
 
-export function getMessageSources(message: UIMessage) {
+export function getMessageSources(message: UIMessage, includeArtifactSources = false) {
   const sources = message.parts.filter((part) => part.kind === UIMessagePartKind.Source);
+
+  if (includeArtifactSources) {
+    const artifactSources = message.parts
+      .filter((part) => part.kind === UIMessagePartKind.Artifact)
+      .flatMap(({ parts }) => parts.filter((part) => part.kind === UIMessagePartKind.Source));
+
+    return [...sources, ...artifactSources];
+  }
 
   return sources;
 }
@@ -139,15 +150,15 @@ export function checkMessageForm(message: UIMessage) {
   return message.role === Role.User && message.form;
 }
 
-export function sortMessageParts(parts: UIMessagePart[]): UIMessagePart[] {
-  const [sourceParts, otherParts, transformParts] = parts.reduce<[UISourcePart[], UIMessagePart[], UITransformPart[]]>(
+export function sortMessageParts<T extends UIMessagePart>(parts: T[]): T[] {
+  const [sourceParts, otherParts, transformParts] = parts.reduce<[UISourcePart[], T[], UITransformPart[]]>(
     ([sources, others, transforms], part) => {
       switch (part.kind) {
         case UIMessagePartKind.Source:
-          return [[...sources, part], others, transforms];
+          return [[...sources, part as UISourcePart], others, transforms];
 
         case UIMessagePartKind.Transform:
-          return [sources, others, [...transforms, part]];
+          return [sources, others, [...transforms, part as UITransformPart]];
 
         default:
           return [sources, [...others, part], transforms];
@@ -198,7 +209,7 @@ export function sortMessageParts(parts: UIMessagePart[]): UIMessagePart[] {
     .sort((a, b) => a.startIndex - b.startIndex);
 
   // Transforms must be at the end
-  return [...otherParts, ...sortedSourceParts, ...sortedTransformParts];
+  return [...otherParts, ...sortedSourceParts, ...sortedTransformParts] as T[];
 }
 
 export function addMessagePart(part: UIMessagePart, message: UIAgentMessage) {
@@ -220,7 +231,15 @@ export function addMessagePart(part: UIMessagePart, message: UIAgentMessage) {
       newParts.push(part, transformPart);
     })
     .with({ kind: UIMessagePartKind.Artifact }, (part) => {
-      processMessageArtifactPart(part, newParts, message);
+      const { add: addParts, update: updateParts } = getArtifactPartUpdates(part, newParts, message);
+
+      updateParts?.forEach(({ index, part }) => {
+        newParts[index] = part;
+      });
+
+      if (addParts) {
+        newParts.push(...addParts);
+      }
     })
     .otherwise((part) => {
       newParts.push(part);

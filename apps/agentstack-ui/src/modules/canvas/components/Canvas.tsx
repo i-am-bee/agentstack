@@ -8,6 +8,7 @@ import { useMemo, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
+import { applyTransforms } from '#modules/messages/utils.ts';
 
 import { useCanvas } from '../contexts';
 import { CanvasMarkdownContent } from '../markdown/CanvasMarkdownContent';
@@ -17,7 +18,21 @@ export function Canvas() {
   const { activeArtifact } = useCanvas();
   const contentRef = useRef(null);
 
-  const content = activeArtifact?.parts.map((part) => (part.kind === UIMessagePartKind.Text ? part.text : '')).join('');
+  const content = useMemo(() => {
+    if (!activeArtifact) return undefined;
+
+    const rawContent = activeArtifact.parts
+      .map((part) => (part.kind === UIMessagePartKind.Text ? part.text : ''))
+      .join('');
+
+    return applyTransforms(activeArtifact.parts, rawContent);
+  }, [activeArtifact]);
+
+  const sources = useMemo(
+    () => activeArtifact?.parts.filter((part) => part.kind === UIMessagePartKind.Source) ?? [],
+    [activeArtifact],
+  );
+
   const isCode = useMemo(() => {
     const containsCodeBlockRegex = /.+```.+/;
     return Boolean(content && content.startsWith('```') && !containsCodeBlockRegex.test(content));
@@ -41,7 +56,7 @@ export function Canvas() {
         )}
 
         <div ref={contentRef}>
-          <CanvasMarkdownContent className={classes.content} artifactId={activeArtifact.artifactId}>
+          <CanvasMarkdownContent className={classes.content} artifactId={activeArtifact.artifactId} sources={sources}>
             {content}
           </CanvasMarkdownContent>
         </div>
