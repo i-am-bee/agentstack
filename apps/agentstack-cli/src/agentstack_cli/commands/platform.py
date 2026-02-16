@@ -562,7 +562,7 @@ async def start(
                     "-c",
                     textwrap.dedent("""
                     cd /tmp/microshift-install
-                    dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
+                    dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb
                     rm -rf /tmp/microshift-install
                     cat >/etc/microshift/config.yaml <<EOF
                     apiServer:
