@@ -68,9 +68,6 @@ mkdir -p "${WORK_DIR}"
 cd "${WORK_DIR}"
 curl -fsSL "https://github.com/microshift-io/microshift/releases/download/${VERSION}/microshift-debs-${ARCH}.tgz" | tar -xz
 
-apt-get update -y -q
-apt-get install -y -q podman lvm2
-
 # Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
 curl -fsSL "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
@@ -78,7 +75,7 @@ curl -fsSL "https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/Release.key" 
 echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
-apt-get install -y -q cri-o containernetworking-plugins kubectl cri-tools
+apt-get install -y -q podman lvm2 cri-o containernetworking-plugins kubectl cri-tools
 
 # Configure CNI and registries
 find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
@@ -100,10 +97,7 @@ systemctl daemon-reload
 systemctl enable --now crio
 
 # Install kubectl and MicroShift
-apt-get update -y -q
-apt-get install -y -q kubectl cri-tools
 find "${WORK_DIR}" -name 'microshift*.deb' | sort | xargs dpkg -i
-apt-get install -y -q -f
 systemctl enable microshift
 
 # Configure MicroShift
