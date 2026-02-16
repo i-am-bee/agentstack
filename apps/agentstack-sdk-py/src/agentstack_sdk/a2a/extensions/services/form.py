@@ -90,6 +90,7 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
             return None
 
         settings_form = getattr(self.data, "form_fulfillments", {}).get("settings_form")
+
         return (
             TypeAdapter(model).validate_python(dict(settings_form))
             if settings_form is not None and model is not None
