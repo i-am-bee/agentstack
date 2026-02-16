@@ -562,7 +562,7 @@ async def start(
                     "-c",
                     textwrap.dedent("""
                     cd /tmp/microshift-install
-                    dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb
+                    dpkg -i microshift_*.deb microshift-kindnet_*.deb
                     rm -rf /tmp/microshift-install
                     cat >/etc/microshift/config.yaml <<EOF
                     apiServer:
@@ -710,16 +710,6 @@ async def start(
                 await run_in_vm(vm_name, ["cat", _kubeconfig(platform)], "Copying kubeconfig from Agent Stack platform")
             ).stdout.decode()
         )
-        if platform == "microshift":
-            await run_in_vm(
-                vm_name,
-                [
-                    "bash",
-                    "-c",
-                    f"for i in {{1..120}}; do if kubectl --kubeconfig={_kubeconfig(platform)} get --raw /healthz 2>/dev/null | grep -q 'ok'; then exit 0; fi; sleep 5; done; exit 1",
-                ],
-                "Waiting for MicroShift API server to be ready",
-            )
         await run_in_vm(
             vm_name,
             [
