@@ -485,6 +485,15 @@ async def start(
             )
             await run_command(["wsl.exe", "--terminate", vm_name], "Restarting Agent Stack VM")
             await run_in_vm(vm_name, ["dbus-launch", "true"], "Ensuring persistence of Agent Stack VM")
+            await run_in_vm(
+                vm_name,
+                [
+                    "bash",
+                    "-c",
+                    "echo $(ip route show | grep -i default | cut -d' ' -f3) host.docker.internal >> /etc/hosts",
+                ],
+                "Setting up /etc/hosts for internal networking",
+            )
 
         # Install tools and detect platform
         already_prepared = (
@@ -704,41 +713,6 @@ async def start(
                     f"for i in {{1..120}}; do if kubectl --kubeconfig={_kubeconfig(platform)} get --raw /healthz 2>/dev/null | grep -q 'ok'; then exit 0; fi; sleep 5; done; exit 1",
                 ],
                 "Waiting for MicroShift API server to be ready",
-            )
-        if detect_driver() == "wsl" and platform == "microshift":
-            host_ip = (
-                (
-                    await run_in_vm(
-                        vm_name,
-                        ["bash", "-c", "ip route show | grep -i default | cut -d' ' -f3"],
-                        "Detecting host IP address",
-                    )
-                )
-                .stdout.decode()
-                .strip()
-            )
-            await run_in_vm(
-                vm_name,
-                [
-                    "bash",
-                    "-c",
-                    f"kubectl --kubeconfig={_kubeconfig(platform)} get configmap -n openshift-dns dns-default -o yaml | sed '/^  Corefile: |/a\\    host.docker.internal:53 {{\\n        hosts {{\\n            {host_ip} host.docker.internal\\n            fallthrough\\n        }}\\n    }}' | kubectl --kubeconfig={_kubeconfig(platform)} apply -f -",
-                ],
-                "Setting up internal networking",
-            )
-            await run_in_vm(
-                vm_name,
-                [
-                    "kubectl",
-                    f"--kubeconfig={_kubeconfig(platform)}",
-                    "delete",
-                    "pods",
-                    "-n",
-                    "openshift-dns",
-                    "-l",
-                    "dns.operator.openshift.io/daemonset-dns=default",
-                ],
-                "Restarting CoreDNS",
             )
         await run_in_vm(
             vm_name,
