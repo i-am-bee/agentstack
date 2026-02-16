@@ -594,9 +594,15 @@ async def start(
         await run_in_vm(
             vm_name,
             [
-                "sh",
+                "bash",
                 "-c",
-                "which helm || curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash",
+                textwrap.dedent("""
+                    command -v helm && exit 0
+                    case $(uname -m) in x86_64) ARCH="amd64" ;; aarch64) ARCH="arm64" ;; esac
+                    curl -fsSL "https://get.helm.sh/helm-v3.20.0-linux-${ARCH}.tar.gz" | \
+                        tar -xzf - --strip-components=1 -C /usr/local/bin "linux-${ARCH}/helm"
+                    chmod +x /usr/local/bin/helm
+                """),
             ],
             "Installing Helm",
         )
