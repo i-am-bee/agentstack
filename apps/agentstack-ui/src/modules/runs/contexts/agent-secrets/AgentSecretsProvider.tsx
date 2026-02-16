@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { handleAgentCard } from 'agentstack-sdk';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useMemo } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
@@ -12,7 +13,6 @@ import type { Agent } from '#modules/agents/api/types.ts';
 import { useListVariables } from '#modules/variables/api/queries/useListVariables.ts';
 import { AGENT_SECRETS_SETTINGS_STORAGE_KEY } from '#utils/constants.ts';
 
-import { useA2AClient } from '../a2a-client';
 import { AgentSecretsContext } from './agent-secrets-context';
 import type { NonReadySecretDemand, ReadySecretDemand } from './types';
 
@@ -41,7 +41,6 @@ const secretsLocalStorageOptions = {
 };
 
 export function AgentSecretsProvider({ agent, children }: PropsWithChildren<Props>) {
-  const { agentClient } = useA2AClient();
   const [agentSecrets, setAgentSecrets] = useLocalStorage<Secrets>(
     AGENT_SECRETS_SETTINGS_STORAGE_KEY,
     {},
@@ -56,8 +55,9 @@ export function AgentSecretsProvider({ agent, children }: PropsWithChildren<Prop
   }, [agentSecrets, agent.provider.id]);
 
   const secretDemands = useMemo(() => {
-    return agentClient.demands.secretDemands ?? null;
-  }, [agentClient]);
+    const { demands } = handleAgentCard(agent);
+    return demands.secretDemands ?? null;
+  }, [agent]);
 
   const markModalAsSeen = useCallback(() => {
     setAgentSecrets((prev) => ({
