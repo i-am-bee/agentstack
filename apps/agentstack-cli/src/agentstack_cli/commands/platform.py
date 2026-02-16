@@ -345,7 +345,7 @@ async def _grab_image_shas(
             .splitlines()[1:]
         )
         return {
-            canonify(x[0]): x[1]
+            canonify(x[0]): x[2]
             for line in lines
             if (x := line.split()) and len(x) >= 3 and canonify(x[0]) in loaded_images
         }
