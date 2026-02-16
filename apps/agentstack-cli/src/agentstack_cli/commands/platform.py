@@ -65,27 +65,6 @@ WORK_DIR="/tmp/microshift-install"
 mkdir -p "${WORK_DIR}" && cd "${WORK_DIR}"
 curl -fsSL "https://github.com/microshift-io/microshift/releases/download/${VERSION}/microshift-debs-${ARCH}.tgz" | tar -xz
 
-# Helper to find available DEB package version
-find_pkg() {
-    local pkg=$1 ver=$2 base=$3
-    for _ in 1 2 3; do
-        curl -fsSL "${base}/v${ver}/deb/Release.key" -o /dev/null 2>/dev/null && { echo "$ver"; return; }
-        ver="${ver%%.*}.$(( ${ver#*.} - 1 ))"
-        [ "${ver#*.}" -lt 0 ] && break
-    done
-    echo "ERROR: Package $pkg not found" >&2; exit 1
-}
-
-# Install package from DEB repository
-install_pkg() {
-    local pkg=$1 ver=$2 key=$3 extra="${4:-}"
-    local keyfile="/etc/apt/keyrings/${pkg}-${ver}-apt-keyring.gpg"
-    curl -fsSL "$key" | gpg --batch --dearmor -o "$keyfile"
-    echo "deb [signed-by=$keyfile] $(dirname "$key") /" > "/etc/apt/sources.list.d/${pkg}-${ver}.list"
-    apt-get update -y -q
-    apt-get install -y -q --allow-downgrades "${pkg}=${ver}*" $extra
-}
-
 export DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
 apt-get update -y -q && apt-get install -y -q tzdata curl gnupg podman ufw lvm2
 
@@ -94,8 +73,11 @@ ufw --force enable && ufw allow from 10.42.0.0/16 && ufw route allow from 10.42.
 
 # Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
-CRIO_VER=$(find_pkg "cri-o" "${CRIO_VERSION}" "https://pkgs.k8s.io/addons:/cri-o:/stable:")
-install_pkg "cri-o" "$CRIO_VER" "https://pkgs.k8s.io/addons:/cri-o:/stable:/v${CRIO_VER}/deb/Release.key" "crun containernetworking-plugins"
+CRIO_VERSION_TAG="v${CRIO_VERSION}"
+curl -fsSL "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/${CRIO_VERSION_TAG}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/${CRIO_VERSION_TAG}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
+apt-get update -y -q
+apt-get install -y -q cri-o containernetworking-plugins
 
 # Configure CNI and registries
 find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
@@ -117,26 +99,28 @@ EOF
 systemctl daemon-reload && systemctl enable --now crio
 
 # Install kubectl and MicroShift
-KUBECTL_VER=$(find_pkg "kubectl" "${CRIO_VERSION}" "https://pkgs.k8s.io/core:/stable:")
-install_pkg "kubectl" "$KUBECTL_VER" "https://pkgs.k8s.io/core:/stable:/v${KUBECTL_VER}/deb/Release.key" "cri-tools"
+KUBERNETES_VERSION_TAG="v${CRIO_VERSION}"
+curl -fsSL "https://pkgs.k8s.io/core:/stable:/${KUBERNETES_VERSION_TAG}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBERNETES_VERSION_TAG}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+apt-get update -y -q
+apt-get install -y -q kubectl cri-tools
 find "${WORK_DIR}" -name 'microshift*.deb' | sort | xargs dpkg -i
 apt-get install -y -q -f && systemctl enable microshift
 
 # Configure MicroShift
 mkdir -p /etc/microshift /registry-data
+chmod 755 /registry-data
 cat > /etc/microshift/config.yaml <<EOF
 apiServer:
     port: 16443
 EOF
-chmod 755 /registry-data
 
 # Configure storage
-if ! vgs myvg1 &>/dev/null; then
-    truncate -s 50G /var/lib/microshift-storage.img
-    LOOP_DEV=$(losetup -f)
-    losetup "$LOOP_DEV" /var/lib/microshift-storage.img
-    pvcreate "$LOOP_DEV" && vgcreate myvg1 "$LOOP_DEV"
-    cat > /etc/systemd/system/microshift-storage-loopback.service <<'EOF'
+truncate -s 50G /var/lib/microshift-storage.img
+LOOP_DEV=$(losetup -f)
+losetup "$LOOP_DEV" /var/lib/microshift-storage.img
+pvcreate "$LOOP_DEV" && vgcreate myvg1 "$LOOP_DEV"
+cat > /etc/systemd/system/microshift-storage-loopback.service <<'EOF'
 [Unit]
 Description=Setup loopback device for MicroShift storage
 DefaultDependencies=no
@@ -150,13 +134,10 @@ RemainAfterExit=yes
 [Install]
 WantedBy=local-fs-pre.target
 EOF
-    systemctl enable microshift-storage-loopback.service
-fi
+systemctl enable microshift-storage-loopback.service
 
-# Start and wait for MicroShift
+# Start MicroShift
 systemctl start microshift
-timeout 600s bash -c 'until test -f /var/lib/microshift/resources/kubeadmin/kubeconfig; do sleep 5; done' || { echo "ERROR: MicroShift timeout. Check: journalctl -u microshift -n 100"; exit 1; }
-chmod 644 /var/lib/microshift/resources/kubeadmin/kubeconfig
 cd / && rm -rf "${WORK_DIR}"
 """
 
