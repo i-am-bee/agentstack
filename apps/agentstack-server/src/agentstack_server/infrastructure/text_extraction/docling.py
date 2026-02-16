@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
+import typing
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from decimal import Decimal
-from typing import NamedTuple, cast
+from typing import NamedTuple
 
 import ijson
 import orjson
@@ -43,11 +44,11 @@ async def _process_docling_stream(
             return float(obj)
         raise TypeError
 
-    async for k, v in ijson.kvitems_async(async_file, "document", use_float=False):  # pyright: ignore[reportAny]
+    async for k, v in ijson.kvitems_async(async_file, "document", use_float=False):
         if k in key_map:
             fmt, info = key_map[k]
 
-            content = v.encode("utf-8") if isinstance(v, str) else cast(bytes, orjson.dumps(v, default=serialize))  # pyright: ignore[reportUnknownMemberType, reportAttributeAccessIssue]
+            content = v.encode("utf-8") if isinstance(v, str) else orjson.dumps(v, default=serialize)
 
             async_file = AsyncFile.from_bytes(
                 filename=f"extracted_response.{info.file_extension}",
@@ -81,7 +82,7 @@ class DoclingTextExtractionBackend(ITextExtractionBackend):
         file_url: AnyUrl,
         timeout: timedelta | None = None,  # noqa: ASYNC109
         settings: TextExtractionSettings | None = None,
-    ) -> AsyncIterator[AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
+    ) -> typing.AsyncGenerator[typing.AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
         """
         Extract text from a file using the Docling service.
         Streams the response and yields files as they are parsed.
@@ -110,6 +111,6 @@ class DoclingTextExtractionBackend(ITextExtractionBackend):
                 },
             ) as response,
         ):
-            response.raise_for_status()  # pyright: ignore[reportUnusedCallResult]
+            response.raise_for_status()
             async_file = AsyncFile.from_async_iterator(response.aiter_bytes(), "tmp", "application/json")
             yield _process_docling_stream(async_file, formats)

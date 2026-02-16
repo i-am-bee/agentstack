@@ -56,7 +56,7 @@ class Permissions(BaseModel):
 
     @classmethod
     def all(cls):
-        return cls(allow_all=True)  # pyright: ignore [reportCallIssue] param intentionally hidden from the signature
+        return cls(allow_all=True)
 
     def check(self, required: Self) -> bool:
         """Check if required permissions are subset of current permissions."""

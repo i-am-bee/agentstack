@@ -3,24 +3,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 // Mock kcContext to avoid the TS2304 error
 const mockKcContext = {
   url: {
-    loginAction: "/login-action",
+    loginAction: '/login-action',
   },
-  idpAlias: "mockIdpAlias",
+  idpAlias: 'mockIdpAlias',
 };
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "login-idp-link-confirm.ftl",
+  pageId: 'login-idp-link-confirm.ftl',
 });
 
 const meta = {
-  title: "login/login-idp-link-confirm.ftl",
+  title: 'login/login-idp-link-confirm.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -50,11 +50,11 @@ export const WithFormSubmissionError: Story = {
       kcContext={{
         ...mockKcContext,
         url: {
-          loginAction: "/error",
+          loginAction: '/error',
         },
         message: {
-          type: "error",
-          summary: "An error occurred during form submission.",
+          type: 'error',
+          summary: 'An error occurred during form submission.',
         },
       }}
     />

@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import functools
 import logging
 import pathlib
 from collections.abc import Callable
@@ -10,11 +11,14 @@ import kr8s
 import procrastinate
 from kink import Container, di
 from limits.aio.storage import MemoryStorage, RedisStorage, Storage
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from agentstack_server.configuration import Configuration, get_configuration
 from agentstack_server.domain.repositories.file import IObjectStorageRepository, ITextExtractionBackend
 from agentstack_server.domain.repositories.openai_proxy import IOpenAIProxy
+from agentstack_server.infrastructure.cache.memory_cache import MemoryCacheFactory
+from agentstack_server.infrastructure.cache.redis_cache import RedisCacheFactory
 from agentstack_server.infrastructure.kubernetes.provider_build_manager import KubernetesProviderBuildManager
 from agentstack_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from agentstack_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
@@ -23,6 +27,7 @@ from agentstack_server.infrastructure.persistence.unit_of_work import SqlAlchemy
 from agentstack_server.infrastructure.text_extraction.docling import DoclingTextExtractionBackend
 from agentstack_server.jobs.procrastinate import create_app
 from agentstack_server.service_layer.build_manager import IProviderBuildManager
+from agentstack_server.service_layer.cache import ICacheFactory
 from agentstack_server.service_layer.deployment_manager import IProviderDeploymentManager
 from agentstack_server.service_layer.services.managed_mcp_service import ManagedMcpService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
@@ -32,12 +37,18 @@ logger = logging.getLogger(__name__)
 
 
 def setup_database_engine(config: Configuration) -> AsyncEngine:
-    return config.persistence.create_async_engine(
+    engine = config.persistence.create_async_engine(
         isolation_level="READ COMMITTED",
         hide_parameters=True,
         pool_size=20,
         max_overflow=10,
     )
+
+    sqlalchemy_instrumentor = SQLAlchemyInstrumentor()
+    if sqlalchemy_instrumentor:
+        sqlalchemy_instrumentor.instrument(engine=engine.sync_engine)
+
+    return engine
 
 
 async def setup_kubernetes_client(namespace: str | None = None, kubeconfig: pathlib.Path | str | dict | None = None):
@@ -58,6 +69,12 @@ def setup_rate_limiter_storage(config: Configuration) -> Storage:
         if config.redis.enabled
         else MemoryStorage()
     )
+
+
+def setup_cache_factory(config: Configuration) -> ICacheFactory:
+    if not config.redis.enabled:
+        return MemoryCacheFactory()
+    return RedisCacheFactory(config.redis.cache_db_url.get_secret_value())
 
 
 async def bootstrap_dependencies(dependency_overrides: Container | None = None):
@@ -107,12 +124,13 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
 
     # Register object storage repository and file service
     _set_di(IObjectStorageRepository, S3ObjectStorageRepository(di[Configuration]))
-    _set_di(procrastinate.App, create_instance=lambda: create_app(di[Configuration]))
+    _set_di(procrastinate.App, create_instance=functools.partial(create_app, di[Configuration]))
     _set_di(ITextExtractionBackend, DoclingTextExtractionBackend(di[Configuration].text_extraction))
 
     # Setup rate limiter storage
     _set_di(Storage, setup_rate_limiter_storage(di[Configuration]))
     _set_di(IOpenAIProxy, CustomOpenAIProxy())
+    _set_di(ICacheFactory, setup_cache_factory(di[Configuration]))
 
 
 bootstrap_dependencies_sync = async_to_sync_isolated(bootstrap_dependencies)

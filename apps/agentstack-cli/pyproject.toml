@@ -1,6 +1,6 @@
 [project]
 name = "agentstack-cli"
-version = "0.6.1"
+version = "0.6.2"
 description = "Agent Stack CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -27,7 +27,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pyright>=1.1.407", # note: pyright 1.1.408 has a bug with multiple-inheritance
+    "pyrefly>=0.52.0",
     "pytest>=9.0.2",
     "ruff>=0.14.14",
     "wheel>=0.46.3",
@@ -74,8 +74,8 @@ lint.ignore = [
 ]
 force-exclude = true
 
-[tool.pyright]
-ignore = ["tests/**", "examples/cli.py"]
-venvPath = "."
-venv = ".venv"
-reportUnusedCallResult = false
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]

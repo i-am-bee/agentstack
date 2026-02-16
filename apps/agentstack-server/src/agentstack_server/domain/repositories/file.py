@@ -1,8 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import typing
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Protocol, runtime_checkable
 from uuid import UUID
@@ -22,8 +22,7 @@ from agentstack_server.domain.models.file import (
 
 
 class IFileRepository(Protocol):
-    async def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]:
-        yield  # type: ignore
+    def list(self, *, user_id: UUID | None = None, context_id: UUID | None = None) -> AsyncIterator[File]: ...
 
     async def list_paginated(
         self,
@@ -65,11 +64,7 @@ class IFileRepository(Protocol):
 @runtime_checkable
 class IObjectStorageRepository(Protocol):
     async def upload_file(self, *, file_id: UUID, file: AsyncFile) -> int: ...
-
-    @asynccontextmanager
-    async def get_file(self, *, file_id: UUID) -> AsyncIterator[AsyncFile]:
-        yield  # type: ignore
-
+    def get_file(self, *, file_id: UUID) -> typing.AsyncContextManager[AsyncFile]: ...
     async def delete_files(self, *, file_ids: list[UUID]) -> None: ...
     async def get_file_url(self, *, file_id: UUID) -> HttpUrl: ...
     async def get_file_metadata(self, *, file_id: UUID) -> FileMetadata: ...
@@ -82,12 +77,10 @@ class ITextExtractionBackend(Protocol):
         """Return the name of the extraction backend."""
         ...
 
-    @asynccontextmanager
-    async def extract_text(
+    def extract_text(
         self,
         *,
         file_url: AnyUrl,
-        timeout: timedelta | None = None,  # noqa: ASYNC109
+        timeout: timedelta | None = None,
         settings: TextExtractionSettings | None = None,
-    ) -> AsyncIterator[AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]:
-        yield ...  # pyright: ignore [reportReturnType]
+    ) -> typing.AsyncContextManager[AsyncIterator[tuple[AsyncFile, ExtractionFormat]]]: ...

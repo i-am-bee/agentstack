@@ -6,7 +6,8 @@
 .root {
   position: relative;
 
-  ::highlight(canvas-highlight) {
-    background-color: $blue-20;
+  ::highlight(canvas-highlight),
+  ::selection {
+    background-color: $blue-30;
   }
 }

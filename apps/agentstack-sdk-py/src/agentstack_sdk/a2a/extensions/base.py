@@ -51,11 +51,6 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
     Description to be attached with the extension spec.
     """
 
-    Params: type[ParamsT]
-    """
-    Type of the extension params, attached to the agent card.
-    """
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.Params = _get_generic_args(cls, BaseExtensionSpec)[0]
@@ -72,7 +67,7 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
         self.params = params
 
     @classmethod
-    def from_agent_card(cls, agent: AgentCard) -> typing.Self | None:
+    def from_agent_card(cls: type[BaseExtensionSpec], agent: AgentCard) -> typing.Self | None:
         """
         Client should construct an extension instance using this classmethod.
         """
@@ -120,7 +115,6 @@ ExtensionSpecT = typing.TypeVar("ExtensionSpecT", bound=BaseExtensionSpec[typing
 
 
 class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromClientT]):
-    MetadataFromClient: type[MetadataFromClientT]
     """
     Type of the extension metadata, attached to messages.
     """
@@ -182,7 +176,6 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
 
 
 class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromServerT]):
-    MetadataFromServer: type[MetadataFromServerT]
     """
     Type of the extension metadata, attached to messages.
     """

@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "login-page-expired.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'login-page-expired.ftl' });
 
 const meta = {
-  title: "login/login-page-expired.ftl",
+  title: 'login/login-page-expired.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -33,12 +33,12 @@ export const WithErrorMessage: Story = {
     <KcPageStory
       kcContext={{
         url: {
-          loginRestartFlowUrl: "/mock-restart-flow",
-          loginAction: "/mock-continue-login",
+          loginRestartFlowUrl: '/mock-restart-flow',
+          loginAction: '/mock-continue-login',
         },
         message: {
-          type: "error",
-          summary: "An error occurred while processing your session.",
+          type: 'error',
+          summary: 'An error occurred while processing your session.',
         },
       }}
     />

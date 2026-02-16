@@ -75,7 +75,7 @@ async def select_connectors_multi(
     # Multiple matches - show selection menu
     choices = [Choice(value=c, name=f"{c.url} - {c.id} ({c.state})") for c in connector_candidates]
 
-    selected_connectors = await inquirer.checkbox(  # pyright: ignore[reportPrivateImportUsage]
+    selected_connectors = await inquirer.checkbox(
         message=f"Select connectors to {operation_name} (use ↑/↓ to navigate, Space to select):", choices=choices
     ).execute_async()
 

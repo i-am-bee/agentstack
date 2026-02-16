@@ -11,10 +11,9 @@ from agentstack_server.domain.models.provider_build import BuildState, ProviderB
 
 @runtime_checkable
 class IProviderBuildRepository(Protocol):
-    async def list(
+    def list(
         self, *, status: BuildState | None = None, user_id: UUID | None = None
-    ) -> AsyncIterator[ProviderBuild]:
-        yield ...  # type: ignore
+    ) -> AsyncIterator[ProviderBuild]: ...
 
     async def list_paginated(
         self,

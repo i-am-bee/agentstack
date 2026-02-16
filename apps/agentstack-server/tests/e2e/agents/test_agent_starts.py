@@ -2,14 +2,21 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+import contextlib
+import time
 import uuid
 from textwrap import dedent
+from threading import Thread
+from typing import Any
+from unittest import mock
 
 import kr8s
 import pytest
+import uvicorn
 from a2a.client import A2AClientHTTPError
 from a2a.client.helpers import create_text_message_object
-from a2a.types import Role, Task, TaskState
+from a2a.server.apps import A2AStarletteApplication
+from a2a.types import AgentCapabilities, AgentCard, Role, Task, TaskState
 from agentstack_sdk.a2a.extensions import LLMFulfillment, LLMServiceExtensionClient, LLMServiceExtensionSpec
 from agentstack_sdk.platform import ModelProvider, Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
@@ -136,3 +143,73 @@ async def test_imported_agent(
             pytest.raises(A2AClientHTTPError, match="403 Forbidden"),
         ):
             await get_final_task_from_stream(a2a_client.send_message(message))
+
+
+UNMANAGED_AGENT_CARD: dict[str, Any] = {
+    "authentication": {"schemes": ["Bearer"]},
+    "capabilities": AgentCapabilities(streaming=True),
+    "defaultInputModes": ["text/plain"],
+    "defaultOutputModes": ["text/plain"],
+    "description": "Test unmanaged A2A agent",
+    "name": "UnmanagedTestAgent",
+    "skills": [{"id": "skill-1", "name": "Echo", "description": "Echoes back", "tags": ["test"]}],
+    "url": "http://example.com/agent",
+    "version": "1.0",
+}
+
+
+@pytest.fixture
+def unmanaged_a2a_server(free_port, setup_platform_client, clean_up_fn):
+    server_instance: uvicorn.Server | None = None
+    thread: Thread | None = None
+
+    agent_card = AgentCard(**UNMANAGED_AGENT_CARD)
+    agent_card.url = f"http://host.docker.internal:{free_port}"
+
+    handler = mock.AsyncMock()
+
+    def start_server():
+        nonlocal server_instance, thread
+
+        app = A2AStarletteApplication(agent_card, handler)
+        config = uvicorn.Config(app=app.build(), port=free_port, log_level="warning")
+        server_instance = uvicorn.Server(config)
+
+        def run_server():
+            with contextlib.suppress(KeyboardInterrupt):
+                server_instance.run()
+
+        thread = Thread(target=run_server, name="unmanaged-a2a-server")
+        thread.start()
+        while not server_instance.started:
+            time.sleep(0.1)
+
+    try:
+        yield free_port, start_server
+    finally:
+        asyncio.run(clean_up_fn())
+        if server_instance:
+            server_instance.should_exit = True
+        if thread:
+            thread.join(timeout=5)
+
+
+@pytest.mark.usefixtures("clean_up", "setup_platform_client")
+async def test_unmanaged_a2a_agent(unmanaged_a2a_server):
+    port, start_server = unmanaged_a2a_server
+    start_server()
+
+    provider = await Provider.create(location=f"http://host.docker.internal:{port}")
+
+    assert provider.managed is False
+    assert provider.agent_card is not None
+    assert provider.agent_card.name == "UnmanagedTestAgent"
+    assert provider.agent_card.description == "Test unmanaged A2A agent"
+    assert provider.agent_card.skills is not None
+    assert len(provider.agent_card.skills) == 1
+
+    assert len(provider.agent_card.capabilities.extensions) == 1
+    assert (
+        provider.agent_card.capabilities.extensions[0].uri
+        == "https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1"
+    )

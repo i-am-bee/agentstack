@@ -62,8 +62,8 @@ class OpenAIOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbeddi
         api_key: str,
     ) -> AsyncIterator[openai.types.chat.ChatCompletionChunk]:
         client = self._get_client(api_key)
-        async for chunk in await client.chat.completions.create(  # pyright: ignore[reportUnknownVariableType]
-            **(  # pyright: ignore[reportAny]
+        async for chunk in await client.chat.completions.create(
+            **(
                 request.model_dump(mode="json", exclude_none=True)
                 | {"model": self.provider.get_raw_model_id(request.model)}
             )

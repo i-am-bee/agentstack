@@ -3,22 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Dropdown, FilterableMultiSelect } from "@carbon/react";
+import { Dropdown, FilterableMultiSelect } from '@carbon/react';
 
-import { FieldLabel } from "./FieldLabel";
-import type { InputFieldByTypeProps } from "./types";
-import { getFieldError, getInputLabel, getOptions } from "./utils";
+import { FieldLabel } from './FieldLabel';
+import type { InputFieldByTypeProps } from './types';
+import { getFieldError, getInputLabel, getOptions } from './utils';
 
 export function SelectField(props: InputFieldByTypeProps) {
-  const {
-    attribute,
-    dispatchFormAction,
-    displayableErrors,
-    i18n,
-    valueOrValues,
-  } = props;
+  const { attribute, dispatchFormAction, displayableErrors, i18n, valueOrValues } = props;
 
-  const isMultiple = attribute.annotations.inputType === "multiselect";
+  const isMultiple = attribute.annotations.inputType === 'multiselect';
   const { hasError, errorMessage } = getFieldError(displayableErrors);
 
   const options = getOptions(attribute);
@@ -28,9 +22,7 @@ export function SelectField(props: InputFieldByTypeProps) {
   }));
 
   if (isMultiple) {
-    const selectedItems = items.filter((item) =>
-      (valueOrValues as string[]).includes(item.id),
-    );
+    const selectedItems = items.filter((item) => (valueOrValues as string[]).includes(item.id));
 
     return (
       <>
@@ -38,33 +30,28 @@ export function SelectField(props: InputFieldByTypeProps) {
           id={attribute.name}
           titleText={<FieldLabel i18n={i18n} attribute={attribute} />}
           items={items}
-          itemToString={(item) => item?.label ?? ""}
+          itemToString={(item) => item?.label ?? ''}
           initialSelectedItems={selectedItems}
           invalid={hasError}
           invalidText={errorMessage}
           disabled={attribute.readOnly}
           onChange={({ selectedItems }) =>
             dispatchFormAction({
-              action: "update",
+              action: 'update',
               name: attribute.name,
               valueOrValues: selectedItems.map((item) => item.id),
             })
           }
           onMenuChange={() =>
             dispatchFormAction({
-              action: "focus lost",
+              action: 'focus lost',
               name: attribute.name,
               fieldIndex: undefined,
             })
           }
         />
         {(valueOrValues as string[]).map((value, index) => (
-          <input
-            key={index}
-            type="hidden"
-            name={attribute.name}
-            value={value}
-          />
+          <input key={index} type="hidden" name={attribute.name} value={value} />
         ))}
       </>
     );
@@ -79,24 +66,20 @@ export function SelectField(props: InputFieldByTypeProps) {
         label="Select..."
         titleText={<FieldLabel i18n={i18n} attribute={attribute} />}
         items={items}
-        itemToString={(item) => item?.label ?? ""}
+        itemToString={(item) => item?.label ?? ''}
         selectedItem={selectedItem}
         invalid={hasError}
         invalidText={errorMessage}
         disabled={attribute.readOnly}
         onChange={({ selectedItem }) =>
           dispatchFormAction({
-            action: "update",
+            action: 'update',
             name: attribute.name,
-            valueOrValues: selectedItem?.id ?? "",
+            valueOrValues: selectedItem?.id ?? '',
           })
         }
       />
-      <input
-        type="hidden"
-        name={attribute.name}
-        value={valueOrValues as string}
-      />
+      <input type="hidden" name={attribute.name} value={valueOrValues as string} />
     </>
   );
 }

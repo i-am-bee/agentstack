@@ -28,7 +28,7 @@ pytestmark = pytest.mark.e2e
 input_text = "Hello"
 
 
-async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task:
+async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task | None:
     """Helper to extract the final task from a client.send_message stream."""
     final_task = None
     async for event in stream:
@@ -66,10 +66,13 @@ async def test_run_sync(echo: tuple[Server, Client]) -> None:
 
     assert final_task is not None
     assert final_task.status.state == TaskState.completed
+    # pyrefly: ignore [bad-argument-type]
     assert len(final_task.history) >= 1
     # The echo agent should return the same text as input
+    # pyrefly: ignore [not-iterable]
     agent_messages = [msg for msg in final_task.history if msg.role.value == "agent"]
     assert len(agent_messages) >= 1
+
     assert agent_messages[0].parts[0].root.text == message.parts[0].root.text
 
 
@@ -183,6 +186,7 @@ async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
 
     assert hasattr(final_task, "status")
     assert final_task.status.state == TaskState.completed
+    # pyrefly: ignore [missing-attribute, unsupported-operation]
     assert "Received resume: Resume input" in final_task.history[-1].parts[0].root.text
 
 
@@ -337,8 +341,11 @@ async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client
     assert final_chunk.append is True
 
     # Verify artifact content
+
     assert "first chunk" in first_chunk.artifact.parts[0].root.text
+
     assert "second chunk" in second_chunk.artifact.parts[0].root.text
+
     assert "final chunk" in final_chunk.artifact.parts[0].root.text
 
 

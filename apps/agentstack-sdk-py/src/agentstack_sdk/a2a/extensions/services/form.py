@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from typing import Self, TypeVar, cast
+from typing import Any, Self, TypeVar
 
 from pydantic import BaseModel, TypeAdapter
 from typing_extensions import TypedDict
@@ -67,6 +67,7 @@ T = TypeVar("T")
 
 
 class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]):
+<<<<<<< feat/1998-extend-form-extension-for-settings
     def parse_initial_form(self, *, model: type[T] = FormResponse) -> T | None:
         """Parse initial_form from form_fulfillments."""
         if self.data is None:
@@ -99,3 +100,19 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
 
 
 class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]): ...
+=======
+    def parse_initial_form(self, *, model: type[T] | None = None) -> T | None:
+        initial_form = getattr(self.data, "form_fulfillments", {}).get("initial_form")
+        return (
+            TypeAdapter(model).validate_python(dict(initial_form))
+            if initial_form is not None and model is not None
+            else initial_form
+        )
+
+
+class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]):
+    def fulfillment_metadata(self, *, form_fulfillments: dict[str, FormResponse]) -> dict[str, Any]:
+        return {
+            self.spec.URI: FormServiceExtensionMetadata(form_fulfillments=form_fulfillments).model_dump(mode="json")
+        }
+>>>>>>> ui/unify-settings-form-exts

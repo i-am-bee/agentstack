@@ -9,7 +9,7 @@ import {
   DefaultAgentCardResolver,
   JsonRpcTransportFactory,
 } from '@a2a-js/sdk/client';
-import { createAuthenticatedFetch } from 'agentstack-sdk';
+import { createAuthenticatedFetch, getAgentCardPath } from 'agentstack-sdk';
 
 import { UnauthenticatedError } from '#api/errors.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
@@ -18,7 +18,7 @@ export async function getAgentClient(providerId: string, token: string) {
   const fetchImpl = createAuthenticatedFetch(token, clientFetch);
 
   const baseUrl = getBaseUrl();
-  const agentCardPath = `api/v1/a2a/${providerId}/.well-known/agent-card.json`;
+  const agentCardPath = getAgentCardPath(providerId);
   const factory = new ClientFactory(
     ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
       transports: [new JsonRpcTransportFactory({ fetchImpl })],

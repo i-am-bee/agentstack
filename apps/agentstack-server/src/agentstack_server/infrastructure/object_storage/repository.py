@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-from collections.abc import AsyncIterator
+import typing
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Any
 from uuid import UUID
@@ -30,7 +30,7 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
 
     def _get_client(self) -> AbstractAsyncContextManager[Any]:
         session = aioboto3.Session()
-        return session.client(  # pyright: ignore [reportReturnType]
+        return session.client(
             "s3",
             endpoint_url=str(self.config.endpoint_url),
             aws_access_key_id=self.config.access_key_id.get_secret_value(),
@@ -55,7 +55,7 @@ class S3ObjectStorageRepository(IObjectStorageRepository):
             return result["ContentLength"]
 
     @asynccontextmanager
-    async def get_file(self, *, file_id: UUID) -> AsyncIterator[AsyncFile]:
+    async def get_file(self, *, file_id: UUID) -> typing.AsyncGenerator[AsyncFile]:
         object_key = self._get_object_key(file_id)
         async with self._get_client() as client:
             try:

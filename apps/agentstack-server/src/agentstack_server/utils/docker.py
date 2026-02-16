@@ -11,7 +11,7 @@ from typing import Any, NamedTuple
 
 import httpx
 from async_lru import alru_cache
-from kink import inject
+from kink import di
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -53,8 +53,7 @@ class ManifestResponse(NamedTuple):
     digest: str
 
 
-class DockerImageID(RootModel):
-    root: str
+class DockerImageID(RootModel[str]):
     model_config = ConfigDict(frozen=True)
 
     _registry: str | None = PrivateAttr(None)
@@ -63,10 +62,9 @@ class DockerImageID(RootModel):
     _digest: str | None = PrivateAttr(None)
     _manifest: dict[str, Any] | None = PrivateAttr(None)
 
-    @property  # pyright: ignore [reportArgumentType]
-    @inject
-    def registry_config(self, configuration: Configuration) -> OCIRegistryConfiguration:
-        return configuration.oci_registry[self.registry]
+    @property
+    def registry_config(self) -> OCIRegistryConfiguration:
+        return di[Configuration].oci_registry[self.registry]
 
     @cached_property
     def registry_base_url(self) -> str:
@@ -184,7 +182,6 @@ class DockerImageID(RootModel):
                 digest=manifest_resp.headers["Docker-Content-Digest"],
             )
 
-    @inject
     async def resolve_version(self) -> ResolvedDockerImageID:
         manifest = await self.get_manifest()
         digest = manifest.digest
@@ -245,7 +242,6 @@ class ResolvedDockerImageID(BaseModel):
 
 
 @alru_cache(ttl=timedelta(minutes=5).total_seconds())
-@inject
 async def get_registry_token(
     *,
     docker_image_id: DockerImageID,

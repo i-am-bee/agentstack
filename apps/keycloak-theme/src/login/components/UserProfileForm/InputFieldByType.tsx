@@ -3,30 +3,28 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { CheckboxSelectField } from "./CheckboxSelectField";
-import { InputField } from "./InputField";
-import { PasswordField } from "./PasswordField";
-import { RadioSelectField } from "./RadioSelectField";
-import { SelectField } from "./SelectField";
-import { TextAreaField } from "./TextAreaField";
-import type { InputFieldByTypeProps } from "./types";
+import { CheckboxSelectField } from './CheckboxSelectField';
+import { InputField } from './InputField';
+import { PasswordField } from './PasswordField';
+import { RadioSelectField } from './RadioSelectField';
+import { SelectField } from './SelectField';
+import { TextAreaField } from './TextAreaField';
+import type { InputFieldByTypeProps } from './types';
 
 export function InputFieldByType(props: InputFieldByTypeProps) {
   const { attribute, valueOrValues } = props;
 
   switch (attribute.annotations.inputType) {
-    case "hidden":
-      return (
-        <input type="hidden" name={attribute.name} value={valueOrValues} />
-      );
-    case "textarea":
+    case 'hidden':
+      return <input type="hidden" name={attribute.name} value={valueOrValues} />;
+    case 'textarea':
       return <TextAreaField {...props} />;
-    case "select":
-    case "multiselect":
+    case 'select':
+    case 'multiselect':
       return <SelectField {...props} />;
-    case "select-radiobuttons":
+    case 'select-radiobuttons':
       return <RadioSelectField {...props} />;
-    case "multiselect-checkboxes":
+    case 'multiselect-checkboxes':
       return <CheckboxSelectField {...props} />;
     default: {
       if (valueOrValues instanceof Array) {
@@ -40,10 +38,7 @@ export function InputFieldByType(props: InputFieldByTypeProps) {
       }
 
       // Password fields
-      if (
-        attribute.name === "password" ||
-        attribute.name === "password-confirm"
-      ) {
+      if (attribute.name === 'password' || attribute.name === 'password-confirm') {
         return <PasswordField {...props} fieldIndex={undefined} />;
       }
 

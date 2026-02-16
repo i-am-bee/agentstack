@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "login-update-profile.ftl",
+  pageId: 'login-update-profile.ftl',
 });
 
 const meta = {
-  title: "login/login-update-profile.ftl",
+  title: 'login/login-update-profile.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -35,11 +35,11 @@ export const WithProfileError: Story = {
     <KcPageStory
       kcContext={{
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
         messagesPerField: {
-          existsError: (field: string) => field === "email",
-          get: () => "Invalid email format",
+          existsError: (field: string) => field === 'email',
+          get: () => 'Invalid email format',
         },
         isAppInitiatedAction: false,
       }}

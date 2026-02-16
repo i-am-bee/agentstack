@@ -75,7 +75,7 @@ class FileService:
             async with self._uow() as uow:
                 extraction = await uow.files.get_extraction_by_file_id(file_id=file_id)
                 file = await uow.files.get(file_id=file_id)
-                error_log.append(file.model_dump())
+                error_log.append(str(file.model_dump()))
                 user = await uow.users.get(user_id=file.created_by)
 
                 extraction.set_started(
@@ -326,7 +326,8 @@ def limit_size_wrapper(
         if max_size is None:
             return await read(size)
 
-        if chunk := await read(size):
+        chunk = await read(size)
+        if chunk:
             current_size += len(chunk)
             if current_size > max_size:
                 raise StorageCapacityExceededError("file", max_size)

@@ -12,7 +12,7 @@ import httpx
 from authlib.oauth2 import OAuth2Error
 from fastapi import Request, status
 from fastapi.responses import StreamingResponse
-from httpx import ConnectError, ReadError, RemoteProtocolError, TimeoutException
+from httpx import AsyncClient, ConnectError, ReadError, RemoteProtocolError, TimeoutException
 from kink import inject
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
@@ -240,8 +240,8 @@ class ConnectorService:
     def _find_preset(self, *, url: AnyUrl) -> ConnectorPreset | None:
         return next((p for p in self._configuration.connector.presets if str(p.url) == str(url)), None)
 
-    async def probe_connector(self, *, connector: Connector, max_retries: int = 5):
-        def client_factory(headers=None, timeout=None, auth=None):
+    async def probe_connector(self, *, connector: Connector, max_retries: int = 5) -> None:
+        def client_factory(headers=None, timeout=None, auth=None) -> AsyncClient:
             assert auth is None
             return self._external_mcp.create_http_client(connector=connector, headers=headers, timeout=timeout)
 

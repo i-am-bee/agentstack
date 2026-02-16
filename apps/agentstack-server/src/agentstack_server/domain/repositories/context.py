@@ -11,11 +11,9 @@ from agentstack_server.domain.models.context import Context, ContextHistoryItem,
 
 
 class IContextRepository(Protocol):
-    async def list(
+    def list(
         self, user_id: UUID | None = None, last_active_before: datetime | None = None
-    ) -> AsyncIterator[Context]:
-        yield ...  # type: ignore
-
+    ) -> AsyncIterator[Context]: ...
     async def list_paginated(
         self,
         *,
@@ -28,7 +26,6 @@ class IContextRepository(Protocol):
         include_empty: bool = True,
         last_active_before: datetime | None = None,
     ) -> PaginatedResult: ...
-
     async def create(self, *, context: Context) -> None: ...
     async def get(self, *, context_id: UUID, user_id: UUID | None = None) -> Context: ...
     async def update(self, *, context: Context) -> None: ...
@@ -47,5 +44,4 @@ class IContextRepository(Protocol):
         order_by: str = "created_at",
         order="desc",
     ) -> PaginatedResult[ContextHistoryItem]: ...
-
     async def delete_history_from_id(self, *, context_id: UUID, from_id: UUID) -> int: ...

@@ -1,11 +1,10 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 import asyncio
 import typing
 from collections.abc import AsyncIterator, Iterator
 from datetime import datetime
-from typing import Final, override
+from typing import Final, cast, override
 
 import ibm_watsonx_ai.foundation_models.embeddings
 import openai.types.chat
@@ -39,7 +38,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                 logprobs=request.logprobs,
                 top_logprobs=request.top_logprobs,
                 presence_penalty=request.presence_penalty,
-                response_format=request.response_format,
+                response_format=cast(dict, request.response_format),
                 temperature=request.temperature,
                 max_tokens=request.max_tokens,
                 max_completion_tokens=request.max_completion_tokens,
@@ -90,7 +89,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
     ) -> openai.types.chat.ChatCompletion:
         response = await asyncio.to_thread(
             self._get_watsonx_model(request, api_key).chat,
-            messages=request.messages,
+            messages=cast(list[dict], request.messages),
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,
@@ -138,7 +137,7 @@ class WatsonXOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
         self, request: ChatCompletionRequest, model: ibm_watsonx_ai.foundation_models.ModelInference
     ) -> Iterator[openai.types.chat.ChatCompletionChunk]:
         for chunk in model.chat_stream(
-            messages=request.messages,
+            messages=cast(list[dict], request.messages),
             tools=request.tools,
             tool_choice=request.tool_choice if isinstance(request.tool_choice, dict) else None,
             tool_choice_option=request.tool_choice if isinstance(request.tool_choice, str) else None,

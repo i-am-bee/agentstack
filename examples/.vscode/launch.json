@@ -1,0 +1,41 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "examples/basic-history",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/multi-turn/basic-history",
+      "program": "src/basic_history/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/advanced-history",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/multi-turn/advanced-history",
+      "program": "src/advanced_history/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/initial-form-rendering",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/forms/initial-form-rendering",
+      "program": "src/initial_form_rendering/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/implement-your-agent-logic",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/deploy-agents/building-agents/implement-your-agent-logic",
+      "program": "src/implement_your_agent_logic/agent.py",
+      "console": "integratedTerminal"
+    }
+  ]
+}

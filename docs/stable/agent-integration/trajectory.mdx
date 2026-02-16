@@ -3,9 +3,15 @@ title: Visualize Agent Trajectories
 description: Show users the step-by-step reasoning process of your agent.
 ---
 
-## Basic Usage
+The Trajectory extension allows you to visualize the step-by-step reasoning process of your agent as it runs.
+Trajectory steps appear as expandable sections in the UI, helping users understand your agent's thought process,
+making the interaction more transparent and trustworthy.
+
+## Example: Basic Usage
 
 ```python
+import os
+from time import sleep
 from typing import Annotated
 from a2a.types import Message
 from agentstack_sdk.server import Server
@@ -14,8 +20,10 @@ from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryE
 
 server = Server()
 
-@server.agent()
-async def my_agent(
+@server.agent(
+    name="Docs Trajectory Agent",
+)
+async def docs_trajectory_agent(
     input: Message,
     context: RunContext,
     trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
@@ -24,16 +32,40 @@ async def my_agent(
         title="Planning",
         content="Analyzing the user request to determine the best approach..."
     )
-
-    # Do work
+    sleep(3)  # Sleep so that you can watch the trajectory steps unfold
 
     yield trajectory.trajectory_metadata(
         title="Execution",
-        content="Processing data with temperature=0.7"
+        content="Processing data with temperature=0.7..."
     )
+    sleep(3)
 
-    yield "Final result"
+    yield "Final result goes here"
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
 ```
+
+<Steps>
+<Step title="Import the trajectory extension">
+Import `TrajectoryExtensionServer` and `TrajectoryExtensionSpec` from `agentstack_sdk.a2a.extensions`.
+</Step>
+
+<Step title="Inject the extension">
+  Add a trajectory parameter to your agent function using the `Annotated` type hint
+  with `TrajectoryExtensionSpec()`.
+</Step>
+
+<Step title="Yield trajectory metadata">
+  Call `yield trajectory.trajectory_metadata()` with a `title` and `content` to
+  add a step to the trajectory.
+</Step>
+</Steps>
 
 ## Markdown Support
 
@@ -47,15 +79,16 @@ Supported elements include:
 - Tables
 - Code blocks
 - Links
+- Checklists
 
 ```python
 yield trajectory.trajectory_metadata(
     title="Checklist",
     content="""
-- Load data
-- Validate schema
-- Run inference
-- Generate report
+- [x] Load data
+- [x] Validate schema
+- [ ] Run inference
+- [ ] Generate report
 """
 )
 ```
@@ -73,18 +106,22 @@ yield trajectory.trajectory_metadata(
 )
 
 # Update with results
+sleep(3)
 yield trajectory.trajectory_metadata(
     content="Found 8 results",
     group_id="websearch"
 )
+sleep(3)
 yield trajectory.trajectory_metadata(
     content="Found 8 results\nAnalyzed 3/8 results",
     group_id="websearch"
 )
+sleep(3)
 yield trajectory.trajectory_metadata(
     content="Found 8 results\nAnalyzed 8/8 results",
     group_id="websearch"
 )
+sleep(3)
 
 # Final update
 yield trajectory.trajectory_metadata(
@@ -145,4 +182,6 @@ yield trajectory.trajectory_metadata(
 )
 ```
 
-Trajectory steps appear as expandable sections in the UI, helping users understand your agent's thought process.
+## Example: Advanced Usage
+
+For a more advanced example, see [trajectory_agent.py](https://github.com/i-am-bee/agentstack/blob/main/apps/agentstack-sdk-py/examples/trajectory_agent.py).

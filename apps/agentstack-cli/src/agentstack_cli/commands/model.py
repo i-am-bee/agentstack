@@ -19,7 +19,6 @@ from agentstack_sdk.platform import (
 )
 from InquirerPy import inquirer
 from InquirerPy.base.control import Choice
-from InquirerPy.validator import EmptyInputValidator
 from rich.table import Column
 
 from agentstack_cli.api import openai_client
@@ -184,26 +183,26 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
     base_url: str
     watsonx_project_id, watsonx_space_id = None, None
     choices = LLM_PROVIDERS if capability == ModelCapability.LLM else EMBEDDING_PROVIDERS
-    provider_type, provider_name, base_url = await inquirer.fuzzy(  # type: ignore
+    provider_type, provider_name, base_url = await inquirer.fuzzy(
         message=f"Select {capability} provider (type to search):", choices=choices
-    ).execute_async()
+    ).execute_async() or sys.exit(1)
 
     watsonx_project_or_space: str = ""
     watsonx_project_or_space_id: str = ""
 
     if provider_type == ModelProviderType.OTHER:
-        base_url: str = await inquirer.text(  # type: ignore
+        base_url: str = await inquirer.text(
             message="Enter the base URL of your API (OpenAI-compatible):",
-            validate=lambda url: (url.startswith(("http://", "https://")) or "URL must start with http:// or https://"),  # type: ignore
+            validate=lambda url: url.startswith(("http://", "https://")),
             transformer=lambda url: url.rstrip("/"),
-        ).execute_async()
+        ).execute_async() or sys.exit(1)
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", base_url):
             provider_type = ModelProviderType.RITS
             if not base_url.endswith("/v1"):
                 base_url = base_url.removesuffix("/") + "/v1"
 
     if provider_type == ModelProviderType.WATSONX:
-        region: str = await inquirer.select(  # type: ignore
+        region: str = await inquirer.select(
             message="Select IBM Cloud region:",
             choices=[
                 Choice(name="us-south", value="us-south"),
@@ -213,34 +212,36 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                 Choice(name="jp-tok", value="jp-tok"),
                 Choice(name="au-syd", value="au-syd"),
             ],
-        ).execute_async()
+        ).execute_async() or sys.exit(1)
         base_url: str = f"""https://{region}.ml.cloud.ibm.com"""
-        watsonx_project_or_space: str = await inquirer.select(  # type:ignore
+        watsonx_project_or_space: str = await inquirer.select(
             "Use a Project or a Space?", choices=["project", "space"]
-        ).execute_async()
+        ).execute_async() or sys.exit(1)
         if (
             not (watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID", ""))
-            or not await inquirer.confirm(  # type:ignore
+            or not await inquirer.confirm(
                 message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
                 default=True,
             ).execute_async()
         ):
-            watsonx_project_or_space_id = await inquirer.text(  # type:ignore
+            watsonx_project_or_space_id = await inquirer.text(
                 message=f"Enter the {watsonx_project_or_space} id:"
-            ).execute_async()
+            ).execute_async() or sys.exit(1)
 
         watsonx_project_id = watsonx_project_or_space_id if watsonx_project_or_space == "project" else None
         watsonx_space_id = watsonx_project_or_space_id if watsonx_project_or_space == "space" else None
 
-    if (api_key := os.environ.get(f"{provider_type.upper()}_API_KEY")) is None or not await inquirer.confirm(  # type: ignore
-        message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
-        default=True,
-    ).execute_async():
-        api_key: str = (
-            "dummy"
-            if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
-            else await inquirer.secret(message="Enter API key:", validate=EmptyInputValidator()).execute_async()  # type: ignore
-        )
+    api_key: str = (
+        "dummy"
+        if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
+        else env_api_key
+        if (env_api_key := os.environ.get(f"{provider_type.upper()}_API_KEY"))
+        and await inquirer.confirm(
+            message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
+            default=True,
+        ).execute_async()
+        else await inquirer.secret(message="Enter API key:").execute_async() or ""
+    )
 
     try:
         if provider_type == ModelProviderType.OLLAMA:
@@ -264,13 +265,13 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                     message = f"Do you want to pull the recommended LLM model '{recommended_llm_model}'?"
                     if not available_models:
                         message = f"There are no locally available models in Ollama. {message}"
-                    if await inquirer.confirm(message, default=True).execute_async():  # type: ignore
+                    if await inquirer.confirm(message, default=True).execute_async():
                         await run_command(
                             [_ollama_exe(), "pull", recommended_llm_model], "Pulling the selected model", check=True
                         )
 
                 if recommended_embedding_model not in available_models and (
-                    await inquirer.confirm(  # type: ignore
+                    await inquirer.confirm(
                         message=f"Do you want to pull the recommended embedding model '{recommended_embedding_model}'?",
                         default=True,
                     ).execute_async()
@@ -293,8 +294,8 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
             )
 
     except httpx.HTTPError as e:
-        if hasattr(e, "response") and hasattr(e.response, "json"):  # pyright: ignore [reportAttributeAccessIssue]
-            err = str(e.response.json().get("detail", str(e)))  # pyright: ignore [reportAttributeAccessIssue]
+        if hasattr(e, "response") and hasattr(e.response, "json"):
+            err = str(e.response.json().get("detail", str(e)))
         else:
             err = str(e)
         match provider_type:
@@ -336,12 +337,12 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
     selected_model = (
         recommended_model
         if recommended_model
-        and await inquirer.confirm(  # type: ignore
+        and await inquirer.confirm(
             message=f"Do you want to use the recommended model as default: '{recommended_model}'?",
             default=True,
         ).execute_async()
         else (
-            await inquirer.fuzzy(  # type: ignore
+            await inquirer.fuzzy(
                 message="Select a model to be used as default (type to search):",
                 choices=sorted(available_models),
             ).execute_async()
@@ -429,7 +430,7 @@ async def setup(
                 console.warning("The following providers are already configured:\n")
                 _list_providers(existing_providers)
                 console.print()
-                if await inquirer.confirm(  # type: ignore
+                if await inquirer.confirm(
                     message="Do you want to reset the configuration?", default=True
                 ).execute_async():
                     with console.status("Resetting configuration...", spinner="dots"):
@@ -450,13 +451,13 @@ async def setup(
                     != ModelProviderType.RITS  # RITS does not support embeddings, but we treat it as OTHER
                     and (
                         llm_provider.type != ModelProviderType.OTHER  # OTHER may not support embeddings, so we ask
-                        or inquirer.confirm(  # type: ignore
+                        or inquirer.confirm(
                             "Do you want to also set up an embedding model from the same provider?", default=True
                         )
                     )
                 ):
                     default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
-                elif await inquirer.confirm(  # type: ignore
+                elif await inquirer.confirm(
                     message="Do you want to configure an embedding provider? (recommended)", default=True
                 ).execute_async():
                     console.print("[bold]Setting up embedding provider...[/bold]")
@@ -490,7 +491,7 @@ async def select_default_model(
     url = announce_server_action("Updating default model for")
     await confirm_server_action("Proceed with updating default model on", url=url, yes=yes)
     if not capability:
-        capability = await inquirer.select(  # type: ignore
+        capability = await inquirer.select(
             message="Which default model would you like to change?",
             choices=[
                 Choice(name="llm", value=ModelCapability.LLM),
@@ -518,9 +519,17 @@ app.add_typer(model_provider_app, name="provider")
 
 
 def _list_providers(providers: list[ModelProvider]):
-    with create_table(Column("Type"), Column("Name"), Column("Base URL", ratio=1)) as provider_table:
+    with create_table(Column("Type"), Column("Name"), Column("State"), Column("Base URL", ratio=1)) as provider_table:
         for provider in providers:
-            provider_table.add_row(provider.type, provider.name, str(provider.base_url))
+            provider_table.add_row(
+                provider.type,
+                provider.name,
+                {
+                    "online": "[green]● connected[/green]",
+                    "offline": "[bright_black]○ disconnected[/bright_black]",
+                }.get(provider.state, provider.state or "<unknown>"),
+                str(provider.base_url),
+            )
     console.print(provider_table)
 
 
@@ -543,7 +552,7 @@ async def add_provider(
     """Add a new model provider. [Admin only]"""
     announce_server_action("Adding provider for")
     if not capability:
-        capability = await inquirer.select(  # type: ignore
+        capability = await inquirer.select(
             message="Which default provider would you like to add?",
             choices=[
                 Choice(name="llm", value=ModelCapability.LLM),
@@ -598,13 +607,15 @@ async def remove_provider(
         async with configuration.use_platform_client():
             providers = await ModelProvider.list()
 
-        if not search_path:
-            provider: ModelProvider = await inquirer.select(  # type: ignore
+        provider: ModelProvider = (
+            _select_provider(providers, search_path)
+            if search_path
+            else await inquirer.select(
                 message="Choose a provider to remove:",
                 choices=[Choice(name=f"{p.type} ({p.base_url})", value=p) for p in providers],
             ).execute_async()
-        else:
-            provider = _select_provider(providers, search_path)
+            or sys.exit(1)
+        )
 
         await provider.delete()
 

@@ -10,15 +10,14 @@ from agentstack_server.domain.models.provider import Provider, ProviderType, Unm
 
 @runtime_checkable
 class IProviderRepository(Protocol):
-    async def list(
+    def list(
         self,
         *,
         type: ProviderType | None = None,
         user_id: UUID | None = None,
         exclude_user_id: UUID | None = None,
         origin: str | None = None,
-    ) -> AsyncIterator[Provider]:
-        yield ...  # type: ignore
+    ) -> AsyncIterator[Provider]: ...
 
     async def create(self, *, provider: Provider) -> None: ...
     async def update(self, *, provider: Provider) -> None: ...

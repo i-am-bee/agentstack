@@ -88,7 +88,7 @@ class ToolCallExtensionServer(BaseExtensionServer[ToolCallExtensionSpec, ToolCal
             match result.action:
                 case "accept":
                     return result
-                case "reject":
+                case _:
                     raise ToolCallRejectionError("User has rejected the tool call")
 
         else:

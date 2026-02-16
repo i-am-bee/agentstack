@@ -4,4 +4,4 @@
  */
 
 // Re-export from new location for backward compatibility
-export { UserProfileFormFields as default } from "./components/UserProfileForm";
+export { UserProfileFormFields as default } from './components/UserProfileForm';

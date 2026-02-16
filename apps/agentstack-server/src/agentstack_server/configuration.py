@@ -19,7 +19,7 @@ from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from agentstack_server.domain.models.registry import RegistryLocation
+from agentstack_server.domain.models.registry import ModelProviderRegistryLocation, RegistryLocation
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,10 @@ class LoggingConfiguration(BaseModel):
     @field_validator("level", "level_uvicorn", "level_procrastinate", mode="before")
     @classmethod
     def validate_level(cls, v: str | int | None):
-        return v if isinstance(v, int) else logging.getLevelNamesMapping()[v.upper()]
+        if isinstance(v, int):
+            return v
+        elif isinstance(v, str):
+            return logging.getLevelNamesMapping()[v.upper()]
 
 
 class OCIRegistryConfiguration(BaseModel, extra="allow"):
@@ -66,6 +69,17 @@ class OCIRegistryConfiguration(BaseModel, extra="allow"):
         if self.username and self.password:
             return base64.b64encode(f"{self.username}:{self.password.get_secret_value()}".encode()).decode()
         return None
+
+
+class ModelProviderRegistryConfiguration(BaseModel):
+    locations: dict[str, ModelProviderRegistryLocation] = Field(default_factory=dict)
+    sync_period_cron: str = Field(default="*/10 * * * *")  # every 10 minutes
+
+
+class ModelProviderConfiguration(BaseModel):
+    update_models_period_cron: str = Field(default="0 */1 * * *")  # every hour
+    default_llm_model: str | None = None
+    default_embedding_model: str | None = None
 
 
 class AgentRegistryConfiguration(BaseModel):
@@ -99,6 +113,7 @@ class OidcConfiguration(BaseModel):
     insecure_transport: bool = False
 
     scope: list[str] = ["openid", "email", "profile"]
+    roles_path: str = "realm_access.roles"
     validate_audience: bool = True
 
     @property
@@ -175,12 +190,19 @@ class RedisConfiguration(BaseModel):
     ssl_cert_reqs: str = "required"
     ssl_ca_certs: Path | None = None
     rate_limit_db: int = 15
+    cache_db: int = 14
 
     @property
     def rate_limit_db_url(self) -> Secret[str]:
         scheme = "rediss" if self.use_ssl else "redis"
         auth = f":{self.password.get_secret_value()}@" if self.password else ""
         return Secret(f"{scheme}://{auth}{self.host}:{self.port}/{self.rate_limit_db}")
+
+    @property
+    def cache_db_url(self) -> Secret[str]:
+        scheme = "rediss" if self.use_ssl else "redis"
+        auth = f":{self.password.get_secret_value()}@" if self.password else ""
+        return Secret(f"{scheme}://{auth}{self.host}:{self.port}/{self.cache_db}")
 
 
 class PersistenceConfiguration(BaseModel):
@@ -442,6 +464,10 @@ class Configuration(BaseSettings):
     )
     provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
     agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
+    model_provider_registry: ModelProviderRegistryConfiguration = Field(
+        default_factory=ModelProviderRegistryConfiguration
+    )
+    model_provider: ModelProviderConfiguration = Field(default_factory=ModelProviderConfiguration)
     oci_registry: dict[str, OCIRegistryConfiguration] = Field(default_factory=dict)
     oci_registry_docker_config_json: dict[int, DockerConfigJson] = {}
     github_registry_config_json: GithubConfigJson = Field(default_factory=GithubConfigJson)
@@ -482,9 +508,11 @@ class Configuration(BaseSettings):
                             aliases.add(url.host)
                     else:
                         aliases.add(registry.strip("/"))
-                    if any("index.docker.io" in alias for alias in aliases):
+                    if any(alias in {"index.docker.io", "docker.io"} for alias in aliases):
                         aliases.add("docker.io")
                     for alias in aliases:
+                        if not alias:
+                            continue
                         self.oci_registry[alias].username = conf.username
                         self.oci_registry[alias].password = conf.password
                         self.oci_registry[alias].auth_header = conf.auth

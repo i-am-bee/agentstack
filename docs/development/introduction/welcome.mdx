@@ -1,41 +1,154 @@
 ---
 title: Welcome
-description: "Open infrastructure for deploying agents from any framework"
+description: "Agent Stack is open infrastructure for turning AI agents into running services in minutes."
 ---
 
-Agent Stack is open, self-hostable infrastructure for deploying AI agents built with any framework. Hosted by the Linux Foundation and built on the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), it gives you everything needed to move agents from local development to shared production environments—without vendor lock-in.
+**Writing an agent is easy. Shipping one is not.**
 
-## What Agent Stack Provides
+Agent Stack gives you everything you need to run agents as backend services: LLM routing, vector storage, authentication, file handling, and deployment tooling out of the box. You write agent logic in any framework. Agent Stack provides the infrastructure so you can ship to users in minutes, not weeks.
+| Component | What's Included |
+|----------|----------------|
+| **Agent Runtime** | - Self-hostable server to run agents in production |
+| **LLM & AI Services** | - LLM service with support for 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama)<br /> - Embeddings and vector search for RAG and semantic search |
+| **Agent Deployment & Management** | - CLI for deploying, updating, and managing agents |
+| **Storage & Documents** | - S3-compatible file storage for uploads and downloads<br />- Document text extraction via Docling |
+| **Interfaces & Tooling** | - Out-of-the-box Web UI for testing and sharing agents<br />- Client SDK for building custom UIs and applications |
+| **Integrations** | - External integrations via MCP protocol (APIs, Slack, Google Drive, etc.) with OAuth |
+| **Security** | - Secrets management for API keys and credentials<br />- OAuth support for secure external integrations |
+| **Agent Stack Deployment** | - Helm chart for Kubernetes with customizable storage, databases, and authentication |
+| **Framework Interoperability** | - Build agents using LangGraph, CrewAI, or your own framework<br />- Agents are automatically exposed as A2A-compatible agents<br />- `agentstack-sdk` handles runtime service requests and agent-to-agent communication |
 
-Everything you need to deploy and operate agents in production:
 
-- **Self-hostable server** to run your agents
-- **Web UI** for testing and sharing deployed agents
-- **CLI** for deploying and managing agents
-- **Runtime services** your agents can access:
-  - **LLM Service** — Switch between 15+ providers (Anthropic, OpenAI, watsonx.ai, Ollama) without code changes
-  - **Embeddings & vector search** for RAG and semantic search
-  - **File storage** — S3-compatible uploads/downloads
-  - **Document text extraction** via [Docling](https://www.docling.ai/)
-  - **External integrations** via MCP protocol (APIs, Slack, Google Drive, etc.) with OAuth
-  - **Secrets management** for API keys and credentials
-- **SDK (`agentstack-sdk`)** for standardized A2A service requests
-- **HELM chart** for Kubernetes deployments with customizable storage, databases, and auth
+## Get running in one command
+Start a complete agent runtime locally — models, storage, and services included.
 
-Build your agent using LangGraph, CrewAI, or your own framework—SDK handles runtime service requests automatically.
+```bash
+sh -c "$(curl -LsSf https://raw.githubusercontent.com/i-am-bee/agentstack/install/install.sh)"
+```
+You now have a working environment for running agents as services.
 
-## How It Works
+<Tip>
+Follow the [quickstart](./quickstart) for full installation instructions and requirements.
+</Tip>
 
-1. **Build** your agent using `agentstack-sdk`
-2. **Deploy** with a single CLI command
-3. **Users interact** through the auto-generated web UI
+## Getting from “agent” to “running service” is harder than it should be
 
-Your agents request infrastructure services at runtime through A2A protocol extensions.
+When you go from running your agent locally to powering a real application, you run into a wall of infrastructure work:
+- Choosing and wiring an LLM gateway
+- Configuring vector storage and embeddings
+- Handling auth, secrets, files, and artifacts
+- Making local experiments behave the same way in deployment
+- Rebuilding everything once production enters the picture
 
-- **Development:** Run locally with full services for rapid iteration  
-- **Production:** Deploy to Kubernetes via HELM and integrate with your infrastructure
+**Agent Stack removes that friction.**
+It gives you a ready-made runtime for running agents as services, so you can focus on agent logic instead of infrastructure glue.
 
-## Get Started
+With Agent Stack:
+- Agents run locally and in deployed environments without major refactoring
+- Agents are exposed as stable, callable services
+- Applications can integrate with agents like any backend dependency
+- Infrastructure is decoupled from application logic
+
+You keep full freedom in how agents are authored. Agent Stack standardizes how agents are run, deployed, and integrated.
+
+## How does it work?
+Agent Stack runs agents as services alongside your applications.
+
+```
+Application
+    |
+    |  SDK / HTTP
+    v
+Agent Stack (agent services)
+    |
+    v
+LLMs • Vector Store • Auth • Files
+```
+Agent Stack provides sensible defaults for instant usability. However, it's fully pluggable, giving you the freedom to swap in your own custom services and configurations whenever needed.
+
+## Getting started
+
+### 1. Wrap an existing agent
+Agent Stack lets you take an agent you already have and expose it as a service by providing the sensible infrastructure defaults they need.
+
+Here’s an example wrapping a simple agent function:
+
+```shell
+uv add agentstack-sdk
+```
+
+```python
+import os
+
+from a2a.types import (
+    Message,
+)
+from a2a.utils.message import get_message_text
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.a2a.types import AgentMessage
+
+server = Server()
+
+@server.agent()
+async def example_agent(input: Message, context: RunContext):
+    """Polite agent that greets the user"""
+    hello_template: str = os.getenv("HELLO_TEMPLATE", "Ciao %s!")
+    yield AgentMessage(text=hello_template % get_message_text(input))
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+```
+
+```shell
+uv run example_agent.py
+```
+
+Your agent can be:
+- A LangGraph workflow
+- A custom reasoning loop
+- A thin wrapper around an LLM call
+
+Agent Stack doesn’t care—as long as it can be executed.
+
+### 2. Deploy the agent as service
+
+Run the agent locally or on infrastructure you control.
+
+```shell
+uv run example_agent "Emily"
+```
+Your agent is now running as a backend service.
+
+### 3. Call the agent from your application
+
+Integrate the agent into your app using the [Client SDK](../custom-ui/getting-started), HTTP API, or our out of the box UI extensions. Agent Stack takes care of running and deploying agents so you can wire them into your application like any other backend service.
+
+## What Agent Stack is (and isn’t)
+
+Agent Stack is:
+- A bundled runtime for deploying agent services
+- Optimized for experimentation and fast iteration
+- Flexible enough to grow with you from local testing to a sandboxed deployment platform
+
+Agent Stack isn't:
+- An agent building framework
+- A hosted AI service
+- A replacement for enterprise AI platforms
+
+## Getting help, contributing, and staying up to date
+
+Agent Stack is an open-source project maintained as part of the Linux Foundation community.
+- **Documentation**: Start here for guides and examples
+- **Issues**: Use [GitHub Issues](https://github.com/i-am-bee/agentstack/issues) to report bugs or request features
+- **Discussions**: Use [Github Discussions](https://github.com/i-am-bee/agentstack/discussions) to ask questions, share ideas, and compare approaches
+- **Contributing**: Contributions are welcome— see the [contributing guide](https://github.com/i-am-bee/agentstack/blob/main/CONTRIBUTING.md) for details
+
+Agent Stack is being actively developed and intended to evolve alongside the agent ecosystem. Defaults may change, components may improve, but the goal remains the same: make agents easy to run, easy to deploy, and easy to integrate.
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="./quickstart">

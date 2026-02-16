@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "error.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'error.ftl' });
 
 const meta = {
-  title: "login/error.ftl",
+  title: 'login/error.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -26,7 +26,7 @@ export const WithAnotherMessage: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        message: { summary: "With another error message" },
+        message: { summary: 'With another error message' },
       }}
     />
   ),
@@ -37,8 +37,7 @@ export const WithHtmlErrorMessage: Story = {
     <KcPageStory
       kcContext={{
         message: {
-          summary:
-            "<strong>Error:</strong> Something went wrong. <a href='https://example.com'>Go back</a>",
+          summary: "<strong>Error:</strong> Something went wrong. <a href='https://example.com'>Go back</a>",
         },
       }}
     />
@@ -48,7 +47,7 @@ export const FrenchError: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        locale: { currentLanguageTag: "fr" },
+        locale: { currentLanguageTag: 'fr' },
         message: { summary: "Une erreur s'est produite" },
       }}
     />
@@ -58,10 +57,10 @@ export const WithSkipLink: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        message: { summary: "An error occurred" },
+        message: { summary: 'An error occurred' },
         skipLink: true,
         client: {
-          baseUrl: "https://example.com",
+          baseUrl: 'https://example.com',
         },
       }}
     />

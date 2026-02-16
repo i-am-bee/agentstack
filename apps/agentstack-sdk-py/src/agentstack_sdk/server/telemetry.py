@@ -9,6 +9,7 @@ from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.metrics import MeterProvider
@@ -30,6 +31,20 @@ def configure_telemetry(app: FastAPI) -> None:
     """Utility that configures opentelemetry with OTLP exporter and FastAPI instrumentation"""
 
     FastAPIInstrumentor.instrument_app(app)
+
+    httpxclient_instrumentor = HTTPXClientInstrumentor()
+    if httpxclient_instrumentor:
+        httpxclient_instrumentor.instrument()
+
+    try:
+        import openai  # noqa: F401
+        from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+
+        openai_instrumentor = OpenAIInstrumentor()
+        if openai_instrumentor:
+            openai_instrumentor.instrument()
+    except ModuleNotFoundError:
+        pass
 
     resource = Resource(attributes={SERVICE_NAME: "agentstack-sdk-a2a-server", SERVICE_VERSION: __version__})
 

@@ -165,7 +165,7 @@ class VectorSearchTool(Tool[VectorSearchToolInput, ToolRunOptions, VectorSearchT
         except Exception as e:
             raise ToolError(f"Error performing vector search: {e}") from e
 
-    def clone(self) -> "VectorSearchTool":
+    async def clone(self) -> "VectorSearchTool":
         """Create a copy of this tool."""
         return VectorSearchTool(
             embedding_function=self.embedding_function, vector_store_id=self.vector_store_id, limit=self.limit

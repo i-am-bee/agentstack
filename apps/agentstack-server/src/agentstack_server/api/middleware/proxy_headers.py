@@ -42,7 +42,11 @@ class ProxyHeadersMiddleware:
 
             if b"forwarded" in headers:
                 for forwarded in headers[b"forwarded"].decode("latin1").split(","):
-                    directives = dict([(val.strip() for val in seg.split("=")) for seg in forwarded.split(";")])
+                    directives = {
+                        parts[0].strip(): parts[1].strip()
+                        for seg in forwarded.split(";")
+                        if len(parts := seg.split("=", 1)) == 2
+                    }
                     if "proto" in directives or "host" in directives or "for" in directives:
                         proto = directives.get("proto")
                         host = directives.get("host")

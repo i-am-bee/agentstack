@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 from async_lru import alru_cache
 from authlib.jose import jwt
-from kink import di, inject
+from kink import di
 from pydantic import AnyUrl, BaseModel, ModelWrapValidatorHandler, RootModel, model_validator
 
 if TYPE_CHECKING:
@@ -31,9 +31,9 @@ async def get_github_token(host: str) -> str | None:
 
     if not (conf := di[Configuration].github_registry.get(host)):
         return None
-    if conf.type == "pat":
+    if isinstance(conf, GithubPATConfiguration):
         return conf.token.get_secret_value()
-    else:
+    elif isinstance(conf, GithubAppConfiguration):
         now = time.time()
         payload = {"iat": int(now), "exp": int(now) + 600, "iss": conf.app_id}
         encoded_jwt = jwt.encode({"alg": "RS256"}, payload, conf.private_key.get_secret_value()).decode("utf-8")
@@ -176,7 +176,6 @@ class GithubUrl(RootModel):
         url.root = str(url)  # normalize url
         return url
 
-    @inject
     async def _resolve_version_public(self) -> ResolvedGithubUrl:
         version = self._version or "HEAD"
         try:

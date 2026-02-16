@@ -19,7 +19,7 @@ from agentstack_sdk.server.store.memory_context_store import InMemoryContextStor
 pytestmark = pytest.mark.e2e
 
 
-async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task:
+async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task | None:
     final_task = None
     async for event in stream:
         match event:
@@ -35,6 +35,7 @@ async def send_message_get_response(
     if context_id is not None:
         message.context_id = context_id
     final_task = await get_final_task_from_stream(client.send_message(message))
+
     agent_messages = [msg.parts[0].root.text for msg in final_task.history or []]
     return agent_messages, final_task.context_id
 
@@ -68,6 +69,7 @@ async def history_deleting_agent(create_server_with_agent) -> AsyncGenerator[tup
             if n_messages == 1:
                 delete_id = message.id
             if n_messages > 3:
+                # pyrefly: ignore [unbound-name]
                 await context.delete_history_from_id(delete_id)
                 break
 

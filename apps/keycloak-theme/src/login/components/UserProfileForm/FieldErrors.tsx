@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Attribute } from "keycloakify/login/KcContext";
-import type { FormFieldError } from "keycloakify/login/lib/useUserProfileForm";
-import { Fragment } from "react";
+import type { Attribute } from 'keycloakify/login/KcContext';
+import type { FormFieldError } from 'keycloakify/login/lib/useUserProfileForm';
+import { Fragment } from 'react';
 
 type FieldErrorsProps = {
   attribute: Attribute;
@@ -16,9 +16,7 @@ type FieldErrorsProps = {
 export function FieldErrors(props: FieldErrorsProps) {
   const { attribute, fieldIndex } = props;
 
-  const displayableErrors = props.displayableErrors.filter(
-    (error) => error.fieldIndex === fieldIndex,
-  );
+  const displayableErrors = props.displayableErrors.filter((error) => error.fieldIndex === fieldIndex);
 
   if (displayableErrors.length === 0) {
     return null;
@@ -26,7 +24,7 @@ export function FieldErrors(props: FieldErrorsProps) {
 
   return (
     <span
-      id={`input-error-${attribute.name}${fieldIndex === undefined ? "" : `-${fieldIndex}`}`}
+      id={`input-error-${attribute.name}${fieldIndex === undefined ? '' : `-${fieldIndex}`}`}
       className="cds--form-requirement"
       aria-live="polite"
     >

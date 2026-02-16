@@ -90,7 +90,7 @@ class LoadedFileWithBytes(LoadedFile):
         return self._content
 
     @cached_property
-    def text(self) -> str:  # pyright: ignore [reportIncompatibleMethodOverride]
+    def text(self) -> str:
         return self._content.decode(self._encoding)
 
     def read(self) -> bytes:

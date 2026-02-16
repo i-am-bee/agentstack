@@ -148,8 +148,8 @@ class ProviderBuildService:
 
         async with self._uow() as uow:
             return await uow.provider_builds.list_paginated(
-                user_id=user.id if user_owned is True else None,
-                exclude_user_id=user.id if user_owned is False else None,
+                user_id=user.id if user_owned is True and user else None,
+                exclude_user_id=user.id if user_owned is False and user else None,
                 limit=pagination.limit,
                 page_token=pagination.page_token,
                 order=pagination.order,

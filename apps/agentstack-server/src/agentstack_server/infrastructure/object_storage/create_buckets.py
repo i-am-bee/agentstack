@@ -53,4 +53,4 @@ async def create_buckets(config: ObjectStorageConfiguration, wait_for_db: bool =
 
 
 if __name__ == "__main__":
-    asyncio.run(create_buckets(get_configuration()._object_storage))
+    asyncio.run(create_buckets(get_configuration().object_storage))

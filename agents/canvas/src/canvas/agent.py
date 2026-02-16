@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
-from typing import Annotated, Any
+from typing import Annotated
 
 from a2a.types import Artifact, Message, TextPart
 from agentstack_sdk.a2a.extensions import (
@@ -44,6 +44,10 @@ async def canvas_agent(
     canvas: Annotated[CanvasExtensionServer, CanvasExtensionSpec()],
     llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
 ):
+    if not llm.data:
+        yield "Can't run without a LLM."
+        return
+
     await context.store(message)
     edit_request = await canvas.parse_canvas_edit_request(message=message)
 

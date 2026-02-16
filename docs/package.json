@@ -12,6 +12,7 @@
   "license": "ISC",
   "packageManager": "pnpm@9.9.0",
   "devDependencies": {
+    "embedme": "^1.22.1",
     "mintlify": "^4.2.186"
   }
 }

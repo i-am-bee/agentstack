@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-import classes from "./PageHeading.module.scss";
+import classes from './PageHeading.module.scss';
 
 interface PageHeadingProps {
   children: ReactNode;

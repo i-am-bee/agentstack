@@ -35,7 +35,7 @@ def migrate(wait_for_db: bool = True):
         asyncio.run(_wait_for_db())
 
     alembic_cfg = Config(migrations_path / "alembic.ini")
-    orig_script_location = alembic_cfg.get_main_option("script_location")
+    orig_script_location = alembic_cfg.get_main_option("script_location", default="alembic")
     alembic_cfg.set_main_option("script_location", str(migrations_path / orig_script_location))
 
     command.upgrade(alembic_cfg, "head")

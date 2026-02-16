@@ -1,0 +1,31 @@
+[project]
+name = "%{EXAMPLE_NAME}"
+version = "0.1.0"
+description = "%{EXAMPLE_DESCRIPTION}"
+authors = [
+    { name = "IBM Corp." },
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "agentstack-sdk==0.5.3",
+    "pyyaml>=6.0.2",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.uv.sources]
+agentstack-sdk = { path = "%{SDK_PATH}", editable = true }
+
+[project.scripts]
+server = "%{EXAMPLE_NAME_SNAKE_CASE}.agent:run"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "watchfiles>=1.1.0",
+]

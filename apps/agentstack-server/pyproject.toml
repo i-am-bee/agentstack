@@ -1,6 +1,6 @@
 [project]
 name = "agentstack-server"
-version = "0.6.1"
+version = "0.6.2"
 description = "Agent Stack server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -49,6 +49,8 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.59b0",
     "limits[async-redis]>=5.3.0",
     "ijson>=3.4.0.post0",
+    "opentelemetry-instrumentation-openai>=0.52.1",
+    "opentelemetry-instrumentation-sqlalchemy>=0.60b1",
 ]
 
 [dependency-groups]
@@ -59,10 +61,10 @@ dev = [
     "pytest-httpx>=0.35.0",
     "pytest-subtests>=0.14.1",
     "reportlab>=4.4.2",
-    "pyright>=1.1.399",
     "ruff>=0.8.5",
     "agentstack-sdk",
     "python-keycloak>=7.0.2",
+    "pyrefly>=0.52.0",
 ]
 
 [tool.uv.sources]
@@ -117,9 +119,8 @@ lint.ignore = [
     "N999", # invalid module name agentstack-server (yeah, we use a dash, deal with it)
 ]
 
-[tool.pyright]
-ignore = ["tests/**"]
-venvPath = "."
-venv = ".venv"
-enableTypeIgnoreComments = true
-reportIgnoreCommentWithoutRule="none"
+[tool.pyrefly]
+project-includes = [
+    "**/*.py*",
+    "**/*.ipynb",
+]

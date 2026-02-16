@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, cast
 from uuid import UUID
 
 import anyio
@@ -96,10 +96,9 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 ),
                 api=api,
             )
-            env = {
-                **(env or {}),
-                **global_provider_variables(provider_url=await self.get_provider_url(provider_id=provider.id)),
-            }
+            env = (env or {}) | global_provider_variables(
+                provider_url=await self.get_provider_url(provider_id=provider.id)
+            )
             secret = Secret(
                 await self._render_template(
                     TemplateKind.SECRET,
@@ -179,9 +178,12 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                 label_selector={"managedBy": "agentstack"},
                 api=api,
             ):
-                provider_id = self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY)
+                provider_id = self._get_provider_id_from_name(
+                    cast(kr8s.APIObject, deployment).metadata.name,
+                    TemplateKind.DEPLOY,
+                )
                 if provider_id not in existing_providers:
-                    tg.create_task(_delete(deployment))
+                    tg.create_task(_delete(cast(kr8s.APIObject, deployment)))
         if errors:
             raise ExceptionGroup("Exceptions occurred when removing orphaned providers", errors)
 
@@ -217,7 +219,10 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
     async def state(self, *, provider_ids: list[UUID]) -> list[ProviderDeploymentState]:
         async with self.api() as api:
             deployments = {
-                self._get_provider_id_from_name(deployment.metadata.name, TemplateKind.DEPLOY): deployment
+                self._get_provider_id_from_name(
+                    cast(kr8s.APIObject, deployment).metadata.name,
+                    TemplateKind.DEPLOY,
+                ): cast(kr8s.APIObject, deployment)
                 async for deployment in kr8s.asyncio.get(
                     kind="deployment",
                     label_selector={"managedBy": "agentstack"},
@@ -228,7 +233,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
             deployments = {provider_id: d for provider_id, d in deployments.items() if provider_id in provider_ids_set}
             states = []
             for provider_id in provider_ids:
-                deployment = deployments.get(provider_id)
+                deployment = cast(kr8s.APIObject, deployments.get(provider_id))
                 if not deployment:
                     state = ProviderDeploymentState.MISSING
                 elif deployment.status.get("availableReplicas", 0) > 0:

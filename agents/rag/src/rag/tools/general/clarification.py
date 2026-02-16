@@ -100,6 +100,7 @@ def clarification_tool_middleware(ctx: RunContext) -> None:
         raise ValueError("ClarificationTool is not found in the agent's tools.")
 
     def handle_start(data: RequirementAgentStartEvent, event: EventMeta) -> None:
-        clarification_tool.state = data.state
+        if clarification_tool:
+            clarification_tool.state = data.state
 
     ctx.emitter.on("start", handle_start)

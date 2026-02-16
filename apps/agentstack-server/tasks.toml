@@ -50,13 +50,12 @@ run = "uv run ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-# TODO: Enable and fix issues in separate PR
-# ["agentstack-server:check:pyright"]
-# depends = ["agentstack-server:setup"]
-# dir = "{{config_root}}/apps/agentstack-server"
-# run = "uv run pyright"
-# sources = ["src/**/*.py"]
-# outputs = { auto = true }
+["agentstack-server:check:pyrefly"]
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = "uv run pyrefly check src"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
 
 # fix
 
@@ -297,7 +296,7 @@ keycloak:
         roles: ["agentstack-admin"]
 ' > "$CONFIG_FILE"
 
-{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} -f "$CONFIG_FILE"
+{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} -f "$CONFIG_FILE" --set ui.enabled=false
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"

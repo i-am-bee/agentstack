@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, ORJSONResponse
-from kink import Container, di, inject
+from kink import Container, di
 from limits.aio.storage import Storage
 from opentelemetry.metrics import CallbackOptions, Observation, get_meter
 from procrastinate.exceptions import AlreadyEnqueued
@@ -45,6 +45,7 @@ from agentstack_server.exceptions import (
     PlatformError,
     RateLimitExceededError,
 )
+from agentstack_server.jobs.crons.model_provider import check_model_provider_registry, update_model_state_and_cache
 from agentstack_server.jobs.crons.provider import check_registry
 from agentstack_server.run_workers import run_workers
 from agentstack_server.service_layer.services.user_feedback import UserFeedbackService
@@ -159,7 +160,7 @@ def mount_routes(app: FastAPI):
         openapi_url = request.url_for(custom_openapi.__name__)
 
         return get_swagger_ui_html(
-            openapi_url=openapi_url,
+            openapi_url=str(openapi_url),
             title="BeeAI Platform API Docs",
         )
 
@@ -202,8 +203,9 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
     configuration = di[Configuration]
 
     @asynccontextmanager
-    @inject
-    async def lifespan(_app: FastAPI, procrastinate_app: procrastinate.App, user_feedback: UserFeedbackService):
+    async def lifespan(_: FastAPI):
+        procrastinate_app = di[procrastinate.App]
+        user_feedback = di[UserFeedbackService]
         try:
             register_telemetry()
             async with (
@@ -211,9 +213,13 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
                 user_feedback,
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
+                # Force initial synchronization job
                 with suppress(AlreadyEnqueued):
-                    # Force initial sync of the registry immediately
                     await check_registry.defer_async(timestamp=int(time.time()))
+                with suppress(AlreadyEnqueued):
+                    await check_model_provider_registry.defer_async(timestamp=int(time.time()))
+                with suppress(AlreadyEnqueued):
+                    await update_model_state_and_cache.defer_async(timestamp=int(time.time()))
                 try:
                     yield
                 finally:

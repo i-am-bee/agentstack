@@ -1,6 +1,6 @@
 ---
 title: "Build RAG Pipelines"
-description: "Use vector stores, embedding and text-extraction services to build RAG pipelines"
+description: "Use vector stores, embedding, and text-extraction services to build RAG pipelines"
 ---
 
 Retrieval Augmented Generation (RAG) is one of the keystones for efficient data processing and search in the age of AI agents. The goal is to surface
@@ -9,25 +9,110 @@ a complex topic with many variants. We will focus on the fundamental building bl
 
 The document processing pipeline:
 
-1. **text extraction** - process complex document formats (PDF, CSV, etc.)
-2. **text splitting** - create meaningful chunks out of long pages of text
-3. **embedding** - vectorize chunks (extract semantic meaning)
-4. **store** - insert chunks to a specialized database
+1. **Text extraction:** Process complex document formats (PDF, CSV, etc.).
+2. **Text splitting:** Create meaningful chunks out of long pages of text.
+3. **Embedding:** Vectorize chunks (extract semantic meaning).
+4. **Store:** Insert chunks to a specialized database.
 
 Retrieval:
 
-1. **embedding** - vectorize user query
-2. **search** - retrieve the document chunks most similar to the user query
+1. **Embedding:** Vectorize the user query.
+2. **Search:** Retrieve the document chunks most similar to the user query.
+
+## Steps
+
+<Steps>
+
+<Step title="Start Agent Stack with Docling enabled!!">
+  Use `agentstack platform start --set docling.enabled=true` to start Agent Stack with Docling.
+</Step>
+
+<Step title="Enable file uploads in your agent">
+Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent. This also specifies which file types users can upload.
+</Step>
+
+<Step title="Import the Platform API and Embedding Service extensions">
+Import `PlatformApiExtensionServer`, `PlatformApiExtensionSpec`,
+`EmbeddingServiceExtensionServer` and `EmbeddingServiceExtensionSpec` from `agentstack_sdk.a2a.extensions`.
+</Step>
+
+<Step title="Inject the extensions">
+  Add parameters to your agent function using the `Annotated` type hints.
+</Step>
+
+<Step title="Implement document processing functions">
+  Implement functions to handle text extraction, text splitting, embedding generation, and vector storing.
+</Step>
+
+<Step title="Implement query functions">
+  Implement functions to generate embeddings for the user query and search the vector store for similar document chunks.
+</Step>
+
+<Step title="Put it all together">
+  Put it all together in an agent that 1) processes uploaded documents and 2) answers questions about them.
+</Step>
+
+<Step title="Use an LLM to help form a response">
+  The examples here skip this part and return details from the document.
+  In practice, you'll want to use an LLM to help form a response about the selected document chunks
+  instead of returning the actual chunk text (i.e., implement an assistant and not just a search tool).
+</Step>
+</Steps>
+
+Let's break down how each step can be implemented with the Agent Stack API.
 
 ## Building blocks
 
-Let's break down how each step can be implemented with the Agent Stack API, but first, make sure you have the
-Platform API extension enabled in your agent:
+### Enable File Uploads
+
+Add the `default_input_modes` parameter to your agent decorator to allow users to upload files to your agent.
+This also specifies which file types users can upload.
+Agent Stack uses [docling](https://docling-project.github.io/docling/) for extracting text out of documents in various
+[supported formats](https://docling-project.github.io/docling/usage/supported_formats/).
 
 ```python
+from agentstack_sdk.server import Server
+
+# File formats supported by the text-extraction service (docling)
+default_input_modes = [
+    "text/plain",
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # DOCX
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # XLSX
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # PPTX
+    "text/markdown",  # Markdown
+    "text/asciidoc",  # AsciiDoc
+    "text/html",  # HTML
+    "application/xhtml+xml",  # XHTML
+    "text/csv",  # CSV
+    "image/png",  # PNG
+    "image/jpeg",  # JPEG
+    "image/tiff",  # TIFF
+    "image/bmp",  # BMP
+    "image/webp",  # WEBP
+]
+
+server = Server()
+
+@server.agent(
+    default_input_modes=default_input_modes, default_output_modes=["text/plain"]
+)
+async def rag_agent(
+    # Parameter details below...
+):
+    """Agent code to follow... """
+
+```
+
+### Platform and Embedding Extensions
+
+Make sure you have the Platform API and Embedding Service extensions imported and injected in your agent parameters:
+
+```python
+import json
 from typing import Annotated
 
-from a2a.types import Message
+from a2a.types import Message, Part, DataPart, FilePart, TextPart, FileWithUri
 
 from agentstack_sdk.server import Server
 from agentstack_sdk.a2a.extensions import (
@@ -36,7 +121,9 @@ from agentstack_sdk.a2a.extensions import (
     EmbeddingServiceExtensionServer,
     EmbeddingServiceExtensionSpec,
 )
+from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server.context import RunContext
+from agentstack_sdk.util.file import PlatformFileUrl
 
 # File formats supported by the text-extraction service (docling)
 default_input_modes = [
@@ -69,15 +156,11 @@ async def rag_agent(
         EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
-): ...  # Agent code
-
+):
+    """Agent code to follow... """
 ```
 
-Agent Stack uses [docling](https://docling-project.github.io/docling/) for extracting text out of documents in various
-[supported formats](https://docling-project.github.io/docling/usage/supported_formats/). To select which formats the
-agent can accept, use the `default_input_modes` parameter in the agent decorator.
-
-First, let's build a set of functions to process the documents which we will then use in the agent.
+Next, let's build a set of functions to process the documents which we will then use in the agent.
 
 ### Text Extraction
 
@@ -123,7 +206,7 @@ def chunk_markdown(markdown_text: str) -> list[str]:
 
 ### Embedding
 
-Now we need to embed each chunk using the embedding service. Similarly to LLM, Agent Stack implements
+Now we need to generate embeddings for each chunk using the embedding service. Similarly to LLM, Agent Stack implements
 OpenAI-compatible embedding API. You can use any preferred client, in this example we will use the embedding extension
 to create an `AsyncOpenAI` client:
 
@@ -150,7 +233,7 @@ def get_embedding_client(
 
 ```
 
-Now we can use this client to embed our chunks and create vector store items:
+Now we can use this client to generate embeddings for our chunks and create vector store items:
 
 ```python
 from openai import AsyncOpenAI
@@ -247,7 +330,7 @@ async def rag_agent(
         EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
-) -> AsyncGenerator[RunYield, None]:
+):
     # Create embedding client
     embedding_client, embedding_model = get_embedding_client(embedding)
 
@@ -286,6 +369,10 @@ async def rag_agent(
 
     snippet = [res.model_dump() for res in results]
     yield f"# Results:\n```\n{json.dumps(snippet, indent=2)}\n```"
+
+
+if __name__ == "__main__":
+    server.run()
 ```
 
 Instead of simply returning the output of the vector store, you would typically plug this as a tool into your favorite
@@ -309,7 +396,7 @@ async def rag_agent(
         EmbeddingServiceExtensionServer, EmbeddingServiceExtensionSpec.single_demand()
     ],
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
-) -> AsyncGenerator[RunYield, None]:
+):
     # Create embedding client
     embedding_client, embedding_model = get_embedding_client(embedding)
 

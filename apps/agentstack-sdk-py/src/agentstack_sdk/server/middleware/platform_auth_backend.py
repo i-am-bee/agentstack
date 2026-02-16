@@ -63,7 +63,7 @@ async def discover_jwks() -> KeySet:
     try:
         async with use_platform_client() as client:
             response = await client.get("/.well-known/jwks")
-            return JsonWebKey.import_key_set(response.raise_for_status().json())  # pyright: ignore[reportAny]
+            return JsonWebKey.import_key_set(response.raise_for_status().json())
     except Exception as e:
         url = "{platform_url}/.well-known/jwks"
         logger.warning(f"JWKS discovery failed for url {url}: {e}")

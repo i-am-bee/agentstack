@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import typing
 from typing import List, Literal
 
 from beeai_framework.context import RunContext
@@ -46,24 +47,28 @@ class FileReaderTool(Tool[FileReadInputBase, ToolRunOptions, FileReaderToolOutpu
             file_descriptions = "\n".join(file.description for file in self.files)
 
             description = f"Select one or more of the provided files:\n\n{file_descriptions}"
+            # pyrefly: ignore [invalid-literal] -- it's a hack for JSON Schema generation
             literal = Literal[tuple(file.display_filename for file in self.files)]
         else:
             literal = Literal["__None__"]
             description = "There aren't any generated or attached file to read at the moment."
 
-        return create_model(
-            "FileReadInput",
-            filenames=(
-                List[literal],
-                Field(
-                    ...,
-                    description=description,
+        return typing.cast(
+            type[FileReadInputBase],
+            create_model(
+                "FileReadInput",
+                filenames=(
+                    List[literal],
+                    Field(
+                        ...,
+                        description=description,
+                    ),
                 ),
             ),
         )
 
     async def _run(
-        self, input: FileReadInputBase, options: ToolRunOptions, context: RunContext
+        self, input: FileReadInputBase, options: ToolRunOptions | None, context: RunContext
     ) -> FileReaderToolOutput:
         if len(input.filenames) == 1 and input.filenames[0] == "__None__":
             return FileReaderToolOutput(

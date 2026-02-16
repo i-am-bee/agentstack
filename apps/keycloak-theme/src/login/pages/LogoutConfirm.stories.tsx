@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "logout-confirm.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'logout-confirm.ftl' });
 
 const meta = {
-  title: "login/logout-confirm.ftl",
+  title: 'login/logout-confirm.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -33,18 +33,18 @@ export const WithCustomLogoutMessage: Story = {
     <KcPageStory
       kcContext={{
         url: {
-          logoutConfirmAction: "/mock-logout-action",
+          logoutConfirmAction: '/mock-logout-action',
         },
         client: {
-          baseUrl: "/mock-client-url",
+          baseUrl: '/mock-client-url',
         },
         logoutConfirm: {
-          code: "mock-session-code",
+          code: 'mock-session-code',
           skipLink: false,
         },
         message: {
-          summary: "Are you sure you want to log out from all sessions?",
-          type: "warning",
+          summary: 'Are you sure you want to log out from all sessions?',
+          type: 'warning',
         },
       }}
     />

@@ -9,6 +9,7 @@ import tempfile
 import typing
 import uuid
 from subprocess import CompletedProcess
+from typing import TypedDict
 
 import anyio
 import psutil
@@ -62,9 +63,12 @@ class LimaDriver(BaseDriver):
             for line in result.stdout.decode().split("\n"):
                 if not line:
                     continue
-                status = pydantic.TypeAdapter(typing.TypedDict("Status", {"name": str, "status": str})).validate_json(
-                    line
-                )
+
+                class Status(TypedDict):
+                    name: str
+                    status: str
+
+                status = pydantic.TypeAdapter(Status).validate_json(line)
                 if status["name"] == self.vm_name:
                     return status["status"].lower()
             return None
@@ -102,7 +106,7 @@ class LimaDriver(BaseDriver):
             if total_memory_gib < 8:
                 console.warning("Less than 8 GB of RAM detected. Performance may be degraded.")
 
-            vm_memory_gib = round(min(8, max(3, total_memory_gib / 2)))
+            vm_memory_gib = round(min(8.0, max(3.0, total_memory_gib / 2)))
 
             with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete_on_close=False) as template_file:
                 template_file.write(

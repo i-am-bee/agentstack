@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import builtins
 from enum import StrEnum
 
 import pydantic
@@ -44,6 +45,11 @@ class ModelCapability(StrEnum):
     EMBEDDING = "embedding"
 
 
+class ModelProviderState(StrEnum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+
 class ModelProvider(pydantic.BaseModel):
     id: str
     name: str | None = None
@@ -54,6 +60,7 @@ class ModelProvider(pydantic.BaseModel):
     watsonx_space_id: str | None = None
     created_at: pydantic.AwareDatetime
     capabilities: set[ModelCapability]
+    state: ModelProviderState
 
     @staticmethod
     async def create(
@@ -110,7 +117,7 @@ class ModelProvider(pydantic.BaseModel):
         capability: ModelCapability = ModelCapability.LLM,
         suggested_models: tuple[str, ...] | None = None,
         client: PlatformClient | None = None,
-    ) -> list[ModelWithScore]:
+    ) -> builtins.list[ModelWithScore]:
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(list[ModelWithScore]).validate_python(
                 (
@@ -124,7 +131,7 @@ class ModelProvider(pydantic.BaseModel):
             )
 
     @staticmethod
-    async def list(*, client: PlatformClient | None = None) -> list[ModelProvider]:
+    async def list(*, client: PlatformClient | None = None) -> builtins.list[ModelProvider]:
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(list[ModelProvider]).validate_python(
                 (await client.get(url="/api/v1/model_providers")).raise_for_status().json()["items"]

@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "terms.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'terms.ftl' });
 
 const meta = {
-  title: "login/terms.ftl",
+  title: 'login/terms.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -22,9 +22,9 @@ export const Default: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        "x-keycloakify": {
+        'x-keycloakify': {
           messages: {
-            termsText: "<p>My terms in <strong>English</strong></p>",
+            termsText: '<p>My terms in <strong>English</strong></p>',
           },
         },
       }}
@@ -37,12 +37,12 @@ export const French: Story = {
     <KcPageStory
       kcContext={{
         locale: {
-          currentLanguageTag: "fr",
+          currentLanguageTag: 'fr',
         },
-        "x-keycloakify": {
+        'x-keycloakify': {
           // cSpell: disable
           messages: {
-            termsText: "<p>Mes terme en <strong>Français</strong></p>",
+            termsText: '<p>Mes terme en <strong>Français</strong></p>',
           },
           // cSpell: enable
         },
@@ -56,11 +56,11 @@ export const Spanish: Story = {
     <KcPageStory
       kcContext={{
         locale: {
-          currentLanguageTag: "es",
+          currentLanguageTag: 'es',
         },
-        "x-keycloakify": {
+        'x-keycloakify': {
           messages: {
-            termsText: "<p>Mis términos en <strong>Español</strong></p>",
+            termsText: '<p>Mis términos en <strong>Español</strong></p>',
           },
         },
       }}
@@ -72,7 +72,7 @@ export const LongMessage: Story = {
   render: () => (
     <KcPageStory
       kcContext={{
-        "x-keycloakify": {
+        'x-keycloakify': {
           messages: {
             termsText: `
                             <p>These are the terms and conditions. Please read them carefully.</p>

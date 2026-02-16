@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Attribute } from "keycloakify/login/KcContext";
+import type { Attribute } from 'keycloakify/login/KcContext';
 
-import type { I18n } from "../../i18n";
+import type { I18n } from '../../i18n';
 
 type FieldLabelProps = {
   i18n: I18n;
@@ -17,8 +17,8 @@ export function FieldLabel({ i18n, attribute }: FieldLabelProps) {
 
   return (
     <>
-      {advancedMsg(attribute.displayName ?? "")}
-      {attribute.required && " *"}
+      {advancedMsg(attribute.displayName ?? '')}
+      {attribute.required && ' *'}
     </>
   );
 }

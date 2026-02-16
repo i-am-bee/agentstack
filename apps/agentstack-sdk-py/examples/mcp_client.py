@@ -8,6 +8,7 @@ import webbrowser
 import a2a.client
 import a2a.types
 import httpx
+from a2a.types import Task
 from aiohttp import web
 from pydantic import AnyUrl
 
@@ -111,7 +112,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
             card=card
         )
 
-        task = None
+        task: Task | None = None
         while True:
             async for event in client.send_message(message):
                 if isinstance(event, a2a.types.Message):

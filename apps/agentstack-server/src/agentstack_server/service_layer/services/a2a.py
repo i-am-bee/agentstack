@@ -5,10 +5,10 @@ import functools
 import inspect
 import logging
 import uuid
-from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, Coroutine, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import timedelta
-from typing import NamedTuple, cast
+from typing import Any, NamedTuple, cast, overload
 from urllib.parse import urljoin, urlparse
 from uuid import UUID
 
@@ -110,7 +110,17 @@ class A2AServerResponse(NamedTuple):
     media_type: str
 
 
-def _handle_exception[T: Callable](fn: T) -> T:
+@overload
+def _handle_exception[**P, T](fn: Callable[P, AsyncGenerator[T]]) -> Callable[P, AsyncGenerator[T]]: ...
+
+
+@overload
+def _handle_exception[**P, T](fn: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, Coroutine[Any, Any, T]]: ...
+
+
+def _handle_exception[**P, T](
+    fn: Callable[P, AsyncGenerator[T]] | Callable[P, Coroutine[Any, Any, T]],
+) -> Callable[P, AsyncGenerator[T]] | Callable[P, Coroutine[Any, Any, T]]:
     @contextmanager
     def _handle_exception_impl() -> Iterator[None]:
         try:
@@ -128,18 +138,23 @@ def _handle_exception[T: Callable](fn: T) -> T:
         except Exception as e:
             raise ServerError(error=InternalError(message=f"Internal error: {e!r}")) from e
 
-    @functools.wraps(fn)
-    async def _fn(*args, **kwargs):
-        with _handle_exception_impl():
-            return await fn(*args, **kwargs)
+    if inspect.isasyncgenfunction(fn):
 
-    @functools.wraps(fn)
-    async def _fn_iter(*args, **kwargs):
-        with _handle_exception_impl():
-            async for item in fn(*args, **kwargs):
-                yield item
+        @functools.wraps(cast(Callable[P, AsyncGenerator[T]], fn))
+        async def _fn_iter(*args: P.args, **kwargs: P.kwargs) -> AsyncGenerator[T]:
+            with _handle_exception_impl():
+                async for item in fn(*args, **kwargs):  # type: ignore[misc]
+                    yield item
 
-    return _fn_iter if inspect.isasyncgenfunction(fn) else _fn  # pyright: ignore [reportReturnType]
+        return _fn_iter
+    else:
+
+        @functools.wraps(cast(Callable[P, Awaitable[T]], fn))
+        async def _fn(*args: P.args, **kwargs: P.kwargs) -> T:
+            with _handle_exception_impl():
+                return await fn(*args, **kwargs)  # type: ignore[return-value]
+
+        return _fn
 
 
 class ProxyRequestHandler(RequestHandler):
@@ -171,10 +186,10 @@ class ProxyRequestHandler(RequestHandler):
             assert self._agent_card_factory is not None
             self._agent_card = await self._agent_card_factory()
 
-        headers = {} if not context else context.state.get("headers", {})
+        headers: dict[str, str] = {} if not context else context.state.get("headers", {})
         headers.pop("host", None)
         headers.pop("content-length", None)
-        if auth_header := headers.get("authorization", None):
+        if auth_header := headers.get("authorization"):
             _scheme, header_token = get_authorization_scheme_param(auth_header)
             try:
                 audience = create_resource_uri(URL(self._agent_card.url))
@@ -184,7 +199,9 @@ class ProxyRequestHandler(RequestHandler):
                 headers.pop("authorization", None)  # forward header only if it's a valid context token
 
         async with httpx.AsyncClient(
-            follow_redirects=True, timeout=timedelta(hours=1).total_seconds(), headers=headers
+            follow_redirects=True,
+            timeout=timedelta(hours=1).total_seconds(),
+            headers=headers,
         ) as httpx_client:
             client: BaseClient = cast(
                 BaseClient,

@@ -6,17 +6,22 @@ from unittest.mock import Mock
 import pytest
 
 from agentstack_server.domain.models.model_provider import ModelCapability
+from agentstack_server.infrastructure.cache.memory_cache import MemoryCacheFactory
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture
+def model_provider_service():
+    return ModelProviderService(uow=None, openai_proxy=Mock(), cache_factory=MemoryCacheFactory())
+
+
 class TestModelProviderMatchModels:
     """Test the _match_models functionality with scoring logic."""
 
-    def test_default_model_gets_exactly_half_score(self):
+    def test_default_model_gets_exactly_half_score(self, model_provider_service):
         """Test that default models get exactly 0.5 score."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())  # We don't need UoW for internal method
 
         available_models = [
             "openai:gpt-4",
@@ -26,7 +31,7 @@ class TestModelProviderMatchModels:
         ]
 
         # Test LLM capability with default model
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=None,
             capability=ModelCapability.LLM,
@@ -41,7 +46,7 @@ class TestModelProviderMatchModels:
         assert result[0].score == 0.5
 
         # Test embedding capability with default model
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=None,
             capability=ModelCapability.EMBEDDING,
@@ -54,14 +59,13 @@ class TestModelProviderMatchModels:
         assert result[0].model_id == "openai:text-embedding-ada-002"
         assert result[0].score == 0.5
 
-    def test_exact_match_gets_score_of_one(self):
+    def test_exact_match_gets_score_of_one(self, model_provider_service):
         """Test that exact matches get score of 1.0."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "openai:gpt-3.5-turbo", "anthropic:claude-3-5-sonnet"]
 
         # Test exact match
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4"],  # Exact match
             capability=ModelCapability.LLM,
@@ -75,9 +79,8 @@ class TestModelProviderMatchModels:
         assert gpt4_result is not None
         assert gpt4_result.score == 1.0
 
-    def test_partial_match_gets_score_between_half_and_one(self):
+    def test_partial_match_gets_score_between_half_and_one(self, model_provider_service):
         """Test that partial matches get scores between 0.5 and 1.0."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = [
             "openai:gpt-4",
@@ -85,7 +88,7 @@ class TestModelProviderMatchModels:
         ]
 
         # Test partial match - "gpt-3.5" should partially match "openai:gpt-3.5-turbo"
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["gpt-3.5"],  # Partial match
             capability=ModelCapability.LLM,
@@ -98,14 +101,13 @@ class TestModelProviderMatchModels:
         assert gpt35_result is not None
         assert 0.5 < gpt35_result.score < 1.0
 
-    def test_no_match_below_cutoff_gets_no_score(self):
+    def test_no_match_below_cutoff_gets_no_score(self, model_provider_service):
         """Test that matches below cutoff don't appear in results."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "anthropic:claude-3-5-sonnet"]
 
         # Test with very poor match that should be below cutoff
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["xyz123nonexistent"],  # Should not match anything well
             capability=ModelCapability.LLM,
@@ -117,14 +119,13 @@ class TestModelProviderMatchModels:
         # Should return empty since no good matches and no default models
         assert len(result) == 0
 
-    def test_default_model_gets_max_of_default_and_fuzzy_score(self):
+    def test_default_model_gets_max_of_default_and_fuzzy_score(self, model_provider_service):
         """Test that default models get max of default score (0.5) and fuzzy match score."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "openai:gpt-3.5-turbo"]
 
         # Set gpt-3.5-turbo as default but suggest gpt-4 exactly
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4"],  # Exact match should get 1.0
             capability=ModelCapability.LLM,
@@ -151,9 +152,8 @@ class TestModelProviderMatchModels:
         assert result[0].model_id == "openai:gpt-4"  # 1.0 score
         assert result[1].model_id == "openai:gpt-3.5-turbo"  # fuzzy score > 0.5
 
-    def test_default_model_stays_exactly_half_when_no_fuzzy_match(self):
+    def test_default_model_stays_exactly_half_when_no_fuzzy_match(self, model_provider_service):
         """Test that default models stay at exactly 0.5 when there's no fuzzy matching improvement."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = [
             "openai:gpt-4",
@@ -161,7 +161,7 @@ class TestModelProviderMatchModels:
         ]
 
         # Suggest something that won't improve the claude score
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4"],  # This shouldn't improve claude's score
             capability=ModelCapability.LLM,
@@ -183,14 +183,13 @@ class TestModelProviderMatchModels:
         assert gpt4_result is not None
         assert gpt4_result.score == 1.0
 
-    def test_multiple_suggestions_best_match_wins(self):
+    def test_multiple_suggestions_best_match_wins(self, model_provider_service):
         """Test that when multiple suggestions match, the best score is used."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4"]
 
         # Test with multiple suggestions of increasing quality
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["gpt", "gpt-4", "openai:gpt-4"],  # Progressive better matches
             capability=ModelCapability.LLM,
@@ -205,14 +204,13 @@ class TestModelProviderMatchModels:
         assert gpt4_result.model_id == "openai:gpt-4"
         assert gpt4_result.score == 1.0
 
-    def test_results_sorted_by_score_descending(self):
+    def test_results_sorted_by_score_descending(self, model_provider_service):
         """Test that results are sorted by score in descending order."""
-        service = ModelProviderService(uow=None, openai_proxy=Mock())
 
         available_models = ["openai:gpt-4", "openai:gpt-3.5-turbo", "anthropic:claude-3-5-sonnet"]
 
         # Create a scenario with different scores
-        result = service._match_models(
+        result = model_provider_service._match_models(
             available_models=available_models,
             suggested_models=["openai:gpt-4", "claude"],  # Exact match + partial match
             capability=ModelCapability.LLM,

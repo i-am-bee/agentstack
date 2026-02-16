@@ -45,6 +45,22 @@ ERROR: .Values.auth.jwtPublicKey is missing but .Values.auth.jwtPrivateKey is pr
 Please provide both keys or neither (to auto-generate them).
 ` -}}
   {{- end -}}
+  {{- if and (not .Values.keycloak.enabled) (empty .Values.externalOidcProvider.issuerUrl) -}}
+  {{- fail `
+ERROR: Authentication is enabled (auth.enabled=true) but no provider is configured.
+
+You must enable either Keycloak or provide an external OIDC provider:
+  1. Enable Keycloak (default):
+     keycloak:
+       enabled: true
+
+  2. Configure external OIDC provider:
+     keycloak:
+       enabled: false
+     externalOidcProvider:
+       issuerUrl: "https://your-oidc-provider.com"
+` -}}
+  {{- end -}}
 {{- end -}}
 {{- end -}}
 

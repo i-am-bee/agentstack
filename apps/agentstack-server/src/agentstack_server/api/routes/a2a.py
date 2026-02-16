@@ -11,7 +11,7 @@ from a2a.server.apps import A2AFastAPIApplication
 from a2a.server.apps.rest.rest_adapter import RESTAdapter
 from a2a.types import AgentCard, AgentInterface, HTTPAuthSecurityScheme, SecurityScheme, TransportProtocol
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, Response
 
 from agentstack_server.api.dependencies import (
     A2AProxyServiceDependency,
@@ -93,7 +93,7 @@ async def a2a_proxy_jsonrpc_transport(
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
-) -> AgentCard:
+) -> Response:
     user = RequiresPermissions(a2a_proxy={provider_id})(user)
 
     provider = await provider_service.get_provider(provider_id=provider_id)
@@ -118,19 +118,22 @@ async def a2a_proxy_http_transport(
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
     path: str = "",
-):
-    user = RequiresPermissions(a2a_proxy={provider_id})(user)
+) -> Response:
     provider = await provider_service.get_provider(provider_id=provider_id)
-    agent_card = create_proxy_agent_card(
-        provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+    handler = (
+        RESTAdapter(
+            agent_card=create_proxy_agent_card(
+                provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
+            ),
+            http_handler=await a2a_proxy.get_request_handler(
+                provider=provider, user=RequiresPermissions(a2a_proxy={provider_id})(user).user
+            ),
+        )
+        .routes()
+        .get((f"/{path.rstrip('/')}", request.method), None)
     )
-
-    handler = await a2a_proxy.get_request_handler(provider=provider, user=user.user)
-    adapter = RESTAdapter(agent_card=agent_card, http_handler=handler)
-
-    if not (handler := adapter.routes().get((f"/{path.rstrip('/')}", request.method), None)):
+    if not handler:
         raise HTTPException(status_code=404, detail="Not found")
-
     return await handler(request)
 
 

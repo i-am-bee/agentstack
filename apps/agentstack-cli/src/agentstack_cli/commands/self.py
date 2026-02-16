@@ -31,9 +31,9 @@ def _path() -> str:
     # These are PATHs where `uv` installs itself when installed through own install script
     # Package managers may install elsewhere, but that location should already be in PATH
     return os.pathsep.join(
-        [
-            *([xdg_bin_home] if (xdg_bin_home := os.getenv("XDG_BIN_HOME")) else []),
-            *([os.path.realpath(f"{xdg_data_home}/../bin")] if (xdg_data_home := os.getenv("XDG_DATA_HOME")) else []),
+        ([xdg_bin_home] if (xdg_bin_home := os.getenv("XDG_BIN_HOME")) else [])
+        + ([os.path.realpath(f"{xdg_data_home}/../bin")] if (xdg_data_home := os.getenv("XDG_DATA_HOME")) else [])
+        + [
             os.path.expanduser("~/.local/bin"),
             os.getenv("PATH", ""),
         ]
@@ -124,7 +124,7 @@ async def install(
         console.print()
         if (
             ready_to_start
-            and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+            and await inquirer.confirm(
                 message="Do you want to start the Agent Stack platform now? Will run: agentstack platform start",
                 default=True,
             ).execute_async()
@@ -139,7 +139,7 @@ async def install(
         already_configured = False
         if (
             already_started
-            and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+            and await inquirer.confirm(
                 message="Do you want to configure your LLM provider now? Will run: agentstack model setup", default=True
             ).execute_async()
         ):
@@ -151,7 +151,7 @@ async def install(
 
         if (
             already_configured
-            and await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+            and await inquirer.confirm(
                 message="Do you want to open the web UI now? Will run: agentstack ui", default=True
             ).execute_async()
         ):

@@ -3,7 +3,7 @@
 
 from uuid import UUID
 
-from kink import inject
+from kink import di
 from procrastinate import Blueprint, JobContext
 
 from agentstack_server.jobs.queues import Queues
@@ -13,6 +13,5 @@ blueprint = Blueprint()
 
 
 @blueprint.task(queue=str(Queues.TEXT_EXTRACTION), pass_context=True)
-@inject
-async def extract_text(context: JobContext, file_id: str, file_service: FileService):
-    await file_service.extract_text(file_id=UUID(file_id), job_id=str(context.job.id))
+async def extract_text(context: JobContext, file_id: str):
+    await di[FileService].extract_text(file_id=UUID(file_id), job_id=str(context.job.id))

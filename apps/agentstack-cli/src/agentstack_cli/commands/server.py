@@ -78,7 +78,7 @@ def get_unique_app_name() -> str:
 async def server_login(server: typing.Annotated[str | None, typer.Argument()] = None):
     """Login to a server or switch between logged in servers."""
     server = server or (
-        await inquirer.select(  #  type: ignore
+        await inquirer.select(
             message="Select a server, or log in to a new one:",
             choices=[
                 *(
@@ -95,7 +95,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         if config.auth_manager.servers
         else None
     )
-    server = server or await inquirer.text(message="Enter server URL:").execute_async()  #  type: ignore
+    server = server or await inquirer.text(message="Enter server URL:").execute_async()
 
     if not server:
         raise RuntimeError("No server selected. Action cancelled.")
@@ -120,7 +120,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         elif len(auth_servers) == 1:
             auth_server = auth_servers[0]
         elif len(auth_servers) > 1:
-            auth_server = await inquirer.select(  #  type: ignore
+            auth_server = await inquirer.select(
                 message="Select an authorization server:",
                 choices=[
                     Choice(
@@ -199,13 +199,10 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         if len(auth_servers) == 1:
             auth_server = auth_servers[0]
         else:
-            auth_server = await inquirer.select(  # type: ignore
+            auth_server = await inquirer.select(
                 message="Select an authorization server:",
                 choices=auth_servers,
-            ).execute_async()
-
-        if not auth_server:
-            raise RuntimeError("No authorization server selected.")
+            ).execute_async() or sys.exit(1)
 
         async with httpx.AsyncClient() as client:
             try:
@@ -250,7 +247,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
         if not client_id:
             client_id = (
-                await inquirer.text(  #  type: ignore
+                await inquirer.text(
                     message="Enter Client ID:",
                     instruction=f"(Redirect URI: {REDIRECT_URI})",
                 ).execute_async()
@@ -258,12 +255,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             )
             if not client_id:
                 raise RuntimeError("Client ID is mandatory. Action cancelled.")
-            client_secret = (
-                await inquirer.text(  #  type: ignore
-                    message="Enter Client Secret (optional):"
-                ).execute_async()
-                or None
-            )
+            client_secret = await inquirer.secret(message="Enter Client Secret (optional):").execute_async() or None
 
         code_verifier = generate_token(64)
 

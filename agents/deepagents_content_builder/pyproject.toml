@@ -1,0 +1,40 @@
+[project]
+name = "content-builder"
+version = "0.1.0"
+description = "A content writer agent configured entirely through files on disk"
+authors = [
+    { name = "IBM Corp." },
+]
+requires-python = ">=3.11"
+dependencies = [
+    "agentstack-sdk",
+    "cachetools>=6.2.5",
+    "deepagents>=0.3.5",
+    "google-genai>=1.0.0",
+    "langchain-openai>=1.1.7",
+    "pillow>=10.0.0",
+    "pyyaml>=6.0.0",
+    "rich>=13.0.0",
+    "tavily-python>=0.5.0",
+    "wcmatch>=10.1"
+]
+
+[dependency-groups]
+dev = []
+
+[tool.ruff]
+line-length = 120
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
+
+[project.scripts]
+server = "content_builder.agent:serve"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

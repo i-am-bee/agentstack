@@ -122,6 +122,7 @@ async def awaiter(create_server_with_agent) -> AsyncGenerator[tuple[Server, Clie
         # Agent that requires input
         yield "Processing initial message..."
         resume_message = yield InputRequired(text="need input")
+
         yield f"Received resume: {resume_message.parts[0].root.text if resume_message.parts else 'empty'}"
 
     async with create_server_with_agent(awaiter) as (server, test_client):
@@ -134,6 +135,7 @@ async def awaiter_with_1s_timeout(create_server_with_agent) -> AsyncGenerator[tu
         # Agent that requires input
         yield "Processing initial message..."
         resume_message = yield InputRequired(text="need input")
+
         yield f"Received resume: {resume_message.parts[0].root.text if resume_message.parts else 'empty'}"
 
     async with create_server_with_agent(awaiter, task_timeout=timedelta(seconds=1)) as (server, test_client):

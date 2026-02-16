@@ -3,19 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { Button } from "@carbon/react";
-import { useState } from "react";
+import { Button } from '@carbon/react';
+import { useState } from 'react';
 
-import { Layout } from "../components/Layout/Layout";
-import { PageHeading } from "../components/PageHeading/PageHeading";
-import Template from "../layout/Template";
-import type { CustomPageProps, UserProfileFormPageProps } from "../types";
-import UserProfileFormFields from "../UserProfileFormFields";
-import classes from "./LoginUpdateProfile.module.scss";
+import { Layout } from '../components/Layout/Layout';
+import { PageHeading } from '../components/PageHeading/PageHeading';
+import Template from '../layout/Template';
+import type { CustomPageProps, UserProfileFormPageProps } from '../types';
+import UserProfileFormFields from '../UserProfileFormFields';
+import classes from './LoginUpdateProfile.module.scss';
 
 export default function LoginUpdateProfile(
   props: CustomPageProps<{
-    pageId: "login-update-profile.ftl";
+    pageId: 'login-update-profile.ftl';
   }> &
     UserProfileFormPageProps,
 ) {
@@ -33,40 +33,26 @@ export default function LoginUpdateProfile(
         kcContext={kcContext}
         i18n={i18n}
         doUseDefaultCss={false}
-        headerNode={<PageHeading>{msg("loginProfileTitle")}</PageHeading>}
-        displayMessage={messagesPerField.exists("global")}
+        headerNode={<PageHeading>{msg('loginProfileTitle')}</PageHeading>}
+        displayMessage={messagesPerField.exists('global')}
       >
         <div className={classes.content}>
-          <form
-            id="kc-update-profile-form"
-            className={classes.form}
-            action={url.loginAction}
-            method="post"
-          >
+          <form id="kc-update-profile-form" className={classes.form} action={url.loginAction} method="post">
             <UserProfileFormFields
               kcContext={kcContext}
               i18n={i18n}
-              kcClsx={() => ""}
+              kcClsx={() => ''}
               onIsFormSubmittableValueChange={setIsFormSubmittable}
               doMakeUserConfirmPassword={doMakeUserConfirmPassword}
             />
 
             <div className={classes.actions}>
-              <Button
-                type="submit"
-                kind="primary"
-                disabled={!isFormSubmittable}
-              >
-                {msgStr("doSubmit")}
+              <Button type="submit" kind="primary" disabled={!isFormSubmittable}>
+                {msgStr('doSubmit')}
               </Button>
               {isAppInitiatedAction && (
-                <Button
-                  type="submit"
-                  kind="secondary"
-                  name="cancel-aia"
-                  value="true"
-                >
-                  {msg("doCancel")}
+                <Button type="submit" kind="secondary" name="cancel-aia" value="true">
+                  {msg('doCancel')}
                 </Button>
               )}
             </div>

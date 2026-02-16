@@ -6,7 +6,6 @@ import logging
 from contextlib import asynccontextmanager
 
 import procrastinate
-from kink import inject
 from procrastinate.app import WorkerOptions
 
 from agentstack_server.jobs.queues import Queues
@@ -15,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-@inject
 async def run_workers(app: procrastinate.App):
     worker_options: list[WorkerOptions] = [
         WorkerOptions(
             name="cron_worker",
             queues=[
                 str(Queues.CRON_PROVIDER),
+                str(Queues.CRON_MODEL_PROVIDER),
                 str(Queues.CRON_CONNECTOR),
                 str(Queues.CRON_CLEANUP),
                 str(Queues.TOOLKIT_DELETION),

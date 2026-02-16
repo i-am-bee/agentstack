@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect } from 'react';
+import debounce from 'lodash/debounce';
+import { useCallback, useEffect } from 'react';
 
 export interface TextSelectionInfo {
   text: string;
@@ -18,45 +19,48 @@ interface Props {
 }
 
 export function useTextSelection({ containerRef, onSelectionChange }: Props) {
-  useEffect(() => {
+  const processSelection = useCallback(() => {
     const container = containerRef.current;
     if (!container) {
       return;
     }
 
-    const handleMouseUp = () => {
-      // Use requestAnimationFrame to ensure selection is updated
-      requestAnimationFrame(() => {
-        const selection = window.getSelection();
-        const selectedText = selection?.toString().trim();
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
 
-        if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
-          onSelectionChange(null);
-          return;
-        }
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !selectedText) {
+      onSelectionChange(null);
+      return;
+    }
 
-        const range = selection.getRangeAt(0);
-        if (!container.contains(range.commonAncestorContainer)) {
-          onSelectionChange(null);
-          return;
-        }
+    const range = selection.getRangeAt(0).cloneRange();
 
-        const rects = Array.from(range.getClientRects());
-        const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
+    if (!container.contains(range.commonAncestorContainer)) {
+      onSelectionChange(null);
+      return;
+    }
 
-        onSelectionChange({
-          text: selectedText,
-          range,
-          rects,
-          firstVisibleRect,
-        });
-      });
-    };
+    const rects = Array.from(range.getClientRects());
+    const firstVisibleRect = rects.find(({ width, height }) => width > 1 && height > 1);
 
-    container.addEventListener('mouseup', handleMouseUp);
+    onSelectionChange({
+      text: selectedText,
+      range,
+      rects,
+      firstVisibleRect,
+    });
+  }, [containerRef, onSelectionChange]);
+
+  useEffect(() => {
+    const debouncedProcessSelection = debounce(processSelection, SELECTION_DEBOUNCE_MS);
+
+    document.addEventListener('selectionchange', debouncedProcessSelection);
 
     return () => {
-      container.removeEventListener('mouseup', handleMouseUp);
+      debouncedProcessSelection.cancel();
+      document.removeEventListener('selectionchange', debouncedProcessSelection);
     };
-  }, [containerRef, onSelectionChange]);
+  }, [processSelection]);
 }
+
+const SELECTION_DEBOUNCE_MS = 100;

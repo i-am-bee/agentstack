@@ -183,7 +183,7 @@ mise run agentstack-server:dev:delete
 
 #### Developing tests
 
-To run and develop agentstack-server tests locally use `mise run agentstack-server:dev:start` from above.
+To run and develop agentstack-server tests locally use `mise run agentstack-server:dev:start --set auth.enabled=true` from above.
 
 > Note:
 >

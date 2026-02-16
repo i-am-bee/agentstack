@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 
-import type { I18n } from "../../i18n";
-import classes from "./Layout.module.scss";
+import type { I18n } from '../../i18n';
+import classes from './Layout.module.scss';
 
 interface LayoutProps {
   children: ReactNode;

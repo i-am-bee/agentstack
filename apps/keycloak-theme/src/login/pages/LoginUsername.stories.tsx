@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
-const { KcPageStory } = createKcPageStory({ pageId: "login-username.ftl" });
+const { KcPageStory } = createKcPageStory({ pageId: 'login-username.ftl' });
 
 const meta = {
-  title: "login/login-username.ftl",
+  title: 'login/login-username.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -46,7 +46,7 @@ export const WithAuthPassKey: Story = {
       {...args}
       kcContext={{
         url: {
-          loginAction: "/mock-login-action",
+          loginAction: '/mock-login-action',
         },
         enableWebAuthnConditionalUI: true,
       }}

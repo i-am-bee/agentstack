@@ -25,12 +25,11 @@ run = "uv run python -m ruff format --quiet --check"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
 
-["agentstack-sdk-py:check:pyright"]
+["agentstack-sdk-py:check:pyrefly"]
 dir = "{{config_root}}/apps/agentstack-sdk-py"
-run = "uv run python -m pyright"
+run = "uv run pyrefly check src"
 sources = ["src/**/*.py"]
 outputs = { auto = true }
-
 
 ["agentstack-sdk-py:check:pytest-marks"]
 depends = ["agentstack-sdk-py:setup"]
@@ -76,14 +75,14 @@ outputs = { auto = true }
 # test
 
 ["agentstack-sdk-py:test-all"]
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
 usage = 'flag "--python <python>" default="3.13"'
 run = """
 #!/bin/bash
 uv run --python="${usage_python?}" pytest
 """
 
-depends = ["agentstack-sdk-py:setup"]
-dir = "{{config_root}}/apps/agentstack-sdk-py"
 # build
 
 ["agentstack-sdk-py:build"]

@@ -18,7 +18,9 @@ def resource_context(
     factory: typing.Callable[P, T],
     default_factory: typing.Callable[[], T],
 ) -> tuple[typing.Callable[[], T], typing.Callable[P, contextlib.AbstractContextManager[T]]]:
-    contextvar: contextvars.ContextVar[T] = contextvars.ContextVar(f"resource_context({factory.__name__})")
+    contextvar: contextvars.ContextVar[T] = contextvars.ContextVar(
+        f"resource_context({getattr(factory, '__name__', '<unknown>')})"
+    )
 
     def use_resource(*args: P.args, **kwargs: P.kwargs):
         @contextlib.contextmanager

@@ -7,7 +7,7 @@
   @include scrollbar();
   display: grid;
   block-size: 100dvh;
-  grid-template-areas: "main";
+  grid-template-areas: 'main';
 }
 
 .header {
@@ -20,7 +20,7 @@
 }
 
 .main {
-  grid-area: "main";
+  grid-area: 'main';
   display: grid;
 }
 

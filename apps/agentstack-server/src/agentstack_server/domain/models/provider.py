@@ -14,7 +14,7 @@ from uuid import UUID
 from a2a.types import AgentCard
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import AsyncClient
-from kink import di, inject
+from kink import di
 from pydantic import (
     AwareDatetime,
     BaseModel,
@@ -78,7 +78,6 @@ class DockerImageProviderLocation(RootModel):
     async def get_version_info(self) -> VersionInfo:
         return VersionInfo(docker=await self.get_resolved_version())
 
-    @inject
     async def load_agent_card(self) -> AgentCard:
         from a2a.types import AgentCard
 

@@ -5,25 +5,23 @@ description: "Enhance your existing AI agents with platform capabilities"
 
 The Server SDK is a Python library that enhances your existing AI agents with platform capabilities. Whether you've built your agent with LangGraph, CrewAI, or custom logic, the SDK connects it to the Agent Stack platform, giving you instant access to runtime-configurable services, interactive UI components, and deployment infrastructure.
 
-Built on top of the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), the SDK wraps your agent implementation and adds powerful functionality through [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/).
-
-This enables your agent to leverage platform services like [LLM providers](./llm-proxy-service), [file storage](./files), [vector databases](./rag), and rich UI components. That's all without rewriting your core agent logic.
+Built on top of the [Agent2Agent Protocol (A2A)](https://a2a-protocol.org/), the SDK wraps your agent implementation and adds powerful functionality through [A2A extensions](https://a2a-protocol.org/latest/topics/extensions/). This enables your agent to leverage platform services like [LLM providers](./llm-proxy-service), [file storage](./files), [vector databases](./rag), and rich UI components. That's all without rewriting your core agent logic.
 
 ## What the SDK Provides
 
-The Server SDK offers several key capabilities:
 
-- **Server wrapper**: Simplified server creation and agent registration
-- **Extension system**: Dependency injection for services (LLM, embeddings, file storage) and UI components (forms, citations, trajectory)
-- **Convenience wrappers**: Simplified message types like `AgentMessage` that reduce boilerplate
-- **Context management**: Built-in conversation history and state management
-- **Async generator pattern**: Natural task-based execution with pause/resume capabilities
+| Feature | Purpose |
+| :--- | :--- |
+| **Server wrapper** | Simplified server creation and agent registration |
+| **Convenience wrappers** | Simplified message types like `AgentMessage` that reduce boilerplate |
+| **Context management** | Built-in conversation history and state management |
+| **Async generator pattern** | Natural task-based execution with pause/resume capabilities |
+| **Dependency Injection Extensions** | Dependency injection for LLM service, RAG embeddings, file storage and MCP integration |
+| **UI Extensions** | Enables advanced interactive components including forms, citations and trajectory |
 
-## Core Concepts
+## Server Wrapper Example
 
-### Server and Agent Registration
-
-The SDK uses a server-based architecture where you create a `Server` instance and register your agent function:
+Here we show server creation and agent registration:
 
 ```python
 from a2a.types import Message
@@ -39,17 +37,13 @@ async def my_agent(input: Message, context: RunContext):
     yield AgentMessage(text="Hello from my agent!")
 ```
 
-### Asynchronous Generator Pattern
+The SDK uses a server-based architecture where you:
+1. Create a `Server` instance and 
+2. Register your agent function
 
-Agent functions are asynchronous generators that yield responses. This pattern aligns perfectly with A2A's task model:
+## Advanced Server SDK Example
 
-- **One function execution** = **One A2A task**
-- **Yielding data** = **Sending messages to the client**
-- **Pausing execution** = **Waiting for user input**
-
-The generator pattern is particularly powerful when your agent needs to request structured input from users.
-
-When you await a form request, execution pauses the task, allowing the user to fill out the form. Once submitted, execution resumes with the form data:
+Here's an example that incorporates multiple Server SDK capabilities:
 
 ```python
 from typing import Annotated
@@ -96,20 +90,40 @@ async def form_agent(
         yield AgentMessage(text="Form was not filled out.")
 ```
 
-<Tip>The whole complexity of Task management is handled via Server SDK.</Tip>
+1. Use the **Asynchronous Generator Pattern** to await the form request and pause the task while the user completes the form.
+1. **UI Extensions** are used to create the forms and add the metadata to messages.
 
-The generator pattern also enables agents to:
+### Asynchronous Generator Pattern
+
+Agent functions are asynchronous generators that yield responses. This pattern aligns with A2A's task model:
+
+- **One function execution** = **One A2A task**
+- **Yielding data** = **Sending messages to the client**
+- **Pausing execution** = **Waiting for user input**
+
+The generator pattern is particularly powerful when your agent needs to request structured input from users.
+
+When you await a form request, execution pauses the task, allowing the user to fill out the form. Once submitted, execution resumes with the form data. The generator pattern enables agents to:
 - Stream responses incrementally
 - Yield multiple messages during a single task
 - Handle long-running operations gracefully
 
 
-
 ### Extension System
 
-Agent Stack is utilizing A2A extensions to extend the protocol with Agent Stack-specific capabilities. They enable your agent to access platform services and enhance the user interface beyond what the base A2A protocol provides.
+Agent Stack utilizes A2A extensions to extend the protocol with Agent Stack-specific capabilities. They enable your agent to access platform services and enhance the user interface beyond what the base A2A protocol provides.
 
 There are two types of extensions:
+
+#### UI Extensions
+
+UI extensions add extra metadata to messages, enabling the Agent Stack UI to render more advanced interactive components:
+
+- **Forms**: Collect structured user input through interactive forms
+- **Citations**: Display source references with clickable inline links
+- **Trajectory**: Visualize agent reasoning steps with execution traces
+
+These extensions enhance messages with metadata that the UI interprets to create rich, interactive experiences beyond standard text responses.
 
 #### Dependency Injection Service Extensions
 
@@ -148,12 +162,4 @@ async def llm_agent(
         yield AgentMessage(text="LLM service not available")
 ```
 
-#### UI Extensions
 
-UI extensions add extra metadata to messages, enabling the Agent Stack UI to render more advanced interactive components:
-
-- **Forms**: Collect structured user input through interactive forms
-- **Citations**: Display source references with clickable inline links
-- **Trajectory**: Visualize agent reasoning steps with execution traces
-
-These extensions enhance messages with metadata that the UI interprets to create rich, interactive experiences beyond standard text responses.

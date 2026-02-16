@@ -17,7 +17,6 @@ class IProviderDiscoveryRepository(Protocol):
     async def delete(self, *, discovery_id: UUID, user_id: UUID | None = None) -> int: ...
     async def delete_older_than(self, *, older_than: datetime) -> int: ...
 
-    async def list(
+    def list(
         self, *, user_id: UUID | None = None, status: DiscoveryState | None = None
-    ) -> AsyncIterator[ProviderDiscovery]:
-        yield ...  # type: ignore
+    ) -> AsyncIterator[ProviderDiscovery]: ...

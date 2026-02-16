@@ -3,16 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from '@storybook/react';
 
-import { createKcPageStory } from "../KcPageStory";
+import { createKcPageStory } from '../KcPageStory';
 
 const { KcPageStory } = createKcPageStory({
-  pageId: "delete-account-confirm.ftl",
+  pageId: 'delete-account-confirm.ftl',
 });
 
 const meta = {
-  title: "login/delete-account-confirm.ftl",
+  title: 'login/delete-account-confirm.ftl',
   component: KcPageStory,
 } satisfies Meta<typeof KcPageStory>;
 
@@ -28,7 +28,7 @@ export const WithAIAFlow: Story = {
     <KcPageStory
       kcContext={{
         triggered_from_aia: true,
-        url: { loginAction: "/login-action" },
+        url: { loginAction: '/login-action' },
       }}
     />
   ),
@@ -38,7 +38,7 @@ export const WithoutAIAFlow: Story = {
     <KcPageStory
       kcContext={{
         triggered_from_aia: false,
-        url: { loginAction: "/login-action" },
+        url: { loginAction: '/login-action' },
       }}
     />
   ),
@@ -48,7 +48,7 @@ export const WithCustomButtonStyle: Story = {
     <KcPageStory
       kcContext={{
         triggered_from_aia: true,
-        url: { loginAction: "/login-action" },
+        url: { loginAction: '/login-action' },
       }}
     />
   ),

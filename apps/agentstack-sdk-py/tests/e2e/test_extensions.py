@@ -27,7 +27,7 @@ from agentstack_sdk.server.context import RunContext
 pytestmark = pytest.mark.e2e
 
 
-async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task:
+async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task | None:
     final_task = None
     async for event in stream:
         match event:
@@ -43,6 +43,7 @@ async def llm_extension_agent(create_server_with_agent) -> AsyncGenerator[tuple[
     ) -> AsyncGenerator[RunYield, Message]:
         # Agent producing chunked artifacts
         await asyncio.sleep(random() * 0.5)
+
         api_key = next(iter(llm_ext.data.llm_fulfillments.values())).api_key
         yield api_key
 
@@ -54,6 +55,7 @@ async def test_extension_is_not_reused(llm_extension_agent):
     _, client = llm_extension_agent
     card = await client.get_card()
     llm_spec = LLMServiceExtensionSpec.from_agent_card(card)
+    # pyrefly: ignore [bad-argument-type]
     extension_client = LLMServiceExtensionClient(llm_spec)
 
     tasks = []
@@ -67,6 +69,7 @@ async def test_extension_is_not_reused(llm_extension_agent):
 
     results = await asyncio.gather(*tasks)
     for i, task in enumerate(results):
+        # pyrefly: ignore [missing-attribute, unsupported-operation]
         assert task.history[-1].parts[0].root.text == str(i)
 
 
@@ -107,6 +110,7 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
 
     # Find the error message in history
     error_message = None
+    # pyrefly: ignore [not-iterable]
     for msg in task.history:
         if msg.metadata and error_spec.URI in msg.metadata:
             error_message = msg
@@ -115,12 +119,15 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
     assert error_message is not None, "Error message not found in task history"
 
     # Validate error metadata
+    # pyrefly: ignore [missing-attribute, unsupported-operation]
     error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
+
     assert error_metadata.error.title == "ValueError"
     assert error_metadata.error.message == "Something went wrong!"
     assert error_metadata.stack_trace is None
 
     # Check message text
+
     message_text = error_message.parts[0].root.text
     assert "## ValueError" in message_text
     assert "Something went wrong!" in message_text
@@ -138,6 +145,7 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
 
     # Find the error message
     error_message = None
+    # pyrefly: ignore [not-iterable]
     for msg in task.history:
         if msg.metadata and error_spec.URI in msg.metadata:
             error_message = msg
@@ -146,12 +154,18 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
     assert error_message is not None
 
     # Validate error metadata - should have 2 errors in the group
+    # pyrefly: ignore [missing-attribute, unsupported-operation]
     error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
     assert error_metadata.error.message.startswith("Multiple failures")
+
     assert len(error_metadata.error.errors) == 2
+    # pyrefly: ignore [bad-index]
     assert error_metadata.error.errors[0].title == "ValueError"
+    # pyrefly: ignore [bad-index]
     assert error_metadata.error.errors[0].message == "First error"
+    # pyrefly: ignore [bad-index]
     assert error_metadata.error.errors[1].title == "TypeError"
+    # pyrefly: ignore [bad-index]
     assert error_metadata.error.errors[1].message == "Second error"
 
     # Should have a single stack trace for the entire group
@@ -161,6 +175,7 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
     assert "TypeError: Second error" in error_metadata.stack_trace
 
     # Check message text
+
     message_text = error_message.parts[0].root.text
     assert "## Multiple failures" in message_text
     assert "### ValueError" in message_text
@@ -187,7 +202,9 @@ async def context_isolation_agent(create_server_with_agent) -> AsyncGenerator[tu
                 break
 
         # Set context based on the request
+        # pyrefly: ignore [unsupported-operation]
         error_ext.context["request_id"] = text_content
+        # pyrefly: ignore [unsupported-operation]
         error_ext.context["timestamp"] = text_content  # Use text as unique identifier
 
         # Simulate some async work
@@ -221,6 +238,7 @@ async def test_error_extension_context_isolation(context_isolation_agent):
     for task, expected_id in zip(tasks, request_ids, strict=True):
         # Find the error message
         error_message = None
+        # pyrefly: ignore [not-iterable]
         for msg in task.history:
             if msg.metadata and error_spec.URI in msg.metadata:
                 error_message = msg
@@ -229,15 +247,19 @@ async def test_error_extension_context_isolation(context_isolation_agent):
         assert error_message is not None, f"Error message not found for {expected_id}"
 
         # Validate error metadata
+        # pyrefly: ignore [missing-attribute, unsupported-operation]
         error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
+
         assert error_metadata.error.title == "ValueError"
         assert error_metadata.error.message == f"Error for request {expected_id}"
 
         # Validate context isolation - each request should have its own context
         assert error_metadata.context is not None, f"Context missing for {expected_id}"
+        # pyrefly: ignore [bad-index]
         assert error_metadata.context["request_id"] == expected_id, (
             f"Expected request_id '{expected_id}', got '{error_metadata.context['request_id']}'"
         )
+        # pyrefly: ignore [bad-index]
         assert error_metadata.context["timestamp"] == expected_id, (
             f"Expected timestamp '{expected_id}', got '{error_metadata.context['timestamp']}'"
         )

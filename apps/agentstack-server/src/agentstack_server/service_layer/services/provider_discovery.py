@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import logging
 import uuid
-from contextlib import suppress
 from datetime import timedelta
 from uuid import UUID
 
@@ -86,7 +85,7 @@ class ProviderDiscoveryService:
 
         return discovery
 
-    async def expire_discoveries(self, *, max_age: timedelta | None = None) -> int:
+    async def cleanup_expired_discoveries(self, *, max_age: timedelta | None = None) -> int:
         max_age = max_age or timedelta(days=1)
         cutoff = utc_now() - max_age
         async with self._uow() as uow:
@@ -121,8 +120,10 @@ class ProviderDiscoveryService:
                 agent_card = AgentCard.model_validate(response.json())
                 return self._inject_default_agent_detail_extension(agent_card, location)
         finally:
-            with suppress(Exception):
+            try:
                 await self._deployment_manager.delete(provider_id=temp_provider.id)
+            except Exception:
+                logger.exception(f"Failed to delete temporary deployment for provider {temp_provider.id}")
 
     def _inject_default_agent_detail_extension(
         self, agent_card: AgentCard, location: DockerImageProviderLocation

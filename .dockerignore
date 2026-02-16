@@ -3,6 +3,7 @@
 !/agents/
 !/apps/
 !/docs/
+!/examples/
 !/helm/
 !/mise.toml
 !/mise.lock

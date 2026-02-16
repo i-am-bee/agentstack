@@ -22,13 +22,12 @@ class IOpenAIChatCompletionProxyAdapter(Protocol):
         api_key: str,
     ) -> openai.types.chat.ChatCompletion: ...
 
-    async def create_chat_completion_stream(
+    def create_chat_completion_stream(
         self,
         *,
         request: ChatCompletionRequest,
         api_key: str,
-    ) -> AsyncIterator[openai.types.chat.ChatCompletionChunk]:
-        yield ...  # type: ignore
+    ) -> AsyncIterator[openai.types.chat.ChatCompletionChunk]: ...
 
 
 class IOpenAIEmbeddingProxyAdapter(Protocol):

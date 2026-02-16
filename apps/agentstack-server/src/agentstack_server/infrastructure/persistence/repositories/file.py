@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import builtins
 from collections.abc import AsyncIterator
 from typing import Any, cast
 from uuid import UUID
@@ -220,7 +221,9 @@ class SqlAlchemyFileRepository(IFileRepository):
             has_more=result.has_more,
         )
 
-    def _to_text_extraction(self, row: Row, extracted_files: list[ExtractedFileInfo] | None = None) -> TextExtraction:
+    def _to_text_extraction(
+        self, row: Row, extracted_files: builtins.list[ExtractedFileInfo] | None = None
+    ) -> TextExtraction:
         return TextExtraction.model_validate(
             {
                 "id": row.id,

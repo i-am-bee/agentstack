@@ -3,22 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  Button,
-  ButtonSet,
-  InlineNotification,
-  ListItem,
-  UnorderedList,
-} from "@carbon/react";
+import { Button, ButtonSet, InlineNotification, ListItem, UnorderedList } from '@carbon/react';
 
-import { Layout } from "../components/Layout/Layout";
-import Template from "../layout/Template";
-import type { CustomPageProps } from "../types";
-import classes from "./DeleteAccountConfirm.module.scss";
+import { Layout } from '../components/Layout/Layout';
+import Template from '../layout/Template';
+import type { CustomPageProps } from '../types';
+import classes from './DeleteAccountConfirm.module.scss';
 
-export default function DeleteAccountConfirm(
-  props: CustomPageProps<{ pageId: "delete-account-confirm.ftl" }>,
-) {
+export default function DeleteAccountConfirm(props: CustomPageProps<{ pageId: 'delete-account-confirm.ftl' }>) {
   const { kcContext, i18n, classes: kcClasses } = props;
 
   const { url, triggered_from_aia } = kcContext;
@@ -33,38 +25,31 @@ export default function DeleteAccountConfirm(
         classes={kcClasses}
         displayMessage={false}
         doUseDefaultCss={false}
-        headerNode={msg("deleteAccountConfirm")}
+        headerNode={msg('deleteAccountConfirm')}
         centered
       >
         <form action={url.loginAction} className={classes.form} method="post">
           <InlineNotification kind="warning" hideCloseButton lowContrast>
-            {msg("irreversibleAction")}
+            {msg('irreversibleAction')}
           </InlineNotification>
 
           <div>
-            <p>{msg("deletingImplies")}</p>
+            <p>{msg('deletingImplies')}</p>
             <UnorderedList className={classes.list}>
-              <ListItem>{msg("loggingOutImmediately")}</ListItem>
-              <ListItem>{msg("errasingData")}</ListItem>
+              <ListItem>{msg('loggingOutImmediately')}</ListItem>
+              <ListItem>{msg('errasingData')}</ListItem>
             </UnorderedList>
 
-            <p className={classes.confirmation}>
-              {msg("finalDeletionConfirmation")}
-            </p>
+            <p className={classes.confirmation}>{msg('finalDeletionConfirmation')}</p>
           </div>
 
           <ButtonSet>
             <Button type="submit" kind="danger">
-              {msgStr("doConfirmDelete")}
+              {msgStr('doConfirmDelete')}
             </Button>
             {triggered_from_aia && (
-              <Button
-                type="submit"
-                name="cancel-aia"
-                value="true"
-                kind="secondary"
-              >
-                {msgStr("doCancel")}
+              <Button type="submit" name="cancel-aia" value="true" kind="secondary">
+                {msgStr('doCancel')}
               </Button>
             )}
           </ButtonSet>

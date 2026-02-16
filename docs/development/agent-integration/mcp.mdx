@@ -153,7 +153,7 @@ async def custom_mcp_oauth_agent(
             if result.content:
                 content = result.content[0]
                 if hasattr(content, 'text'):
-                    yield str(content.text)  # type: ignore
+                    yield str(content.text)
             else:
                 yield "No content returned"
 
