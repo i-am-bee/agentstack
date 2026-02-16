@@ -83,8 +83,8 @@ cat > /etc/microshift/config.yaml <<EOF
 apiServer:
     port: 16443
 EOF
-mkdir -p /postgresql-data /seaweedfs-data
-chmod 777 /postgresql-data /seaweedfs-data
+mkdir -p /postgresql-data /seaweedfs-data /registry-data
+chmod 777 /postgresql-data /seaweedfs-data /registry-data
 systemctl start microshift
 """
 
