@@ -16,7 +16,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   hostPath:
-    path: /var/lib/agentstack/postgresql
+    path: /postgresql-data
     type: DirectoryOrCreate
   claimRef:
     namespace: {{ .Release.Namespace }}
@@ -39,7 +39,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
   hostPath:
-    path: /var/lib/agentstack/seaweedfs
+    path: /seaweedfs-data
     type: DirectoryOrCreate
   claimRef:
     namespace: {{ .Release.Namespace }}

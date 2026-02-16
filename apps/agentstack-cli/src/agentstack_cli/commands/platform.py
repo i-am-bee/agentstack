@@ -47,27 +47,18 @@ configuration = Configuration()
 INSTALL_MICROSHIFT_SCRIPT = """\
 #!/bin/bash
 set -eux -o pipefail
-
 export DEBIAN_FRONTEND=noninteractive
-
-# Check for existing installations (k3s backward compatibility)
-systemctl is-enabled k3s &>/dev/null && { systemctl start k3s || true; exit 0; }
-systemctl is-enabled microshift &>/dev/null && { systemctl start microshift crio || true; exit 0; }
-
-# Download and extract MicroShift
+if command -v k3s; then systemctl start k3s || true; exit 0; fi
+if command -v microshift; then systemctl start crio; timeout 30s bash -c "while ! crictl info; do sleep 1; done"; systemctl start microshift; exit 0; fi
 WORK_DIR="/tmp/microshift-install"
 mkdir -p "${WORK_DIR}"
 cd "${WORK_DIR}"
 curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz
-
-# Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
 echo "deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
 echo "deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
 apt-get install -y -q skopeo cri-o cri-tools containernetworking-plugins kubectl
-
-# Configure CRI-O and registries
 mkdir -p /etc/crio/crio.conf.d /etc/containers/registries.conf.d
 cat > /etc/crio/crio.conf.d/14-microshift-cni.conf <<EOF
 [crio.network]
@@ -81,28 +72,19 @@ insecure = true
 location = "localhost:30501"
 insecure = true
 EOF
-
 systemctl daemon-reload
 systemctl start crio
-
-# Install MicroShift
 dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
 cd /
 rm -rf "${WORK_DIR}"
-
-# Configure MicroShift
 mkdir -p /etc/microshift /registry-data
 chmod 755 /registry-data
 cat > /etc/microshift/config.yaml <<EOF
 apiServer:
     port: 16443
 EOF
-
-# Create directories for localStorage volumes
-mkdir -p /var/lib/agentstack/postgresql /var/lib/agentstack/seaweedfs
-chmod 777 /var/lib/agentstack/postgresql /var/lib/agentstack/seaweedfs
-
-# Start MicroShift
+mkdir -p /postgresql-data /seaweedfs-data
+chmod 777 /postgresql-data /seaweedfs-data
 systemctl start microshift
 """
 
