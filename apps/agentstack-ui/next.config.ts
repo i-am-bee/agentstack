@@ -89,18 +89,6 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   devIndicators: {
     position: 'bottom-right',
   },
-  turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    },
-    resolveAlias: {
-      // Carbon styles use tilde imports for IBM Plex fonts which is a webpack convention
-      '~@ibm/plex': '@ibm/plex',
-    },
-  },
 });
 
 export default nextConfig;

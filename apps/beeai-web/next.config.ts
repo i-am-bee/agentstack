@@ -90,18 +90,6 @@ const nextConfig: NextConfig = {
     cssChunking: false,
     optimizePackageImports: ['@carbon/react', '@carbon/icons-react'],
   },
-  turbopack: {
-    rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
-      },
-    },
-    resolveAlias: {
-      // Carbon styles use tilde imports for IBM Plex fonts which is a webpack convention
-      '~@ibm/plex': '@ibm/plex',
-    },
-  },
 };
 
 const withMDX = createMDX({

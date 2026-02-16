@@ -8,6 +8,7 @@
 import { CodeSnippetSkeleton } from '@carbon/react';
 import clsx from 'clsx';
 import dynamic from 'next/dynamic';
+import type { SyntaxHighlighterProps } from 'react-syntax-highlighter';
 
 import { registerLanguagesAsync } from './languages';
 import classes from './SyntaxHighlighter.module.scss';
@@ -24,8 +25,7 @@ const Highlighter = dynamic(
   () =>
     import('react-syntax-highlighter').then(({ Light }) => {
       registerLanguagesAsync(Light);
-      // Type assertion needed due to React 18/19 contextType incompatibility in react-syntax-highlighter types
-      return Light as React.ComponentType<React.ComponentProps<typeof Light>>;
+      return { default: (props: SyntaxHighlighterProps) => <Light {...props} /> };
     }),
   {
     ssr: false,

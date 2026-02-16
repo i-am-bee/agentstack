@@ -85,7 +85,7 @@ run = "pnpm next start"
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
 dir = "{{config_root}}/apps/agentstack-ui"
-# Using --webpack due to Turbopack not supporting tilde imports in @carbon/styles fonts
+# Using --webpack because Turbopack doesn’t yet support some required features (e.g. the ::highlight() CSS rule).
 run = "pnpm next dev --webpack"
 
 # build

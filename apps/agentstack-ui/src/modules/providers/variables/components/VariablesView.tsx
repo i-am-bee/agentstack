@@ -54,8 +54,7 @@ export function VariablesView() {
   return (
     <TableViewWithSearch
       className={classes.root}
-      description="Your variables are sensitive information and should not be shared with anyone. Keep it secure to
-        prevent unauthorized access to your account."
+      description="Your variables are sensitive information and should not be shared with anyone. Keep it secure to prevent unauthorized access to your account."
       headers={headers}
       entries={entries}
       searchFields={['agent', 'name']}
