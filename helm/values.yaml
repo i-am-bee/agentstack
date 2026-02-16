@@ -7,6 +7,12 @@
 # If false, resources will be created as standard Kubernetes resources
 useHelmHooks: true
 
+# Local storage configuration for single-node development environments
+# When true, creates hostPath-backed PersistentVolumes for PostgreSQL and SeaweedFS
+# instead of relying on dynamic provisioning (StorageClass/CSI drivers)
+# WARNING: Only use for local development. Data is stored on the node's filesystem.
+localStorage: false
+
 features:
   # UI only features
   uiLocalSetup: false

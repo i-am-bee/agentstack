@@ -1,0 +1,47 @@
+{{- if .Values.localStorage }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-postgresql-pv
+  labels:
+    app.kubernetes.io/name: {{ include "agentstack.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: postgresql-storage
+spec:
+  capacity:
+    storage: {{ .Values.postgresql.primary.persistence.size | default "8Gi" }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /var/lib/agentstack/postgresql
+    type: DirectoryOrCreate
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: data-postgresql-0
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-seaweedfs-pv
+  labels:
+    app.kubernetes.io/name: {{ include "agentstack.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: seaweedfs-storage
+spec:
+  capacity:
+    storage: {{ .Values.seaweedfs.allInOne.data.size | default "20Gi" }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /var/lib/agentstack/seaweedfs
+    type: DirectoryOrCreate
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: seaweedfs-all-in-one-data
+{{- end }}

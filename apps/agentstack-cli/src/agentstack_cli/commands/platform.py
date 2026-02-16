@@ -67,7 +67,7 @@ curl -fsSL "https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/Release.key" 
 echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
 echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
-apt-get install -y -q podman lvm2 cri-o containernetworking-plugins kubectl cri-tools
+apt-get install -y -q podman cri-o containernetworking-plugins kubectl cri-tools
 
 # Configure CNI and registries
 find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
@@ -89,7 +89,7 @@ systemctl daemon-reload
 systemctl enable --now crio
 
 # Install kubectl and MicroShift
-find "${WORK_DIR}" -name 'microshift*.deb' | sort | xargs dpkg -i
+dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
 cd /
 rm -rf "${WORK_DIR}"
 
@@ -103,27 +103,9 @@ apiServer:
     port: 16443
 EOF
 
-# Configure storage
-truncate -s 50G /var/lib/microshift-storage.img
-LOOP_DEV=$(losetup -f)
-losetup "$LOOP_DEV" /var/lib/microshift-storage.img
-pvcreate "$LOOP_DEV"
-vgcreate myvg1 "$LOOP_DEV"
-cat > /etc/systemd/system/microshift-storage-loopback.service <<'EOF'
-[Unit]
-Description=Setup loopback device for MicroShift storage
-DefaultDependencies=no
-Before=lvm2-activation-early.service
-After=local-fs-pre.target
-Wants=local-fs-pre.target
-[Service]
-Type=oneshot
-ExecStart=/bin/bash -c 'losetup -f /var/lib/microshift-storage.img || true'
-RemainAfterExit=yes
-[Install]
-WantedBy=local-fs-pre.target
-EOF
-systemctl enable microshift-storage-loopback.service
+# Create directories for localStorage volumes
+mkdir -p /var/lib/agentstack/postgresql /var/lib/agentstack/seaweedfs
+chmod 777 /var/lib/agentstack/postgresql /var/lib/agentstack/seaweedfs
 
 # Start MicroShift
 systemctl start microshift
@@ -609,6 +591,7 @@ async def start(
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
             "trustProxyHeaders": True,
+            "localStorage": True,  # Use hostPath-backed PVs for local development
             "keycloak": {
                 "uiClientSecret": "agentstack-ui-secret",
                 "serverClientSecret": "agentstack-server-secret",
@@ -702,9 +685,9 @@ async def start(
                 [
                     "bash",
                     "-c",
-                    f"for i in {{1..120}}; do if kubectl --kubeconfig={kubeconfig} get endpoints -n topolvm-system topolvm-controller -o jsonpath='{{.subsets[*].addresses[*].ip}}' 2>/dev/null | grep -q '.'; then exit 0; fi; sleep 5; done; exit 1",
+                    f"for i in {{1..120}}; do if kubectl --kubeconfig={kubeconfig} get --raw /healthz 2>/dev/null | grep -q 'ok'; then exit 0; fi; sleep 5; done; exit 1",
                 ],
-                "Waiting for MicroShift services to be ready",
+                "Waiting for MicroShift API server to be ready",
             )
         if detect_driver() == "wsl" and platform == "microshift":
             host_ip = (
