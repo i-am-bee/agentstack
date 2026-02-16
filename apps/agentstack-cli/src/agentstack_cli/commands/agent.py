@@ -637,7 +637,7 @@ async def _ask_settings_form_questions(settings_render: SettingsFormRender) -> S
         if isinstance(field, CheckboxGroupField):
             checkbox_value: dict[str, bool | None] = {}
             for checkbox in field.fields:
-                answer = await inquirer.confirm(  # pyright: ignore[reportPrivateImportUsage]
+                answer = await inquirer.confirm(
                     message=checkbox.label + ":",
                     default=checkbox.default_value,
                 ).execute_async()
@@ -645,7 +645,7 @@ async def _ask_settings_form_questions(settings_render: SettingsFormRender) -> S
             settings_values[field.id] = CheckboxGroupFieldValue(value=checkbox_value)
         elif isinstance(field, SingleSelectField):
             choices = [Choice(value=opt.id, name=opt.label) for opt in field.options]
-            answer = await inquirer.fuzzy(  # pyright: ignore[reportPrivateImportUsage]
+            answer = await inquirer.fuzzy(
                 message=field.label + ":",
                 choices=choices,
                 default=field.default_value,
