@@ -748,7 +748,6 @@ async def _run_agent(
                 else {}
             )
             | (
-<<<<<<< feat/1998-extend-form-extension-for-settings
                 {
                     FormServiceExtensionSpec.URI: {
                         "form_fulfillments": {
@@ -766,10 +765,6 @@ async def _run_agent(
                     }
                 }
                 if isinstance(input, FormResponse) or isinstance(settings, SettingsFormResponse)
-=======
-                {FormServiceExtensionSpec.URI: {"form_fulfillments": {"initial_form": input.model_dump(mode="json")}}}
-                if isinstance(input, FormResponse)
->>>>>>> ui/unify-settings-form-exts
                 else {}
             )
             | (

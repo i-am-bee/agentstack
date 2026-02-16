@@ -18,7 +18,7 @@ async def test_initial_form_rendering_example(subtests, get_final_task_from_stre
 
     async with run_example(example_path, a2a_client_factory) as running_example:
         spec = FormServiceExtensionSpec.from_agent_card(running_example.provider.agent_card)
-
+        assert spec is not None, "FormServiceExtensionSpec should be present in agent card"
         with subtests.test("agent responds with greeting using form data"):
             message = create_text_message_object()
             metadata = FormServiceExtensionMetadata(

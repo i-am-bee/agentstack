@@ -25,12 +25,9 @@ dependencies = [
     "authlib>=1.3.0",
     "async-lru>=2.0.4",
     "cachetools>=6.2.3",
-<<<<<<< feat/1998-extend-form-extension-for-settings
     "typing-extensions>=4.15.0",
-=======
     "opentelemetry-instrumentation-httpx>=0.60b1",
     "opentelemetry-instrumentation-openai>=0.52.3",
->>>>>>> ui/unify-settings-form-exts
 ]
 
 [dependency-groups]

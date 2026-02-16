@@ -67,21 +67,19 @@ T = TypeVar("T")
 
 
 class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, FormServiceExtensionMetadata]):
-<<<<<<< feat/1998-extend-form-extension-for-settings
-    def parse_initial_form(self, *, model: type[T] = FormResponse) -> T | None:
+    def parse_initial_form(self, *, model: type[T] | None = None) -> T | FormResponse | None:
         """Parse initial_form from form_fulfillments."""
         if self.data is None:
             return None
 
-        initial_form = self.data.form_fulfillments.get("initial_form")
+        initial_form = getattr(self.data, "form_fulfillments", {}).get("initial_form")
+        return (
+            TypeAdapter(model).validate_python(dict(initial_form))
+            if initial_form is not None and model is not None
+            else initial_form
+        )
 
-        if initial_form is None:
-            return None
-        if model is FormResponse:
-            return cast(T, initial_form)
-        return TypeAdapter(model).validate_python(dict(initial_form))
-
-    def parse_settings_form(self, *, model: type[T] = SettingsFormResponse) -> T | None:
+    def parse_settings_form(self, *, model: type[T] | None = None) -> T | SettingsFormResponse | None:
         """
         Parse settings_form from form_fulfillments.
 
@@ -91,28 +89,18 @@ class FormServiceExtensionServer(BaseExtensionServer[FormServiceExtensionSpec, F
         if self.data is None:
             return None
 
-        settings_form = self.data.form_fulfillments.get("settings_form")
-        if settings_form is None:
-            return None
-        if model is SettingsFormResponse:
-            return cast(T, settings_form)
-        return TypeAdapter(model).validate_python(dict(settings_form))
-
-
-class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]): ...
-=======
-    def parse_initial_form(self, *, model: type[T] | None = None) -> T | None:
-        initial_form = getattr(self.data, "form_fulfillments", {}).get("initial_form")
+        settings_form = getattr(self.data, "form_fulfillments", {}).get("settings_form")
         return (
-            TypeAdapter(model).validate_python(dict(initial_form))
-            if initial_form is not None and model is not None
-            else initial_form
+            TypeAdapter(model).validate_python(dict(settings_form))
+            if settings_form is not None and model is not None
+            else settings_form
         )
 
 
 class FormServiceExtensionClient(BaseExtensionClient[FormServiceExtensionSpec, FormRender]):
-    def fulfillment_metadata(self, *, form_fulfillments: dict[str, FormResponse]) -> dict[str, Any]:
+    def fulfillment_metadata(
+        self, *, form_fulfillments: dict[str, FormResponse | SettingsFormResponse]
+    ) -> dict[str, Any]:
         return {
             self.spec.URI: FormServiceExtensionMetadata(form_fulfillments=form_fulfillments).model_dump(mode="json")
         }
->>>>>>> ui/unify-settings-form-exts

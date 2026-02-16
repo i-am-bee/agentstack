@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import Generator
-from typing import Literal
+from typing import Generic, Literal, TypeVar
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -87,13 +87,28 @@ FormField = (
     TextField | DateField | FileField | SingleSelectField | MultiSelectField | CheckboxField | CheckboxGroupField
 )
 
+SettingsFormField = CheckboxGroupField | SingleSelectField
 
-class FormRender(BaseModel):
+
+F = TypeVar("F", bound=FormField | SettingsFormField)
+
+
+class BaseFormRender(BaseModel, Generic[F]):
     title: str | None = None
     description: str | None = None
     columns: int | None = Field(default=None, ge=1, le=4)
     submit_label: str | None = None
-    fields: list[FormField]
+    fields: list[F]
+
+
+class FormRender(BaseFormRender[FormField]):
+    pass
+
+
+class SettingsFormRender(BaseFormRender[SettingsFormField]):
+    """FormRender for settings - only allows fields defined in SettingsFormField."""
+
+    pass
 
 
 class TextFieldValue(BaseModel):
@@ -147,11 +162,21 @@ FormFieldValue = (
     | CheckboxGroupFieldValue
 )
 
+SettingsFormFieldValue = CheckboxGroupFieldValue | SingleSelectFieldValue
 
-class FormResponse(BaseModel):
-    values: dict[str, FormFieldValue]
+FV = TypeVar("FV", bound=FormFieldValue | SettingsFormFieldValue)
 
-    def __iter__(self) -> Generator[tuple[str, list[dict[str, str | None]] | list[str] | str | bool | None]]:
+
+NonFileIterValue = dict[str, bool | None] | list[str] | str | bool | None
+IterValue = list[dict[str, str | None]] | NonFileIterValue
+
+
+class BaseFormResponse(BaseModel, Generic[FV]):
+    values: dict[str, FV]
+
+    def __iter__(
+        self,
+    ) -> Generator[tuple[str, IterValue]]:
         for key, value in self.values.items():
             match value:
                 case FileFieldValue():
@@ -160,23 +185,14 @@ class FormResponse(BaseModel):
                         [file.model_dump() for file in value.value] if value.value else None,
                     )
                 case _:
-                    yield key, value.value
+                    yield key, value.value  # pyrefly: ignore[invalid-yield]
 
 
-# Settings form types - subset of form types for agent settings
-SettingsFormField = CheckboxGroupField | SingleSelectField
-SettingsFormFieldValue = CheckboxGroupFieldValue | SingleSelectFieldValue
+class FormResponse(BaseFormResponse[FormFieldValue]):
+    pass
 
 
-class SettingsFormRender(BaseModel):
-    """FormRender specialized for settings - only allows checkbox_group and singleselect fields."""
+class SettingsFormResponse(BaseFormResponse[SettingsFormFieldValue]):
+    """FormResponse for settings - only allows fields defined in SettingsFormFieldValue."""
 
-    fields: list[SettingsFormField]
-    title: str | None = None
-    description: str | None = None
-
-
-class SettingsFormResponse(BaseModel):
-    """FormResponse specialized for settings fields."""
-
-    values: dict[str, SettingsFormFieldValue]
+    pass
