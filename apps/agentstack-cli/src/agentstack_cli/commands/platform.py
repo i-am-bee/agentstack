@@ -62,15 +62,12 @@ curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0
 
 # Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
-curl -fsSL "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
-curl -fsSL "https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
+echo "deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
+echo "deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
-apt-get install -y -q podman cri-o containernetworking-plugins kubectl
+apt-get install -y -q skopeo cri-o cri-tools containernetworking-plugins kubectl
 
-# Configure CNI and registries
-find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
+# Configure CRI-O and registries
 mkdir -p /etc/crio/crio.conf.d /etc/containers/registries.conf.d
 cat > /etc/crio/crio.conf.d/14-microshift-cni.conf <<EOF
 [crio.network]
@@ -88,7 +85,7 @@ EOF
 systemctl daemon-reload
 systemctl start crio
 
-# Install kubectl and MicroShift
+# Install MicroShift
 dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
 cd /
 rm -rf "${WORK_DIR}"
@@ -263,6 +260,10 @@ def _get_export_import_paths(vm_name: str) -> tuple[str, str]:
     return (windows_path, f"/mnt/{windows_path[0].lower()}/{windows_path[2:].replace(chr(92), '/').removeprefix('/')}")
 
 
+def _canonify(t) -> str:
+    return t if "." in t.split("/")[0] else f"docker.io/{t}"
+
+
 async def _grab_image_shas(
     vm_name: str,
     platform: typing.Literal["k3s", "microshift"],
@@ -272,9 +273,6 @@ async def _grab_image_shas(
 ) -> dict[str, str]:
     """Get image SHA digests from host or guest"""
 
-    def canonify(t):
-        return t if "." in t.split("/")[0] else f"docker.io/{t}"
-
     if mode == "host":
         lines = (
             (await run_command(["docker", "images", "--digests"], "Listing host images"))
@@ -282,9 +280,9 @@ async def _grab_image_shas(
             .splitlines()[1:]
         )
         return {
-            canonify(f"{x[0]}:{x[1]}"): x[2]
+            _canonify(f"{x[0]}:{x[1]}"): x[2]
             for line in lines
-            if (x := line.split()) and len(x) >= 4 and x[1] != "<none>" and canonify(f"{x[0]}:{x[1]}") in loaded_images
+            if (x := line.split()) and len(x) >= 4 and x[1] != "<none>" and _canonify(f"{x[0]}:{x[1]}") in loaded_images
         }
 
     if platform == "k3s":
@@ -294,20 +292,16 @@ async def _grab_image_shas(
             .splitlines()[1:]
         )
         return {
-            canonify(x[0]): x[2]
+            _canonify(x[0]): x[2]
             for line in lines
-            if (x := line.split()) and len(x) >= 3 and canonify(x[0]) in loaded_images
+            if (x := line.split()) and len(x) >= 3 and _canonify(x[0]) in loaded_images
         }
 
-    lines = (
-        (await run_in_vm(vm_name, ["podman", "images", "--digests"], "Listing guest images"))
-        .stdout.decode()
-        .splitlines()[1:]
-    )
+    lines = (await run_in_vm(vm_name, ["crictl", "images"], "Listing guest images")).stdout.decode().splitlines()[1:]
     return {
-        canonify(f"{x[0]}:{x[1]}"): x[2]
+        _canonify(f"{x[0]}:{x[1]}"): x[2]
         for line in lines
-        if (x := line.split()) and len(x) >= 4 and x[1] != "<none>" and canonify(f"{x[0]}:{x[1]}") in loaded_images
+        if (x := line.split()) and len(x) >= 4 and x[1] != "<none>" and _canonify(f"{x[0]}:{x[1]}") in loaded_images
     }
 
 
@@ -610,11 +604,8 @@ async def start(
             input=yaml.dump(values).encode("utf-8"),
         )
 
-        def canonify(t):
-            return t if "." in t.split("/")[0] else f"docker.io/{t}"
-
         loaded_images = {
-            canonify(typing.cast(str, yaml.safe_load(line)))
+            _canonify(typing.cast(str, yaml.safe_load(line)))
             for line in (
                 await run_in_vm(
                     vm_name,
@@ -647,13 +638,19 @@ async def start(
                         ["docker", "image", "save", "-o", host_path, *images_to_import_from_host],
                         f"Exporting image{'' if len(images_to_import_from_host) == 1 else 's'} {', '.join(images_to_import_from_host)} from Docker",
                     )
-                    await run_in_vm(
-                        vm_name,
-                        ["/bin/sh", "-c", f"k3s ctr images import {guest_path}"]
-                        if platform == "k3s"
-                        else ["podman", "load", "-i", guest_path],
-                        f"Importing image{'' if len(images_to_import_from_host) == 1 else 's'} {', '.join(images_to_import_from_host)} into Agent Stack platform",
-                    )
+                    if platform == "k3s":
+                        await run_in_vm(
+                            vm_name,
+                            ["/bin/sh", "-c", f"k3s ctr images import {guest_path}"],
+                            f"Importing image{'' if len(images_to_import_from_host) == 1 else 's'} {', '.join(images_to_import_from_host)} into Agent Stack platform",
+                        )
+                    else:
+                        for img in images_to_import_from_host:
+                            await run_in_vm(
+                                vm_name,
+                                ["skopeo", "copy", f"docker-archive:{guest_path}:{img}", f"containers-storage:{img}"],
+                                f"Importing image {img} into Agent Stack platform",
+                            )
                 finally:
                     await anyio.Path(host_path).unlink(missing_ok=True)
         if image_pull_mode in {ImagePullMode.guest, ImagePullMode.hybrid}:
@@ -662,7 +659,9 @@ async def start(
                     with attempt:
                         await run_in_vm(
                             vm_name,
-                            ["k3s", "ctr", "image", "pull", image] if platform == "k3s" else ["podman", "pull", image],
+                            ["k3s", "ctr", "image", "pull", image]
+                            if platform == "k3s"
+                            else ["skopeo", "copy", f"docker://{image}", f"containers-storage:{image}"],
                             f"Pulling image {image}"
                             + (
                                 f" (attempt {attempt.retry_state.attempt_number})"
@@ -911,7 +910,7 @@ async def import_image_cmd(
                 vm_name,
                 ["/bin/sh", "-c", f"k3s ctr images import {guest_path}"]
                 if platform == "k3s"
-                else ["podman", "load", "-i", guest_path],
+                else ["skopeo", "copy", f"docker-archive:{guest_path}:{tag}", f"containers-storage:{tag}"],
                 f"Importing image {tag} into Agent Stack platform",
             )
         finally:
