@@ -54,19 +54,11 @@ export DEBIAN_FRONTEND=noninteractive
 systemctl is-enabled k3s &>/dev/null && { systemctl start k3s || true; exit 0; }
 systemctl is-enabled microshift &>/dev/null && { systemctl start microshift || true; exit 0; }
 
-# Determine architecture
-case "$(uname -m)" in
-    x86_64) ARCH="x86_64" ;;
-    aarch64) ARCH="aarch64" ;;
-    *) echo "ERROR: Unsupported architecture"; exit 1 ;;
-esac
-
 # Download and extract MicroShift
-VERSION="4.21.0_g29f429c21_4.21.0_okd_scos.ec.15"
 WORK_DIR="/tmp/microshift-install"
 mkdir -p "${WORK_DIR}"
 cd "${WORK_DIR}"
-curl -fsSL "https://github.com/microshift-io/microshift/releases/download/${VERSION}/microshift-debs-${ARCH}.tgz" | tar -xz
+curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz
 
 # Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
@@ -98,6 +90,9 @@ systemctl enable --now crio
 
 # Install kubectl and MicroShift
 find "${WORK_DIR}" -name 'microshift*.deb' | sort | xargs dpkg -i
+cd /
+rm -rf "${WORK_DIR}"
+
 systemctl enable microshift
 
 # Configure MicroShift
@@ -132,8 +127,6 @@ systemctl enable microshift-storage-loopback.service
 
 # Start MicroShift
 systemctl start microshift
-cd /
-rm -rf "${WORK_DIR}"
 """
 
 
