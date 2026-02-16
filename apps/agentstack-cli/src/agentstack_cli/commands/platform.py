@@ -308,17 +308,13 @@ async def _grab_image_shas(
 async def import_image_to_internal_registry(vm_name: str, tag: str, loaded_images: set[str] | None = None) -> None:
     """Import image from host Docker into internal registry"""
     platform = await detect_platform(vm_name)
-    kubeconfig = {
-        "microshift": "/var/lib/microshift/resources/kubeadmin/kubeconfig",
-        "k3s": "/etc/rancher/k3s/k3s.yaml",
-    }[platform]
     host_path, guest_path = _get_export_import_paths(vm_name)
     try:
         await run_command(["docker", "image", "save", "-o", str(host_path), tag], f"Exporting image {tag} from Docker")
         job_name = f"push-{uuid.uuid4().hex[:6]}"
         await run_in_vm(
             vm_name,
-            ["kubectl", f"--kubeconfig={kubeconfig}", "apply", "-f", "-"],
+            ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "apply", "-f", "-"],
             "Starting push job",
             input=yaml.dump(
                 {
@@ -364,7 +360,7 @@ async def import_image_to_internal_registry(vm_name: str, tag: str, loaded_image
             vm_name,
             [
                 "kubectl",
-                f"--kubeconfig={kubeconfig}",
+                f"--kubeconfig={_kubeconfig(platform)}",
                 "wait",
                 "--for=condition=complete",
                 f"job/{job_name}",
@@ -374,6 +370,13 @@ async def import_image_to_internal_registry(vm_name: str, tag: str, loaded_image
         )
     finally:
         await anyio.Path(host_path).unlink(missing_ok=True)
+
+
+def _kubeconfig(platform: typing.Literal["microshift", "k3s"] = "microshift") -> str:
+    return {
+        "microshift": "/var/lib/microshift/resources/kubeadmin/kubeconfig",
+        "k3s": "/etc/rancher/k3s/k3s.yaml",
+    }[platform]
 
 
 # ============================================================================
@@ -440,6 +443,7 @@ async def start(
                     f.write(
                         yaml.dump(
                             {
+                                "env": {"KUBECONFIG": _kubeconfig()},
                                 "images": [
                                     {
                                         "location": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
@@ -567,10 +571,6 @@ async def start(
         )
 
         # Deploy
-        kubeconfig = {
-            "microshift": "/var/lib/microshift/resources/kubeadmin/kubeconfig",
-            "k3s": "/etc/rancher/k3s/k3s.yaml",
-        }[platform]
         await run_in_vm(
             vm_name,
             ["sh", "-c", "mkdir -p /tmp/agentstack && cat >/tmp/agentstack/chart.tgz"],
@@ -583,7 +583,7 @@ async def start(
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
             "trustProxyHeaders": True,
-            "localStorage": True,  # Use hostPath-backed PVs for local development
+            "localStorage": platform == "microshift",  # k3s uses local path provisioner instead
             "keycloak": {
                 "uiClientSecret": "agentstack-ui-secret",
                 "serverClientSecret": "agentstack-server-secret",
@@ -673,7 +673,7 @@ async def start(
         await kubeconfig_local.parent.mkdir(parents=True, exist_ok=True)
         await kubeconfig_local.write_text(
             (
-                await run_in_vm(vm_name, ["/bin/cat", kubeconfig], "Copying kubeconfig from Agent Stack platform")
+                await run_in_vm(vm_name, ["cat", _kubeconfig(platform)], "Copying kubeconfig from Agent Stack platform")
             ).stdout.decode()
         )
         if platform == "microshift":
@@ -682,7 +682,7 @@ async def start(
                 [
                     "bash",
                     "-c",
-                    f"for i in {{1..120}}; do if kubectl --kubeconfig={kubeconfig} get --raw /healthz 2>/dev/null | grep -q 'ok'; then exit 0; fi; sleep 5; done; exit 1",
+                    f"for i in {{1..120}}; do if kubectl --kubeconfig={_kubeconfig(platform)} get --raw /healthz 2>/dev/null | grep -q 'ok'; then exit 0; fi; sleep 5; done; exit 1",
                 ],
                 "Waiting for MicroShift API server to be ready",
             )
@@ -703,7 +703,7 @@ async def start(
                 [
                     "bash",
                     "-c",
-                    f"kubectl --kubeconfig={kubeconfig} get configmap -n openshift-dns dns-default -o yaml | sed '/^  Corefile: |/a\\    host.docker.internal:53 {{\\n        hosts {{\\n            {host_ip} host.docker.internal\\n            fallthrough\\n        }}\\n    }}' | kubectl --kubeconfig={kubeconfig} apply -f -",
+                    f"kubectl --kubeconfig={_kubeconfig(platform)} get configmap -n openshift-dns dns-default -o yaml | sed '/^  Corefile: |/a\\    host.docker.internal:53 {{\\n        hosts {{\\n            {host_ip} host.docker.internal\\n            fallthrough\\n        }}\\n    }}' | kubectl --kubeconfig={_kubeconfig(platform)} apply -f -",
                 ],
                 "Setting up internal networking",
             )
@@ -711,7 +711,7 @@ async def start(
                 vm_name,
                 [
                     "kubectl",
-                    f"--kubeconfig={kubeconfig}",
+                    f"--kubeconfig={_kubeconfig(platform)}",
                     "delete",
                     "pods",
                     "-n",
@@ -734,7 +734,7 @@ async def start(
                 "--values=/tmp/agentstack/values.yaml",
                 "--timeout=20m",
                 "--wait",
-                f"--kubeconfig={kubeconfig}",
+                f"--kubeconfig={_kubeconfig(platform)}",
                 *(f"--set={value}" for value in set_values_list),
             ],
             "Deploying Agent Stack platform with Helm",
@@ -747,7 +747,15 @@ async def start(
                 (
                     await run_in_vm(
                         vm_name,
-                        ["kubectl", f"--kubeconfig={kubeconfig}", "get", "pods", "-o", "json", "--all-namespaces"],
+                        [
+                            "kubectl",
+                            f"--kubeconfig={_kubeconfig(platform)}",
+                            "get",
+                            "pods",
+                            "-o",
+                            "json",
+                            "--all-namespaces",
+                        ],
                         "Getting pods",
                     )
                 ).stdout
@@ -760,7 +768,7 @@ async def start(
                         vm_name,
                         [
                             "kubectl",
-                            f"--kubeconfig={kubeconfig}",
+                            f"--kubeconfig={_kubeconfig(platform)}",
                             "delete",
                             "pod",
                             pod["metadata"]["name"],
@@ -773,9 +781,12 @@ async def start(
             vm_name,
             ["sh", "-c", "cat >/etc/systemd/system/kubectl-port-forward@.service"],
             "Installing systemd unit for port-forwarding",
-            input=textwrap.dedent(
-                f'[Unit]\nDescription=Kubectl Port Forward for service %i\nAfter=network.target\n\n[Service]\nType=simple\nExecStart=/bin/bash -c \'IFS=":" read svc port <<< "%i"; exec kubectl --kubeconfig={kubeconfig} port-forward --address=127.0.0.1 svc/$svc $port:$port\'\nRestart=on-failure\nUser=root\n\n[Install]\nWantedBy=multi-user.target\n'
-            ).encode(),
+            input=textwrap.dedent(f"""
+            [Service]
+            ExecStart=/bin/bash -c \'IFS=":" read svc port <<< "%i"; exec kubectl --kubeconfig={_kubeconfig(platform)} port-forward --address=127.0.0.1 svc/$svc $port:$port\'
+            Restart=on-failure
+            User=root
+            """).encode(),
         )
         await run_in_vm(vm_name, ["systemctl", "daemon-reexec"], "Reloading systemd")
         services_data: dict[str, typing.Any] = pydantic.TypeAdapter(dict[str, typing.Any]).validate_json(
@@ -784,7 +795,7 @@ async def start(
                     vm_name,
                     [
                         "kubectl",
-                        f"--kubeconfig={kubeconfig}",
+                        f"--kubeconfig={_kubeconfig(platform)}",
                         "get",
                         "svc",
                         "--field-selector=spec.type=LoadBalancer",
@@ -800,8 +811,7 @@ async def start(
                     vm_name,
                     [
                         "systemctl",
-                        "enable",
-                        "--now",
+                        "start",
                         f"kubectl-port-forward@{service['metadata']['name']}:{port_item['port']}.service",
                     ],
                     f"Starting port-forward for {service['metadata']['name']}:{port_item['port']}",
