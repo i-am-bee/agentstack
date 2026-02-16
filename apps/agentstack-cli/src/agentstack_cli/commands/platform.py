@@ -48,6 +48,8 @@ INSTALL_MICROSHIFT_SCRIPT = """\
 #!/bin/bash
 set -eux -o pipefail
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Check for existing installations (k3s backward compatibility)
 systemctl is-enabled k3s &>/dev/null && { systemctl start k3s || true; exit 0; }
 systemctl is-enabled microshift &>/dev/null && { systemctl start microshift || true; exit 0; }
@@ -66,17 +68,17 @@ mkdir -p "${WORK_DIR}"
 cd "${WORK_DIR}"
 curl -fsSL "https://github.com/microshift-io/microshift/releases/download/${VERSION}/microshift-debs-${ARCH}.tgz" | tar -xz
 
-export DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC
 apt-get update -y -q
-apt-get install -y -q tzdata curl gnupg podman lvm2
+apt-get install -y -q podman lvm2
 
 # Install CRI-O
 source "${WORK_DIR}/dependencies.txt"
-CRIO_VERSION_TAG="v${CRIO_VERSION}"
-curl -fsSL "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/${CRIO_VERSION_TAG}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
-echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/${CRIO_VERSION_TAG}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
+curl -fsSL "https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+curl -fsSL "https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/cri-o.list
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${CRIO_VERSION}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
-apt-get install -y -q cri-o containernetworking-plugins
+apt-get install -y -q cri-o containernetworking-plugins kubectl cri-tools
 
 # Configure CNI and registries
 find /etc/cni/net.d -name '*.conflist' 2>/dev/null | xargs -I{} mv {} {}.disabled
@@ -98,9 +100,6 @@ systemctl daemon-reload
 systemctl enable --now crio
 
 # Install kubectl and MicroShift
-KUBERNETES_VERSION_TAG="v${CRIO_VERSION}"
-curl -fsSL "https://pkgs.k8s.io/core:/stable:/${KUBERNETES_VERSION_TAG}/deb/Release.key" | gpg --batch --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${KUBERNETES_VERSION_TAG}/deb/ /" > /etc/apt/sources.list.d/kubernetes.list
 apt-get update -y -q
 apt-get install -y -q kubectl cri-tools
 find "${WORK_DIR}" -name 'microshift*.deb' | sort | xargs dpkg -i
