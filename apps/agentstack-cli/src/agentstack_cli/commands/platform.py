@@ -80,9 +80,11 @@ dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshif
 rm -rf "/tmp/microshift-install"
 cat > /etc/microshift/config.yaml <<EOF
 apiServer:
-    port: 16443
+  port: 16443
 ingress:
   status: Removed
+storage:
+  driver: none
 telemetry:
   status: Disabled
 EOF
