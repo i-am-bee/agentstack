@@ -8,6 +8,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from collections import Counter
 from collections.abc import AsyncIterator, Mapping, MutableMapping
 from contextlib import asynccontextmanager
@@ -190,6 +191,7 @@ async def run_command(
     try:
         with status(message):
             err_console.print(f"Command: {command}", style="dim")
+            start_time = time.time()  # Track start time
             async with await anyio.open_process(
                 command, stdin=subprocess.PIPE if input else None, env={**os.environ, **env}, cwd=cwd
             ) as process:
@@ -204,8 +206,16 @@ async def run_command(
                 if check and process.returncode != 0:
                     raise subprocess.CalledProcessError(process.returncode or 0, command, output, errors)
 
+                total_seconds = int(time.time() - start_time)
+                if total_seconds < 5:
+                    duration_str = ""
+                elif total_seconds < 60:
+                    duration_str = f"({total_seconds}s)"
+                else:
+                    duration_str = f"({total_seconds // 60}m{total_seconds % 60}s)"
+
                 if SHOW_SUCCESS_STATUS.get():
-                    console.print(f"{message} [[green]DONE[/green]]")
+                    console.print(f"{message} [[green]DONE[/green]] [dim]{duration_str}[/dim]")
                 return subprocess.CompletedProcess(command, process.returncode or 0, output, errors)
     except FileNotFoundError:
         console.print(f"{message} [[red]ERROR[/red]]")

@@ -59,7 +59,6 @@ class ImagePullMode(StrEnum):
 
 @functools.cache
 def detect_driver() -> typing.Literal["lima", "wsl"]:
-    """Detect which VM driver to use (Lima or WSL)"""
     has_lima = (importlib.resources.files("agentstack_cli") / "data" / "limactl").is_file() or shutil.which("limactl")
     arch = "aarch64" if platform_module.machine().lower() == "arm64" else platform_module.machine().lower()
 
@@ -90,7 +89,6 @@ def detect_driver() -> typing.Literal["lima", "wsl"]:
 
 @functools.cache
 def get_limactl() -> str:
-    """Get path to limactl executable"""
     bundled = importlib.resources.files("agentstack_cli") / "data" / "limactl"
     return str(bundled) if bundled.is_file() else str(shutil.which("limactl"))
 
@@ -128,7 +126,6 @@ async def run_in_vm(
 
 
 async def get_vm_status(vm_name: str) -> typing.Literal["running"] | str | None:
-    """Get VM status"""
     try:
         if detect_driver() == "lima":
             result = await run_command(
@@ -244,7 +241,6 @@ async def _grab_image_shas(
 
 
 async def import_image_to_internal_registry(vm_name: str, tag: str, loaded_images: set[str] | None = None) -> None:
-    """Import image from host Docker into internal registry"""
     platform = await detect_platform(vm_name)
     host_path, guest_path = _get_export_import_paths(vm_name)
     try:
@@ -566,6 +562,9 @@ async def start(
                         status: Removed
                     storage:
                         driver: none
+                    dns:
+                        hosts:
+                            status: Enabled
                     telemetry:
                         status: Disabled
                     EOF
@@ -601,8 +600,6 @@ async def start(
             input=(importlib.resources.files("agentstack_cli") / "data" / "helm-chart.tgz").read_bytes(),
         )
         values = {
-            **{svc: {"service": {"type": "LoadBalancer"}} for svc in ["collector", "docling", "ui", "phoenix"]},
-            "service": {"type": "LoadBalancer"},
             "externalRegistries": {"public_github": str(Configuration().agent_registry)},
             "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
             "trustProxyHeaders": True,
@@ -610,7 +607,6 @@ async def start(
             "keycloak": {
                 "uiClientSecret": "agentstack-ui-secret",
                 "serverClientSecret": "agentstack-server-secret",
-                "service": {"type": "LoadBalancer"},
                 "auth": {"adminPassword": "admin"},
             },
             "features": {"uiLocalSetup": True},
@@ -812,33 +808,16 @@ async def start(
             """).encode(),
         )
         await run_in_vm(vm_name, ["systemctl", "daemon-reexec"], "Reloading systemd")
-        services_data: dict[str, typing.Any] = pydantic.TypeAdapter(dict[str, typing.Any]).validate_json(
-            (
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "kubectl",
-                        f"--kubeconfig={_kubeconfig(platform)}",
-                        "get",
-                        "svc",
-                        "--field-selector=spec.type=LoadBalancer",
-                        "--output=json",
-                    ],
-                    "Detecting ports to forward",
-                )
-            ).stdout
-        )
-        for service in services_data.get("items", []):
-            for port_item in service["spec"]["ports"]:
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "systemctl",
-                        "start",
-                        f"kubectl-port-forward@{service['metadata']['name']}:{port_item['port']}.service",
-                    ],
-                    f"Starting port-forward for {service['metadata']['name']}:{port_item['port']}",
-                )
+        for service, port in [("agentstack-server-svc", 8333), ("agentstack-ui-svc", 8334)]:
+            await run_in_vm(
+                vm_name,
+                [
+                    "systemctl",
+                    "start",
+                    f"kubectl-port-forward@{service}:{port}",
+                ],
+                f"Starting port-forward for {service}:{port}",
+            )
 
         if not no_wait_for_platform:
             with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
