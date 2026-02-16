@@ -40,7 +40,7 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent }: Props
   const titleLength = title?.length ?? 0;
   const contentCharsToAnimate = Math.min(parsed.value.length, DEFAULT_MAX_ANIMATED_CHARS);
   const totalCharsToAnimate = titleLength + contentCharsToAnimate;
-  const delayPerChar = Math.min(TRAJECTORY_ANIMATION_DURATION_MS / totalCharsToAnimate, CHARS_DELAY_MAX_MS);
+  const delayPerChar = totalCharsToAnimate > 0 ? Math.min(TRAJECTORY_ANIMATION_DURATION_MS / totalCharsToAnimate, CHARS_DELAY_MAX_MS) : 0;
 
   const titleDuration = titleLength * delayPerChar;
   const contentDuration = contentCharsToAnimate * delayPerChar;
