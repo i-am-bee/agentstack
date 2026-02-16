@@ -77,11 +77,13 @@ systemctl start crio
 dpkg -i microshift_*.deb microshift-kindnet_*.deb microshift-olm_*.deb microshift-selinux_*.deb
 cd /
 rm -rf "${WORK_DIR}"
-mkdir -p /etc/microshift /registry-data
-chmod 755 /registry-data
 cat > /etc/microshift/config.yaml <<EOF
 apiServer:
     port: 16443
+ingress:
+  status: Removed
+telemetry:
+  status: Disabled
 EOF
 mkdir -p /postgresql-data /seaweedfs-data /registry-data
 chmod 777 /postgresql-data /seaweedfs-data /registry-data
