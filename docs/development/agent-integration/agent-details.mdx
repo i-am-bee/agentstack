@@ -15,30 +15,32 @@ You can customize various aspects of your agent's presentation, such as:
 ## Basic Configuration
 
 Configuring agent details is straightforward. Import `AgentDetail` and related types, then pass them to the `detail` parameter in the `@server.agent` decorator:
+
+{/* <!-- embedme examples/agent-integration/agent-details/basic-configuration/src/basic_configuration/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from textwrap import dedent
 
 from a2a.types import AgentSkill, Message
+from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
-from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailContributor, AgentDetailTool
 
 server = Server()
+
 
 @server.agent(
     name="Example Research Assistant",
     detail=AgentDetail(
-        interaction_mode="multi-turn", # or single-turn
+        interaction_mode="multi-turn",  # or single-turn
         user_greeting="Hi there! I can help you research topics or summarize uploaded documents.",
         tools=[
+            AgentDetailTool(name="Web Search", description="Looks up recent and relevant information from the web."),
             AgentDetailTool(
-                name="Web Search",
-                description="Looks up recent and relevant information from the web."
-            ),
-            AgentDetailTool(
-                name="Document Reader",
-                description="Reads and extracts key insights from uploaded PDFs or text files."
+                name="Document Reader", description="Reads and extracts key insights from uploaded PDFs or text files."
             ),
         ],
         framework="BeeAI Framework",
@@ -83,9 +85,10 @@ server = Server()
         ),
     ],
 )
-async def example_agent(input: Message, context: RunContext):
+async def basic_configuration_example(input: Message, context: RunContext):
     """An example agent with detailed configuration"""
     yield "Hello World!"
+
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
@@ -93,6 +96,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 ```
 
 ## Key Fields

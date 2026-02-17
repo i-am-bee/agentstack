@@ -45,6 +45,177 @@
       "cwd": "${workspaceFolder}/agent-integration/forms/settings-form-rendering",
       "program": "src/settings_form_rendering/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/file-processing",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/files/file-processing",
+      "program": "src/file_processing/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-configuration",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/agent-details/basic-configuration",
+      "program": "src/basic_configuration/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/llm-access",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/llm-proxy-service/llm-access",
+      "program": "src/llm_access/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/dynamic-form-requests",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/forms/dynamic-form-requests",
+      "program": "src/dynamic_form_requests/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/trajectory-basic-usage",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/trajectory/trajectory-basic-usage",
+      "program": "src/trajectory_basic_usage/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/citation-basic-usage",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/citations/citation-basic-usage",
+      "program": "src/citation_basic_usage/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-settings",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/agent-settings/basic-settings",
+      "program": "src/basic_settings/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-secrets",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/secrets/basic-secrets",
+      "program": "src/basic_secrets/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-environment-variables",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/env-variables/basic-environment-variables",
+      "program": "src/basic_environment_variables/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/standard-error-reporting",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/standard-error-reporting",
+      "program": "src/standard_error_reporting/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/advanced-error-reporting",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/advanced-error-reporting",
+      "program": "src/advanced_error_reporting/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/multiple-errors-handling",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/multiple-errors-handling",
+      "program": "src/multiple_errors_handling/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/adding-error-context",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/error/adding-error-context",
+      "program": "src/adding_error_context/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/basic-approve",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}//agent-integration/tool-calls/basic-approve",
+      "program": "src/basic_approve/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/canvas-with-llm",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/canvas/canvas-with-llm",
+      "program": "src/canvas_with_llm/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/simple-rag-agent",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/rag/simple-rag-agent",
+      "program": "src/simple_rag_agent/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/conversation-rag-agent",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/rag/conversation-rag-agent",
+      "program": "src/conversation_rag_agent/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/github-mcp-agent",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/mcp/github-mcp-agent",
+      "program": "src/github_mcp_agent/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/custom-mcp-client-with-oauth",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/mcp/custom-mcp-client-with-oauth",
+      "program": "src/custom_mcp_client_with_oauth/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }

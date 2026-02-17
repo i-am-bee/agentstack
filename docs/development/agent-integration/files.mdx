@@ -9,28 +9,31 @@ One of the most common use cases for AI agents is working with files. Your agent
 
 Here's how to build an agent that can accept and modify files:
 
+{/* <!-- embedme examples/agent-integration/files/file-processing/src/file_processing/agent.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from typing import Annotated
 
-from agentstack_sdk.server import Server
-from a2a.types import Message, FilePart
+from a2a.types import FilePart, Message
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )
 from agentstack_sdk.platform import File
+from agentstack_sdk.server import Server
 from agentstack_sdk.util.file import load_file
-
 
 server = Server()
 
 
 @server.agent(
     default_input_modes=["text/plain", "application/pdf", "image/*"],
-    default_output_modes=["text/plain", "application/pdf", "image/*"]
+    default_output_modes=["text/plain", "application/pdf", "image/*"],
 )
-async def file_processor_agent(
+async def file_processing_example(
     input: Message,
     _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
 ):
@@ -47,7 +50,7 @@ async def file_processor_agent(
                 is_text_file = mime_type.startswith("text/") or mime_type in [
                     "application/json",
                     "application/xml",
-                    "text/xml"
+                    "text/xml",
                 ]
 
                 if is_text_file:
@@ -74,6 +77,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 ```
 
 <Steps>

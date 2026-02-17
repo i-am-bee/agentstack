@@ -61,23 +61,28 @@ if __name__ == "__main__":
 
 Here's an example agent that uses the GitHub MCP Connector and returns your profile details:
 
+
+{/* <!-- embedme examples/agent-integration/mcp/github-mcp-agent/src/github_mcp_agent/agent.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import json
+import os
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from a2a.types import Message
-from mcp import ClientSession
-
 from agentstack_sdk.a2a.extensions.services.mcp import MCPServiceExtensionServer, MCPServiceExtensionSpec
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.server import Server
+from mcp import ClientSession
 
 server = Server()
 
 
 @server.agent()
-async def github_mcp_agent(
+async def github_mcp_agent_example(
     mcp_service: Annotated[
         MCPServiceExtensionServer,
         MCPServiceExtensionSpec.single_demand(suggested=("github",)),
@@ -96,14 +101,19 @@ async def github_mcp_agent(
 
         read, write = client
         async with ClientSession(read_stream=read, write_stream=write) as session:
-            await session.initialize()
+            _ = await session.initialize()
             me_result = await session.call_tool("get_me", {})
             result_dict = me_result.model_dump() if hasattr(me_result, "model_dump") else me_result
             yield json.dumps(result_dict, indent=2, default=str)
 
 
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
 if __name__ == "__main__":
-    server.run()
+    run()
+
 ```
 
 <Steps>
@@ -134,34 +144,36 @@ Unlike the connector-based approach, this method does not require users to set u
 
 Here's how to build an agent that creates a custom MCP client and uses OAuth for authentication:
 
+{/* <!-- embedme examples/agent-integration/mcp/custom-mcp-client-with-oauth/src/custom_mcp_client_with_oauth/agent.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from typing import Annotated
 
 import pydantic
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
-
 from agentstack_sdk.a2a.extensions.auth.oauth import OAuthExtensionServer, OAuthExtensionSpec
 from agentstack_sdk.server import Server
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
 
 server = Server()
 
 
 @server.agent()
-async def custom_mcp_oauth_agent(
+async def custom_mcp_client_with_oauth_example(
     oauth: Annotated[OAuthExtensionServer, OAuthExtensionSpec.single_demand()],
 ):
     """Agent that uses OAuth to authenticate with a custom MCP server"""
-    mcp_url = "https://mcp.stripe.com"
+    mcp_url = os.getenv("MCP_URL", "https://mcp.stripe.com")
 
     if not oauth:
         yield "OAuth extension not available. Authentication required."
         return
 
     async with streamablehttp_client(
-        url=mcp_url,
-        auth=await oauth.create_httpx_auth(resource_url=pydantic.AnyUrl(mcp_url))
+        url=mcp_url, auth=await oauth.create_httpx_auth(resource_url=pydantic.AnyUrl(mcp_url))
     ) as (read, write, _):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -169,18 +181,19 @@ async def custom_mcp_oauth_agent(
             # Extract text content from CallToolResult
             if result.content:
                 content = result.content[0]
-                if hasattr(content, 'text'):
-                    yield str(content.text)
+                if hasattr(content, "text"):
+                    yield str(content.text)  # type: ignore
             else:
                 yield "No content returned"
 
 
 def run():
-    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", "8000")))
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
 
 
 if __name__ == "__main__":
     run()
+
 ```
 
 ### Key Differences

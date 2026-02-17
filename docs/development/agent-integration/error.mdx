@@ -11,7 +11,13 @@ The Agent Stack SDK automatically handles exceptions raised within your agent fu
 
 Simply raise exceptions in your agent code. The SDK will catch them and use the extension to format the error message.
 
+{/* <!-- embedme examples/agent-integration/error/standard-error-reporting/src/standard_error_reporting/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import os
+
 from a2a.types import Message
 from agentstack_sdk.server import Server
 
@@ -19,25 +25,33 @@ server = Server()
 
 
 @server.agent()
-async def simple_error_agent(input: Message):
+async def standard_error_reporting_example(input: Message):
     # ... do some work ...
     raise ValueError("Something went wrong!")
 
 
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
 if __name__ == "__main__":
-    server.run()
+    run()
+
 ```
 
 ## Advanced Configuration
 
 If you want to customize the error reporting, for example to include stack traces, you can inject the extension with custom parameters.
 
+{/* <!-- embedme examples/agent-integration/error/advanced-error-reporting/src/advanced_error_reporting/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from typing import Annotated
 
 from a2a.types import Message
-
 from agentstack_sdk.a2a.extensions.ui.error import (
     ErrorExtensionParams,
     ErrorExtensionServer,
@@ -49,7 +63,7 @@ server = Server()
 
 
 @server.agent()
-async def error_agent(
+async def advanced_error_reporting_example(
     input: Message,
     # Configure to include stack traces
     error_ext: Annotated[
@@ -65,8 +79,13 @@ async def error_agent(
     raise ValueError("Something went wrong!")
 
 
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
 if __name__ == "__main__":
-    server.run()
+    run()
+
 ```
 
 <Steps>
@@ -88,37 +107,83 @@ Inject the extension using `Annotated` and set `include_stacktrace=True`.
 
 The Error extension supports `ExceptionGroup` to report multiple errors at once. When an `ExceptionGroup` is raised, it is formatted as a group of errors in the UI.
 
+{/* <!-- embedme examples/agent-integration/error/multiple-errors-handling/src/multiple_errors_handling/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import os
+
+from a2a.types import Message
+from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
+
+server = Server()
+
+
 @server.agent()
-async def group_agent(input: Message):
-    # ...
-    raise ExceptionGroup("Multiple failures", [
-        ValueError("First error"),
-        TypeError("Second error")
-    ])
+async def multiple_errors_handling_example(input: Message, context: RunContext):
+    raise ExceptionGroup("Multiple failures", [ValueError("First error"), TypeError("Second error")])
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+
 ```
 
 ## Adding Context
 
 You can attach arbitrary context to errors by accessing the injected `ErrorExtensionServer` instance. This context will be included in the error metadata sent to the client.
 
+{/* <!-- embedme examples/agent-integration/error/adding-error-context/src/adding_error_context/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
+import os
+from typing import Annotated, cast
+
+from a2a.types import Message
+from agentstack_sdk.a2a.extensions.ui.error import (
+    ErrorExtensionParams,
+    ErrorExtensionServer,
+    ErrorExtensionSpec,
+)
+from agentstack_sdk.server import Server
+from pydantic import JsonValue
+
+server = Server()
+
+
 @server.agent()
-async def context_error_agent(
+async def adding_error_context_example(
     input: Message,
     error_ext: Annotated[
-        ErrorExtensionServer,
-        ErrorExtensionSpec(params=ErrorExtensionParams(include_stacktrace=False)),
+        ErrorExtensionServer, ErrorExtensionSpec(params=ErrorExtensionParams(include_stacktrace=False))
     ],
 ):
     # Add context before an error might occur or in an except block
-    error_ext.context["request_id"] = "req-123"
-    error_ext.context["user_id"] = 42
+    ctx = cast(dict[str, JsonValue], error_ext.context)
+    ctx["request_id"] = "req-123"
+    ctx["user_id"] = 42
 
     # ... do work ...
 
     # If an exception is raised, the context is included
     raise ValueError("Something went wrong!")
+
+
+def run():
+    server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
+
+if __name__ == "__main__":
+    run()
+
 ```
 
 ## Examples

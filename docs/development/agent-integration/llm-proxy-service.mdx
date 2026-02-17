@@ -126,24 +126,28 @@ These credentials work with any OpenAI-compatible client library, making it easy
 
 This complete example shows how to receive a user message and respond using the credentials provided by the LLM Proxy Service:
 
+{/* <!-- embedme examples/agent-integration/llm-proxy-service/llm-access/src/llm_access/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from typing import Annotated
 
 from a2a.types import Message
 from a2a.utils.message import get_message_text
-from agentstack_sdk.server import Server
-from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
+from agentstack_sdk.a2a.types import AgentMessage
+from agentstack_sdk.server import Server
 
 server = Server()
 
+
 @server.agent()
-async def example_agent(
+async def llm_access_example(
     input: Message,
     llm: Annotated[
-        LLMServiceExtensionServer,
-        LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
+        LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand(suggested=("ibm/granite-3-3-8b-instruct",))
     ],
 ):
     """Agent that uses LLM inference to respond to user input"""
@@ -151,11 +155,11 @@ async def example_agent(
     if llm and llm.data and llm.data.llm_fulfillments:
         # Extract the user's message
         user_message = get_message_text(input)
-        
+
         # Get LLM configuration
         # Single demand is resolved to default (unless specified otherwise)
         llm_config = llm.data.llm_fulfillments.get("default")
-        
+
         if llm_config:
             # Use the LLM configuration with your preferred client
             # The platform provides OpenAI-compatible endpoints
@@ -169,11 +173,14 @@ async def example_agent(
     else:
         yield AgentMessage(text="LLM service not available.")
 
+
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
 
+
 if __name__ == "__main__":
     run()
+
 ```
 
 </Accordion>

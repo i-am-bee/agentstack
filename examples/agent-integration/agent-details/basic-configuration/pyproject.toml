@@ -1,0 +1,35 @@
+[project]
+name = "basic-configuration"
+version = "0.1.0"
+description = "Example demonstrating how to customize various aspects of your agent’s presentation."
+authors = [
+    { name = "IBM Corp." },
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "agentstack-sdk>=0.5.3",
+    "pyyaml>=6.0.2",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
+
+[project.scripts]
+server = "basic_configuration.agent:run"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "watchfiles>=1.1.0",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

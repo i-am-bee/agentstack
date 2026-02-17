@@ -7,7 +7,7 @@ authors = [
 ]
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "agentstack-sdk==0.5.3",
+    "agentstack-sdk>=0.5.3",
     "pyyaml>=6.0.2",
 ]
 
@@ -37,3 +37,7 @@ dev = [
     "pyrefly>=0.52.0",
     "watchfiles>=1.1.0",
 ]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

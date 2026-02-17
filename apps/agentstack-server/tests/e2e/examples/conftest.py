@@ -25,6 +25,7 @@ class RunningExample(NamedTuple):
     context: Context
     context_token: ContextToken
     provider: Provider
+    agent_card: AgentCard
 
 
 def run_process(example_dir_path: str, port: int) -> subprocess.Popen:
@@ -77,10 +78,17 @@ async def run_example(
     process = run_process(example_dir_path, port)
     try:
         example_url = f"http://localhost:{port}"
+
+        # load agent card from expected location
         agent_card = await _get_agent_card(example_url)
+
+        # create provider for the agent
         provider = await Provider.create(location=example_url, agent_card=agent_card)
 
+        # create context for the example
         context = await Context.create()
+
+        # generate context token with global permissions for the provider (agent)
         context_token = await context.generate_token(
             providers={provider.id},
             grant_global_permissions=Permissions(llm={"*"}),
@@ -88,6 +96,6 @@ async def run_example(
         )
 
         async with a2a_client_factory(provider.agent_card, context_token) as a2a_client:
-            yield RunningExample(a2a_client, context, context_token, provider)
+            yield RunningExample(a2a_client, context, context_token, provider, agent_card)
     finally:
         kill_process(process)

@@ -10,7 +10,7 @@ dependencies = [
     "beeai-framework[duckduckgo,wikipedia,a2a]==0.1.75",
     "tiktoken>=0.12.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
     "fastuuid>=0.14.0",  # constraint for beeai-framework dependency (first version with musl arm64 wheel)
-    "agentstack-sdk==0.5.3",
+    "agentstack-sdk>=0.5.3",
     "pyyaml>=6.0.2",
 ]
 
@@ -40,3 +40,7 @@ dev = [
     "pyrefly>=0.52.0",
     "watchfiles>=1.1.0",
 ]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
