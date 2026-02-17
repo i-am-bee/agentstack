@@ -124,12 +124,15 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             else:
                 # shortcut
                 auth_servers = []
-        except RuntimeError:
+        except Exception as e:
+            console.warning(
+                f"Failed to fetch server auth metadata, continuing without validation of current auth servers: {e!s}"
+            )
             # Continue with the current auth servers info, which might still be valid even if metadata fetching failed
             pass
 
         if not auth_servers:
-            # Re-check server capabilities in case auth was enabled after the initial login.
+            # Re-check in case auth was enabled (leads to new login) or disabled (just passes) after the latest login and auth info update.
             if oauth_metadata is None or not oauth_metadata.get("authorization_servers", []):
                 # Keep backward-compatible behavior when metadata cannot be fetched.
                 # This might lead to errors when the server actually requires auth but does not provide standard info; however, that is not expected
