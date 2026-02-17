@@ -21,7 +21,6 @@ from subprocess import CompletedProcess
 
 import anyio
 import httpx
-import pydantic
 import typer
 import yaml
 from tenacity import (
@@ -135,10 +134,7 @@ async def get_vm_status(vm_name: str) -> typing.Literal["running"] | str | None:
                 cwd="/",
             )
             for line in result.stdout.decode().split("\n"):
-                if (
-                    line
-                    and (status_data := pydantic.TypeAdapter(dict[str, str]).validate_json(line)).get("name") == vm_name
-                ):
+                if line and (status_data := json.loads(line)).get("name") == vm_name:
                     return status_data["status"].lower()
         else:
             for status, cmd in [("running", ["--running"]), ("stopped", [])]:
