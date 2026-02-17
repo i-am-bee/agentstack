@@ -3,75 +3,175 @@ title: "Configure Agent Settings"
 description: "Allow users to configure agent behavior with interactive UI components"
 ---
 
-Sometimes you need to give users control over how your agent behaves—like toggling "Thinking Mode," choosing a response style, or selecting specific data sources. 
-The **Settings Extension** allows you to define these options in your code; the platform then automatically renders a native UI for the user and passes their choices back to your agent.
+Sometimes you need to give users control over how your agent behaves during a conversation. For example, users might want to enable or disable thinking mode, choose between different response styles, or configure other agent-specific parameters.
+
+The Agent Stack platform provides a settings as a part of Form extension that creates an interactive UI component where users can configure these options before or during their interaction with your agent.
 
 <Tip>
-Settings extensions are a type of [Service Extension](/stable/agent-integration/overview#dependency-injection-service-extensions) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform provides those dependencies.
+Settings extensions are a type of form [Service Extension](../agent-integration/overview#dependency-injection-service-extensions) that allows you to easily "inject dependencies" into your agent. This follows the inversion of control principle where your agent defines what it needs, and the platform provides those dependencies.
 </Tip>
 
-## Basic Implementation
-Follow these steps to add a simple user defined settings to your agent:
+## Quickstart
 
+<Steps>
+<Step title="Import the Settings extension">
+Import the necessary components from the Agent Stack SDK fomr extension.
+</Step>
+
+<Step title="Add settings parameter to your agent">
+Inject the extension into your agent function using the `Annotated` type hint.
+</Step>
+
+<Step title="Define your settings structure">
+Create a `SettingsFormRender` object with the fields you want users to configure. 
+The only allowed field types for settings are `CheckboxGroupField` and `SingleSelectField`.
+</Step>
+
+<Step title="Process settings data">
+Use `parse_settings_form()` to access the user's configuration choices.
+</Step>
+</Steps>
+
+<Note>
+It is also possible to combine setting with initial form using `FormServiceExtensionSpec.demand_forms`, but they need to be parsed separately.
+</Note>
+
+## Basic Settings Example
+
+Here's how to add simple user defined settings to your agent:
+
+{/* <!-- embedme examples/agent-integration/forms/settings-form-rendering/src/settings_form_rendering/agent.py --> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from a2a.types import Message
+from pydantic import BaseModel
 
-from agentstack_sdk.a2a.extensions.ui.settings import (
+from agentstack_sdk.a2a.extensions.common.form import (
     CheckboxField,
     CheckboxGroupField,
-    CheckboxGroupFieldValue,
-    SettingsExtensionServer,
-    SettingsExtensionSpec,
-    SettingsRender,
+    OptionItem,
+    SettingsFormRender,
+    SingleSelectField,
+)
+from agentstack_sdk.a2a.extensions.services.form import (
+    FormServiceExtensionServer,
+    FormServiceExtensionSpec,
 )
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 
+
+class SettingsModel(BaseModel):
+    checkbox_settings: dict[str, bool] | None = None
+    response_style: str | None = None
+
+
 server = Server()
+
 
 @server.agent()
 async def settings_agent(
     message: Message,
     context: RunContext,
-    settings: Annotated[
-        SettingsExtensionServer,
-        SettingsExtensionSpec(
-            params=SettingsRender(
+    form: Annotated[
+        FormServiceExtensionServer,
+        FormServiceExtensionSpec.demand_settings(
+            settings_form=SettingsFormRender(
                 fields=[
                     CheckboxGroupField(
-                        id="thinking_group",
+                        id="checkbox_settings",
+                        label="Thinking Options",
                         fields=[
                             CheckboxField(
                                 id="thinking",
-                                label="Enable Thinking Mode",
+                                label="Enable Thinking",
+                                content="Show agent's reasoning process",
                                 default_value=True,
-                            )
+                            ),
+                            CheckboxField(
+                                id="memory",
+                                label="Enable Memory",
+                                content="Use available memory system",
+                                default_value=True,
+                            ),
                         ],
-                    )
+                    ),
+                    SingleSelectField(
+                        id="response_style",
+                        label="Response Style",
+                        options=[
+                            OptionItem(id="concise", label="Concise"),
+                            OptionItem(id="detailed", label="Detailed"),
+                            OptionItem(id="humorous", label="Humorous"),
+                        ],
+                        default_value="concise",
+                    ),
                 ],
-            ),
+            )
         ),
     ],
 ) -> AsyncGenerator[RunYield, Message]:
-    """Agent that demonstrates settings configuration"""
+    """Demonstrate settings form extension"""
 
-    if not settings:
-        yield "Settings extension hasn't been activated, no settings are available"
+    if not form:
+        yield "Form extension hasn't been activated, no settings are available"
         return
 
-    parsed_settings = settings.parse_settings_response()
+    parsed_settings = form.parse_settings_form(model=SettingsModel)
 
-    thinking_group = parsed_settings.values["thinking_group"]
-    if isinstance(thinking_group, CheckboxGroupFieldValue):
-        if thinking_group.values["thinking"].value:
-            yield "Thinking mode is enabled - I'll show my reasoning process.\n"
-        else:
-            yield "Thinking mode is disabled - I'll provide direct responses.\n"
+    if not parsed_settings:
+        yield "No settings provided"
+        return
+    
+    if not isinstance(parsed_settings, SettingsModel):
+        yield f"Parsed settings in unexpected format: {parsed_settings}"
+        return
+
+    response = "Settings:\n"
+
+    if parsed_settings.checkbox_settings:
+        thinking_enabled = parsed_settings.checkbox_settings["thinking"]
+        choice = "enabled" if thinking_enabled else "disabled"
+        response += f"- Thinking is {choice}.\n"
+
+        memory_enabled = parsed_settings.checkbox_settings["memory"]
+        choice = "enabled" if memory_enabled else "disabled"
+        response += f"- Memory is {choice}.\n"
+
+    response_style = parsed_settings.response_style
+    choice = response_style if response_style else "not set"
+    response += f"- Response style: {choice}\n"
+
+    yield response
+
+    # Warning: the code below is not automatically tested, check the implementation if you want to use unparsed settings.
+    # Alternatively, you can use the raw data without parsing into a model:
+
+    # parsed_settings = form.parse_settings_form()
+
+    # if not parsed_settings:
+    #     yield "No settings provided"
+    #     return
+
+    # thinking_field = parsed_settings.values.get("checkbox_settings")
+    # if thinking_field and thinking_field.type == "checkbox_group":
+    #     thinking_enabled = thinking_field.value and thinking_field.value.get("thinking", False)
+    #     if thinking_enabled:
+    #         yield "Thinking is enabled. "
+    #     else:
+    #         yield "Thinking is disabled. "
+
+    # response_style_field = parsed_settings.values.get("response_style")
+    # if response_style_field and response_style_field.type == "singleselect":
+    #     yield f"Response style: {response_style_field.value}"
+
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
@@ -80,59 +180,54 @@ if __name__ == "__main__":
     run()
 ```
 
-<Steps>
-<Step title="Import the Settings extension">
-Import `SettingsExtensionServer`, `SettingsExtensionSpec`, `SettingsRender`, and field types from `agentstack_sdk.a2a.extensions.ui.settings`.
-</Step>
-<Step title="Inject the extension">
-Add a settings parameter to your agent function using the `Annotated` type hint with `SettingsExtensionServer` and `SettingsExtensionSpec`.
-</Step>
-<Step title="Define your settings structure">
-Create a `SettingsRender` object with the fields you want users to configure.
-</Step>
-<Step title="Process settings data">
-Use `parse_settings_response()` to access the user's configuration choices. Use `parsed_settings.values['field_id']` to access the submitted values from your settings fields.
-</Step>
-</Steps>
+## How to work with settings
+
+Here's what you need to know to add settings capabilities to your agent:
+
+**Import the form extension**: Import `FormServiceExtensionServer`, `FormServiceExtensionSpec`, `SettingsFormRender`, and field types from `agentstack_sdk.a2a.extensions.common.form` and `agentstack_sdk.a2a.extensions.services.form`.
+
+**Inject the extension**: Add a form parameter to your agent function using the `Annotated` type hint with `FormServiceExtensionServer` and `FormServiceExtensionSpec.demand_settings()`.
+
+**Define your settings structure**: Create a `SettingsFormRender` object with the fields you want users to configure. Only `CheckboxGroupField` and `SingleSelectField` are allowed for settings.
+
+**Check if the extension exists**: Always verify that the form extension is provided before using it, as service extensions are optional.
+
+**Parse settings data**: Use `form.parse_settings_form()` to access the user's configuration choices.
+
+**Access field values**: Use `parsed_settings.values['field_id']` to access the submitted values from your settings fields.
+
+<Tip>
+Settings are presented to users in a clean, organized interface that makes it easy to configure your agent's behavior. The platform automatically handles the UI rendering and data collection.
+</Tip>
 
 <Warning>
-**Check if the extension exists**: Always verify that the settings extension is provided before using it, as service extensions are optional.
+**Check if the extension exists**: Always verify that the form extension is provided before using it, as service extensions are optional.
 </Warning>
 
 ## Settings Field Types
 
 Agent Stack supports various field types for collecting different kinds of configuration data:
 
-### CheckboxField
-Single checkbox fields for boolean configuration options:
-
-```python
-from agentstack_sdk.a2a.extensions.ui.settings import CheckboxField
-
-CheckboxField(
-    id="debug_mode", 
-    label="Enable Debug Mode", 
-    default_value=False,
-)
-```
-
 ### CheckboxGroupField
-Groups multiple checkboxes together for related boolean options:
+Groups multiple checkboxes together for related boolean options. A single checkbox must still be wrapped inside the `CheckboxGroupField`.
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.settings import CheckboxField, CheckboxGroupField
+from agentstack_sdk.a2a.extensions.common.form import CheckboxField, CheckboxGroupField
 
 CheckboxGroupField(
     id="features",
+    label="Features",
     fields=[
         CheckboxField(
             id="thinking",
             label="Show Thinking Process",
+            content="Display the agent's reasoning process",
             default_value=True,
         ),
         CheckboxField(
             id="citations",
             label="Include Citations",
+            content="Add source citations to responses",
             default_value=False,
         ),
     ],
@@ -143,15 +238,15 @@ CheckboxGroupField(
 Dropdown fields for choosing an option from a list:
 
 ```python
-from agentstack_sdk.a2a.extensions.ui.settings import OptionItem, SingleSelectField
+from agentstack_sdk.a2a.extensions.common.form import OptionItem, SingleSelectField
 
 SingleSelectField(
     id="response_style",
     label="Response Style",
     options=[
-        OptionItem(value="formal", label="Formal"),
-        OptionItem(value="casual", label="Casual"),
-        OptionItem(value="technical", label="Technical"),
+        OptionItem(id="formal", label="Formal"),
+        OptionItem(id="casual", label="Casual"),
+        OptionItem(id="technical", label="Technical"),
     ],
     default_value="casual",
 )

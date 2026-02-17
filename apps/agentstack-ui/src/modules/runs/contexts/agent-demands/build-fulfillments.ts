@@ -52,6 +52,14 @@ export const buildFulfillments = ({
         throw new Error('Initial form has not been fulfilled despite being demanded.');
       }
 
+      if (!demands.form_demands.settings_form && formFulfillments.form_fulfillments.settings_form) {
+        const form_fulfillments = { ...formFulfillments.form_fulfillments };
+
+        delete form_fulfillments.settings_form;
+
+        return { form_fulfillments };
+      }
+
       return formFulfillments;
     },
 

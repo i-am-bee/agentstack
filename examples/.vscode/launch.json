@@ -36,6 +36,15 @@
       "cwd": "${workspaceFolder}/deploy-agents/building-agents/implement-your-agent-logic",
       "program": "src/implement_your_agent_logic/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/settings-form-rendering",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/forms/settings-form-rendering",
+      "program": "src/settings_form_rendering/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }
