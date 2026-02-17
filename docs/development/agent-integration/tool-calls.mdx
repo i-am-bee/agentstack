@@ -49,7 +49,7 @@ async def basic_approve_example(
 
         response = await approval_ext.request_approval(
             # using MCP Tool data model as intermediary to simplify conversion
-            ToolCallApprovalRequest.from_mcp_tool(_tool_factory(tool), input=input),  # pyright: ignore[reportArgumentType]
+            ToolCallApprovalRequest.from_mcp_tool(_tool_factory(tool), input=input),
             context=context,
         )
         return response.approved

@@ -35,13 +35,19 @@ def run_process(example_dir_path: str, port: int) -> subprocess.Popen:
         ["uv", "run", "server"],
         cwd=cwd,
         env={**os.environ, "PORT": str(port), "PRODUCTION_MODE": "true"},
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         preexec_fn=os.setsid,
     )
 
 
 def kill_process(process: subprocess.Popen) -> None:
     os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-    process.wait()
+    stdout, stderr = process.communicate(timeout=10)
+    if stdout:
+        print(f"--- example stdout ---\n{stdout.decode(errors='replace')}")
+    if stderr:
+        print(f"--- example stderr ---\n{stderr.decode(errors='replace')}")
 
 
 @retry(stop=stop_after_delay(30), wait=wait_fixed(0.5))
