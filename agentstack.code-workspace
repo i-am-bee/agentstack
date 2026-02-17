@@ -45,8 +45,12 @@
       "path": "agents/rag",
     },
     {
-        "name": "agent-deepagents-content-builder",
-        "path": "agents/deepagents_content_builder"
+      "name": "agent-deepagents-content-builder",
+      "path": "agents/deepagents_content_builder"
+    },
+    {
+      "name": "langgraph-reflection",
+      "path": "agents/langgraph_reflection"
     },
     {
       "name": "agent-canvas",
@@ -68,6 +72,9 @@
     },
   },
   "extensions": {
-    "recommendations": ["meta.pyrefly", "charliermarsh.ruff"],
+    "recommendations": [
+      "meta.pyrefly",
+      "charliermarsh.ruff"
+    ],
   },
 }
