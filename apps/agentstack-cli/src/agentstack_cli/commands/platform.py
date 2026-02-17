@@ -606,22 +606,28 @@ async def start(
             ],
             "Installing Helm",
         )
-        await run_in_vm(
-            vm_name,
-            [
-                "kubectl",
-                f"--kubeconfig={_kubeconfig(platform)}",
-                "wait",
-                "--for=condition=Ready",
-                "pod",
-                "-n",
-                "openshift-dns",
-                "-l",
-                "dns.operator.openshift.io/daemonset-dns=default",
-                "--timeout=180s",
-            ],
-            "Waiting for DNS to be ready",
-        )
+        async for attempt in AsyncRetrying(
+            stop=stop_after_delay(datetime.timedelta(minutes=3)),
+            wait=wait_fixed(datetime.timedelta(seconds=5)),
+            retry=retry_if_exception_type(Exception),
+        ):
+            with attempt:
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "kubectl",
+                        f"--kubeconfig={_kubeconfig(platform)}",
+                        "wait",
+                        "--for=condition=Ready",
+                        "pod",
+                        "-n",
+                        "openshift-dns",
+                        "-l",
+                        "dns.operator.openshift.io/daemonset-dns=default",
+                        "--timeout=10s",
+                    ],
+                    f"Waiting for DNS to be ready{f' (attempt {attempt.retry_state.attempt_number})' if attempt.retry_state.attempt_number > 1 else ''}",
+                )
 
         # Deploy
         await run_in_vm(
