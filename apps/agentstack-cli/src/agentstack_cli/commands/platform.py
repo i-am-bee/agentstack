@@ -612,48 +612,19 @@ async def start(
             ],
             "Installing Helm",
         )
-        async for attempt in AsyncRetrying(
-            stop=stop_after_delay(datetime.timedelta(minutes=5)),
-            wait=wait_fixed(datetime.timedelta(seconds=5)),
-            retry=retry_if_exception_type(Exception),
-        ):
-            with attempt:
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "kubectl",
-                        f"--kubeconfig={_kubeconfig(platform)}",
-                        "wait",
-                        "--for=condition=Ready",
-                        "pod",
-                        "-n",
-                        "openshift-dns",
-                        "-l",
-                        "dns.operator.openshift.io/daemonset-dns=default",
-                        "--timeout=10s",
-                    ],
-                    f"Waiting for DNS pods to be ready{f' (attempt {attempt.retry_state.attempt_number})' if attempt.retry_state.attempt_number > 1 else ''}",
-                )
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "kubectl",
-                        f"--kubeconfig={_kubeconfig(platform)}",
-                        "wait",
-                        "--for=jsonpath={.subsets[*].addresses[0].ip}",
-                        "endpoints",
-                        "-n",
-                        "openshift-dns",
-                        "dns-default",
-                        "--timeout=10s",
-                    ],
-                    "Verifying DNS endpoints",
-                )
-                await run_in_vm(
-                    vm_name,
-                    ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "get", "svc", "kubernetes"],
-                    "Verifying API connectivity",
-                )
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                f"timeout 5m bash -c 'until "
+                f"kubectl --kubeconfig={_kubeconfig(platform)} wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=10s && "
+                f'kubectl --kubeconfig={_kubeconfig(platform)} wait --for=jsonpath="{{.subsets[*].addresses[0].ip}}" endpoints -n openshift-dns dns-default --timeout=10s && '
+                f"kubectl --kubeconfig={_kubeconfig(platform)} get svc kubernetes; "
+                f"do sleep 5; done'",
+            ],
+            "Waiting for DNS to be ready",
+        )
 
         # Ensure kube-dns service in kube-system for compatibility with tools like Telepresence
         if platform == "microshift":
@@ -801,17 +772,17 @@ async def start(
         )
 
         # Wait for service endpoints to be ready
-        async for attempt in AsyncRetrying(
-            stop=stop_after_delay(datetime.timedelta(minutes=5)),
-            wait=wait_fixed(datetime.timedelta(seconds=5)),
-            retry=retry_if_exception_type(Exception),
-        ):
-            with attempt:
-                await run_in_vm(
-                    vm_name,
-                    ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "get", "endpoints", "postgresql"],
-                    "Waiting for PostgreSQL DNS to be ready",
-                )
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                f"timeout 5m bash -c 'until "
+                f'kubectl --kubeconfig={_kubeconfig(platform)} wait --for=jsonpath="{{.subsets[*].addresses[0].ip}}" endpoints postgresql --timeout=10s; '
+                f"do sleep 5; done'",
+            ],
+            "Waiting for PostgreSQL to be ready",
+        )
 
         if shas_guest_before and (
             replaced_digests := set(shas_guest_before.values())

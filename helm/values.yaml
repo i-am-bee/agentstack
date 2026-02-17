@@ -754,10 +754,16 @@ redis:
   master:
     persistence:
       enabled: false
+    containerSecurityContext:
+      runAsUser: 1001
+      runAsNonRoot: false
   replica:
     replicaCount: 1
     persistence:
       enabled: false
+    containerSecurityContext:
+      runAsUser: 1001
+      runAsNonRoot: false
 
 ## External Redis configuration
 ## All of these values are only used when redis.enabled is set to false
