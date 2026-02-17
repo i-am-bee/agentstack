@@ -71,7 +71,9 @@ async def setup_real_llm(test_configuration, setup_platform_client):
         with suppress(Exception):
             ex = Exception(str(f"Failed to setup LLM - {ex}\n{json.dumps(ex.response.text, indent=2)}"))
         raise ex
-    await SystemConfiguration.update(default_llm_model=test_configuration.llm_model)
+    await SystemConfiguration.update(
+        default_llm_model=test_configuration.llm_model, default_embedding_model=test_configuration.embedding_model
+    )
 
 
 @pytest.fixture(scope="session")
