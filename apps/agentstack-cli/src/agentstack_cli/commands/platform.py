@@ -606,6 +606,22 @@ async def start(
             ],
             "Installing Helm",
         )
+        await run_in_vm(
+            vm_name,
+            [
+                "kubectl",
+                f"--kubeconfig={_kubeconfig(platform)}",
+                "wait",
+                "--for=condition=Ready",
+                "pod",
+                "-n",
+                "openshift-dns",
+                "-l",
+                "dns.operator.openshift.io/daemonset-dns=default",
+                "--timeout=180s",
+            ],
+            "Waiting for DNS to be ready",
+        )
 
         # Deploy
         await run_in_vm(
