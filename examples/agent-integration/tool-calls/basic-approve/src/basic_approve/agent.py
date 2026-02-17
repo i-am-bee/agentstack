@@ -42,7 +42,7 @@ async def basic_approve_example(
 
     think_tool = ThinkTool()
     agent = RequirementAgent(
-        llm=ChatModel.from_name("ollama:gpt-oss:20b"),
+        llm=ChatModel.from_name(os.getenv("LLM_MODEL", "ollama:gpt-oss:20b")),
         tools=[think_tool],
         requirements=[AskPermissionRequirement([think_tool], handler=handler)],
     )

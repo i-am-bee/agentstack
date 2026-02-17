@@ -15,10 +15,15 @@ pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
-async def test_basic_approve_example(subtests, a2a_client_factory):
+async def test_basic_approve_example(subtests, a2a_client_factory, test_configuration):
     example_path = "agent-integration/tool-calls/basic-approve"
 
-    async with run_example(example_path, a2a_client_factory) as running_example:
+    async with run_example(
+        example_path,
+        a2a_client_factory,
+        llm_model=test_configuration.llm_model,
+        llm_api_key=test_configuration.llm_api_key,
+    ) as running_example:
         spec = ApprovalExtensionSpec.from_agent_card(running_example.provider.agent_card)
         approval_client = ApprovalExtensionClient(spec)
 

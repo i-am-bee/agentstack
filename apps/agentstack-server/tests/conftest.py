@@ -24,8 +24,8 @@ class Configuration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
     kubeconfig: Path = Path.home() / ".agentstack/lima/agentstack-local-dev/copied-from-guest/kubeconfig.yaml"
     llm_api_base: Secret[str] = Secret("http://localhost:11434/v1")
-    llm_model: str = "other:gpt-oss:20b"
-    embedding_model: str = "other:nomic-embed-text:latest"
+    llm_model: str = "ollama:gpt-oss:20b"
+    embedding_model: str = "ollama:nomic-embed-text:latest"
     llm_api_key: Secret[str] = Secret("dummy")
     test_agent_image: str = "agentstack-registry-svc.default:5001/chat-test:latest"
     test_agent_build_repo: str = "https://github.com/i-am-bee/agentstack-starter"

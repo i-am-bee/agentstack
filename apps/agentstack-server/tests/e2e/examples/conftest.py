@@ -15,6 +15,7 @@ from a2a.types import AgentCard, Message, Task
 from a2a.utils.constants import AGENT_CARD_WELL_KNOWN_PATH
 from agentstack_sdk.platform import Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
+from pydantic import Secret
 from tenacity import retry, stop_after_delay, wait_fixed
 
 DEFAULT_PORT = 8000
@@ -28,13 +29,21 @@ class RunningExample(NamedTuple):
     agent_card: AgentCard
 
 
-def run_process(example_dir_path: str, port: int) -> subprocess.Popen:
+def run_process(
+    example_dir_path: str, port: int, llm_model: str | None = None, llm_api_key: Secret[str] | None = None
+) -> subprocess.Popen:
     cwd = f"../../examples/{example_dir_path}"
     print(f"Running example in {cwd}")
     return subprocess.Popen(
         ["uv", "run", "server"],
         cwd=cwd,
-        env={**os.environ, "PORT": str(port), "PRODUCTION_MODE": "true"},
+        env={
+            **os.environ,
+            "PORT": str(port),
+            "PRODUCTION_MODE": "true",
+            **({"OPENAI_API_KEY": llm_api_key.get_secret_value()} if llm_api_key else {}),
+            **({"LLM_MODEL": llm_model} if llm_model else {}),
+        },
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         preexec_fn=os.setsid,
@@ -80,8 +89,10 @@ async def run_example(
     example_dir_path: str,
     a2a_client_factory: Callable[[AgentCard | dict[str, Any], ContextToken], AsyncIterator[Client]],
     port: int = DEFAULT_PORT,
+    llm_model: str | None = None,
+    llm_api_key: Secret[str] | None = None,
 ) -> AsyncGenerator[RunningExample]:
-    process = run_process(example_dir_path, port)
+    process = run_process(example_dir_path, port, llm_model, llm_api_key)
     try:
         example_url = f"http://localhost:{port}"
 
