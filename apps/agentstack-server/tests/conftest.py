@@ -63,7 +63,7 @@ def pytest_configure(config):
 async def _get_kr8s_client():
     api = await kr8s.asyncio.api()
     kubeconfig = api.auth.kubeconfig
-    kubeconfig_regex = r".*/.agentstack/lima/(agentstack-local-dev|e2e-test-run|integration-test-run)/copied-from-guest/kubeconfig.yaml$"
+    kubeconfig_regex = r".*/.agentstack/lima/(agentstack-local-dev|e2e-test-run|e2e-examples-test-run|integration-test-run)/copied-from-guest/kubeconfig.yaml$"
     if not re.match(kubeconfig_regex, str(kubeconfig.path)):
         raise ValueError(
             f"Preventing kubeconfig operations with invalid kubeconfig path.\n"
