@@ -583,8 +583,8 @@ async def start(
                     telemetry:
                         status: Disabled
                     EOF
-                    mkdir -p /postgresql-data /seaweedfs-data /registry-data
-                    chmod 777 /postgresql-data /seaweedfs-data /registry-data
+                    mkdir -p /postgresql-data /seaweedfs-data /registry-data /redis-data
+                    chmod 777 /postgresql-data /seaweedfs-data /registry-data /redis-data
                     """),
                 ],
                 "Installing MicroShift",
@@ -613,7 +613,7 @@ async def start(
             "Installing Helm",
         )
         async for attempt in AsyncRetrying(
-            stop=stop_after_delay(datetime.timedelta(minutes=3)),
+            stop=stop_after_delay(datetime.timedelta(minutes=5)),
             wait=wait_fixed(datetime.timedelta(seconds=5)),
             retry=retry_if_exception_type(Exception),
         ):
@@ -632,8 +632,51 @@ async def start(
                         "dns.operator.openshift.io/daemonset-dns=default",
                         "--timeout=10s",
                     ],
-                    f"Waiting for DNS to be ready{f' (attempt {attempt.retry_state.attempt_number})' if attempt.retry_state.attempt_number > 1 else ''}",
+                    f"Waiting for DNS pods to be ready{f' (attempt {attempt.retry_state.attempt_number})' if attempt.retry_state.attempt_number > 1 else ''}",
                 )
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "kubectl",
+                        f"--kubeconfig={_kubeconfig(platform)}",
+                        "wait",
+                        "--for=jsonpath={.subsets[*].addresses[0].ip}",
+                        "endpoints",
+                        "-n",
+                        "openshift-dns",
+                        "dns-default",
+                        "--timeout=10s",
+                    ],
+                    "Verifying DNS endpoints",
+                )
+                await run_in_vm(
+                    vm_name,
+                    ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "get", "svc", "kubernetes"],
+                    "Verifying API connectivity",
+                )
+
+        # Ensure kube-dns service in kube-system for compatibility with tools like Telepresence
+        if platform == "microshift":
+            await run_in_vm(
+                vm_name,
+                ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "apply", "-f", "-"],
+                "Ensuring standard kube-dns service for compatibility",
+                input=yaml.dump(
+                    {
+                        "apiVersion": "v1",
+                        "kind": "Service",
+                        "metadata": {"name": "kube-dns", "namespace": "kube-system", "labels": {"k8s-app": "kube-dns"}},
+                        "spec": {
+                            "ports": [
+                                {"name": "dns", "port": 53, "protocol": "UDP", "targetPort": 5353},
+                                {"name": "dns-tcp", "port": 53, "protocol": "TCP", "targetPort": 5353},
+                                {"name": "metrics", "port": 9154, "protocol": "TCP", "targetPort": 9154},
+                            ],
+                            "selector": {"dns.operator.openshift.io/daemonset-dns": "default"},
+                        },
+                    }
+                ).encode(),
+            )
 
         # Deploy
         await run_in_vm(
@@ -756,6 +799,20 @@ async def start(
             ],
             "Deploying Agent Stack platform with Helm",
         )
+
+        # Wait for service endpoints to be ready
+        async for attempt in AsyncRetrying(
+            stop=stop_after_delay(datetime.timedelta(minutes=5)),
+            wait=wait_fixed(datetime.timedelta(seconds=5)),
+            retry=retry_if_exception_type(Exception),
+        ):
+            with attempt:
+                await run_in_vm(
+                    vm_name,
+                    ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "get", "endpoints", "postgresql"],
+                    "Waiting for PostgreSQL DNS to be ready",
+                )
+
         if shas_guest_before and (
             replaced_digests := set(shas_guest_before.values())
             - set((await _grab_image_shas(vm_name, platform, loaded_images, mode="guest")).values())

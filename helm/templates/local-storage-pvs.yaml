@@ -44,4 +44,27 @@ spec:
   claimRef:
     namespace: {{ .Release.Namespace }}
     name: seaweedfs-all-in-one-data
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-redis-pv
+  labels:
+    app.kubernetes.io/name: {{ include "agentstack.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: redis-storage
+spec:
+  capacity:
+    storage: {{ .Values.redis.master.persistence.size | default "8Gi" }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /redis-data
+    type: DirectoryOrCreate
+  claimRef:
+    namespace: {{ .Release.Namespace }}
+    name: data-redis-0
 {{- end }}
