@@ -18,9 +18,11 @@ import typing
 import uuid
 from enum import StrEnum
 from subprocess import CompletedProcess
+from typing import TypedDict
 
 import anyio
 import httpx
+import pydantic
 import typer
 import yaml
 from tenacity import (
@@ -49,6 +51,11 @@ class ImagePullMode(StrEnum):
     host = "host"
     hybrid = "hybrid"
     skip = "skip"
+
+
+class LimaVMStatus(TypedDict):
+    name: str
+    status: str
 
 
 # ============================================================================
@@ -134,7 +141,10 @@ async def get_vm_status(vm_name: str) -> typing.Literal["running"] | str | None:
                 cwd="/",
             )
             for line in result.stdout.decode().split("\n"):
-                if line and (status_data := json.loads(line)).get("name") == vm_name:
+                if (
+                    line
+                    and (status_data := pydantic.TypeAdapter(LimaVMStatus).validate_json(line)).get("name") == vm_name
+                ):
                     return status_data["status"].lower()
         else:
             for status, cmd in [("running", ["--running"]), ("stopped", [])]:
