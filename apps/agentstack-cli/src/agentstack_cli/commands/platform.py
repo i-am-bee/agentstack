@@ -796,16 +796,35 @@ async def start(
             """).encode(),
         )
         await run_in_vm(vm_name, ["systemctl", "daemon-reexec"], "Reloading systemd")
-        for service, port in [("agentstack-server-svc", 8333), ("agentstack-ui-svc", 8334)]:
-            await run_in_vm(
-                vm_name,
-                [
-                    "systemctl",
-                    "start",
-                    f"kubectl-port-forward@{service}:{port}",
-                ],
-                f"Starting port-forward for {service}:{port}",
-            )
+        for service in json.loads(
+            (
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "kubectl",
+                        f"--kubeconfig={_kubeconfig(platform)}",
+                        "get",
+                        "svc",
+                        "-n",
+                        "default",
+                        "-o",
+                        "json",
+                    ],
+                    "Discovering services to port-forward",
+                )
+            ).stdout
+        ).get("items", []):
+            for port_spec in service.get("spec", {}).get("ports", []):
+                if 8333 <= (port := port_spec.get("port", 0)) <= 8399:
+                    await run_in_vm(
+                        vm_name,
+                        [
+                            "systemctl",
+                            "start",
+                            f"kubectl-port-forward@{service['metadata']['name']}:{port}",
+                        ],
+                        f"Starting port-forward for {service['metadata']['name']}:{port}",
+                    )
 
         if not no_wait_for_platform:
             with console.status("Waiting for Agent Stack platform to be ready...", spinner="dots"):
