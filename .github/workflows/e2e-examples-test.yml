@@ -1,0 +1,56 @@
+name: e2e-examples-test
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch: { }
+  pull_request:
+    types: [labeled]
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/agentstack-server/**'
+      - 'apps/agentstack-cli/**'
+      - 'helm/**'
+jobs:
+  e2e-examples-test:
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'e2e-examples')
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    env:
+      AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
+    steps:
+      - uses: actions/checkout@v4
+      - name: Maximize build space
+        uses: ./.github/actions/maximize-build-space
+        with:
+          root-reserve-mb: 15360
+          temp-reserve-mb: 2048
+          swap-size-mb: 1024
+          remove-dotnet: 'true'
+      - name: "Set up Lima"
+        uses: lima-vm/lima-actions/setup@v1
+        id: lima-actions-setup
+      - name: "Cache ~/.cache/lima"
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/lima
+          key: lima-${{ steps.lima-actions-setup.outputs.version }}
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run agentstack-server:test:e2e-examples
+        env:
+          LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
+          LLM_MODEL: "${{ vars.OPENAI_MODEL }}"
+          LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+      - run: uv cache prune --ci

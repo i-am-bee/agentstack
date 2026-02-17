@@ -322,7 +322,98 @@ echo "Waiting for Keycloak provision job to complete..."
 kubectl wait --for=condition=complete --timeout=300s job/keycloak-provision
 
 kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
-uv run pytest -m e2e "${usage_only}"
+uv run pytest -m e2e --ignore=tests/e2e/examples
+result=$?
+
+if [ $result -ne 0 ]; then
+    echo "Tests failed. Checking pod status..."
+    echo "------------- pods --------------"
+    kubectl get pod
+    echo "------------ events -------------"
+    kubectl get event
+fi
+
+if [ "$NO_CLEAN" != "true" ]; then
+    {{ mise_bin }} run agentstack-cli:run -- platform delete --vm-name=${VM_NAME}
+else
+    {{ mise_bin }} run agentstack-cli:run -- platform stop --vm-name=${VM_NAME}
+fi
+
+rm -f "$CONFIG_FILE"
+
+kill %1
+exit $result
+"""
+
+["agentstack-server:test:e2e-examples"]
+dir = "{{config_root}}/apps/agentstack-server"
+usage = 'flag "--no-clean"'
+run = """
+#!/bin/bash
+VM_NAME=e2e-test-run
+
+export AGENTSTACK__USERNAME=admin
+export AGENTSTACK__PASSWORD=admin
+
+NO_CLEAN="${usage_no_clean:-false}"
+if [ "$NO_CLEAN" != "true" ]; then
+    {{ mise_bin }} run agentstack:stop-all
+    {{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME}
+    curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
+fi
+
+CONFIG_FILE="/tmp/config_e2e_test_$(date +%s).yaml"
+
+echo '
+externalRegistries: null
+ui:
+  enabled: false
+auth:
+  enabled: true
+docling:
+  enabled: true
+connector:
+  presets:
+    - url: mcp+stdio://test
+      stdio:
+        image: mcp/aws-documentation
+      metadata:
+        name: Test MCP Server
+keycloak:
+  auth:
+    seedAgentstackUsers:
+      - username: admin
+        password: admin
+        firstName: Admin
+        lastName: User
+        email: admin@beeai.dev
+        roles: ["agentstack-admin"]
+' > "$CONFIG_FILE"
+
+{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} -f "$CONFIG_FILE" --set ui.enabled=false
+
+
+eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
+
+if [ -z "${TEST_AGENT_IMAGE}" ]; then
+    echo "Building test agent..."
+    # Build chat agent and push to local registry
+    TEST_AGENT_IMAGE=agentstack-registry-svc.default:5001/chat-test:latest
+    {{ mise_bin }} run agentstack-cli:run -- client-side-build -v "${PWD}/../.." --vm-name=${VM_NAME} --dockerfile "${PWD}/../../agents/chat/Dockerfile" --tag ${TEST_AGENT_IMAGE}
+fi
+export TEST_AGENT_IMAGE
+
+export DB_URL="postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack"
+export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
+
+echo "Waiting for agentstack-server deployment to be ready..."
+kubectl wait --for=condition=available --timeout=300s deployment/agentstack-server
+
+echo "Waiting for Keycloak provision job to complete..."
+kubectl wait --for=condition=complete --timeout=300s job/keycloak-provision
+
+kubectl port-forward svc/postgresql 5432:5432 2>/dev/null 1>&2 &
+uv run pytest -m e2e tests/e2e/examples
 result=$?
 
 if [ $result -ne 0 ]; then
