@@ -19,12 +19,15 @@ When building conversational AI agents, one of the key requirements is maintaini
 
 Here's an example agent that maintains conversation history and counts the number of interactions:
 
+{/* <!-- embedme examples/agent-integration/multi-turn/basic-history/src/basic_history/agent.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 
 from a2a.types import Message
 from a2a.utils.message import get_message_text
-
 from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
@@ -33,8 +36,8 @@ server = Server()
 
 
 @server.agent()
-#set the context as an instance of the conversation history to store and load previous messages
-async def example_agent(input: Message, context: RunContext):
+# Set the context as an instance of the conversation history to store and load previous messages
+async def basic_history_example(input: Message, context: RunContext):
     """Agent that demonstrates conversation history access"""
 
     # Store the current message in the context store
@@ -61,8 +64,10 @@ async def example_agent(input: Message, context: RunContext):
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
 
+
 if __name__ == "__main__":
     run()
+
 ```
 
 ### Steps
@@ -77,19 +82,16 @@ if __name__ == "__main__":
 
 Here's a sophisticated example using the BeeAI Framework to build a multi-turn chat agent that leverages conversation history and LLM capabilities:
 
+{/* <!-- embedme examples/agent-integration/multi-turn/advanced-history/src/advanced_history/agent.py--> */}
 ```python
+# Copyright 2025 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from typing import Annotated
 
 from a2a.types import Message, Role
 from a2a.utils.message import get_message_text
-from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
-from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
-from beeai_framework.backend import AssistantMessage, UserMessage
-from beeai_framework.backend.types import ChatModelParameters
-from beeai_framework.tools.think import ThinkTool
-
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
@@ -98,6 +100,13 @@ from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
+from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
+from beeai_framework.agents.requirement import RequirementAgent
+from beeai_framework.agents.requirement.requirements.conditional import (
+    ConditionalRequirement,
+)
+from beeai_framework.backend import AssistantMessage, UserMessage
+from beeai_framework.tools.think import ThinkTool
 
 server = Server()
 
@@ -117,7 +126,7 @@ def to_framework_message(message: Message) -> FrameworkMessage:
 
 
 @server.agent()
-async def multi_turn_chat_agent(
+async def advanced_history_example(
     input: Message,
     context: RunContext,
     llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()],
@@ -129,7 +138,7 @@ async def multi_turn_chat_agent(
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
     # Initialize BeeAI Framework LLM client
-    llm_client = AgentStackChatModel()
+    llm_client = AgentStackChatModel(tool_choice_support={"none", "auto"})
     llm_client.set_context(llm)
 
     # Create a RequirementAgent with conversation memory
@@ -173,6 +182,7 @@ def run():
 
 if __name__ == "__main__":
     run()
+
 ```
 
 This advanced example demonstrates several key concepts:

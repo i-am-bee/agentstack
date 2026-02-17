@@ -9,6 +9,7 @@ from a2a.types import Message
 from agentstack_sdk.a2a.extensions.ui.settings import (
     CheckboxField,
     CheckboxGroupField,
+    CheckboxGroupFieldValue,
     SettingsExtensionServer,
     SettingsExtensionSpec,
     SettingsRender,
@@ -53,7 +54,7 @@ async def basic_settings_example(
     parsed_settings = settings.parse_settings_response()
 
     thinking_group = parsed_settings.values["thinking_group"]
-    if thinking_group.type == "checkbox_group":
+    if isinstance(thinking_group, CheckboxGroupFieldValue):
         if thinking_group.values["thinking"].value:
             yield "Thinking mode is enabled - I'll show my reasoning process.\n"
         else:

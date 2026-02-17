@@ -216,6 +216,33 @@
       "cwd": "${workspaceFolder}/agent-integration/mcp/custom-mcp-client-with-oauth",
       "program": "src/custom_mcp_client_with_oauth/agent.py",
       "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/server-wrapper",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/overview/server-wrapper",
+      "program": "src/server_wrapper/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/advanced-server-wrapper",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/overview/advanced-server-wrapper",
+      "program": "src/advanced_server_wrapper/agent.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "examples/dependency-injection",
+      "type": "debugpy",
+      "justMyCode": false,
+      "request": "launch",
+      "cwd": "${workspaceFolder}/agent-integration/overview/dependency-injection",
+      "program": "src/dependency_injection/agent.py",
+      "console": "integratedTerminal"
     }
   ]
 }

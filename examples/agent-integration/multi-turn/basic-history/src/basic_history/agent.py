@@ -13,6 +13,7 @@ server = Server()
 
 
 @server.agent()
+# Set the context as an instance of the conversation history to store and load previous messages
 async def basic_history_example(input: Message, context: RunContext):
     """Agent that demonstrates conversation history access"""
 
@@ -26,7 +27,7 @@ async def basic_history_example(input: Message, context: RunContext):
     # Load all messages from conversation history (including current message)
     history = [message async for message in context.load_history() if isinstance(message, Message) and message.parts]
 
-    # Process the conversation history
+    # Filter and process the conversation history
     print(f"Found {len(history)} messages in conversation (including current)")
 
     # Your agent logic here - you can now reference all messages in the conversation
@@ -39,6 +40,7 @@ async def basic_history_example(input: Message, context: RunContext):
 
 def run():
     server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)))
+
 
 if __name__ == "__main__":
     run()
