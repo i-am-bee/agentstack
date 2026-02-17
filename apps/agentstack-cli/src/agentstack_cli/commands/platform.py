@@ -522,6 +522,14 @@ async def start(
                     "bash",
                     "-c",
                     textwrap.dedent("""
+                        modprobe overlay
+                        modprobe br_netfilter
+                        cat > /etc/sysctl.d/99-microshift.conf <<EOF
+                        net.bridge.bridge-nf-call-iptables  = 1
+                        net.bridge.bridge-nf-call-ip6tables = 1
+                        net.ipv4.ip_forward                 = 1
+                        EOF
+                        sysctl --system
                         echo 'deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.33/deb/ /' > /etc/apt/sources.list.d/cri-o.list
                         echo 'deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' > /etc/apt/sources.list.d/kubernetes.list
                         apt-get update -y -q && apt-get install -y -q skopeo cri-o cri-tools containernetworking-plugins kubectl
@@ -570,6 +578,7 @@ async def start(
                     cd /tmp/microshift-install
                     dpkg -i microshift_*.deb microshift-kindnet_*.deb
                     rm -rf /tmp/microshift-install
+                    mkdir -p /etc/microshift
                     cat >/etc/microshift/config.yaml <<EOF
                     apiServer:
                         port: 16443
@@ -592,7 +601,11 @@ async def start(
 
             await run_in_vm(
                 vm_name,
-                ["sh", "-c", "systemctl daemon-reload && systemctl start microshift"],
+                [
+                    "bash",
+                    "-c",
+                    "systemctl daemon-reload && systemctl start microshift || (journalctl -u microshift --no-pager -n 100 && exit 1)",
+                ],
                 "Starting MicroShift",
             )
 
@@ -618,9 +631,9 @@ async def start(
                 "bash",
                 "-c",
                 f"timeout 5m bash -c 'until "
-                f"kubectl --kubeconfig={_kubeconfig(platform)} wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=10s && "
-                f'kubectl --kubeconfig={_kubeconfig(platform)} wait --for=jsonpath="{{.subsets[*].addresses[0].ip}}" endpoints -n openshift-dns dns-default --timeout=10s && '
-                f"kubectl --kubeconfig={_kubeconfig(platform)} get svc kubernetes; "
+                f"kubectl --kubeconfig={_kubeconfig(platform)} wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=10s 2>/dev/null && "
+                f'[ "$(kubectl --kubeconfig={_kubeconfig(platform)} get endpoints -n openshift-dns dns-default -o jsonpath="{{.subsets[*].addresses[0].ip}}" 2>/dev/null)" != "" ] && '
+                f"kubectl --kubeconfig={_kubeconfig(platform)} get svc kubernetes >/dev/null 2>&1; "
                 f"do sleep 5; done'",
             ],
             "Waiting for DNS to be ready",
@@ -747,11 +760,23 @@ async def start(
                         )
         kubeconfig_local = anyio.Path(Configuration().lima_home) / vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_local.parent.mkdir(parents=True, exist_ok=True)
-        await kubeconfig_local.write_text(
-            (
-                await run_in_vm(vm_name, ["cat", _kubeconfig(platform)], "Copying kubeconfig from Agent Stack platform")
-            ).stdout.decode()
-        )
+
+        # Wait for kubeconfig to be generated and copy it
+        kubeconfig_data = ""
+        async for attempt in AsyncRetrying(
+            stop=stop_after_delay(datetime.timedelta(minutes=2)),
+            wait=wait_fixed(datetime.timedelta(seconds=5)),
+            retry=retry_if_exception_type(Exception),
+        ):
+            with attempt:
+                result = await run_in_vm(
+                    vm_name, ["cat", _kubeconfig(platform)], "Copying kubeconfig from Agent Stack platform"
+                )
+                kubeconfig_data = result.stdout.decode()
+                if "contexts:" not in kubeconfig_data:
+                    raise RuntimeError("Kubeconfig is incomplete (missing contexts)")
+
+        await kubeconfig_local.write_text(kubeconfig_data)
         await run_in_vm(
             vm_name,
             [
@@ -778,7 +803,7 @@ async def start(
                 "bash",
                 "-c",
                 f"timeout 5m bash -c 'until "
-                f'kubectl --kubeconfig={_kubeconfig(platform)} wait --for=jsonpath="{{.subsets[*].addresses[0].ip}}" endpoints postgresql --timeout=10s; '
+                f'[ "$(kubectl --kubeconfig={_kubeconfig(platform)} get endpoints postgresql -o jsonpath="{{.subsets[*].addresses[0].ip}}" 2>/dev/null)" != "" ]; '
                 f"do sleep 5; done'",
             ],
             "Waiting for PostgreSQL to be ready",
