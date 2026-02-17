@@ -122,7 +122,7 @@ class AuthManager:
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
             if resp.is_error:
-                raise RuntimeError(f"The server {server} does not provide oauth-protected-resource  metadata.")
+                raise RuntimeError(f"The server {server} does not provide oauth-protected-resource metadata.")
             return resp.json()
 
     def clear_auth_info(self, server: str) -> None:

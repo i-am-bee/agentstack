@@ -125,7 +125,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 # shortcut
                 auth_servers = []
         except RuntimeError:
-            # Continnue with the current auth servers info, which might stil be valid even if metadata fetching failed
+            # Continue with the current auth servers info, which might still be valid even if metadata fetching failed
             pass
 
         if not auth_servers:
