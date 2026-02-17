@@ -10,13 +10,14 @@ concurrency:
 on:
   workflow_dispatch: { }
   pull_request:
-    types: [labeled]
+    types: [labeled, synchronize]
   push:
     branches:
       - main
     paths:
       - 'apps/agentstack-server/**'
-      - 'apps/agentstack-cli/**'
+      - 'apps/agentstack-sdk-py/**'
+      - 'examples/**'
       - 'helm/**'
 jobs:
   e2e-examples-test:

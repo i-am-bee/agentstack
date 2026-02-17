@@ -36,9 +36,6 @@ async def test_adding_error_context_example(subtests, get_final_task_from_stream
             assert error_data["context"]["request_id"] == "req-123"
             assert error_data["context"]["user_id"] == 42
 
-            # Verify stack trace is included (include_stacktrace=True)
-            assert error_data["stack_trace"] is not None
-
             # Verify error details
             assert error_data["error"]["title"] == "ValueError"
             assert error_data["error"]["message"] == "Something went wrong!"

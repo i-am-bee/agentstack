@@ -350,7 +350,7 @@ dir = "{{config_root}}/apps/agentstack-server"
 usage = 'flag "--no-clean"'
 run = """
 #!/bin/bash
-VM_NAME=e2e-test-run
+VM_NAME=e2e-examples-test-run
 
 export AGENTSTACK__USERNAME=admin
 export AGENTSTACK__PASSWORD=admin
@@ -394,14 +394,6 @@ keycloak:
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
-
-if [ -z "${TEST_AGENT_IMAGE}" ]; then
-    echo "Building test agent..."
-    # Build chat agent and push to local registry
-    TEST_AGENT_IMAGE=agentstack-registry-svc.default:5001/chat-test:latest
-    {{ mise_bin }} run agentstack-cli:run -- client-side-build -v "${PWD}/../.." --vm-name=${VM_NAME} --dockerfile "${PWD}/../../agents/chat/Dockerfile" --tag ${TEST_AGENT_IMAGE}
-fi
-export TEST_AGENT_IMAGE
 
 export DB_URL="postgresql+asyncpg://agentstack-user:password@localhost:5432/agentstack"
 export LLM_API_BASE="${LLM_API_BASE:-http://host.docker.internal:11434/v1}"
