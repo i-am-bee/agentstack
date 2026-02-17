@@ -20,7 +20,7 @@ server = Server()
 async def adding_error_context_example(
     input: Message,
     error_ext: Annotated[
-        ErrorExtensionServer, ErrorExtensionSpec(params=ErrorExtensionParams(include_stacktrace=True))
+        ErrorExtensionServer, ErrorExtensionSpec(params=ErrorExtensionParams(include_stacktrace=False))
     ],
 ):
     # Add context before an error might occur or in an except block

@@ -20,12 +20,13 @@ import os
 
 from a2a.types import Message
 from agentstack_sdk.server import Server
+from agentstack_sdk.server.context import RunContext
 
 server = Server()
 
 
 @server.agent()
-async def standard_error_reporting_example(input: Message):
+async def standard_error_reporting_example(input: Message, context: RunContext):
     # ... do some work ...
     raise ValueError("Something went wrong!")
 

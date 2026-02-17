@@ -58,4 +58,4 @@ async def test_file_processing_example(subtests, get_final_task_from_stream, a2a
                 assert processed_file.text == "0123456789"
 
             first_message_text = task.history[-1].parts[0].root.text
-            assert first_message_text == "File Processing Done"
+            assert first_message_text == "File processing complete"

@@ -5,6 +5,7 @@ from typing import Annotated, Any
 
 from a2a.types import (
     Message,
+    TextPart,
 )
 from agentstack_sdk.a2a.extensions.interactions.approval import (
     ApprovalExtensionParams,
@@ -46,7 +47,7 @@ async def basic_approve_example(
         requirements=[AskPermissionRequirement([think_tool], handler=handler)],
     )
 
-    result = await agent.run("".join(part.root.text for part in input.parts if part.root.kind == "text"))
+    result = await agent.run("".join(part.root.text for part in input.parts if isinstance(part.root, TextPart)))
     yield result.output[0].text
 
 
