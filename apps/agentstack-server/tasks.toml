@@ -263,6 +263,7 @@ VM_NAME=e2e-test-run
 
 export AGENTSTACK__USERNAME=admin
 export AGENTSTACK__PASSWORD=admin
+export AGENTSTACK__CLIENT_ID=agentstack-cli
 
 NO_CLEAN="${usage_no_clean:-false}"
 if [ "$NO_CLEAN" != "true" ]; then
@@ -354,6 +355,7 @@ VM_NAME=e2e-examples-test-run
 
 export AGENTSTACK__USERNAME=admin
 export AGENTSTACK__PASSWORD=admin
+export AGENTSTACK__CLIENT_ID=agentstack-cli
 
 NO_CLEAN="${usage_no_clean:-false}"
 if [ "$NO_CLEAN" != "true" ]; then
