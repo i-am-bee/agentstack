@@ -229,13 +229,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 choices=auth_servers,
             ).execute_async() or sys.exit(1)
 
-        async with httpx.AsyncClient() as client:
-            try:
-                resp = await client.get(f"{auth_server}/.well-known/openid-configuration")
-                resp.raise_for_status()
-                oidc = resp.json()
-            except Exception as e:
-                raise RuntimeError(f"OIDC discovery failed: {e}") from e
+        oidc = await config.auth_manager.get_oidc_metadata(auth_server)
 
         registration_endpoint = oidc["registration_endpoint"]
         if not client_id and registration_endpoint:
@@ -267,7 +261,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                             )
 
                         except Exception:
-                            console.info("no parsable json response.")
+                            console.info("No parsable json response from registration endpoint.")
                     console.warning(f" Dynamic client registration failed. Proceed with manual input.  {e!s}")
 
         if not client_id:
@@ -354,7 +348,7 @@ async def server_logout(
         typer.Option(),
     ] = False,
 ):
-    await config.auth_manager.clear_auth_token(all=all)
+    await config.auth_manager.cleanup_auth_session(all=all)
     console.success("You have been logged out.")
 
 

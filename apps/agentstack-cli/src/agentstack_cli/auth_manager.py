@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+import logging
 import pathlib
 import time
 import typing
@@ -13,6 +14,7 @@ from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 from pydantic import BaseModel, Field
 
 TOKEN_EXPIRY_LEEWAY = 60  # seconds
+logger = logging.getLogger(__name__)
 
 
 class AuthToken(BaseModel):
@@ -59,7 +61,7 @@ class AuthManager:
     def _save(self) -> None:
         self._auth_path.write_text(self._auth.model_dump_json(indent=2))
 
-    async def _get_oidc_metadata(self, auth_server: str) -> dict[str, Any]:
+    async def get_oidc_metadata(self, auth_server: str) -> dict[str, Any]:
         """Fetch and cache OIDC metadata."""
         if auth_server in self._oidc_cache:
             return self._oidc_cache[auth_server]
@@ -99,7 +101,7 @@ class AuthManager:
         if not auth_config or not auth_config.token:
             raise ValueError(f"No token found for {auth_server}")
 
-        metadata = await self._get_oidc_metadata(auth_server)
+        metadata = await self.get_oidc_metadata(auth_server)
 
         # Convert AuthToken to dict format authlib expects
         token_dict = auth_config.token.model_dump(exclude_none=True)
@@ -165,7 +167,7 @@ class AuthManager:
             raise ValueError("No active server configured")
 
         try:
-            metadata = await self._get_oidc_metadata(auth_server)
+            metadata = await self.get_oidc_metadata(auth_server)
             token_endpoint = metadata["token_endpoint"]
 
             async with await self._get_oauth_client(self._auth.active_server, auth_server) as client:
@@ -230,7 +232,7 @@ class AuthManager:
             return  # Nothing to deregister
 
         try:
-            metadata = await self._get_oidc_metadata(auth_server)
+            metadata = await self.get_oidc_metadata(auth_server)
             registration_endpoint = metadata.get("registration_endpoint")
 
             if not registration_endpoint:
@@ -244,11 +246,55 @@ class AuthManager:
         except Exception as e:
             raise RuntimeError(f"Dynamic client de-registration failed: {e}") from e
 
-    async def clear_auth_token(self, all: bool = False) -> None:
+    async def _terminate_auth_session(
+        self,
+        auth_server: str,
+        client_id: str | None,
+        client_secret: str | None,
+        refresh_token: str | None,
+    ) -> None:
+        """Best-effort OIDC provider logout using end_session_endpoint from OIDC metadata."""
+        if not auth_server or not client_id or not refresh_token:
+            return
+
+        params: dict[str, str] = {
+            "client_id": client_id,
+            "refresh_token": refresh_token,
+        }
+
+        if client_secret:
+            params["client_secret"] = client_secret
+
+        try:
+            # Get OIDC metadata to find the logout endpoint
+            metadata = await self.get_oidc_metadata(auth_server)
+            logout_endpoint = metadata.get("end_session_endpoint")
+
+            if not logout_endpoint:
+                # Fallback to Keycloak-specific endpoint for backward compatibility
+                issuer = auth_server.rstrip("/")
+                logout_endpoint = f"{issuer}/protocol/openid-connect/logout"
+
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    logout_endpoint,
+                    data=params,
+                    headers={"Content-Type": "application/x-www-form-urlencoded"},
+                )
+        except Exception as e:
+            logger.warning("Failed to terminate auth session: %s", e)
+
+    async def cleanup_auth_session(self, all: bool = False) -> None:
         if all:
             for server in self._auth.servers:
                 for auth_server in self._auth.servers[server].authorization_servers:
                     auth_config = self._auth.servers[server].authorization_servers[auth_server]
+                    await self._terminate_auth_session(
+                        auth_server,
+                        auth_config.client_id,
+                        auth_config.client_secret,
+                        auth_config.token.refresh_token if auth_config.token else None,
+                    )
                     await self.deregister_client(
                         auth_server,
                         auth_config.client_id,
@@ -261,6 +307,12 @@ class AuthManager:
                 auth_config = self._auth.servers[self._auth.active_server].authorization_servers[
                     self._auth.active_auth_server
                 ]
+                await self._terminate_auth_session(
+                    self._auth.active_auth_server,
+                    auth_config.client_id,
+                    auth_config.client_secret,
+                    auth_config.token.refresh_token if auth_config.token else None,
+                )
                 await self.deregister_client(
                     self._auth.active_auth_server,
                     auth_config.client_id,
