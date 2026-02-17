@@ -83,8 +83,7 @@ async def start(
     ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
-    skip_pull: typing.Annotated[bool, typer.Option(hidden=True)] = False,
-    skip_restart_deployments: typing.Annotated[bool, typer.Option(hidden=True)] = False,
+    skip_login: typing.Annotated[bool, typer.Option(hidden=True)] = False,
     no_wait_for_platform: typing.Annotated[bool, typer.Option(hidden=True)] = False,
 ):
     import agentstack_cli.commands.server
@@ -140,7 +139,8 @@ async def start(
                 style="dim",
             )
 
-        await agentstack_cli.commands.server.server_login("http://localhost:8333")
+        if not skip_login:
+            await agentstack_cli.commands.server.server_login("http://localhost:8333")
 
 
 @app.command("stop", help="Stop Agent Stack platform. [Local only]")
