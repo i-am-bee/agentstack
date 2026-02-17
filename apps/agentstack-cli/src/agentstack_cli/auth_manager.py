@@ -115,6 +115,20 @@ class AuthManager:
 
         return client
 
+    @staticmethod
+    async def fetch_oauth_protected_resource_metadata(server: str) -> dict[str, Any]:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
+            if resp.is_error:
+                raise RuntimeError(f"The server {server} does not provide oauth-protected-resource  metadata.")
+            return resp.json()
+
+    def clear_auth_info(self, server: str) -> None:
+        if self._auth.servers.get(server):
+            # reset auth info for this server
+            self._auth.servers[server] = Server()
+            self._save()
+
     def save_auth_info(
         self,
         server: str,

@@ -105,18 +105,43 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
 
     server = server.rstrip("/")
 
+    check_token = True
     log_in_message = "No authentication tokens found for this server. Proceeding to log in."
 
     if server_data := config.auth_manager.get_server(server):
-        console.info("Logging in to an already logged in server.")
+        console.info("Logging in to a previously logged in server.")
         auth_server = None
         auth_servers = list(server_data.authorization_servers.keys())
+
+        oauth_metadata = None
+        try:
+            oauth_metadata = await config.auth_manager.fetch_oauth_protected_resource_metadata(server)
+            oauth_metadata_auth_servers = oauth_metadata.get("authorization_servers", [])
+            if oauth_metadata_auth_servers:
+                # something might have changed on the server side since we last logged in
+                # re-check that the auth servers we know about are still valid
+                auth_servers = [as_ for as_ in auth_servers if as_ in oauth_metadata_auth_servers]
+            else:
+                # shortcut
+                auth_servers = []
+        except RuntimeError:
+            # Continnue with the current auth servers info, which might stil be valid even if metadata fetching failed
+            pass
+
         if not auth_servers:
-            # Known server with no auth servers - save and exit
-            config.auth_manager.active_server = server
-            config.auth_manager.active_auth_server = auth_server
-            console.success(f"Logged in to [cyan]{server}[/cyan].")
-            return
+            # Re-check server capabilities in case auth was enabled after the initial login.
+            if oauth_metadata is None or not oauth_metadata.get("authorization_servers", []):
+                # Keep backward-compatible behavior when metadata cannot be fetched.
+                # This might lead to errors when the server actually requires auth but does not provide standard info; however, that is not expected
+                config.auth_manager.active_server = server
+                config.auth_manager.active_auth_server = None
+                config.auth_manager.clear_auth_info(server)
+                console.success(f"Logged in to [cyan]{server}[/cyan].")
+                return
+
+            log_in_message = "Authentication has been newly enabled for this server. Proceeding to log in."
+            check_token = False  # Skip token validation since we know the server now requires auth newly and no auth info can be present
+
         elif len(auth_servers) == 1:
             auth_server = auth_servers[0]
         elif len(auth_servers) > 1:
@@ -137,57 +162,57 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 console.info("Action cancelled.")
                 sys.exit(1)
 
-        # Validate that the token is still valid by attempting to load it
-        # Keep the original active server/auth server in case of failure
-        previous_server = config.auth_manager.active_server
-        previous_auth_server = config.auth_manager.active_auth_server
+        if check_token:
+            # Validate that the token is still valid by attempting to load it
+            # Keep the original active server/auth server in case of failure
+            previous_server = config.auth_manager.active_server
+            previous_auth_server = config.auth_manager.active_auth_server
 
-        config.auth_manager.active_server = server
-        config.auth_manager.active_auth_server = auth_server
+            config.auth_manager.active_server = server
+            config.auth_manager.active_auth_server = auth_server
 
-        try:
-            token = await config.auth_manager.load_auth_token()
-            if not token:
-                # No token available, need to log in
+            try:
+                token = await config.auth_manager.load_auth_token()
+                if not token:
+                    # No token available, need to log in
+                    # Restore previous state until login completes
+                    config.auth_manager.active_server = previous_server
+                    config.auth_manager.active_auth_server = previous_auth_server
+                    # Fall through to login flow below
+                else:
+                    console.success(f"Logged in to [cyan]{server}[/cyan].")
+                    return
+            except InvalidGrantError:
+                # Token refresh failed due to invalid/expired refresh token
+                log_in_message = "Your session has expired. Please log in again."
                 # Restore previous state until login completes
                 config.auth_manager.active_server = previous_server
                 config.auth_manager.active_auth_server = previous_auth_server
                 # Fall through to login flow below
-            else:
-                console.success(f"Logged in to [cyan]{server}[/cyan].")
-                return
-        except InvalidGrantError:
-            # Token refresh failed due to invalid/expired refresh token
-            log_in_message = "Your session has expired. Please log in again."
-            # Restore previous state until login completes
-            config.auth_manager.active_server = previous_server
-            config.auth_manager.active_auth_server = previous_auth_server
-            # Fall through to login flow below
-        except OAuth2Error as e:
-            # Other OAuth2 protocol errors - report but don't continue
-            console.error(f"OAuth2 error: {e.description}")
-            config.auth_manager.active_server = previous_server
-            config.auth_manager.active_auth_server = previous_auth_server
-            sys.exit(1)
-        except RuntimeError as e:
-            # Network or OIDC discovery errors - report but don't continue
-            console.error(f"Failed to validate authentication: {e}")
-            console.hint("Check your network connection and try again.")
-            config.auth_manager.active_server = previous_server
-            config.auth_manager.active_auth_server = previous_auth_server
-            sys.exit(1)
+            except OAuth2Error as e:
+                # Other OAuth2 protocol errors - report but don't continue
+                console.error(f"OAuth2 error: {e.description}")
+                config.auth_manager.active_server = previous_server
+                config.auth_manager.active_auth_server = previous_auth_server
+                sys.exit(1)
+            except RuntimeError as e:
+                # Network or OIDC discovery errors - report but don't continue
+                console.error(f"Failed to validate authentication: {e}")
+                console.hint("Check your network connection and try again.")
+                config.auth_manager.active_server = previous_server
+                config.auth_manager.active_auth_server = previous_auth_server
+                sys.exit(1)
 
     # Starting the login flow
     console.info(log_in_message)
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(f"{server}/.well-known/oauth-protected-resource/", follow_redirects=True)
-        if resp.is_error:
-            console.error("This server does not appear to run a compatible version of Agent Stack Platform.")
-            sys.exit(1)
-        metadata = resp.json()
+    try:
+        oauth_metadata = await config.auth_manager.fetch_oauth_protected_resource_metadata(server)
+    except RuntimeError as e:
+        console.error(str(e))
+        sys.exit(1)
 
-    auth_servers = metadata.get("authorization_servers", [])
+    auth_servers = oauth_metadata.get("authorization_servers", [])
     auth_server = None
     token = None
 
@@ -265,7 +290,7 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                     'client_id': client_id,
                     'response_type': 'code',
                     'redirect_uri': REDIRECT_URI,
-                    'scope': ' '.join(metadata.get('scopes_supported', ['openid', 'email', 'profile'])),
+                    'scope': ' '.join(oauth_metadata.get('scopes_supported', ['openid', 'email', 'profile'])),
                     'code_challenge': typing.cast(str, create_s256_code_challenge(code_verifier)),
                     'code_challenge_method': 'S256',
                 }
