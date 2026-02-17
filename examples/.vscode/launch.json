@@ -38,15 +38,6 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "examples/settings-form-rendering",
-      "type": "debugpy",
-      "justMyCode": false,
-      "request": "launch",
-      "cwd": "${workspaceFolder}/agent-integration/forms/settings-form-rendering",
-      "program": "src/settings_form_rendering/agent.py",
-      "console": "integratedTerminal"
-    },
-    {
       "name": "examples/file-processing",
       "type": "debugpy",
       "justMyCode": false,

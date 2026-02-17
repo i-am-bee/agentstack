@@ -40,7 +40,7 @@ It is also possible to combine setting with initial form using `FormServiceExten
 
 Here's how to add simple user defined settings to your agent:
 
-{/* <!-- embedme examples/agent-integration/forms/settings-form-rendering/src/settings_form_rendering/agent.py --> */}
+{/* <!-- embedme examples/agent-integration/agent-settings/basic-settings/src/basic_settings/agent.py --> */}
 ```python
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
@@ -50,8 +50,6 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from a2a.types import Message
-from pydantic import BaseModel
-
 from agentstack_sdk.a2a.extensions.common.form import (
     CheckboxField,
     CheckboxGroupField,
@@ -66,6 +64,7 @@ from agentstack_sdk.a2a.extensions.services.form import (
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
+from pydantic import BaseModel
 
 
 class SettingsModel(BaseModel):
@@ -129,7 +128,7 @@ async def basic_settings_example(
     if not parsed_settings:
         yield "No settings provided"
         return
-    
+
     if not isinstance(parsed_settings, SettingsModel):
         yield f"Parsed settings in unexpected format: {parsed_settings}"
         return
@@ -171,7 +170,6 @@ async def basic_settings_example(
     # response_style_field = parsed_settings.values.get("response_style")
     # if response_style_field and response_style_field.type == "singleselect":
     #     yield f"Response style: {response_style_field.value}"
-
 
 
 def run():

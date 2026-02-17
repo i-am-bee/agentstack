@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+import contextlib
 import os
 import signal
 import subprocess
@@ -51,7 +52,9 @@ def run_process(
 
 
 def kill_process(process: subprocess.Popen) -> None:
-    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+    with contextlib.suppress(ProcessLookupError):
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+
     stdout, stderr = process.communicate(timeout=10)
     if stdout:
         print(f"--- example stdout ---\n{stdout.decode(errors='replace')}")

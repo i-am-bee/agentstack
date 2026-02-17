@@ -4,7 +4,8 @@
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import TaskState
-from agentstack_sdk.a2a.extensions.ui.settings import SettingsExtensionSpec
+from agentstack_sdk.a2a.extensions import FormServiceExtensionMetadata, FormServiceExtensionSpec, SettingsFormResponse
+from agentstack_sdk.a2a.extensions.common.form import CheckboxGroupFieldValue, SingleSelectFieldValue
 
 from tests.e2e.examples.conftest import run_example
 
@@ -16,40 +17,27 @@ async def test_basic_settings_example(subtests, get_final_task_from_stream, a2a_
     example_path = "agent-integration/agent-settings/basic-settings"
 
     async with run_example(example_path, a2a_client_factory) as running_example:
-        settings_uri = SettingsExtensionSpec.URI
-
-        with subtests.test("agent responds based on enabled thinking setting"):
-            message = create_text_message_object(content="Hello")
-            message.context_id = running_example.context.id
-            message.metadata = {
-                settings_uri: {
-                    "values": {
-                        "thinking_group": {
-                            "type": "checkbox_group",
-                            "values": {"thinking": {"value": True}},
+        spec = FormServiceExtensionSpec.from_agent_card(running_example.provider.agent_card)
+        assert spec is not None, "FormServiceExtensionSpec should be present in agent card"
+        with subtests.test("agent responds with greeting using form data"):
+            message = create_text_message_object(content="Show me the settings")
+            metadata = FormServiceExtensionMetadata(
+                form_fulfillments={
+                    "settings_form": SettingsFormResponse(
+                        values={
+                            "checkbox_settings": CheckboxGroupFieldValue(value={"thinking": True, "memory": False}),
+                            "response_style": SingleSelectFieldValue(value="humorous"),
                         }
-                    }
+                    )
                 }
-            }
+            ).model_dump(mode="json")
+
+            message.metadata = {spec.URI: metadata}
+            message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
+            # Verify response
             assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-            assert "Thinking mode is enabled" in task.history[-1].parts[0].root.text
-
-        with subtests.test("agent responds based on disabled thinking setting"):
-            message = create_text_message_object(content="Hello")
-            message.context_id = running_example.context.id
-            message.metadata = {
-                settings_uri: {
-                    "values": {
-                        "thinking_group": {
-                            "type": "checkbox_group",
-                            "values": {"thinking": {"value": False}},
-                        }
-                    }
-                }
-            }
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
-
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-            assert "Thinking mode is disabled" in task.history[-1].parts[0].root.text
+            assert "Thinking is enabled" in task.history[-1].parts[0].root.text
+            assert "Memory is disabled" in task.history[-1].parts[0].root.text
+            assert "Response style: humorous" in task.history[-1].parts[0].root.text
