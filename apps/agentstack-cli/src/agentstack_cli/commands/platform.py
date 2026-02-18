@@ -202,6 +202,14 @@ def _get_export_import_paths(vm_name: str) -> tuple[str, str]:
 
 
 def _canonify(t) -> str:
+    t = t.strip().strip("'").strip('"').replace(" @", "@")
+    if "@" in t:
+        base, digest = t.split("@")
+        last_colon_idx = base.rfind(":")
+        last_slash_idx = base.rfind("/")
+        if last_colon_idx > last_slash_idx:
+            base = base[:last_colon_idx]
+        t = f"{base}@{digest}"
     return t if "." in t.split("/")[0] else f"docker.io/{t}"
 
 
