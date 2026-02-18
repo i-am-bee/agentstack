@@ -78,6 +78,20 @@ if __name__ == "__main__":
 1. **Store agent responses:** Use `await context.store(response)` to store your agent's responses for future conversation context.
 
 
+## Streaming with Buffered History Example
+
+Use this pattern when you want to stream partial output to users while keeping one clean assistant message in conversation history.
+
+{/* <!-- embedme examples/agent-integration/multi-turn/streaming-buffered-history/src/streaming_buffered_history/agent.py--> */}
+```python
+```
+
+### When to use buffering
+
+- Use **simple yield + store** when your agent emits a single final response.
+- Use **stream + buffer + one store** when your agent emits multiple partial chunks.
+- With `PlatformContextStore`, each `context.store()` call creates a persisted history item, so buffering prevents chunk-level history fragmentation.
+
 ## Advanced BeeAI Framework Example
 
 Here's a sophisticated example using the BeeAI Framework to build a multi-turn chat agent that leverages conversation history and LLM capabilities:
