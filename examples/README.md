@@ -12,6 +12,26 @@ This directory contains example agents that serve three purposes:
    ```
    This keeps documentation code samples in sync with actual tested examples.
 
+## Folder structure
+
+The `examples/` folder structure mirrors the docs structure. For instance, examples used in `docs/development/agent-integration/forms.mdx` live under `examples/agent-integration/forms/`.
+
+Each doc section heading maps to an example name. For example, the "Initial Form Rendering" section in `forms.mdx` corresponds to the example at `examples/agent-integration/forms/initial-form-rendering/`.
+
+## Naming convention
+
+The template names the agent function as `<snake_case_name>_example`. The example name is derived from the doc section heading where it's used:
+
+- Doc heading: "Initial Form Rendering"
+- Example path: `agent-integration/forms/initial-form-rendering`
+- Agent function: `initial_form_rendering_example`
+
+## Modifying an existing example
+
+1. Edit the agent code in `examples/<path>/src/<name>/agent.py`
+2. Run the related e2e test in `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`
+3. Sync embedded code into docs: `mise run docs:fix`
+
 ## Creating a new example
 
 Use the mise command to scaffold a new example and its e2e test from the templates in `.template/`.
@@ -49,6 +69,16 @@ apps/agentstack-server/tests/e2e/examples/agent-integration/multi-turn/
 ```
 
 It also adds a VS Code debug configuration to `examples/.vscode/launch.json`.
+
+After scaffolding:
+
+1. Implement the agent logic in `examples/<path>/src/<name>/agent.py`
+2. Implement the e2e test in `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`
+3. Embed the example in docs using an embedme tag:
+   ```mdx
+   {/* <!-- embedme examples/<path>/src/<name>/agent.py --> */}
+   ```
+4. Sync embedded code into docs: `mise run docs:fix`
 
 ## Template placeholders
 

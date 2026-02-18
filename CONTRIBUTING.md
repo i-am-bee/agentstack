@@ -224,6 +224,45 @@ If you want to run this local setup against Ollama you must use a special option
 agentstack model setup --use-true-localhost
 ```
 
+### Examples
+
+Examples in the `examples/` directory serve as standalone agents, documentation code samples, and e2e tests. See [`examples/README.md`](examples/README.md) for full details.
+
+The `examples/` folder structure mirrors the docs structure. For instance, examples used in `docs/development/agent-integration/forms.mdx` live under `examples/agent-integration/forms/`. Each doc section heading maps to an example name (e.g. "Initial Form Rendering" -> `initial-form-rendering`).
+
+**Modifying an existing example:**
+
+1. Edit the agent code in `examples/<path>/src/<name>/agent.py`
+2. Run the related e2e test: `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`
+3. Update docs to sync embedded code: `mise run docs:fix`
+
+**Creating a new example:**
+
+```bash
+mise run example:create <path> <description>
+```
+
+This scaffolds the example agent and its e2e test. After scaffolding:
+
+1. Implement the agent logic in `examples/<path>/src/<name>/agent.py`
+2. Implement the e2e test in `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`
+3. Embed the example in docs using embedme tags:
+   ```mdx
+   {/* <!-- embedme examples/<path>/src/<name>/agent.py --> */}
+   ```
+4. Run `mise run docs:fix` to sync the embedded code into docs
+
+> **Naming convention:** The template names the agent function as `<snake_case_name>_example` (e.g. `initial_form_rendering_example`). The example name is derived from the doc section heading where it's used (e.g. "Initial Form Rendering" -> `initial-form-rendering`).
+
+**Running e2e example tests:**
+
+| Command | What it runs |
+|---|---|
+| `mise run agentstack-server:test:e2e` | Core e2e tests only (excludes examples) |
+| `mise run agentstack-server:test:e2e-examples` | Example e2e tests only |
+
+E2e example tests are **not** part of the core e2e suite and don't run on every commit. They run automatically when merged to `main`, or on PRs when you add the `e2e-examples` label.
+
 ### Working with migrations
 
 The following commands can be used to create or run migrations in the dev environment above:
@@ -316,3 +355,5 @@ Try to follow this structure:
 - **Troubleshooting:** Common errors and solutions.
 
 Make sure to preview docs locally using: `mise docs:run`. This runs a development server which refreshes as you make changes to the `.mdx` files.
+
+Some code samples in docs are embedded from the `examples/` directory using [embedme](https://github.com/zakhenry/embedme) tags. For these, edit the example agent (not the `.mdx` file directly) and run `mise run docs:fix` to sync. See [Examples](#examples) for the full workflow.
