@@ -532,7 +532,7 @@ async def start(
                         sysctl --system
                         echo 'deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.33/deb/ /' > /etc/apt/sources.list.d/cri-o.list
                         echo 'deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' > /etc/apt/sources.list.d/kubernetes.list
-                        apt-get update -y -q && apt-get install -y -q skopeo cri-o cri-tools containernetworking-plugins kubectl
+                        apt-get update -y -q && apt-get install -y -q skopeo cri-o cri-tools containernetworking-plugins kubectl conntrack iptables
                         cat > /etc/crio/crio.conf.d/14-microshift-cni.conf <<EOF
                         [crio.network]
                         plugin_dirs = ["/usr/lib/cni"]
@@ -545,6 +545,9 @@ async def start(
                         location = "localhost:30501"
                         insecure = true
                         EOF
+                        # Ensure containers policy exists
+                        mkdir -p /etc/containers
+                        [ -f /etc/containers/policy.json ] || echo '{"default":[{"type":"insecureAcceptAnything"}]}' > /etc/containers/policy.json
                     """),
                 ],
                 "Installing container runtime",
@@ -552,7 +555,11 @@ async def start(
 
             await run_in_vm(
                 vm_name,
-                ["bash", "-c", "systemctl daemon-reload && systemctl start crio"],
+                [
+                    "bash",
+                    "-c",
+                    "systemctl daemon-reload && systemctl enable crio && systemctl start crio || (systemctl status crio --no-pager && exit 1)",
+                ],
                 "Starting container runtime",
             )
 
@@ -604,7 +611,20 @@ async def start(
                 [
                     "bash",
                     "-c",
-                    "systemctl daemon-reload && systemctl start microshift || (journalctl -u microshift --no-pager -n 100 && exit 1)",
+                    textwrap.dedent("""
+                        systemctl daemon-reload
+                        systemctl enable microshift
+                        for i in {1..5}; do
+                            echo "Starting MicroShift (attempt $i)..."
+                            if systemctl start microshift; then
+                                exit 0
+                            fi
+                            systemctl status microshift --no-pager
+                            journalctl -u microshift --no-pager -n 100
+                            sleep 5
+                        done
+                        exit 1
+                    """),
                 ],
                 "Starting MicroShift",
             )
@@ -630,7 +650,7 @@ async def start(
             [
                 "bash",
                 "-c",
-                f"timeout 5m bash -c 'until "
+                f"timeout 20m bash -c 'until "
                 f"kubectl --kubeconfig={_kubeconfig(platform)} wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=10s 2>/dev/null && "
                 f'[ "$(kubectl --kubeconfig={_kubeconfig(platform)} get endpoints -n openshift-dns dns-default -o jsonpath="{{.subsets[*].addresses[0].ip}}" 2>/dev/null)" != "" ] && '
                 f"kubectl --kubeconfig={_kubeconfig(platform)} get svc kubernetes >/dev/null 2>&1; "
@@ -638,29 +658,6 @@ async def start(
             ],
             "Waiting for DNS to be ready",
         )
-
-        # Ensure kube-dns service in kube-system for compatibility with tools like Telepresence
-        if platform == "microshift":
-            await run_in_vm(
-                vm_name,
-                ["kubectl", f"--kubeconfig={_kubeconfig(platform)}", "apply", "-f", "-"],
-                "Ensuring standard kube-dns service for compatibility",
-                input=yaml.dump(
-                    {
-                        "apiVersion": "v1",
-                        "kind": "Service",
-                        "metadata": {"name": "kube-dns", "namespace": "kube-system", "labels": {"k8s-app": "kube-dns"}},
-                        "spec": {
-                            "ports": [
-                                {"name": "dns", "port": 53, "protocol": "UDP", "targetPort": 5353},
-                                {"name": "dns-tcp", "port": 53, "protocol": "TCP", "targetPort": 5353},
-                                {"name": "metrics", "port": 9154, "protocol": "TCP", "targetPort": 9154},
-                            ],
-                            "selector": {"dns.operator.openshift.io/daemonset-dns": "default"},
-                        },
-                    }
-                ).encode(),
-            )
 
         # Deploy
         await run_in_vm(
@@ -764,8 +761,8 @@ async def start(
         # Wait for kubeconfig to be generated and copy it
         kubeconfig_data = ""
         async for attempt in AsyncRetrying(
-            stop=stop_after_delay(datetime.timedelta(minutes=2)),
-            wait=wait_fixed(datetime.timedelta(seconds=5)),
+            stop=stop_after_delay(datetime.timedelta(minutes=5)),
+            wait=wait_fixed(datetime.timedelta(seconds=10)),
             retry=retry_if_exception_type(Exception),
         ):
             with attempt:
@@ -773,8 +770,12 @@ async def start(
                     vm_name, ["cat", _kubeconfig(platform)], "Copying kubeconfig from Agent Stack platform"
                 )
                 kubeconfig_data = result.stdout.decode()
-                if "contexts:" not in kubeconfig_data:
-                    raise RuntimeError("Kubeconfig is incomplete (missing contexts)")
+                if (
+                    not kubeconfig_data
+                    or "contexts:" not in kubeconfig_data
+                    or "current-context:" not in kubeconfig_data
+                ):
+                    raise RuntimeError("Kubeconfig is incomplete or not yet generated")
 
         await kubeconfig_local.write_text(kubeconfig_data)
         await run_in_vm(
@@ -797,17 +798,22 @@ async def start(
         )
 
         # Wait for service endpoints to be ready
-        await run_in_vm(
-            vm_name,
-            [
-                "bash",
-                "-c",
-                f"timeout 5m bash -c 'until "
-                f'[ "$(kubectl --kubeconfig={_kubeconfig(platform)} get endpoints postgresql -o jsonpath="{{.subsets[*].addresses[0].ip}}" 2>/dev/null)" != "" ]; '
-                f"do sleep 5; done'",
-            ],
-            "Waiting for PostgreSQL to be ready",
-        )
+        critical_services = ["postgresql"]
+        if any("redis.enabled=true" in value.lower() for value in set_values_list):
+            critical_services.append("redis")
+
+        for svc in critical_services:
+            await run_in_vm(
+                vm_name,
+                [
+                    "bash",
+                    "-c",
+                    f"timeout 10m bash -c 'until "
+                    f'[ "$(kubectl --kubeconfig={_kubeconfig(platform)} get endpoints {svc} -o jsonpath="{{.subsets[*].addresses[0].ip}}" 2>/dev/null)" != "" ]; '
+                    f"do sleep 5; done'",
+                ],
+                f"Waiting for {svc} to be ready",
+            )
 
         if shas_guest_before and (
             replaced_digests := set(shas_guest_before.values())

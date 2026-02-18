@@ -216,8 +216,29 @@ NAMESPACE=default
 VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
+# MicroShift/OpenShift specific setup for Telepresence
+kubectl create namespace ambassador --dry-run=client -o yaml | kubectl apply -f -
+kubectl label namespace ambassador pod-security.kubernetes.io/enforce=privileged --overwrite
+kubectl label namespace ambassador pod-security.kubernetes.io/warn=privileged --overwrite
+kubectl label namespace ambassador pod-security.kubernetes.io/audit=privileged --overwrite
+
+# Create telepresence values file to handle MicroShift restricted SCC
+TP_VALUES=$(mktemp)
+cat > "$TP_VALUES" <<EOF
+podSecurityContext: {}
+securityContext:
+  runAsUser: null
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+EOF
+
 tele="telepresence --use .*${NAMESPACE}.*"
-$tele helm install || true
+$tele helm install --values "$TP_VALUES" || true
+rm "$TP_VALUES"
 $tele connect --namespace "$NAMESPACE"
 $tele replace agentstack-server --port 18333:8333
 """
@@ -434,6 +455,7 @@ exit $result
 dir = "{{config_root}}/apps/agentstack-server"
 run = """
 #!/bin/bash
+set -euxo pipefail
 VM_NAME=integration-test-run
 
 {{ mise_bin }} run agentstack:delete --vm-name="$VM_NAME"
@@ -449,6 +471,4 @@ eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 
 uv run pytest -m integration
-result=$?
-exit $result
 """
