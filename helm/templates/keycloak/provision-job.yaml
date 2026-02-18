@@ -29,7 +29,7 @@ spec:
             - |
               # Wait for Keycloak to be ready by attempting login
               echo "Waiting for Keycloak to be ready..."
-              until /opt/keycloak/bin/kcadm.sh config credentials --server {{ ternary "http" "https" .Values.keycloak.httpEnabled }}://keycloak:{{ .Values.keycloak.service.port }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD {{ if not .Values.keycloak.httpEnabled }}--no-config --truststore /opt/keycloak/conf/server.crt.pem{{ end }}; do
+              until /opt/keycloak/bin/kcadm.sh config credentials --server {{ regexReplaceAll "/realms/.*" .Values.keycloak.internalIssuerUrl "" | quote }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD {{ if not .Values.keycloak.httpEnabled }}--no-config --truststore /opt/keycloak/conf/server.crt.pem{{ end }}; do
                 echo "Keycloak not ready or login failed... retrying in 5s"
                 sleep 5
               done
