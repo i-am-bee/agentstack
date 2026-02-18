@@ -119,7 +119,7 @@ else
   PULL_MODE="host"
 fi
 
-{{ mise_bin }} run agentstack-cli:run -- platform start \
+{{ mise_bin }} run agentstack-cli:run -- platform start -v \
     --image-pull-mode="$PULL_MODE" \
     --set auth.nextauthDevUrl="http://localhost:3000" \
     --set image.tag=local \

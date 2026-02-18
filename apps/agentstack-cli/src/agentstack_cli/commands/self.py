@@ -130,7 +130,7 @@ async def install(
             ).execute_async()
         ):
             try:
-                await agentstack_cli.commands.platform.start(set_values_list=[], verbose=verbose)
+                await agentstack_cli.commands.platform.start_cmd(set_values_list=[], verbose=verbose)
                 already_started = True
                 console.print()
             except Exception:
@@ -190,7 +190,7 @@ async def upgrade(
             "Upgrading agentstack-cli",
             env={"PATH": _path()},
         )
-        await agentstack_cli.commands.platform.start(set_values_list=[], verbose=verbose)
+        await agentstack_cli.commands.platform.start_cmd(set_values_list=[], verbose=verbose)
         await version(verbose=verbose)
 
 
@@ -204,7 +204,7 @@ async def uninstall(
         raise typer.Exit(1)
 
     with verbosity(verbose=verbose):
-        await agentstack_cli.commands.platform.delete(verbose=verbose)
+        await agentstack_cli.commands.platform.delete_cmd(verbose=verbose)
         await run_command(
             ["uv", "tool", "uninstall", "agentstack-cli"],
             "Uninstalling agentstack-cli",
