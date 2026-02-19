@@ -173,7 +173,7 @@ class AuthManager:
                 raise InvalidGrantError(description="Token refresh failed - no new token received")
             return AuthToken(**new_token)
 
-    async def update_server_token(self, new_token: AuthToken) -> None:
+    async def _update_server_token(self, new_token: AuthToken) -> None:
         server = self._auth.active_server
         auth_server = self._auth.active_auth_server
         if not server or not auth_server:
@@ -217,7 +217,7 @@ class AuthManager:
             new_token = await self._exchange_refresh_token(active_auth_server, auth_server.token)
 
             if new_token and new_token.access_token:
-                await self.update_server_token(new_token)
+                await self._update_server_token(new_token)
                 return new_token
             return None
 
