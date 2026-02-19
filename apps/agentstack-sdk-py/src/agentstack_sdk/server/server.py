@@ -342,7 +342,8 @@ class Server:
 
         host = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", self.server.config.host)
         provider_location = f"http://{host}:{self.server.config.port}#{self._self_registration_id}"
-        logger.info("Registering agent to the agentstack platform")
+        logger.info("Attempting to register agent to the agentstack platform")
+        auto_register_fail_message = "Agent can not be automatically registered to agentstack platform, try manual registration using `agentstack add`."
         try:
             async for attempt in AsyncRetrying(
                 stop=stop_after_attempt(10),
@@ -372,10 +373,10 @@ class Server:
         except HTTPStatusError as e:
             with suppress(Exception):
                 if error_message := e.response.json().get("detail"):
-                    logger.info(f"Agent can not be registered to agentstack server: {error_message}")
-                    return
-            logger.info(f"Agent can not be registered to agentstack server: {e}")
+                    logger.info(f"{auto_register_fail_message} Error: {error_message}")
+                else:
+                    logger.info(f"{auto_register_fail_message} Error: {e}")
         except HTTPError as e:
             logger.info(f"Can not reach server, check if running on {get_platform_client().base_url} : {e}")
         except Exception as e:
-            logger.info(f"Agent can not be registered to agentstack server: {e}")
+            logger.info(f"{auto_register_fail_message} Error: {e}")
