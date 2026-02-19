@@ -9,6 +9,7 @@ from typing import Any
 
 import httpx
 from authlib.common.errors import AuthlibBaseError
+from authlib.integrations.base_client.errors import OAuthError as IntegrationOAuthError
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 from pydantic import BaseModel, Field
@@ -155,24 +156,17 @@ class AuthManager:
         self._save()
 
     async def exchange_refresh_token(self, auth_server: str, token: AuthToken) -> dict[str, Any] | None:
-        """
-        Exchange a refresh token for a new access token using authlib.
-
-        Raises:
-            InvalidGrantError: If the refresh token is invalid or expired (4xx auth errors)
-            OAuth2Error: For other OAuth2 protocol errors
-            RuntimeError: For network errors or OIDC discovery failures
-        """
         if not self._auth.active_server:
             raise ValueError("No active server configured")
+
+        if not token.refresh_token:
+            raise InvalidGrantError(description="Token refresh failed - missing refresh token")
 
         try:
             metadata = await self.get_oidc_metadata(auth_server)
             token_endpoint = metadata["token_endpoint"]
 
             async with await self._get_oauth_client(self._auth.active_server, auth_server) as client:
-                # Authlib's fetch_token with refresh_token grant automatically handles the refresh
-                # and calls update_token callback to save the new token
                 new_token = await client.fetch_token(
                     url=token_endpoint,
                     grant_type="refresh_token",
@@ -180,18 +174,25 @@ class AuthManager:
                 )
                 return new_token
         except InvalidGrantError as e:
-            # 400-level OAuth errors: invalid/expired refresh token
             raise InvalidGrantError(
                 description=f"Token refresh failed - invalid or expired refresh token: {e.description}"
             ) from e
+        except IntegrationOAuthError as e:
+            # authlib.integrations.base_client.errors.OAuthError does not inherit from OAuth2Error.
+            # This is the error class actually raised in practice (e.g. "invalid_grant: Token is not active").
+            error_code = str(getattr(e, "error", "") or "").lower()
+            description = str(getattr(e, "description", "") or "") or str(e)
+
+            if error_code in ["invalid_grant", "token_expired"]:
+                raise InvalidGrantError(
+                    description=f"Token refresh failed - invalid or expired refresh token: {description}"
+                ) from e
+            raise OAuth2Error(error=error_code, description=f"OAuth2 error during token refresh: {description}") from e
         except OAuth2Error as e:
-            # Other OAuth2 protocol errors
             raise OAuth2Error(description=f"OAuth2 error during token refresh: {e.description}") from e
         except AuthlibBaseError as e:
-            # Other authlib errors
-            raise RuntimeError(f"Token refresh failed: {e}") from e
+            raise AuthlibBaseError(f"Authlib error during token refresh: {e}") from e
         except Exception as e:
-            # Network errors, OIDC discovery failures, etc.
             raise RuntimeError(f"Failed to refresh token: {e}") from e
 
     async def load_auth_token(self) -> str | None:
