@@ -112,6 +112,7 @@ class OAuthExtensionServer(BaseExtensionServer[OAuthExtensionSpec, OAuthExtensio
         oauth_auth = OAuthClientProvider(
             server_url=str(resource_url),
             client_metadata=OAuthClientMetadata(
+                client_name="AgentStack Agent",
                 redirect_uris=[fulfillment.redirect_uri],
             ),
             storage=await self.token_storage_factory.create_storage(),
