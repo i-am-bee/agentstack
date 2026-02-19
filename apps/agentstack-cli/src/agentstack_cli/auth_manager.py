@@ -155,7 +155,7 @@ class AuthManager:
             self._auth.servers[server]  # touch
         self._save()
 
-    async def exchange_refresh_token(self, auth_server: str, token: AuthToken) -> dict[str, Any] | None:
+    async def exchange_refresh_token(self, auth_server: str, token: AuthToken) -> AuthToken:
         if not self._auth.active_server:
             raise ValueError("No active server configured")
 
@@ -172,7 +172,9 @@ class AuthManager:
                     grant_type="refresh_token",
                     refresh_token=token.refresh_token,
                 )
-                return new_token
+                if not new_token:
+                    raise InvalidGrantError(description="Token refresh failed - no new token received")
+                return AuthToken(**new_token)
         except InvalidGrantError as e:
             raise InvalidGrantError(
                 description=f"Token refresh failed - invalid or expired refresh token: {e.description}"
@@ -180,8 +182,8 @@ class AuthManager:
         except IntegrationOAuthError as e:
             # authlib.integrations.base_client.errors.OAuthError does not inherit from OAuth2Error.
             # This is the error class actually raised in practice (e.g. "invalid_grant: Token is not active").
-            error_code = str(getattr(e, "error", "") or "").lower()
-            description = str(getattr(e, "description", "") or "") or str(e)
+            error_code = (e.error or "").lower()
+            description = e.description or str(e)
 
             if error_code in ["invalid_grant", "token_expired"]:
                 raise InvalidGrantError(
@@ -195,12 +197,33 @@ class AuthManager:
         except Exception as e:
             raise RuntimeError(f"Failed to refresh token: {e}") from e
 
-    async def load_auth_token(self) -> str | None:
+    async def update_server_token(self, new_token: AuthToken) -> None:
+        server = self._auth.active_server
+        auth_server = self._auth.active_auth_server
+        if not server or not auth_server:
+            raise ValueError("No active server/auth server configured")
+        if not new_token:
+            raise ValueError("No new token provided")
+
+        auth_config = self._auth.servers[server].authorization_servers.get(auth_server)
+        if not auth_config:
+            raise ValueError(f"No auth config found for server {server} and auth server {auth_server}")
+
+        self.save_auth_info(
+            server=server,
+            auth_server=auth_server,
+            client_id=auth_config.client_id,
+            client_secret=auth_config.client_secret,
+            token=new_token.model_dump(),
+            registration_token=auth_config.registration_token,
+        )
+
+    async def load_auth_token(self) -> AuthToken | None:
         """
         Load and refresh auth token if needed using authlib.
 
         Returns:
-            Access token string, or None if no auth configured
+            AuthToken object, or None if no auth configured
 
         Raises:
             InvalidGrantError: If token is expired and refresh fails due to auth issues (4xx)
@@ -221,11 +244,13 @@ class AuthManager:
         if (auth_server.token.expires_at or 0) - TOKEN_EXPIRY_LEEWAY < time.time():
             # Token expired, try to refresh - this may raise TokenRefreshError
             new_token = await self.exchange_refresh_token(active_auth_server, auth_server.token)
-            if new_token:
-                return new_token["access_token"]
+
+            if new_token and new_token.access_token:
+                await self.update_server_token(new_token)
+                return new_token
             return None
 
-        return auth_server.token.access_token
+        return auth_server.token
 
     async def deregister_client(self, auth_server: str, client_id: str | None, registration_token: str | None) -> None:
         """Deregister a dynamically registered OAuth2 client."""

@@ -48,7 +48,7 @@ async def api_request(
             params=params,
             timeout=60,
             headers=(
-                {"Authorization": f"Bearer {token}"}
+                {"Authorization": f"Bearer {token.access_token}"}
                 if use_auth and (token := await config.auth_manager.load_auth_token())
                 else {}
             ),
