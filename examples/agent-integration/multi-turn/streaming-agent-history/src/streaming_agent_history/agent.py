@@ -28,8 +28,11 @@ async def history_counter(history: list[Message]) -> str:
 
 
 @server.agent()
-async def streaming_buffered_history_example(input: Message, context: RunContext):
-    """Stream partial chunks, execute framework tools, and persist one finalized assistant message."""
+async def streaming_agent_w_single_history_write_example(input: Message, context: RunContext):
+    """
+    Stream partial answers, execute tools, and persist one finalized assistant message.
+    See other examples for actual implementation of multi-turn conversation agent with tool use.
+    """
     # Store the user input as the first persisted item for this turn.
     await context.store(data=input)
 
@@ -37,7 +40,8 @@ async def streaming_buffered_history_example(input: Message, context: RunContext
 
     current_message = get_message_text(input)
 
-    # Stream user-facing partial output as each tool completes.
+    # Stream user-facing partial output as each step completes.
+    # This simulates an agent that produces intermediate outputs throughout its turn which are immediately useful to the user and so sent to them
     buffered_parts: list[str] = []
     try: 
         part_1 = f"Received input: '{current_message}'"
@@ -62,13 +66,18 @@ async def streaming_buffered_history_example(input: Message, context: RunContext
         buffered_parts.append(error_part)
         yield AgentMessage(text=error_part)
     finally:
-        # IMPORTANT: Persist only once after streaming finishes.
+        # IMPORTANT: Persisting only once after streaming finishes.
+        #
+        # The finally block ensures the aggregated response is always at least partially persisted up until the point of failure. 
+        # This does not need to be the go-to approach in all cases, sometimes the partial outputs are of no value and one does not want them to be properly stored.
         #
         # Why not store each chunk?
-        # - PlatformContextStore writes every `context.store()` call as a history item.
+        # - Calling `context.store()`, PlatformContextStore saves every message as a distinct history item.
         # - Storing per chunk would fragment one assistant turn into many partial messages.
         # - A single aggregated write keeps replay, memory, and history semantics clean.
+        # 
         aggregated_response = AgentMessage(text="\n".join(buffered_parts))
+        yield "Final result check:\n" + str(aggregated_response.text)
         await context.store(data=aggregated_response)
 
 

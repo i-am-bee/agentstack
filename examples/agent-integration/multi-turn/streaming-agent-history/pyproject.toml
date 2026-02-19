@@ -1,5 +1,5 @@
 [project]
-name = "streaming-buffered-history"
+name = "streaming-agent-history"
 version = "0.1.0"
 description = "Example demonstrating streamed responses with buffered history persistence for multi-turn conversations."
 authors = [
@@ -22,7 +22,7 @@ target-version = "py313"
 agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
 
 [project.scripts]
-server = "streaming_buffered_history.agent:run"
+server = "streaming_agent_history.agent:run"
 
 [tool.pyrefly]
 project-includes = [

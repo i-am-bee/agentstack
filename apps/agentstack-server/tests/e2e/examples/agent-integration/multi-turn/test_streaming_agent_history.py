@@ -13,7 +13,7 @@ pytestmark = pytest.mark.e2e
 def _history_text(task) -> str:
     """Concatenate all text parts from stored history items.
 
-    The streaming-buffered-history agent stores one aggregated message per turn,
+    The streaming-agent-history agent stores one aggregated message per turn,
     so all buffered partial outputs are present as a single joined entry in history.
     """
     return "".join(
@@ -26,7 +26,7 @@ def _history_text(task) -> str:
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_streaming_buffered_history_example(subtests, get_final_task_from_stream, a2a_client_factory):
-    example_path = "agent-integration/multi-turn/streaming-buffered-history"
+    example_path = "agent-integration/multi-turn/streaming-agent-history"
 
     async with run_example(example_path, a2a_client_factory) as running_example:
         with subtests.test("first turn history summary shows total=1 and user=1"):
