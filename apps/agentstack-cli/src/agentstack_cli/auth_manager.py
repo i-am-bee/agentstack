@@ -8,10 +8,8 @@ from collections import defaultdict
 from typing import Any
 
 import httpx
-from authlib.common.errors import AuthlibBaseError
-from authlib.integrations.base_client.errors import OAuthError as IntegrationOAuthError
 from authlib.integrations.httpx_client import AsyncOAuth2Client
-from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
+from authlib.oauth2.rfc6749.errors import InvalidGrantError
 from pydantic import BaseModel, Field
 
 TOKEN_EXPIRY_LEEWAY = 60  # seconds
@@ -155,47 +153,25 @@ class AuthManager:
             self._auth.servers[server]  # touch
         self._save()
 
-    async def exchange_refresh_token(self, auth_server: str, token: AuthToken) -> AuthToken:
+    async def _exchange_refresh_token(self, auth_server: str, token: AuthToken) -> AuthToken:
         if not self._auth.active_server:
             raise ValueError("No active server configured")
 
         if not token.refresh_token:
             raise InvalidGrantError(description="Token refresh failed - missing refresh token")
 
-        try:
-            metadata = await self.get_oidc_metadata(auth_server)
-            token_endpoint = metadata["token_endpoint"]
+        metadata = await self.get_oidc_metadata(auth_server)
+        token_endpoint = metadata["token_endpoint"]
 
-            async with await self._get_oauth_client(self._auth.active_server, auth_server) as client:
-                new_token = await client.fetch_token(
-                    url=token_endpoint,
-                    grant_type="refresh_token",
-                    refresh_token=token.refresh_token,
-                )
-                if not new_token:
-                    raise InvalidGrantError(description="Token refresh failed - no new token received")
-                return AuthToken(**new_token)
-        except InvalidGrantError as e:
-            raise InvalidGrantError(
-                description=f"Token refresh failed - invalid or expired refresh token: {e.description}"
-            ) from e
-        except IntegrationOAuthError as e:
-            # authlib.integrations.base_client.errors.OAuthError does not inherit from OAuth2Error.
-            # This is the error class actually raised in practice (e.g. "invalid_grant: Token is not active").
-            error_code = (e.error or "").lower()
-            description = e.description or str(e)
-
-            if error_code in ["invalid_grant", "token_expired"]:
-                raise InvalidGrantError(
-                    description=f"Token refresh failed - invalid or expired refresh token: {description}"
-                ) from e
-            raise OAuth2Error(error=error_code, description=f"OAuth2 error during token refresh: {description}") from e
-        except OAuth2Error as e:
-            raise OAuth2Error(description=f"OAuth2 error during token refresh: {e.description}") from e
-        except AuthlibBaseError as e:
-            raise AuthlibBaseError(f"Authlib error during token refresh: {e}") from e
-        except Exception as e:
-            raise RuntimeError(f"Failed to refresh token: {e}") from e
+        async with await self._get_oauth_client(self._auth.active_server, auth_server) as client:
+            new_token = await client.fetch_token(
+                url=token_endpoint,
+                grant_type="refresh_token",
+                refresh_token=token.refresh_token,
+            )
+            if not new_token:
+                raise InvalidGrantError(description="Token refresh failed - no new token received")
+            return AuthToken(**new_token)
 
     async def update_server_token(self, new_token: AuthToken) -> None:
         server = self._auth.active_server
@@ -224,11 +200,6 @@ class AuthManager:
 
         Returns:
             AuthToken object, or None if no auth configured
-
-        Raises:
-            InvalidGrantError: If token is expired and refresh fails due to auth issues (4xx)
-            OAuth2Error: For other OAuth2 protocol errors
-            RuntimeError: For network or other errors
         """
         active_res = self._auth.active_server
         active_auth_server = self._auth.active_auth_server
@@ -243,7 +214,7 @@ class AuthManager:
 
         if (auth_server.token.expires_at or 0) - TOKEN_EXPIRY_LEEWAY < time.time():
             # Token expired, try to refresh - this may raise TokenRefreshError
-            new_token = await self.exchange_refresh_token(active_auth_server, auth_server.token)
+            new_token = await self._exchange_refresh_token(active_auth_server, auth_server.token)
 
             if new_token and new_token.access_token:
                 await self.update_server_token(new_token)

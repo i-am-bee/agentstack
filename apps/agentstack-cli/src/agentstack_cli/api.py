@@ -87,7 +87,7 @@ async def api_stream(
             params=params,
             timeout=timedelta(hours=1).total_seconds(),
             headers=(
-                {"Authorization": f"Bearer {token}"}
+                {"Authorization": f"Bearer {token.access_token}"}
                 if use_auth and (token := await config.auth_manager.load_auth_token())
                 else {}
             ),

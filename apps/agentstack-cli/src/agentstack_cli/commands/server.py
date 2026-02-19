@@ -13,7 +13,6 @@ import httpx
 import typer
 import uvicorn
 from authlib.common.security import generate_token
-from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 from authlib.oauth2.rfc7636 import create_s256_code_challenge
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -185,26 +184,14 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
                 else:
                     console.success(f"Logged in to [cyan]{server}[/cyan].")
                     return
-            except InvalidGrantError:
-                # Token refresh failed due to invalid/expired refresh token
-                log_in_message = "Your session has expired. Please log in again."
+            except Exception as e:
+                console.warning(f"Failed to load authentication token: {e!s}")
+                # Token refresh failed due to invalid/expired refresh token or some other error (e.g. network issue) - in any case, we try to log in again
+                log_in_message = "Please try to log in again."
                 # Restore previous state until login completes
                 config.auth_manager.active_server = previous_server
                 config.auth_manager.active_auth_server = previous_auth_server
                 # Fall through to login flow below
-            except OAuth2Error as e:
-                # Other OAuth2 protocol errors - report but don't continue
-                console.error(f"OAuth2 error: {e.description}")
-                config.auth_manager.active_server = previous_server
-                config.auth_manager.active_auth_server = previous_auth_server
-                sys.exit(1)
-            except RuntimeError as e:
-                # Network or OIDC discovery errors - report but don't continue
-                console.error(f"Failed to validate authentication: {e}")
-                console.hint("Check your network connection and try again.")
-                config.auth_manager.active_server = previous_server
-                config.auth_manager.active_auth_server = previous_auth_server
-                sys.exit(1)
 
     # Starting the login flow
     console.info(log_in_message)

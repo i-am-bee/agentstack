@@ -13,7 +13,6 @@ from contextlib import asynccontextmanager
 import pydantic
 import pydantic_settings
 from agentstack_sdk.platform import PlatformClient, use_platform_client
-from authlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 from pydantic import HttpUrl, SecretStr
 
 from agentstack_cli.auth_manager import AuthManager
@@ -66,22 +65,13 @@ class Configuration(pydantic_settings.BaseSettings):
             )
             sys.exit(1)
 
-        re_auth_message = (
-            f"Run [green]agentstack server login {self.auth_manager.active_server}[/green] to re-authenticate."
-        )
         try:
             auth_token = await self.auth_manager.load_auth_token()
-        except InvalidGrantError:
-            console.error("Your session has expired.")
-            console.hint(re_auth_message)
-            sys.exit(1)
-        except OAuth2Error as e:
-            console.error(f"OAuth2 error: {e.description}")
-            console.hint(re_auth_message)
-            sys.exit(1)
-        except RuntimeError as e:
+        except Exception as e:
             console.error(f"Failed to load authentication: {e}")
-            console.hint("Check your network connection and try again.")
+            console.hint(
+                f"Run [green]agentstack server login {self.auth_manager.active_server}[/green] to re-authenticate."
+            )
             sys.exit(1)
 
         async with use_platform_client(
