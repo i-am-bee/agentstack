@@ -13,7 +13,7 @@ from a2a.types import Message as A2AMessage
 from typing_extensions import override
 
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
-from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
+from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel, redact_str
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
@@ -32,7 +32,7 @@ class EmbeddingFulfillment(SecureBaseModel):
     Base URL for an OpenAI-compatible API. It should provide at least /v1/chat/completions
     """
 
-    api_key: pydantic.SecretStr
+    api_key: str
     """
     API key to attach as a `Authorization: Bearer $api_key` header.
     """
@@ -41,6 +41,10 @@ class EmbeddingFulfillment(SecureBaseModel):
     """
     Model name to use with the /v1/chat/completions API.
     """
+
+    @pydantic.field_serializer("api_key")
+    def _redact_api_key(self, v: str, info) -> str:
+        return redact_str(v, info)
 
 
 class EmbeddingDemand(pydantic.BaseModel):

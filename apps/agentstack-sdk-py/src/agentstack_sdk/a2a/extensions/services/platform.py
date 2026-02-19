@@ -122,7 +122,7 @@ class PlatformApiExtensionClient(BaseExtensionClient[PlatformApiExtensionSpec, N
         return {
             self.spec.URI: PlatformApiExtensionMetadata(
                 base_url=base_url,
-                auth_token=auth_token,
+                auth_token=auth_token if isinstance(auth_token, str) else auth_token.get_secret_value(),
                 expires_at=expires_at,
             ).model_dump(mode="json", context={REVEAL_SECRETS: True})
         }
