@@ -46,7 +46,7 @@ import {
   JsonRpcTransportFactory,
 } from '@a2a-js/sdk/client';
 
-const baseUrl = 'https://your-agentstack-instance.com';
+const baseUrl = 'https://your-agentstack-instance.com'; // or http://localhost:8333 for local development
 const accessToken = '<user-access-token>';
 
 const api = buildApiClient({

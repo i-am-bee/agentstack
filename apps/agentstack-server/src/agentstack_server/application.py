@@ -244,6 +244,7 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
         app.add_middleware(
             CORSMiddleware,
             allow_origins=configuration.cors.allow_origins,
+            allow_origin_regex=configuration.cors.allow_origin_regex,
             allow_credentials=configuration.cors.allow_credentials,
             allow_methods=configuration.cors.allow_methods,
             allow_headers=configuration.cors.allow_headers,
