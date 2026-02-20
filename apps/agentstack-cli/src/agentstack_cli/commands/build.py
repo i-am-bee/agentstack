@@ -56,6 +56,10 @@ async def client_side_build(
     import_image: typing.Annotated[
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into Agent Stack platform")
     ] = True,
+    skip_agent_card_extraction: typing.Annotated[
+        bool,
+        typer.Option("--skip-agent-card-extraction", help="Skip agent card extraction from running container"),
+    ] = False,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
@@ -72,40 +76,41 @@ async def client_side_build(
 
         agent_card = None
 
-        container_id = str(uuid.uuid4())
+        if not skip_agent_card_extraction:
+            container_id = str(uuid.uuid4())
 
-        with status("Extracting agent metadata"):
-            async with (
-                await open_process(
-                    f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}",
-                ) as process,
-            ):
-                async with capture_output(process) as task_group:
-                    try:
-                        async for attempt in AsyncRetrying(
-                            stop=stop_after_delay(timedelta(seconds=30)),
-                            wait=wait_fixed(timedelta(seconds=0.5)),
-                            retry=retry_if_exception_type(HTTPError),
-                            reraise=True,
-                        ):
-                            with attempt:
-                                async with AsyncClient() as client:
-                                    resp = await client.get(
-                                        f"http://localhost:{port}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1
-                                    )
-                                    resp.raise_for_status()
-                                    agent_card = resp.json()
-                        process.terminate()
-                        with suppress(ProcessLookupError):
-                            process.kill()
-                    except BaseException as ex:
-                        raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
-                    finally:
-                        task_group.cancel_scope.cancel()
-                        with suppress(BaseException):
-                            await run_command(["docker", "kill", container_id], "Killing container")
-                        with suppress(ProcessLookupError):
-                            process.kill()
+            with status("Extracting agent metadata"):
+                async with (
+                    await open_process(
+                        f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}",
+                    ) as process,
+                ):
+                    async with capture_output(process) as task_group:
+                        try:
+                            async for attempt in AsyncRetrying(
+                                stop=stop_after_delay(timedelta(seconds=30)),
+                                wait=wait_fixed(timedelta(seconds=0.5)),
+                                retry=retry_if_exception_type(HTTPError),
+                                reraise=True,
+                            ):
+                                with attempt:
+                                    async with AsyncClient() as client:
+                                        resp = await client.get(
+                                            f"http://localhost:{port}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1
+                                        )
+                                        resp.raise_for_status()
+                                        agent_card = resp.json()
+                            process.terminate()
+                            with suppress(ProcessLookupError):
+                                process.kill()
+                        except BaseException as ex:
+                            raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
+                        finally:
+                            task_group.cancel_scope.cancel()
+                            with suppress(BaseException):
+                                await run_command(["docker", "kill", container_id], "Killing container")
+                            with suppress(ProcessLookupError):
+                                process.kill()
 
         context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
