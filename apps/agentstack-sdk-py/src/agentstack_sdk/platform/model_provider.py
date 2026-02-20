@@ -14,6 +14,7 @@ from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 
 class ModelProviderType(StrEnum):
     ANTHROPIC = "anthropic"
+    BEDROCK = "bedrock"
     CEREBRAS = "cerebras"
     CHUTES = "chutes"
     COHERE = "cohere"

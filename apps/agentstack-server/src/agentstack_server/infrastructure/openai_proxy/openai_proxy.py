@@ -11,6 +11,7 @@ from agentstack_server.domain.repositories.openai_proxy import (
     IOpenAIEmbeddingProxyAdapter,
     IOpenAIProxy,
 )
+from agentstack_server.infrastructure.openai_proxy.adapters.bedrock import BedrockOpenAIProxyAdapter
 from agentstack_server.infrastructure.openai_proxy.adapters.openai import (
     AnthropicOpenAIProxyAdapter,
     GithubOpenAIProxyAdapter,
@@ -36,6 +37,8 @@ class CustomOpenAIProxy(IOpenAIProxy):
         match provider.type:
             case ModelProviderType.WATSONX:
                 return WatsonXOpenAIProxyAdapter(provider)
+            case ModelProviderType.BEDROCK:
+                return BedrockOpenAIProxyAdapter(provider)
             case ModelProviderType.RITS:
                 return RitsOpenAIProxyAdapter(provider)
             case ModelProviderType.ANTHROPIC:
@@ -52,6 +55,8 @@ class CustomOpenAIProxy(IOpenAIProxy):
         match provider.type:
             case ModelProviderType.WATSONX:
                 return WatsonXOpenAIProxyAdapter(provider)
+            case ModelProviderType.BEDROCK:
+                return BedrockOpenAIProxyAdapter(provider)
             case ModelProviderType.RITS:
                 return RitsOpenAIProxyAdapter(provider)
             case ModelProviderType.ANTHROPIC:

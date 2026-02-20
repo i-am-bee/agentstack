@@ -46,6 +46,7 @@ def _ollama_exe() -> str:
 
 RECOMMENDED_LLM_MODELS = [
     f"{ModelProviderType.WATSONX}:ibm/granite-3-3-8b-instruct",
+    f"{ModelProviderType.BEDROCK}:deepseek.v3.2",
     f"{ModelProviderType.OPENAI}:gpt-4o",
     f"{ModelProviderType.ANTHROPIC}:claude-sonnet-4-20250514",
     f"{ModelProviderType.CEREBRAS}:llama-3.3-70b",
@@ -74,6 +75,10 @@ RECOMMENDED_EMBEDDING_MODELS = [
 ]
 
 LLM_PROVIDERS = [
+    Choice(
+        name="Amazon Bedrock".ljust(20),
+        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", None),
+    ),
     Choice(
         name="Anthropic Claude".ljust(20),
         value=(ModelProviderType.ANTHROPIC, "Anthropic Claude", "https://api.anthropic.com/v1"),
@@ -138,7 +143,7 @@ LLM_PROVIDERS = [
         value=(ModelProviderType.TOGETHER, "together.ai", "https://api.together.xyz/v1"),
     ),
     Choice(
-        name="🛠️  Other (RITS, Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
+        name="🛠️  Other (RITS, vLLM, ..., any OpenAI-compatible API)",
         value=(ModelProviderType.OTHER, "Other", None),
     ),
 ]
@@ -173,7 +178,7 @@ EMBEDDING_PROVIDERS = [
         value=(ModelProviderType.VOYAGE, "Voyage", "https://api.voyageai.com/v1"),
     ),
     Choice(
-        name="🛠️  Other (Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
+        name="🛠️  Other (vLLM, ..., any OpenAI-compatible API)",
         value=(ModelProviderType.OTHER, "Other", None),
     ),
 ]
@@ -189,6 +194,9 @@ async def _add_provider(
     watsonx_region: str | None = None,
     watsonx_project_or_space: str | None = None,
     watsonx_project_or_space_id: str | None = None,
+    bedrock_region: str | None = None,
+    bedrock_access_key: str | None = None,
+    bedrock_secret_key: str | None = None,
     auto_pull_models: bool | None = None,
 ) -> ModelProvider:
     provider_type: str
@@ -270,7 +278,32 @@ async def _add_provider(
         _watsonx_space_id = _watsonx_project_or_space_id if _watsonx_project_or_space == "space" else None
 
     _api_key: str
-    if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}:
+    if provider_type == ModelProviderType.BEDROCK:
+        if bedrock_region is not None:
+            region = bedrock_region
+        else:
+            region: str = await inquirer.select(
+                message="Select AWS Region:",
+                choices=[
+                    Choice(name="us-east-1", value="us-east-1"),
+                    Choice(name="us-west-2", value="us-west-2"),
+                    Choice(name="eu-central-1", value="eu-central-1"),
+                    Choice(name="ap-northeast-1", value="ap-northeast-1"),
+                    Choice(name="ap-southeast-1", value="ap-southeast-1"),
+                ],
+            ).execute_async() or sys.exit(1)
+
+        base_url = f"https://bedrock-runtime.{region}.amazonaws.com/openai/v1"
+
+        if api_key is not None:
+            _api_key = api_key
+        elif bedrock_access_key is not None and bedrock_secret_key is not None:
+            _api_key = f"{bedrock_access_key}:{bedrock_secret_key}::{region}"
+        else:
+            access_key = await inquirer.secret(message="AWS Access Key ID:").execute_async() or ""
+            secret_key = await inquirer.secret(message="AWS Secret Access Key:").execute_async() or ""
+            _api_key = f"{access_key}:{secret_key}::{region}"
+    elif provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}:
         _api_key = "dummy"
     elif api_key is not None:
         _api_key = api_key
@@ -332,7 +365,7 @@ async def _add_provider(
             base_url = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", base_url)
 
         with console.status("Saving configuration...", spinner="dots"):
-            return await ModelProvider.create(
+            provider = await ModelProvider.create(
                 name=provider_name,
                 type=ModelProviderType(provider_type),
                 base_url=base_url,
@@ -340,6 +373,7 @@ async def _add_provider(
                 watsonx_space_id=_watsonx_space_id,
                 watsonx_project_id=_watsonx_project_id,
             )
+            return provider
 
     except httpx.HTTPError as e:
         if hasattr(e, "response") and hasattr(e.response, "json"):
@@ -430,7 +464,10 @@ async def _select_default_model(
                             {"role": "user", "content": "Hello!"},
                         ],
                     )
-                    if not test_response.choices or "Hello" not in (test_response.choices[0].message.content or ""):
+                    console.print(f"DEBUG response: choices={test_response.choices!r}")
+                    if test_response.choices:
+                        console.print(f"DEBUG content: {test_response.choices[0].message.content!r}")
+                    if not test_response.choices or "hello" not in (test_response.choices[0].message.content or "").lower():
                         raise ModelProviderError("Model did not provide a proper response.")
                 else:
                     test_response = await client.embeddings.create(model=selected_model, input="Hello!")
@@ -503,6 +540,15 @@ async def setup(
     llm_model: typing.Annotated[
         str | None, typer.Option("--llm-model", help="Default LLM model ID (e.g. openai:gpt-4o)")
     ] = None,
+    llm_bedrock_region: typing.Annotated[
+        str | None, typer.Option("--llm-bedrock-region", help="AWS region for Bedrock LLM (e.g. us-east-1)")
+    ] = None,
+    llm_bedrock_access_key: typing.Annotated[
+        str | None, typer.Option("--llm-bedrock-access-key", help="AWS Access Key ID for Bedrock LLM")
+    ] = None,
+    llm_bedrock_secret_key: typing.Annotated[
+        str | None, typer.Option("--llm-bedrock-secret-key", help="AWS Secret Access Key for Bedrock LLM")
+    ] = None,
     embedding_provider: typing.Annotated[
         str | None, typer.Option("--embedding-provider", help="Embedding provider type (e.g. openai, watsonx)")
     ] = None,
@@ -524,6 +570,15 @@ async def setup(
     ] = None,
     embedding_model: typing.Annotated[
         str | None, typer.Option("--embedding-model", help="Default embedding model ID")
+    ] = None,
+    embedding_bedrock_region: typing.Annotated[
+        str | None, typer.Option("--embedding-bedrock-region", help="AWS region for Bedrock embedding (e.g. us-east-1)")
+    ] = None,
+    embedding_bedrock_access_key: typing.Annotated[
+        str | None, typer.Option("--embedding-bedrock-access-key", help="AWS Access Key ID for Bedrock embedding")
+    ] = None,
+    embedding_bedrock_secret_key: typing.Annotated[
+        str | None, typer.Option("--embedding-bedrock-secret-key", help="AWS Secret Access Key for Bedrock embedding")
     ] = None,
     skip_embedding: typing.Annotated[
         bool, typer.Option("--skip-embedding", help="Skip embedding provider setup")
@@ -564,6 +619,9 @@ async def setup(
                     watsonx_region=llm_watsonx_region,
                     watsonx_project_or_space=llm_watsonx_project_or_space,
                     watsonx_project_or_space_id=llm_watsonx_project_or_space_id,
+                    bedrock_region=llm_bedrock_region,
+                    bedrock_access_key=llm_bedrock_access_key,
+                    bedrock_secret_key=llm_bedrock_secret_key,
                     auto_pull_models=yes,
                 )
                 default_llm_model = await _select_default_model(ModelCapability.LLM, model_id=llm_model, yes=yes)
@@ -584,6 +642,9 @@ async def setup(
                         watsonx_region=embedding_watsonx_region,
                         watsonx_project_or_space=embedding_watsonx_project_or_space,
                         watsonx_project_or_space_id=embedding_watsonx_project_or_space_id,
+                        bedrock_region=embedding_bedrock_region,
+                        bedrock_access_key=embedding_bedrock_access_key,
+                        bedrock_secret_key=embedding_bedrock_secret_key,
                     )
                     default_embedding_model = await _select_default_model(
                         ModelCapability.EMBEDDING, model_id=embedding_model, yes=yes
@@ -712,6 +773,15 @@ async def add_provider(
     watsonx_project_or_space_id: typing.Annotated[
         str | None, typer.Option("--watsonx-project-or-space-id", help="IBM watsonx project or space ID")
     ] = None,
+    bedrock_region: typing.Annotated[
+        str | None, typer.Option("--bedrock-region", help="AWS region for Bedrock (e.g. us-east-1)")
+    ] = None,
+    bedrock_access_key: typing.Annotated[
+        str | None, typer.Option("--bedrock-access-key", help="AWS Access Key ID for Bedrock")
+    ] = None,
+    bedrock_secret_key: typing.Annotated[
+        str | None, typer.Option("--bedrock-secret-key", help="AWS Secret Access Key for Bedrock")
+    ] = None,
     model: typing.Annotated[
         str | None, typer.Option("--model", help="Default model ID to use after adding the provider")
     ] = None,
@@ -740,6 +810,9 @@ async def add_provider(
             watsonx_region=watsonx_region,
             watsonx_project_or_space=watsonx_project_or_space,
             watsonx_project_or_space_id=watsonx_project_or_space_id,
+            bedrock_region=bedrock_region,
+            bedrock_access_key=bedrock_access_key,
+            bedrock_secret_key=bedrock_secret_key,
             auto_pull_models=yes,
         )
 
