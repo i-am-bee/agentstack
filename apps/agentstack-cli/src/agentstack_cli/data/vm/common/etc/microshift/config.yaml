@@ -1,0 +1,11 @@
+apiServer:
+    port: 16443
+ingress:
+    status: Removed
+storage:
+    driver: none
+dns:
+    hosts:
+        status: Enabled
+telemetry:
+    status: Disabled

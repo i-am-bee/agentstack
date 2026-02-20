@@ -1,0 +1,4 @@
+[Service]
+ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i" && kubectl wait --kubeconfig=/kubeconfig --for=jsonpath={.subsets[*].addresses[0].ip} ep/$svc --timeout=300s && exec kubectl port-forward --kubeconfig=/kubeconfig --address=127.0.0.1 svc/$svc $port:$port'
+Restart=on-failure
+User=root

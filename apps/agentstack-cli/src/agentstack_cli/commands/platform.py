@@ -72,14 +72,6 @@ def detect_driver() -> typing.Literal["lima", "wsl"]:
 
 
 @functools.cache
-def detect_kubeconfig(platform: typing.Literal["microshift", "k3s"] = "microshift") -> str:
-    return {
-        "microshift": "/var/lib/microshift/resources/kubeadmin/kubeconfig",
-        "k3s": "/etc/rancher/k3s/k3s.yaml",
-    }[platform]
-
-
-@functools.cache
 def detect_export_import_paths() -> tuple[str, str]:
     if detect_driver() == "lima":
         image_dir = pathlib.Path("/tmp/agentstack")
@@ -156,6 +148,23 @@ async def run_in_vm(
         input=input,
         check=check,
     )
+
+
+async def sync_vm_files(vm_name: str, sub_path: typing.Literal["common", "wsl"] = "common"):
+    async def _sync(traversable, rel_parts: list[str]):
+        for entry in traversable.iterdir():
+            if entry.is_dir():
+                await _sync(entry, [*rel_parts, entry.name])
+            else:
+                dest = "".join(f"/{p}" for p in [*rel_parts, entry.name])
+                await run_in_vm(
+                    vm_name,
+                    ["bash", "-c", f"mkdir -p $(dirname {shlex.quote(dest)}) && cat > {shlex.quote(dest)}"],
+                    f"Writing {dest}",
+                    input=entry.read_bytes(),
+                )
+
+    await _sync(importlib.resources.files("agentstack_cli") / "data" / "vm" / sub_path, [])
 
 
 #     ######  ########    ###    ########  ########
@@ -279,7 +288,7 @@ async def start_cmd(
                             f.write(
                                 yaml.dump(
                                     {
-                                        "env": {"KUBECONFIG": detect_kubeconfig()},
+                                        "env": {"KUBECONFIG": "/kubeconfig"},
                                         "images": [
                                             {
                                                 "location": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
@@ -382,12 +391,13 @@ async def start_cmd(
                         ["wsl.exe", "--install", "--name", vm_name, "--no-launch", "--web-download"],
                         "Creating a WSL distribution",
                     )
+                    await sync_vm_files(vm_name, "wsl")
                     await run_in_vm(
                         vm_name,
                         [
-                            "sh",
+                            "bash",
                             "-c",
-                            "echo '[network]\\ngenerateResolvConf = false\\n[boot]\\nsystemd=true' >/etc/wsl.conf && rm /etc/resolv.conf && echo 'nameserver 1.1.1.1' >/etc/resolv.conf && chattr +i /etc/resolv.conf",
+                            "rm /etc/resolv.conf && mv /etc/resolv.conf-override /etc/resolv.conf && chattr +i /etc/resolv.conf",
                         ],
                         "Setting up DNS configuration",
                         check=False,
@@ -403,6 +413,8 @@ async def start_cmd(
                     ],
                     "Setting up internal networking",
                 )
+
+        await sync_vm_files(vm_name, "common")
 
         detected_platform = {
             "microshift": typing.cast(typing.Literal["microshift"], "microshift"),
@@ -437,37 +449,9 @@ async def start_cmd(
                             sysctl -w net.ipv4.ip_forward=1
                             mkdir -p /tmp/microshift-install
                             curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz -C /tmp/microshift-install &
-                            echo 'deb [trusted=yes] https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.33/deb/ /' > /etc/apt/sources.list.d/cri-o.list
-                            echo 'deb [trusted=yes] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' > /etc/apt/sources.list.d/kubernetes.list
-                            apt-get update -y -q
-                            apt-get install -y -q --no-install-recommends eatmydata
+                            eatmydata apt-get update -y -q
                             eatmydata apt-get install -y -q --no-install-recommends skopeo cri-o cri-tools containernetworking-plugins kubectl
                             mkdir -p -m 777 /postgresql-data /seaweedfs-data /registry-data /redis-data
-                            cat > /etc/crio/crio.conf.d/14-microshift-cni.conf <<EOF
-                            [crio.network]
-                            plugin_dirs = ["/usr/lib/cni"]
-                            EOF
-                            cat > /etc/containers/registries.conf.d/200-microshift-local.conf <<EOF
-                            [[registry]]
-                            location = "agentstack-registry-svc.default:5001"
-                            insecure = true
-                            [[registry.mirror]]
-                            location = "localhost:30501"
-                            insecure = true
-                            EOF
-                            cat >/etc/microshift/config.yaml <<EOF
-                            apiServer:
-                                port: 16443
-                            ingress:
-                                status: Removed
-                            storage:
-                                driver: none
-                            dns:
-                                hosts:
-                                    status: Enabled
-                            telemetry:
-                                status: Disabled
-                            EOF
                             systemctl enable --now crio
                             wait
                             eatmydata dpkg -i /tmp/microshift-install/microshift_*.deb /tmp/microshift-install/microshift-kindnet_*.deb
@@ -499,6 +483,15 @@ async def start_cmd(
                 )
 
         platform: typing.Literal["k3s", "microshift"] = detected_platform or "microshift"
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                f"ln -sf {'/etc/rancher/k3s/k3s.yaml' if platform == 'k3s' else '/var/lib/microshift/resources/kubeadmin/kubeconfig'} /kubeconfig && chmod 644 /kubeconfig",
+            ],
+            "Setting up kubeconfig symlink",
+        )
         await run_in_vm(
             vm_name,
             [
@@ -615,7 +608,7 @@ async def start_cmd(
                         "5m",
                         "bash",
                         "-c",
-                        f'until grep -q "current-context:" {detect_kubeconfig(platform)} 2>/dev/null; do sleep 5; done && cat {detect_kubeconfig(platform)}',
+                        'until grep -q "current-context:" /kubeconfig 2>/dev/null; do sleep 5; done && cat /kubeconfig',
                     ],
                     "Copying kubeconfig from Agent Stack platform",
                 )
@@ -633,7 +626,7 @@ async def start_cmd(
                 "--create-namespace",
                 "--values=/tmp/agentstack-values.yaml",
                 "--timeout=20m",
-                f"--kubeconfig={detect_kubeconfig(platform)}",
+                "--kubeconfig=/kubeconfig",
                 *(f"--set={value}" for value in set_values_list),
             ],
             "Deploying Agent Stack platform with Helm",
@@ -648,7 +641,7 @@ async def start_cmd(
                         vm_name,
                         [
                             "kubectl",
-                            f"--kubeconfig={detect_kubeconfig(platform)}",
+                            "--kubeconfig=/kubeconfig",
                             "get",
                             "pods",
                             "-o",
@@ -667,7 +660,7 @@ async def start_cmd(
                         vm_name,
                         [
                             "kubectl",
-                            f"--kubeconfig={detect_kubeconfig(platform)}",
+                            "--kubeconfig=/kubeconfig",
                             "delete",
                             "pod",
                             pod["metadata"]["name"],
@@ -684,35 +677,26 @@ async def start_cmd(
                     "2m",
                     "bash",
                     "-c",
-                    f"until kubectl --kubeconfig={detect_kubeconfig(platform)} wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=2m; do sleep 5; done",
+                    "until kubectl --kubeconfig=/kubeconfig wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=2m; do sleep 5; done",
                 ],
                 "Waiting for DNS to be ready",
             )
         await run_in_vm(
             vm_name,
-            [
-                "bash",
-                "-c",
-                textwrap.dedent(f"""\
-                    cat >/etc/systemd/system/kubectl-port-forward@.service <<'EOF'
-                    [Service]
-                    ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i" && \
-                        kubectl wait --kubeconfig={detect_kubeconfig(platform)} --for=jsonpath='{{.subsets[*].addresses[0].ip}}' ep/$svc --timeout=300s && \
-                        exec kubectl port-forward --kubeconfig={detect_kubeconfig(platform)} --address=127.0.0.1 svc/$svc $port:$port'
-                    Restart=on-failure
-                    User=root
-                    EOF
+            ["bash"],
+            "Forwarding VM services to host",
+            input=textwrap.dedent("""\
                     systemctl daemon-reload
-                    kubectl --kubeconfig={detect_kubeconfig(platform)} get svc -n default -o 'jsonpath={{range .items[*]}}{{.metadata.name}}{{":"}}{{.spec.ports[*].port}}{{"\\n"}}{{end}}' | while IFS=: read svc ports; do
+                    kubectl --kubeconfig=/kubeconfig get svc -n default -o 'jsonpath={range .items[*]}{.metadata.name}{":"}{.spec.ports[*].port}{"\\n"}{end}' | while IFS=: read svc ports; do
                         for port in $ports; do
                             if [ "$port" -ge 8333 ] && [ "$port" -le 8399 ]; then
-                                systemctl start "kubectl-port-forward@${{svc}}:${{port}}" &
+                                systemctl start "kubectl-port-forward@${svc}:${port}" &
                             fi
                         done
                     done
-                """).strip(),
-            ],
-            "Forwarding VM services to host",
+                """)
+            .strip()
+            .encode(),
         )
 
         if not no_wait_for_platform:
