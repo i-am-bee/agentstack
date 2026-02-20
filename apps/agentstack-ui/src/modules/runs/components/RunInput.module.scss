@@ -11,6 +11,11 @@
   &:has(textarea:focus-visible) {
     border-color: $text-dark;
   }
+
+  &.isDisabled {
+    background-color: $field;
+    cursor: not-allowed;
+  }
 }
 
 .textarea {

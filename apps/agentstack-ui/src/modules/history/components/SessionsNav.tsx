@@ -22,7 +22,7 @@ interface Props {
 export function SessionsNav({ className }: Props) {
   const { contextId: contextIdUrl, providerId: providerIdUrl } = useParamsFromUrl();
 
-  const { data: agents, isLoading: isAgentsLoading } = useListAgents();
+  const { data: agents, isLoading: isAgentsLoading } = useListAgents({ includeOffline: true });
   const { data, isLoading, isFetching, hasNextPage, fetchNextPage } = useListContexts({
     query: { ...LIST_CONTEXTS_DEFAULT_QUERY, provider_id: providerIdUrl },
   });

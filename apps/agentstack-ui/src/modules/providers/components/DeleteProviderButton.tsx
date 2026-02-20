@@ -21,7 +21,7 @@ export function DeleteProviderButton({ provider }: Props) {
   return (
     <DeleteButton
       entityName={source}
-      entityLabel="provider"
+      entityLabel="provider and related sessions"
       isPending={isPending}
       onSubmit={() => deleteProvider({ id })}
     />

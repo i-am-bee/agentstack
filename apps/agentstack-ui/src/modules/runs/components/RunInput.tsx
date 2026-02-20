@@ -5,7 +5,8 @@
 
 import { InlineLoading } from '@carbon/react';
 import { useMergeRefs } from '@floating-ui/react';
-import { InteractionMode } from 'agentstack-sdk';
+import { InteractionMode, ProviderUnmanagedStatus } from 'agentstack-sdk';
+import clsx from 'clsx';
 import { useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { mergeRefs } from 'react-merge-refs';
@@ -46,6 +47,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
   const {
     agent: {
       ui: { interaction_mode, input_placeholder },
+      provider,
     },
     isReady,
     isPending,
@@ -68,8 +70,10 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
   const inputProps = register('input', { required: true });
   const inputValue = watch('input');
+  const isProviderOffline = provider.state === ProviderUnmanagedStatus.Offline;
   const isLoadingModelProviders = llmProviders.isLoading || embeddingProviders.isLoading;
-  const isSubmitDisabled = !isReady || isFileUploadPending || !inputValue || isLoadingModelProviders;
+  const isSubmitDisabled =
+    !isReady || isFileUploadPending || !inputValue || isLoadingModelProviders || isProviderOffline;
 
   const dispatchInputEventAndFocus = () => {
     const inputElem = inputRef.current;
@@ -108,7 +112,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
   return (
     <FormProvider {...form}>
       <form
-        className={classes.root}
+        className={clsx(classes.root, { [classes.isDisabled]: isProviderOffline })}
         ref={formRefs}
         onSubmit={(event) => {
           event.preventDefault();
@@ -132,21 +136,24 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
           rows={1}
           maxRows={7}
           autoFocus
-          placeholder={input_placeholder ?? 'Ask anything…'}
+          placeholder={isProviderOffline ? 'Agent is offline' : (input_placeholder ?? 'Ask anything…')}
           className={classes.textarea}
           onKeyDown={(event) => !isSubmitDisabled && submitFormOnEnter(event)}
+          disabled={isProviderOffline}
           {...inputProps}
           ref={mergeRefs([inputRef, inputProps.ref])}
         />
 
         <div className={classes.actionBar}>
-          <div className={classes.actionBarStart}>
-            <RunSettings dialog={settingsDialog} iconOnly />
+          {!isProviderOffline && (
+            <div className={classes.actionBarStart}>
+              <RunSettings dialog={settingsDialog} iconOnly />
 
-            {!isFileUploadDisabled && <FileUploadButton />}
+              {!isFileUploadDisabled && <FileUploadButton />}
 
-            <RunModels dialog={modelsDialog} iconOnly />
-          </div>
+              <RunModels dialog={modelsDialog} iconOnly />
+            </div>
+          )}
 
           <div className={classes.submit}>
             {!isInitializing ? (
