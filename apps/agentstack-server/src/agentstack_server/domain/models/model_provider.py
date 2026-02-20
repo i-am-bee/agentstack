@@ -22,6 +22,7 @@ class ModelProviderState(StrEnum):
 
 class ModelProviderType(StrEnum):
     ANTHROPIC = "anthropic"
+    BEDROCK = "bedrock"
     CEREBRAS = "cerebras"
     CHUTES = "chutes"
     COHERE = "cohere"
@@ -121,6 +122,7 @@ class ModelWithScore(BaseModel):
 
 _PROVIDER_CAPABILITIES: dict[ModelProviderType, set[ModelCapability]] = {
     ModelProviderType.ANTHROPIC: {ModelCapability.LLM},
+    ModelProviderType.BEDROCK: {ModelCapability.LLM, ModelCapability.EMBEDDING},
     ModelProviderType.CEREBRAS: {ModelCapability.LLM},
     ModelProviderType.CHUTES: {ModelCapability.LLM},
     ModelProviderType.COHERE: {ModelCapability.LLM, ModelCapability.EMBEDDING},
