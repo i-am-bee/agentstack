@@ -36,7 +36,11 @@ from a2a.types import (
 )
 from typing_extensions import override
 
-from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetail, AgentDetailExtensionSpec
+from agentstack_sdk.a2a.extensions.ui.agent_detail import (
+    AgentDetail,
+    AgentDetailExtensionSpec,
+    AgentDetailTool,
+)
 from agentstack_sdk.a2a.extensions.ui.error import (
     ErrorExtensionParams,
     ErrorExtensionServer,
@@ -137,6 +141,17 @@ def agent(
             # Check if user has provided an ErrorExtensionServer, if not add default
             has_error_extension = any(isinstance(ext, ErrorExtensionServer) for ext in sdk_extensions)
             error_extension_spec = ErrorExtensionSpec(ErrorExtensionParams()) if not has_error_extension else None
+
+            if not detail.tools and skills:
+                detail.tools = [
+                    AgentDetailTool(name=skill.name, description=skill.description or "") for skill in skills
+                ]
+
+            if not detail.user_greeting:
+                detail.user_greeting = resolved_description
+
+            if not detail.input_placeholder:
+                detail.input_placeholder = "What is your task?"
 
             capabilities.extensions = [
                 *(capabilities.extensions or []),

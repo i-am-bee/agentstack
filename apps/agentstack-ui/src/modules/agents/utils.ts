@@ -4,7 +4,7 @@
  */
 
 import type { Provider } from 'agentstack-sdk';
-import { agentDetailExtension, extractUiExtensionData } from 'agentstack-sdk';
+import { InteractionMode, agentDetailExtension, extractUiExtensionData } from 'agentstack-sdk';
 import uniq from 'lodash/uniq';
 import uniqWith from 'lodash/uniqWith';
 
@@ -62,10 +62,31 @@ export function buildAgent(provider: Provider): Agent {
   const extensions = agent_card.capabilities.extensions ?? [];
   const ui = getAgentDetail(extensions);
 
+  const uiWithFallbacks = { ...ui };
+
+  if (!uiWithFallbacks.interaction_mode) {
+    uiWithFallbacks.interaction_mode = InteractionMode.MultiTurn;
+  }
+
+  if (!uiWithFallbacks.tools && agent_card.skills) {
+    uiWithFallbacks.tools = agent_card.skills.map((skill) => ({
+      name: skill.name,
+      description: skill.description ?? '',
+    }));
+  }
+
+  if (!uiWithFallbacks.user_greeting) {
+    uiWithFallbacks.user_greeting = agent_card.description ?? undefined;
+  }
+
+  if (!uiWithFallbacks.input_placeholder) {
+    uiWithFallbacks.input_placeholder = 'What is your task?';
+  }
+
   return {
     ...agent_card,
     provider: { ...providerData, metadata: agent_card.provider },
-    ui,
+    ui: uiWithFallbacks,
   };
 }
 
