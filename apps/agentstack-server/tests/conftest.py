@@ -8,6 +8,7 @@ from pathlib import Path
 from pprint import pprint
 from typing import Any
 
+import async_lru
 import kr8s
 import pytest
 from agentstack_sdk.platform import ModelProviderType
@@ -18,6 +19,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
+
+# Disable async_lru event loop check in tests
+async_lru._LRUCacheWrapper._check_loop = lambda self, loop: None
 
 
 class Configuration(BaseSettings):
