@@ -8,7 +8,7 @@ requires-python = ">=3.11,<3.14"
 dependencies = [
     "a2a-sdk==0.3.21",
     "objprint>=0.3.0",
-    "uvicorn>=0.35.0",
+    "uvicorn>=0.37.0,<0.38.0",
     "asyncclick>=8.1.8",
     "sse-starlette>=2.2.1",
     "starlette>=0.47.2",

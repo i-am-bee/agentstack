@@ -14,7 +14,7 @@ dependencies = [
     "agentstack-sdk",
     "openinference-instrumentation-beeai>=0.1.14",
     "pydantic-settings>=2.9.0",
-    "uvicorn>=0.35.0",
+    "uvicorn>=0.37.0,<0.38.0",
 ]
 
 [tool.ruff]
