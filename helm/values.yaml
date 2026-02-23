@@ -264,6 +264,7 @@ cors:
   allowOrigins: []
   # - http://localhost:3000
   # - https://my-ui.example.com
+  allowOriginRegex: ""
   allowMethods:
     - "*"
   allowHeaders:

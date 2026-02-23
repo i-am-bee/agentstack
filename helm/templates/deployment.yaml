@@ -184,6 +184,8 @@ spec:
               value: {{ .Values.cors.enabled | quote }}
             - name: CORS__ALLOW_ORIGINS
               value: {{ .Values.cors.allowOrigins | toJson | quote }}
+            - name: CORS__ALLOW_ORIGIN_REGEX
+              value: {{ .Values.cors.allowOriginRegex | quote }}
             - name: CORS__ALLOW_METHODS
               value: {{ .Values.cors.allowMethods | toJson | quote }}
             - name: CORS__ALLOW_HEADERS

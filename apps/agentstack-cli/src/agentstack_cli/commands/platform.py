@@ -532,6 +532,11 @@ async def start_cmd(
                         "providerBuilds": {"enabled": True},
                         "localDockerRegistry": {"enabled": True},
                         "auth": {"enabled": False},
+                        "cors": {
+                            "enabled": True,
+                            "allowOriginRegex": r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+                            "allowCredentials": True,
+                        },
                     },
                     yaml.safe_load(pathlib.Path(values_file).read_text()) if values_file else {},
                 )

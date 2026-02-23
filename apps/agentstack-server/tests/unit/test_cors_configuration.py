@@ -6,13 +6,12 @@ from agentstack_server.configuration import CORSConfiguration
 
 @pytest.mark.unit
 def test_cors_default_configuration():
-    """Test that default CORS configuration enables localhost and credentials."""
+    """Test that default CORS configuration is disabled."""
     config = CORSConfiguration()
-    assert config.enabled is True
-    assert config.allow_credentials is True
+    assert config.enabled is False
+    assert config.allow_credentials is False
     assert config.allow_origins == []
-    # Check that the regex matches localhost with or without port
-    assert config.allow_origin_regex == r"https?://(localhost|127\.0\.0\.1)(:\d+)?"
+    assert config.allow_origin_regex is None
 
 
 @pytest.mark.unit
