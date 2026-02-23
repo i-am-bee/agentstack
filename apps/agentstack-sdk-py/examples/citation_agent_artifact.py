@@ -11,7 +11,7 @@ from agentstack_sdk.a2a.extensions import (
     CitationExtensionServer,
     CitationExtensionSpec,
 )
-from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
+from agentstack_sdk.a2a.types import AgentArtifact
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
@@ -63,6 +63,8 @@ and generating human-like text."""
         metadata=citation.citation_metadata(citations=citations),
     )
     yield artifact
+
+    await context.store(artifact)
 
 
 def run():

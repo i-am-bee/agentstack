@@ -6,4 +6,5 @@
 export type ActiveSource = {
   number: number | null;
   taskId: string;
+  artifactId?: string;
 };

@@ -4,11 +4,12 @@
  */
 
 import clsx from 'clsx';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { applyTransforms } from '#modules/messages/utils.ts';
+import { useSources } from '#modules/sources/contexts/index.ts';
 
 import { useCanvas } from '../contexts';
 import { CanvasMarkdownContent } from '../markdown/CanvasMarkdownContent';
@@ -16,6 +17,7 @@ import classes from './Canvas.module.scss';
 
 export function Canvas() {
   const { activeArtifact } = useCanvas();
+  const { activeSource, setActiveSource } = useSources();
   const contentRef = useRef(null);
 
   const content = useMemo(() => {
@@ -37,6 +39,14 @@ export function Canvas() {
     const containsCodeBlockRegex = /.+```.+/;
     return Boolean(content && content.startsWith('```') && !containsCodeBlockRegex.test(content));
   }, [content]);
+
+  useEffect(() => {
+    return () => {
+      if (activeSource?.artifactId === activeArtifact?.artifactId) {
+        setActiveSource(null);
+      }
+    };
+  }, [activeArtifact, activeSource, setActiveSource]);
 
   if (!activeArtifact) {
     return null;

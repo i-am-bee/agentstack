@@ -79,6 +79,7 @@ export type UISourcePart = {
   id: string;
   url: string;
   taskId: string;
+  artifactId?: string;
   number: number | null;
   startIndex?: number;
   endIndex?: number;

@@ -22,7 +22,11 @@ export function SourcesPanel() {
   const { sources: messageSourcesMap, activeSource } = useSources();
 
   const taskId = activeSource?.taskId;
-  const sources = getUniqueSources(taskId ? (messageSourcesMap[taskId] ?? []) : []);
+  const artifactId = activeSource?.artifactId;
+
+  const sources = getUniqueSources(
+    taskId ? (messageSourcesMap[taskId] ?? []).filter((s) => s.artifactId === artifactId) : [],
+  );
   const hasSources = sources.length > 0;
 
   const isOpen = activeSidePanel === SidePanelVariant.Sources;

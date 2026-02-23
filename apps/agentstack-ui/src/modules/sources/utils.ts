@@ -56,11 +56,16 @@ export function getMessagesSourcesMap(messages: UIMessage[]) {
 }
 
 export function isSourceActive(source: UISourcePart, activeSource: ActiveSource | null) {
-  const { taskId, number } = source;
+  const { taskId, number, artifactId } = source;
 
-  return activeSource?.taskId === taskId && isNotNull(number) && activeSource?.number === number;
+  return (
+    activeSource?.taskId === taskId &&
+    isNotNull(number) &&
+    activeSource?.number === number &&
+    activeSource?.artifactId === artifactId
+  );
 }
 
 export function getUniqueSources(sources: UISourcePart[]) {
-  return uniqBy(sources, 'number');
+  return uniqBy(sources, (s) => `${s.number}-${s.artifactId ?? ''}`);
 }

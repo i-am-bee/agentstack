@@ -38,10 +38,16 @@ export function getArtifactPartUpdates(
 ): ProcessArtifactResult {
   const { artifactId, parts } = part;
 
-  const sourceParts = parts.filter((p) => p.kind === UIMessagePartKind.Source);
+  const sourceParts = parts
+    .filter((p) => p.kind === UIMessagePartKind.Source)
+    .map((sourcePart) => ({ ...sourcePart, artifactId }));
   const sourceTransformParts = sourceParts.map((sourcePart) => getSourceTransformPart(sourcePart));
 
-  const partsWithTransforms = [...parts, ...sourceTransformParts];
+  const partsWithTransforms = [
+    ...parts.filter((p) => p.kind !== UIMessagePartKind.Source),
+    ...sourceParts,
+    ...sourceTransformParts,
+  ];
   const partWithTransforms: UIArtifactPart = { ...part, parts: sortMessageParts(partsWithTransforms) };
 
   const [existingArtifactIndex, existingArtifactPart] = findWithIndex(

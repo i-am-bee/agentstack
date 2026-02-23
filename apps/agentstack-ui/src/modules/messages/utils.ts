@@ -155,10 +155,10 @@ export function sortMessageParts<T extends UIMessagePart>(parts: T[]): T[] {
     ([sources, others, transforms], part) => {
       switch (part.kind) {
         case UIMessagePartKind.Source:
-          return [[...sources, part as UISourcePart], others, transforms];
+          return [[...sources, part], others, transforms];
 
         case UIMessagePartKind.Transform:
-          return [sources, others, [...transforms, part as UITransformPart]];
+          return [sources, others, [...transforms, part]];
 
         default:
           return [sources, [...others, part], transforms];
