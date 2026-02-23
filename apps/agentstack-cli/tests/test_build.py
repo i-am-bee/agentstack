@@ -4,12 +4,7 @@
 import asyncio
 import base64
 import json
-import os
-import sys
 from unittest.mock import AsyncMock, MagicMock, patch
-
-# Ensure src is in path for imports to work if not installed in editable mode
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
 from agentstack_cli.commands.build import client_side_build
 
