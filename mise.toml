@@ -6,7 +6,7 @@
 uv = "0.9.5"
 
 # Node.js
-nodejs = "22"
+nodejs = "24"
 pnpm = "10.15.1"
 
 # Java
@@ -36,11 +36,6 @@ task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 [hooks]
 postinstall = [
     "{{ mise_bin }} setup",
-
-    # npm 11.5+ is needed for trusted publishing
-    # we can safely remove this after we migrate to node >= 24.5
-
-    "npm install -g npm@11.6.3"
 ]
 
 [env]

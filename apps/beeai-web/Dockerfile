@@ -1,4 +1,5 @@
-FROM node:22-alpine3.23 AS base
+FROM alpine:3.23 AS base
+RUN apk add --no-cache nodejs
 COPY --chown=guest:guest ./apps/beeai-web/.next/standalone /workspace/
 COPY --chown=guest:guest ./apps/beeai-web/.next/static /workspace/apps/beeai-web/.next/static
 COPY --chown=guest:guest ./apps/beeai-web/public /workspace/apps/beeai-web/public

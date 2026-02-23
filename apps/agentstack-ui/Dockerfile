@@ -1,4 +1,5 @@
-FROM node:22-alpine3.23 AS base
+FROM alpine:3.23 AS base
+RUN apk add --no-cache nodejs
 COPY --chown=guest:guest ./apps/agentstack-ui/.next/standalone /workspace/
 COPY --chown=guest:guest ./apps/agentstack-ui/.next/static /workspace/apps/agentstack-ui/.next/static
 COPY --chown=guest:guest ./apps/agentstack-ui/public /workspace/apps/agentstack-ui/public
