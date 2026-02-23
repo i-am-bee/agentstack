@@ -73,9 +73,7 @@ RECOMMENDED_EMBEDDING_MODELS = [
 
 LLM_PROVIDERS = [
     Choice(
-        name="Amazon Bedrock".ljust(20),
-        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", ""),
-    ),
+        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", None),
     Choice(
         name="Anthropic Claude".ljust(20),
         value=(ModelProviderType.ANTHROPIC, "Anthropic Claude", "https://api.anthropic.com/v1"),
