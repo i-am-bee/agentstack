@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { CopyButton } from '#components/CopyButton/CopyButton.tsx';
 import { UIMessagePartKind } from '#modules/messages/types.ts';
 import { applyTransforms } from '#modules/messages/utils.ts';
+import { SourcesGroup } from '#modules/sources/components/SourcesGroup.tsx';
 import { useSources } from '#modules/sources/contexts/index.ts';
 
 import { useCanvas } from '../contexts';
@@ -17,8 +18,8 @@ import classes from './Canvas.module.scss';
 
 export function Canvas() {
   const { activeArtifact } = useCanvas();
-  const { activeSource, setActiveSource } = useSources();
   const contentRef = useRef(null);
+  const { setActiveSource, activeSource } = useSources();
 
   const content = useMemo(() => {
     if (!activeArtifact) return undefined;
@@ -41,11 +42,14 @@ export function Canvas() {
   }, [content]);
 
   useEffect(() => {
-    return () => {
-      if (activeSource?.artifactId === activeArtifact?.artifactId) {
-        setActiveSource(null);
-      }
-    };
+    const activeSourceArtifactId = activeSource?.artifactId;
+    const artifactId = activeArtifact?.artifactId;
+    const taskId = activeArtifact?.taskId;
+    if (!artifactId || !taskId || !activeSourceArtifactId || activeSourceArtifactId === artifactId) {
+      return;
+    }
+
+    setActiveSource({ number: null, taskId, artifactId });
   }, [activeArtifact, activeSource, setActiveSource]);
 
   if (!activeArtifact) {
@@ -70,6 +74,8 @@ export function Canvas() {
             {content}
           </CanvasMarkdownContent>
         </div>
+
+        <SourcesGroup sources={sources} taskId={activeArtifact.taskId} artifactId={activeArtifact.artifactId} />
       </div>
     </div>
   );

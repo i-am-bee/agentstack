@@ -158,6 +158,7 @@ export type UIDataPart = {
 export type UIArtifactPart = {
   kind: UIMessagePartKind.Artifact;
   parts: (UITextPart | UIFilePart | UISourcePart | UITransformPart)[];
+  taskId: TaskId;
 } & Pick<TaskArtifactUpdateEvent['artifact'], 'artifactId' | 'name' | 'description'>;
 
 export enum UIMessagePartKind {

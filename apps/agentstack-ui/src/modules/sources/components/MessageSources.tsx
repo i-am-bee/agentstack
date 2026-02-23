@@ -3,47 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useApp } from '#contexts/App/index.ts';
-import { SidePanelVariant } from '#contexts/App/types.ts';
 import type { UIAgentMessage } from '#modules/messages/types.ts';
 import { getMessageSources } from '#modules/messages/utils.ts';
-import { isNotNull } from '#utils/helpers.ts';
 
-import { useSources } from '../contexts';
-import { SourcesButton } from './SourcesButton';
+import { SourcesGroup } from './SourcesGroup';
 
 interface Props {
   message: UIAgentMessage;
 }
 
 export function MessageSources({ message }: Props) {
-  const { activeSidePanel, openSidePanel, closeSidePanel } = useApp();
-  const { activeSource, setActiveSource } = useSources();
-
-  const { taskId } = message;
   const sources = getMessageSources(message);
-  const hasSources = sources.length > 0;
 
-  const isPanelOpen = activeSidePanel === SidePanelVariant.Sources;
-  const isMessageActive = isNotNull(taskId) && taskId === activeSource?.taskId;
-  const isActive = isPanelOpen && isMessageActive;
-
-  const handleButtonClick = () => {
-    if (isMessageActive) {
-      if (isPanelOpen) {
-        closeSidePanel();
-      } else {
-        openSidePanel(SidePanelVariant.Sources);
-      }
-    } else if (taskId) {
-      setActiveSource({ number: null, taskId });
-      openSidePanel(SidePanelVariant.Sources);
-    }
-  };
-
-  if (!hasSources) {
-    return null;
-  }
-
-  return <SourcesButton sources={sources} isActive={isActive} onClick={handleButtonClick} />;
+  return <SourcesGroup sources={sources} taskId={message.taskId} />;
 }

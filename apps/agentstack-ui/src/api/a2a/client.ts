@@ -51,10 +51,10 @@ function handleStatusUpdate<UIGenericPart = never>(
 }
 
 function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
-  const { artifact } = event;
+  const { artifact, taskId } = event;
 
   const contentParts = processParts(artifact.parts);
-  const metadataParts = processArtifactMetadata(artifact, event.taskId);
+  const metadataParts = processArtifactMetadata(artifact, taskId);
 
   const { artifactId, description, name } = artifact;
   const { textParts, otherParts } = contentParts.reduce<{ textParts: UITextPart[]; otherParts: UIMessagePart[] }>(
@@ -74,7 +74,14 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   }
 
   return [
-    { kind: UIMessagePartKind.Artifact, artifactId, description, name, parts: [...textParts, ...metadataParts] },
+    {
+      kind: UIMessagePartKind.Artifact,
+      artifactId,
+      description,
+      name,
+      taskId,
+      parts: [...textParts, ...metadataParts],
+    },
     ...otherParts,
   ];
 }
