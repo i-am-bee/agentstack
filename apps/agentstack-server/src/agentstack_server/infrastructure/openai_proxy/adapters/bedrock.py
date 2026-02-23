@@ -101,10 +101,7 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                     if content:
                         system_prompts.append({"text": content})
                 elif role in ("user", "assistant") and content:
-                    messages.append({
-                        "role": role,
-                        "content": [{"text": content}]
-                    })
+                    messages.append({"role": role, "content": [{"text": content}]})
 
             inference_config: dict[str, typing.Any] = {
                 "maxTokens": request.max_tokens or request.max_completion_tokens or 2048,
@@ -143,7 +140,9 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                             role=output_message["role"],
                             content=content,
                         ),
-                        finish_reason=response["stopReason"],
+                        finish_reason="stop"
+                        if response["stopReason"] == "end_turn"
+                        else response["stopReason"],
                     )
                 ],
                 usage=openai.types.CompletionUsage(
@@ -174,10 +173,7 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                     if content:
                         system_prompts.append({"text": content})
                 elif role in ("user", "assistant") and content:
-                    messages.append({
-                        "role": role,
-                        "content": [{"text": content}]
-                    })
+                    messages.append({"role": role, "content": [{"text": content}]})
 
             inference_config: dict[str, typing.Any] = {
                 "maxTokens": request.max_tokens or request.max_completion_tokens or 2048,
@@ -210,13 +206,14 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                                     index=delta["contentBlockIndex"],
                                     delta=openai.types.chat.chat_completion_chunk.ChoiceDelta(
                                         content=delta_text,
-                                        role="assistant" if delta["contentBlockIndex"] == 0 else None
+                                        role="assistant" if delta["contentBlockIndex"] == 0 else None,
                                     ),
                                     finish_reason=None,
                                 )
                             ],
                         )
                     elif "messageStop" in event:
+                        stop_reason = event["messageStop"]["stopReason"]
                         yield openai.types.chat.ChatCompletionChunk(
                             id=f"chatcmpl-{datetime.now().timestamp()}",
                             object="chat.completion.chunk",
@@ -226,7 +223,9 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                                 openai.types.chat.chat_completion_chunk.Choice(
                                     index=0,
                                     delta=openai.types.chat.chat_completion_chunk.ChoiceDelta(),
-                                    finish_reason=event["messageStop"]["stopReason"],
+                                    finish_reason="stop"
+                                    if stop_reason == "end_turn"
+                                    else stop_reason,
                                 )
                             ],
                         )
@@ -251,19 +250,13 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
 
                 if "titan-embed" in model_id:
                     body = {"inputText": text}
-                    response = await client.invoke_model(
-                        modelId=model_id,
-                        body=json.dumps(body)
-                    )
+                    response = await client.invoke_model(modelId=model_id, body=json.dumps(body))
                     response_body = json.loads(await response["body"].read())
                     embedding_vector = response_body.get("embedding")
                     token_count = response_body.get("inputTextTokenCount", 0)
                 elif "cohere.embed" in model_id:
                     body = {"texts": [text], "input_type": "search_document"}
-                    response = await client.invoke_model(
-                        modelId=model_id,
-                        body=json.dumps(body)
-                    )
+                    response = await client.invoke_model(modelId=model_id, body=json.dumps(body))
                     response_body = json.loads(await response["body"].read())
                     # Cohere returns 'embeddings' list
                     if response_body.get("embeddings"):
@@ -272,17 +265,14 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                 else:
                     # Fallback assuming Titan-like interface
                     body = {"inputText": text}
-                    response = await client.invoke_model(
-                        modelId=model_id,
-                        body=json.dumps(body)
-                    )
+                    response = await client.invoke_model(modelId=model_id, body=json.dumps(body))
                     response_body = json.loads(await response["body"].read())
                     embedding_vector = response_body.get("embedding")
                     token_count = response_body.get("inputTextTokenCount", 0)
 
                 if embedding_vector:
                     embeddings.append(
-                         MultiformatEmbedding(
+                        MultiformatEmbedding(
                             object="embedding",
                             index=i,
                             embedding=(

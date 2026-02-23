@@ -258,8 +258,7 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
         base_url = f"https://bedrock-runtime.{region}.amazonaws.com"
 
         if await inquirer.confirm(
-            message="Use EC2 Instance Profile / IAM Role (no keys required)?",
-            default=False
+            message="Use EC2 Instance Profile / IAM Role (no keys required)?", default=False
         ).execute_async():
             api_key = f":::{region}"
         else:
