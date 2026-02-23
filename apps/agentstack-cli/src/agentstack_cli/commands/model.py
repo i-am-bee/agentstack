@@ -145,9 +145,7 @@ LLM_PROVIDERS = [
 
 EMBEDDING_PROVIDERS = [
     Choice(
-        name="Amazon Bedrock".ljust(20),
-        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", ""),
-    ),
+        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", None),
     Choice(
         name="Cohere".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1"),
