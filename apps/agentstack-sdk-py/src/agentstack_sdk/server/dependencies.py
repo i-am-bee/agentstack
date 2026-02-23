@@ -14,8 +14,7 @@ from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message
 from typing_extensions import Doc
 
-from agentstack_sdk.a2a.extensions import BaseExtensionSpec
-from agentstack_sdk.a2a.extensions.base import BaseExtensionServer
+from agentstack_sdk.a2a.extensions.base import BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.server.context import RunContext
 
 Dependency: TypeAlias = (
