@@ -42,7 +42,6 @@ class EmbeddingFunction(Protocol):
 
 
 async def extract_file(file: File) -> None:
-    file_id = file.id
     extraction = await file.create_extraction()
 
     async for attempt in AsyncRetrying(
@@ -70,7 +69,6 @@ async def chunk_and_embed(embedding_function: EmbeddingFunction, file: File, vec
     """
 
     vector_store = await VectorStore.get(vector_store_id)
-    model_id = vector_store.model_id
 
     async with file.load_text_content() as loaded_file:
         text = loaded_file.text
