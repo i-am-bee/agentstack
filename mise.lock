@@ -50,6 +50,7 @@ backend = "aqua:helm/helm"
 [[tools.java]]
 version = "21.0.2"
 backend = "core:java"
+"platforms.linux-x64" = { checksum = "sha256:a2def047a73941e01a73739f92755f86b895811afb1f91243db214cff5bdac3f", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz"}
 "platforms.macos-arm64" = { checksum = "sha256:b3d588e16ec1e0ef9805d8a696591bd518a5cea62567da8f53b5ce32d11d22e4", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-aarch64_bin.tar.gz"}
 
 [[tools.kubeconform]]
@@ -73,7 +74,7 @@ backend = "aqua:lycheeverse/lychee"
 version = "3.9.12"
 backend = "aqua:apache/maven"
 "platforms.linux-arm64" = { url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
-"platforms.linux-x64" = { url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
+"platforms.linux-x64" = { checksum = "blake3:07cf3b70c8b3c50ac71d7a4fae12a7fc78e8fd2f768eb2e3dfe13a7704fefa7e", url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
 "platforms.macos-arm64" = { checksum = "blake3:07cf3b70c8b3c50ac71d7a4fae12a7fc78e8fd2f768eb2e3dfe13a7704fefa7e", url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
 "platforms.macos-x64" = { url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
 "platforms.windows-x64" = { url = "https://archive.apache.org/dist/maven/maven-3/3.9.12/binaries/apache-maven-3.9.12-bin.tar.gz"}
@@ -94,6 +95,7 @@ backend = "pipx:toml-cli"
 [[tools.pnpm]]
 version = "10.15.1"
 backend = "aqua:pnpm/pnpm"
+"platforms.linux-x64" = { checksum = "sha256:d4ac2a22e45b50da881855ea6a3734cf83f984eb5fba7163c3f07492fa43c2b0", url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-linux-x64"}
 "platforms.macos-arm64" = { checksum = "sha256:b64bd9e75d92934251bd0b890d3d4d1073e85d71bf39227ff6a6408d27c3106d", url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-macos-arm64"}
 
 [[tools.uv]]

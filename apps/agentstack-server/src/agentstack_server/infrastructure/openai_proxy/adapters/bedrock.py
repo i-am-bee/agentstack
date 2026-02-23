@@ -140,9 +140,7 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                             role=output_message["role"],
                             content=content,
                         ),
-                        finish_reason="stop"
-                        if response["stopReason"] == "end_turn"
-                        else response["stopReason"],
+                        finish_reason="stop" if response["stopReason"] == "end_turn" else response["stopReason"],
                     )
                 ],
                 usage=openai.types.CompletionUsage(
@@ -223,9 +221,7 @@ class BedrockOpenAIProxyAdapter(IOpenAIChatCompletionProxyAdapter, IOpenAIEmbedd
                                 openai.types.chat.chat_completion_chunk.Choice(
                                     index=0,
                                     delta=openai.types.chat.chat_completion_chunk.ChoiceDelta(),
-                                    finish_reason="stop"
-                                    if stop_reason == "end_turn"
-                                    else stop_reason,
+                                    finish_reason="stop" if stop_reason == "end_turn" else stop_reason,
                                 )
                             ],
                         )
