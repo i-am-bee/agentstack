@@ -37,10 +37,11 @@ async def _test_client_side_build_skip_extraction():
         # Mock run_command to avoid issues and capture calls
         mock_run_command.return_value = MagicMock(returncode=0)
 
+        # Call with extract_agent_card=False (skip extraction)
         await client_side_build(
             context=".",
             import_image=False,
-            skip_agent_card_extraction=True,
+            extract_agent_card=False,
             verbose=True
         )
 
@@ -115,7 +116,7 @@ async def _test_client_side_build_default():
 
         mock_client_instance.get.side_effect = async_get
 
-        # Call without skip flag (default False)
+        # Call with defaults (extract_agent_card should be True by default)
         await client_side_build(
             context=".",
             import_image=False,

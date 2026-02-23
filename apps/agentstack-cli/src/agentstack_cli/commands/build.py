@@ -56,10 +56,14 @@ async def client_side_build(
     import_image: typing.Annotated[
         bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into Agent Stack platform")
     ] = True,
-    skip_agent_card_extraction: typing.Annotated[
+    extract_agent_card: typing.Annotated[
         bool,
-        typer.Option("--skip-agent-card-extraction", help="Skip agent card extraction from running container"),
-    ] = False,
+        typer.Option(
+            "--extract-agent-card/--no-extract-agent-card",
+            is_flag=True,
+            help="Extract agent card from running container",
+        ),
+    ] = True,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
 ):
@@ -76,7 +80,7 @@ async def client_side_build(
 
         agent_card = None
 
-        if not skip_agent_card_extraction:
+        if extract_agent_card:
             container_id = str(uuid.uuid4())
 
             with status("Extracting agent metadata"):
