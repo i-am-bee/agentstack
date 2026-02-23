@@ -24,7 +24,7 @@ async def llm_access_example(
 
     if llm and llm.data and llm.data.llm_fulfillments:
         # Extract the user's message
-        get_message_text(input)
+        user_message = get_message_text(input)
 
         # Get LLM configuration
         # Single demand is resolved to default (unless specified otherwise)
@@ -34,6 +34,8 @@ async def llm_access_example(
             # Use the LLM configuration with your preferred client
             # The platform provides OpenAI-compatible endpoints
             api_model = llm_config.api_model
+            api_key = llm_config.api_key
+            api_base = llm_config.api_base
 
             yield AgentMessage(text=f"LLM access configured for model: {api_model}")
         else:
