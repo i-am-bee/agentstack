@@ -28,6 +28,13 @@ def test_cors_validation_valid():
 
 
 @pytest.mark.unit
+def test_cors_empty_string_origin_regex():
+    """Test that empty string for allow_origin_regex is treated as None."""
+    config = CORSConfiguration(allow_origin_regex="")
+    assert config.allow_origin_regex is None
+
+
+@pytest.mark.unit
 def test_cors_validation_wildcard_origins_with_credentials():
     """Test that wildcard origins are not allowed with credentials."""
     with pytest.raises(ValidationError, match=r"allow_origins cannot be '\*' when allow_credentials is True"):

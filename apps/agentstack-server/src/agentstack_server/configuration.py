@@ -443,6 +443,11 @@ class CORSConfiguration(BaseModel):
     allow_headers: list[str] = Field(default_factory=lambda: ["*"], description="List of allowed headers for CORS")
     allow_credentials: bool = Field(default=False, description="Whether to allow credentials for CORS")
 
+    @field_validator("allow_origin_regex", mode="before")
+    @classmethod
+    def validate_allow_origin_regex(cls, v: str | None) -> str | None:
+        return v or None
+
     @model_validator(mode="after")
     def validate_cors(self):
         if self.enabled and not self.allow_origins and not self.allow_origin_regex:
