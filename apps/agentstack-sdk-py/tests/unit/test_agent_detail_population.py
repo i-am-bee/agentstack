@@ -1,8 +1,14 @@
+# Copyright 2026 © BeeAI a Series of LF Projects, LLC
+# SPDX-License-Identifier: Apache-2.0
+
 import pytest
-from agentstack_sdk.server.agent import agent
-from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetailExtensionSpec
 from a2a.types import AgentSkill
 
+from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetailExtensionSpec
+from agentstack_sdk.server.agent import agent
+
+
+@pytest.mark.unit
 def test_agent_detail_population():
     skill = AgentSkill(
         id="skill-1",
@@ -48,6 +54,8 @@ def test_agent_detail_population():
     assert "input_placeholder" in params
     assert params["input_placeholder"] == "What is your task?"
 
+
+@pytest.mark.unit
 def test_agent_detail_population_override():
     skill = AgentSkill(
         id="skill-1",
@@ -61,10 +69,7 @@ def test_agent_detail_population_override():
 
     from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetail
 
-    custom_detail = AgentDetail(
-        user_greeting="Custom Greeting",
-        input_placeholder="Custom Placeholder"
-    )
+    custom_detail = AgentDetail(user_greeting="Custom Greeting", input_placeholder="Custom Placeholder")
 
     @agent(skills=[skill], description=description, detail=custom_detail)
     def test_agent_fn():
@@ -76,8 +81,11 @@ def test_agent_detail_population_override():
     agent_instance = test_agent_fn(mock_modify_dependencies)
 
     extensions = agent_instance.card.capabilities.extensions
+    assert extensions
     detail_extension = next((ext for ext in extensions if ext.uri == AgentDetailExtensionSpec.URI), None)
+    assert detail_extension
     params = detail_extension.params
+    assert params
 
     # Tools should still be populated because custom_detail.tools was None
     assert "tools" in params
@@ -91,6 +99,8 @@ def test_agent_detail_population_override():
     # Placeholder should be custom
     assert params["input_placeholder"] == "Custom Placeholder"
 
+
+@pytest.mark.unit
 def test_agent_detail_explicit_empty_values():
     skill = AgentSkill(
         id="skill-1",
@@ -105,11 +115,7 @@ def test_agent_detail_explicit_empty_values():
     from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetail
 
     # Explicitly empty tools and greeting
-    custom_detail = AgentDetail(
-        tools=[],
-        user_greeting="",
-        input_placeholder=""
-    )
+    custom_detail = AgentDetail(tools=[], user_greeting="", input_placeholder="")
 
     @agent(skills=[skill], description=description, detail=custom_detail)
     def test_agent_fn():
@@ -122,7 +128,9 @@ def test_agent_detail_explicit_empty_values():
 
     extensions = agent_instance.card.capabilities.extensions
     detail_extension = next((ext for ext in extensions if ext.uri == AgentDetailExtensionSpec.URI), None)
+    assert detail_extension
     params = detail_extension.params
+    assert params
 
     # Tools should remain empty list, not populated from skills
     assert "tools" in params

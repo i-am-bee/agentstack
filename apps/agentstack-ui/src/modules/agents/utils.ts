@@ -4,7 +4,7 @@
  */
 
 import type { Provider } from 'agentstack-sdk';
-import { InteractionMode, agentDetailExtension, extractUiExtensionData } from 'agentstack-sdk';
+import { agentDetailExtension, extractUiExtensionData, InteractionMode } from 'agentstack-sdk';
 import uniq from 'lodash/uniq';
 import uniqWith from 'lodash/uniqWith';
 
@@ -68,10 +68,7 @@ export function buildAgent(provider: Provider): Agent {
     uiWithFallbacks.interaction_mode = InteractionMode.MultiTurn;
   }
 
-  if (
-    (uiWithFallbacks.tools === undefined || uiWithFallbacks.tools === null) &&
-    agent_card.skills
-  ) {
+  if ((uiWithFallbacks.tools === undefined || uiWithFallbacks.tools === null) && agent_card.skills) {
     uiWithFallbacks.tools = agent_card.skills.map((skill) => ({
       name: skill.name,
       description: skill.description ?? '',
