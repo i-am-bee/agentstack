@@ -64,22 +64,25 @@ export function buildAgent(provider: Provider): Agent {
 
   const uiWithFallbacks = { ...ui };
 
-  if (!uiWithFallbacks.interaction_mode) {
+  if (uiWithFallbacks.interaction_mode === undefined || uiWithFallbacks.interaction_mode === null) {
     uiWithFallbacks.interaction_mode = InteractionMode.MultiTurn;
   }
 
-  if (!uiWithFallbacks.tools && agent_card.skills) {
+  if (
+    (uiWithFallbacks.tools === undefined || uiWithFallbacks.tools === null) &&
+    agent_card.skills
+  ) {
     uiWithFallbacks.tools = agent_card.skills.map((skill) => ({
       name: skill.name,
       description: skill.description ?? '',
     }));
   }
 
-  if (!uiWithFallbacks.user_greeting) {
+  if (uiWithFallbacks.user_greeting === undefined || uiWithFallbacks.user_greeting === null) {
     uiWithFallbacks.user_greeting = agent_card.description ?? undefined;
   }
 
-  if (!uiWithFallbacks.input_placeholder) {
+  if (uiWithFallbacks.input_placeholder === undefined || uiWithFallbacks.input_placeholder === null) {
     uiWithFallbacks.input_placeholder = 'What is your task?';
   }
 

@@ -90,3 +90,48 @@ def test_agent_detail_population_override():
 
     # Placeholder should be custom
     assert params["input_placeholder"] == "Custom Placeholder"
+
+def test_agent_detail_explicit_empty_values():
+    skill = AgentSkill(
+        id="skill-1",
+        name="test_skill",
+        description="A test skill",
+        input_modes=[],
+        output_modes=[],
+        tags=[],
+    )
+    description = "Test Description"
+
+    from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetail
+
+    # Explicitly empty tools and greeting
+    custom_detail = AgentDetail(
+        tools=[],
+        user_greeting="",
+        input_placeholder=""
+    )
+
+    @agent(skills=[skill], description=description, detail=custom_detail)
+    def test_agent_fn():
+        pass
+
+    def mock_modify_dependencies(deps):
+        pass
+
+    agent_instance = test_agent_fn(mock_modify_dependencies)
+
+    extensions = agent_instance.card.capabilities.extensions
+    detail_extension = next((ext for ext in extensions if ext.uri == AgentDetailExtensionSpec.URI), None)
+    params = detail_extension.params
+
+    # Tools should remain empty list, not populated from skills
+    assert "tools" in params
+    assert params["tools"] == []
+
+    # Greeting should remain empty string, not populated from description
+    assert "user_greeting" in params
+    assert params["user_greeting"] == ""
+
+    # Placeholder should remain empty string, not populated from default
+    assert "input_placeholder" in params
+    assert params["input_placeholder"] == ""

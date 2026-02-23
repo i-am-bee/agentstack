@@ -142,15 +142,15 @@ def agent(
             has_error_extension = any(isinstance(ext, ErrorExtensionServer) for ext in sdk_extensions)
             error_extension_spec = ErrorExtensionSpec(ErrorExtensionParams()) if not has_error_extension else None
 
-            if not detail.tools and skills:
+            if detail.tools is None and skills:
                 detail.tools = [
                     AgentDetailTool(name=skill.name, description=skill.description or "") for skill in skills
                 ]
 
-            if not detail.user_greeting:
+            if detail.user_greeting is None:
                 detail.user_greeting = resolved_description
 
-            if not detail.input_placeholder:
+            if detail.input_placeholder is None:
                 detail.input_placeholder = "What is your task?"
 
             capabilities.extensions = [
