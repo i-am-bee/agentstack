@@ -921,9 +921,9 @@ async def _run_agent(
                 case Task(id=task_id), TaskArtifactUpdateEvent(artifact=artifact):
                     if dump_files_path is None:
                         continue
-                    dump_files_path.mkdir(parents=True, exist_ok=True)
+                    dump_files_path.mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
                     full_path = dump_files_path / (artifact.name or "unnamed").lstrip("/")
-                    full_path.resolve().relative_to(dump_files_path.resolve())
+                    full_path.resolve().relative_to(dump_files_path.resolve())  # noqa: ASYNC240
                     full_path.parent.mkdir(parents=True, exist_ok=True)
                     try:
                         for part in artifact.parts[:1]:

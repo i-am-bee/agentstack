@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.13-alpine3.23
 ARG RELEASE_VERSION="main"
 COPY ./agents/deepagents_content_builder/ /app/agents/deepagents_content_builder
 COPY ./apps/agentstack-sdk-py/ /app/apps/agentstack-sdk-py/

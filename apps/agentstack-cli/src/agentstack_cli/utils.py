@@ -33,6 +33,31 @@ from rich.text import Text
 
 from agentstack_cli.console import console, err_console
 
+__all__ = [
+    "IN_VERBOSITY_CONTEXT",
+    "SHOW_SUCCESS_STATUS",
+    "VERBOSE",
+    "capture_output",
+    "check_json",
+    "extract_messages",
+    "format_error",
+    "format_model",
+    "generate_schema_example",
+    "get_github_repo_tags",
+    "get_httpx_response_error_details",
+    "get_local_github_token",
+    "is_github_url",
+    "merge",
+    "parse_env_var",
+    "print_httpx_response_error_details",
+    "print_log",
+    "prompt_user",
+    "remove_nullable",
+    "run_command",
+    "status",
+    "verbosity",
+]
+
 if TYPE_CHECKING:
     from prompt_toolkit.completion import Completer
     from prompt_toolkit.validation import Validator

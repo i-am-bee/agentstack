@@ -16,6 +16,18 @@ from agentstack_sdk.a2a.types import AgentMessage, AuthRequired
 from agentstack_sdk.util.pydantic import REDACT_SECRETS, REVEAL_SECRETS, SecureBaseModel
 from agentstack_sdk.util.telemetry import flatten_dict
 
+__all__ = [
+    "A2A_EXTENSION_SECRETS_REQUESTED",
+    "A2A_EXTENSION_SECRETS_RESOLVED",
+    "SecretDemand",
+    "SecretFulfillment",
+    "SecretsExtensionClient",
+    "SecretsExtensionServer",
+    "SecretsExtensionSpec",
+    "SecretsServiceExtensionMetadata",
+    "SecretsServiceExtensionParams",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

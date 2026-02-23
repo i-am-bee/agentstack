@@ -19,6 +19,13 @@ from agentstack_sdk.a2a.extensions.base import (
     NoParamsBaseExtensionSpec,
 )
 
+__all__ = [
+    "CanvasEditRequest",
+    "CanvasEditRequestMetadata",
+    "CanvasExtensionServer",
+    "CanvasExtensionSpec",
+]
+
 
 class CanvasEditRequestMetadata(pydantic.BaseModel):
     start_index: int

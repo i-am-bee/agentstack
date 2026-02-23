@@ -23,6 +23,19 @@ from agentstack_sdk.platform.client import get_platform_client
 from agentstack_sdk.util.logging import logger
 from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel, redact_dict, redact_str
 
+__all__ = [
+    "MCPDemand",
+    "MCPFulfillment",
+    "MCPServiceExtensionClient",
+    "MCPServiceExtensionMetadata",
+    "MCPServiceExtensionParams",
+    "MCPServiceExtensionServer",
+    "MCPServiceExtensionSpec",
+    "MCPTransport",
+    "StdioTransport",
+    "StreamableHTTPTransport",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

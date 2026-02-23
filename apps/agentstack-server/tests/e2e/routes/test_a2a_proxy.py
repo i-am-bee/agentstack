@@ -479,7 +479,7 @@ async def test_cancel_task(client: Client, handler: mock.AsyncMock, ensure_mock_
     handler.on_cancel_task.return_value = task
 
     # Send request
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={
             "jsonrpc": "2.0",
@@ -507,7 +507,7 @@ async def test_get_task(client: Client, handler: mock.AsyncMock, ensure_mock_tas
     handler.on_get_task.return_value = task  # JSONRPCResponse(root=task)
 
     # Send request
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={
             "jsonrpc": "2.0",
@@ -967,7 +967,7 @@ async def test_unknown_task_raises_error(client: Client, handler: mock.AsyncMock
     """Test that sending a message creates a new task owned by the user."""
     # Send message with non-existing task
     client.auth = test_admin
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={
             "jsonrpc": "2.0",
@@ -1006,7 +1006,7 @@ async def test_task_ownership_new_task_creation_via_message_send(
 
     # Send message as admin which should create new task ownership
     client.auth = test_admin
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={
             "jsonrpc": "2.0",
@@ -1041,7 +1041,7 @@ async def test_task_ownership_new_task_creation_via_message_send(
     task = Task(id="new-task-123", context_id="ctx1", state="completed", status=task_status)
     handler.on_get_task.return_value = task
 
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={"jsonrpc": "2.0", "id": "124", "method": "tasks/get", "params": {"id": "new-task-123"}},
     )
@@ -1051,7 +1051,7 @@ async def test_task_ownership_new_task_creation_via_message_send(
 
     # Verify default user cannot access it
     client.auth = test_user
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={"jsonrpc": "2.0", "id": "125", "method": "tasks/get", "params": {"id": "new-task-123"}},
     )
@@ -1072,7 +1072,7 @@ async def test_context_ownership_cannot_be_claimed_by_different_user(
     mock_task = Task(id="task-ctx-1", context_id="shared-context-789", status=task_status)
     handler.on_message_send.return_value = mock_task
 
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={
             "jsonrpc": "2.0",
@@ -1109,7 +1109,7 @@ async def test_context_ownership_cannot_be_claimed_by_different_user(
     )
     handler.on_message_send.return_value = mock_task2
 
-    response = client.post(
+    response = client.post(  # noqa: ASYNC212
         "/",
         json={
             "jsonrpc": "2.0",
@@ -1155,7 +1155,7 @@ async def test_task_update_last_accessed_at(client: Client, handler: mock.AsyncM
         },
     }
 
-    response = client.post("/", json=message_data)
+    response = client.post("/", json=message_data)  # noqa: ASYNC212
     # Get initial timestamp
     result = await db_transaction.execute(
         text("SELECT last_accessed_at FROM a2a_request_tasks WHERE task_id = :task_id"), {"task_id": "task1"}
@@ -1170,7 +1170,7 @@ async def test_task_update_last_accessed_at(client: Client, handler: mock.AsyncM
     task = Task(id="task1", context_id="ctx1", state="completed", status=task_status)
     handler.on_get_task.return_value = task
 
-    response = client.post("/", json=message_data)
+    response = client.post("/", json=message_data)  # noqa: ASYNC212
     assert response.status_code == 200
 
     # Check that timestamp was updated
@@ -1206,11 +1206,11 @@ async def test_task_and_context_both_specified_single_query(
             }
         },
     }
-    response = client.post("/", json=message_data)
+    response = client.post("/", json=message_data)  # noqa: ASYNC212
     assert response.status_code == 200
     message_data["params"]["message"]["taskId"] = "dual-task-123"
 
-    response = client.post("/", json=message_data)
+    response = client.post("/", json=message_data)  # noqa: ASYNC212
     assert response.status_code == 200
 
     # Verify both were recorded in database
@@ -1251,7 +1251,7 @@ async def test_invalid_request_raises_a2a_error(client: Client, handler: mock.As
             }
         },
     }
-    response = client.post("/", json=message_data)
+    response = client.post("/", json=message_data)  # noqa: ASYNC212
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == "123"

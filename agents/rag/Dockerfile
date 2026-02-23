@@ -1,4 +1,4 @@
-FROM python:3.13-alpine3.22
+FROM python:3.13-alpine3.23
 ARG RELEASE_VERSION="main"
 COPY ./agents/rag/ /app/agents/rag
 COPY ./apps/agentstack-sdk-py/ /app/apps/agentstack-sdk-py/

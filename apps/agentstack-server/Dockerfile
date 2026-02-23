@@ -1,4 +1,4 @@
-FROM python:3.13-alpine3.22
+FROM python:3.13-alpine3.23
 ENV UV_COMPILE_BYTECODE=1 \
     HOME="/tmp" \
     AGENT_REGISTRY__LOCATIONS__FILE="file:///app/registry.yaml"

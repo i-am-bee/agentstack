@@ -15,6 +15,16 @@ from typing_extensions import override
 from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel, redact_str
 
+__all__ = [
+    "LLMDemand",
+    "LLMFulfillment",
+    "LLMServiceExtensionClient",
+    "LLMServiceExtensionMetadata",
+    "LLMServiceExtensionParams",
+    "LLMServiceExtensionServer",
+    "LLMServiceExtensionSpec",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

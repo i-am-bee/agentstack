@@ -12,6 +12,11 @@ from a2a.types import Artifact, Message
 
 from agentstack_sdk.platform.context import ContextHistoryItem
 
+__all__ = [
+    "ContextStore",
+    "ContextStoreInstance",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.dependencies import Dependency, Depends
 

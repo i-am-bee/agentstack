@@ -18,6 +18,12 @@ from agentstack_sdk.a2a.extensions.base import (
 from agentstack_sdk.a2a.extensions.common.form import FormRender, FormResponse
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
 
+__all__ = [
+    "FormRequestExtensionClient",
+    "FormRequestExtensionServer",
+    "FormRequestExtensionSpec",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

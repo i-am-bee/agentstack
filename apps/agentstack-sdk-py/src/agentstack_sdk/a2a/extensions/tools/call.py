@@ -17,6 +17,17 @@ from agentstack_sdk.a2a.extensions.tools.exceptions import ToolCallRejectionErro
 from agentstack_sdk.a2a.types import AgentMessage, InputRequired
 from agentstack_sdk.util.pydantic import REVEAL_SECRETS
 
+__all__ = [
+    "ToolCallExtensionClient",
+    "ToolCallExtensionMetadata",
+    "ToolCallExtensionParams",
+    "ToolCallExtensionServer",
+    "ToolCallExtensionSpec",
+    "ToolCallRequest",
+    "ToolCallResponse",
+    "ToolCallServer",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

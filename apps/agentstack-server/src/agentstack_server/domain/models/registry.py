@@ -13,6 +13,21 @@ from agentstack_server.domain.constants import DEFAULT_AUTO_STOP_TIMEOUT
 from agentstack_server.exceptions import VersionResolveError
 from agentstack_server.utils.github import GithubUrl
 
+__all__ = [
+    "FileSystemModelProviderRegistryLocation",
+    "FileSystemRegistryLocation",
+    "GithubRegistryLocation",
+    "ModelProviderRegistryLocation",
+    "ModelProviderRegistryManifest",
+    "ModelProviderRegistryRecord",
+    "NetworkRegistryLocation",
+    "ProviderRegistryRecord",
+    "RegistryLocation",
+    "RegistryManifest",
+    "parse_model_providers_manifest",
+    "parse_providers_manifest",
+]
+
 if TYPE_CHECKING:
     # Workaround to prevent cyclic imports
     # Models from this file are used in config which is used everywhere throughout the codebase

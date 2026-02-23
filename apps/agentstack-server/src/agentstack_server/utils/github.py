@@ -14,6 +14,13 @@ from authlib.jose import jwt
 from kink import di
 from pydantic import AnyUrl, BaseModel, ModelWrapValidatorHandler, RootModel, model_validator
 
+__all__ = [
+    "GithubUrl",
+    "GithubVersionType",
+    "ResolvedGithubUrl",
+    "get_github_token",
+]
+
 if TYPE_CHECKING:
     from agentstack_server.configuration import GithubAppConfiguration, GithubPATConfiguration
 

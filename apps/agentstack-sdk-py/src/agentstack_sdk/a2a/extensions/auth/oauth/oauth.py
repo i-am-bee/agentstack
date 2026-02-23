@@ -21,6 +21,18 @@ from agentstack_sdk.a2a.extensions.base import BaseExtensionClient, BaseExtensio
 from agentstack_sdk.a2a.types import AgentMessage, AuthRequired, RunYieldResume
 from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
 
+__all__ = [
+    "AuthRequest",
+    "AuthResponse",
+    "OAuthDemand",
+    "OAuthExtensionClient",
+    "OAuthExtensionMetadata",
+    "OAuthExtensionParams",
+    "OAuthExtensionServer",
+    "OAuthExtensionSpec",
+    "OAuthFulfillment",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

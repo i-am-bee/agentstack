@@ -50,7 +50,7 @@ async def run(base_url: str = "http://127.0.0.1:10000"):
 
                 print("Agent has requested a tool call")
                 print(approval_request)
-                choice = input("Approve (Y/n): ")
+                choice = input("Approve (Y/n): ")  # noqa: ASYNC250
                 response = ApprovalResponse(decision="approve" if choice.lower() == "y" else "reject")
                 message = approval_extension_client.create_response_message(task_id=task.id, response=response)
             else:

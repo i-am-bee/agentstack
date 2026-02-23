@@ -7,6 +7,12 @@ from typing import TYPE_CHECKING, TypeAlias
 from a2a.types import AgentCard
 from starlette.authentication import AuthenticationBackend
 
+__all__ = [
+    "JsonDict",
+    "JsonValue",
+    "SdkAuthenticationBackend",
+]
+
 if TYPE_CHECKING:
     JsonValue: TypeAlias = list["JsonValue"] | dict[str, "JsonValue"] | str | bool | int | float | None
     JsonDict: TypeAlias = dict[str, JsonValue]

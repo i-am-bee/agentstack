@@ -8,20 +8,20 @@ packages:
   - docs
 
 catalog:
-  "@carbon/icons-react": ^11.74.0
-  "@carbon/layout": ^11.47.0
-  "@carbon/react": ^1.100.0
-  "@carbon/styles": ^1.99.0
-  "@ibm/plex": ^6.4.1
-  "@svgr/webpack": ^8.1.0
-  "@tanstack/react-query": ^5.90.20
-  "@types/lodash": ^4.17.23
-  "@types/node": ^22.19.10
-  "@types/react": ^19.2.13
-  "@types/react-dom": ^19.2.3
+  '@carbon/icons-react': ^11.75.0
+  '@carbon/layout': ^11.48.0
+  '@carbon/react': ^1.101.0
+  '@carbon/styles': ^1.100.0
+  '@ibm/plex': ^6.4.1
+  '@svgr/webpack': ^8.1.0
+  '@tanstack/react-query': ^5.90.21
+  '@types/lodash': ^4.17.24
+  '@types/node': ^22.19.11
+  '@types/react': ^19.2.14
+  '@types/react-dom': ^19.2.3
   babel-plugin-react-compiler: 1.0.0
   clsx: ^2.1.1
-  eslint: ^9.39.2
+  eslint: ^9.39.3
   lodash: ^4.17.23
   next: ^16.1.6
   prettier: ^3.8.1

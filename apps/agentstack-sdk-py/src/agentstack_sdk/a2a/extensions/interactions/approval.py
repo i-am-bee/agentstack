@@ -17,6 +17,22 @@ from agentstack_sdk.a2a.types import AgentMessage, InputRequired
 from agentstack_sdk.util.pydantic import REDACT_SECRETS, REVEAL_SECRETS, SecureBaseModel
 from agentstack_sdk.util.telemetry import flatten_dict
 
+__all__ = [
+    "A2A_EXTENSION_APPROVAL_REQUESTED",
+    "A2A_EXTENSION_APPROVAL_RESOLVED",
+    "ApprovalExtensionClient",
+    "ApprovalExtensionMetadata",
+    "ApprovalExtensionParams",
+    "ApprovalExtensionServer",
+    "ApprovalExtensionSpec",
+    "ApprovalRejectionError",
+    "ApprovalRequest",
+    "ApprovalResponse",
+    "GenericApprovalRequest",
+    "ToolCallApprovalRequest",
+    "ToolCallServer",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 

@@ -28,6 +28,15 @@ from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthe
 from agentstack_sdk.util.httpx import BearerAuth
 from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
 
+__all__ = [
+    "PlatformApiExtension",
+    "PlatformApiExtensionClient",
+    "PlatformApiExtensionMetadata",
+    "PlatformApiExtensionParams",
+    "PlatformApiExtensionServer",
+    "PlatformApiExtensionSpec",
+]
+
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
