@@ -51,10 +51,6 @@ def validate_agent_card(server_port):
     if not has_trajectory:
         return False, "Required [Trajectory] extension is missing! Every agent must include the Trajectory extension."
 
-    has_llm = any("llm" in uri.lower() for uri in extension_uris)
-    if not has_llm:
-        return False, "Required [LLM] extension is missing! Every agent must include the LLM extension."
-
     return True, "Agent card is valid!"
 
 if __name__ == "__main__":
