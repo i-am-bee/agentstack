@@ -35,7 +35,7 @@ from tenacity import (
 from agentstack_cli.async_typer import AsyncTyper
 from agentstack_cli.configuration import Configuration
 from agentstack_cli.console import console
-from agentstack_cli.utils import merge, run_command, verbosity
+from agentstack_cli.utils import get_local_github_token, merge, run_command, verbosity
 
 app = AsyncTyper()
 configuration = Configuration()
@@ -144,7 +144,7 @@ async def run_in_vm(
     return await run_command(
         ["wsl.exe", "--user", "root", "--distribution", vm_name, "--", *command],
         message,
-        env={**(env or {}), "WSL_UTF8": "1", "WSLENV": os.getenv("WSLENV", "") + ":WSL_UTF8"},
+        env={**(env or {}), "WSL_UTF8": "1", "WSLENV": "".join("{k}/u" for k in (env or {}).keys() | {"WSL_UTF8"})},
         input=input,
         check=check,
     )
@@ -594,13 +594,21 @@ async def start_cmd(
                 finally:
                     await anyio.Path(host_path).unlink(missing_ok=True)
         if image_pull_mode in {ImagePullMode.guest, ImagePullMode.hybrid}:
+            github_token = get_local_github_token()
             for image in loaded_images - images_to_import_from_host:
                 await run_in_vm(
                     vm_name,
                     ["k3s", "ctr", "image", "pull", image]
                     if platform == "k3s"
-                    else ["skopeo", "copy", f"docker://{image}", f"containers-storage:{image}"],
+                    else [
+                        "skopeo",
+                        "copy",
+                        *(["--src-username", "x-access-token", "--src-password", github_token] if github_token else []),
+                        f"docker://{image}",
+                        f"containers-storage:{image}",
+                    ],
                     f"Pulling image {image}",
+                    env={"GITHUB_TOKEN": github_token} if github_token else None,
                 )
         kubeconfig_local = anyio.Path(Configuration().lima_home) / vm_name / "copied-from-guest" / "kubeconfig.yaml"
         await kubeconfig_local.parent.mkdir(parents=True, exist_ok=True)
