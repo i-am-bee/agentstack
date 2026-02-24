@@ -59,7 +59,7 @@ def detect_driver() -> typing.Literal["lima", "wsl"]:
         elif platform_module.system() == "Linux":
             if not has_lima:
                 console.hint(
-                    "This Linux distribution is not suppored by Lima VM binary releases (required: glibc>=2.34). Manually install Lima VM >=1.2.1 through either:\n"
+                    "This Linux distribution is not suppored by Lima VM binary releases (required: glibc>=2.34). Manually install Lima VM v2.0.3 through either:\n"
                     + "  - Your distribution's package manager, if available (https://repology.org/project/lima/versions)\n"
                     + "  - Homebrew, which uses its own separate glibc on Linux (https://brew.sh)\n"
                     + "  - Building it yourself, and ensuring that limactl is in PATH (https://lima-vm.io/docs/installation/source/)"

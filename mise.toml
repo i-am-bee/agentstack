@@ -1,20 +1,20 @@
 [tools]
 # runtime
-"asdf:CrouchingMuppet/asdf-lima" = "1.2.1" # using lima from asdf since the aqua one fails to install in CI
+"asdf:CrouchingMuppet/asdf-lima" = "2.0.3" # using lima from asdf since the aqua one fails to install in CI
 
 # Python
-uv = "0.9.5"
+uv = "0.10"
 
 # Node.js
 nodejs = "24"
-pnpm = "10.15.1"
+pnpm = "10"
 
 # Java
 java = "21"
-maven = "3.9.12"
+maven = "3"
 
 # Kubernetes
-helm = "latest"
+helm = "3"
 kubeconform = "latest"
 "github:telepresenceio/telepresence" = "latest"
 
@@ -34,9 +34,7 @@ node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
 task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 
 [hooks]
-postinstall = [
-    "{{ mise_bin }} setup",
-]
+postinstall = ["{{ mise_bin }} setup"]
 
 [env]
 UV_PYTHON_PREFERENCE = "only-managed"

@@ -1,5 +1,5 @@
 [[tools."asdf:CrouchingMuppet/asdf-lima"]]
-version = "1.2.1"
+version = "2.0.3"
 backend = "asdf:CrouchingMuppet/asdf-lima"
 
 [[tools.fd]]
@@ -99,13 +99,13 @@ backend = "aqua:pnpm/pnpm"
 "platforms.macos-arm64" = { checksum = "sha256:b64bd9e75d92934251bd0b890d3d4d1073e85d71bf39227ff6a6408d27c3106d", url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-macos-arm64"}
 
 [[tools.uv]]
-version = "0.9.5"
+version = "0.10.4"
 backend = "aqua:astral-sh/uv"
-"platforms.linux-arm64" = { checksum = "sha256:42b9b83933a289fe9c0e48f4973dee49ce0dfb95e19ea0b525ca0dbca3bce71f", url = "https://github.com/astral-sh/uv/releases/download/0.9.5/uv-aarch64-unknown-linux-musl.tar.gz"}
-"platforms.linux-x64" = { checksum = "sha256:3665ffb6c429c31ad6c778ac0489b7746e691acf025cf530b3510b2f9b1660ff", url = "https://github.com/astral-sh/uv/releases/download/0.9.5/uv-x86_64-unknown-linux-musl.tar.gz"}
-"platforms.macos-arm64" = { checksum = "sha256:dc098ff224d78ed418e121fd374f655949d2c7031a70f6f6604eaf016a130433", url = "https://github.com/astral-sh/uv/releases/download/0.9.5/uv-aarch64-apple-darwin.tar.gz"}
-"platforms.macos-x64" = { checksum = "sha256:58b1d4a25aa8ff99147c2550b33dcf730207fe7e0f9a0d5d36a1bbf36b845aca", url = "https://github.com/astral-sh/uv/releases/download/0.9.5/uv-x86_64-apple-darwin.tar.gz"}
-"platforms.windows-x64" = { checksum = "sha256:515dc53d7553f1357d0abc1f70acd921fbb9e30230b1d9a08737236daa6ee920", url = "https://github.com/astral-sh/uv/releases/download/0.9.5/uv-x86_64-pc-windows-msvc.zip"}
+"platforms.linux-arm64" = { checksum = "sha256:82fc461031dafb130af761e7dbec1bcc51b826c2e664f5bf8bc4e4f8330320cd", url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-aarch64-unknown-linux-musl.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:18adf097cea30a165ba086c1e72659fec3c5aca056a560e7c39e0164ac871196", url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-x86_64-unknown-linux-musl.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:a6852e4dc565c8fedcf5adcdf09fca7caf5347739bed512bd95b15dada36db51", url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-aarch64-apple-darwin.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:df6dd1c3ebeab4369a098c516c15c233c62bf789a40a4864b30dad1d38d7604e", url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-x86_64-apple-darwin.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:0f0e22d7507633bfb38d9b42fb6a0341f1f74b8e80b070a31231c354812432a3", url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-x86_64-pc-windows-msvc.zip"}
 
 [[tools.yq]]
 version = "4.47.2"
