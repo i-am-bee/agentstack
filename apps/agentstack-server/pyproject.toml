@@ -51,6 +51,7 @@ dependencies = [
     "ijson>=3.4.0.post0",
     "opentelemetry-instrumentation-openai>=0.52.1",
     "opentelemetry-instrumentation-sqlalchemy>=0.60b1",
+    "aws-bedrock-token-generator>=1.1.0",
 ]
 
 [dependency-groups]
