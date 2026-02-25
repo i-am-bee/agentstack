@@ -16,7 +16,7 @@ catalog:
   '@svgr/webpack': ^8.1.0
   '@tanstack/react-query': ^5.90.21
   '@types/lodash': ^4.17.24
-  '@types/node': ^22.19.11
+  '@types/node': ^24.0.0
   '@types/react': ^19.2.14
   '@types/react-dom': ^19.2.3
   babel-plugin-react-compiler: 1.0.0
