@@ -176,7 +176,7 @@ requires-dist = [
     { name = "opentelemetry-sdk", specifier = ">=1.30.0" },
     { name = "orjson", specifier = ">=3.10.15" },
     { name = "pgvector", specifier = ">=0.4.1" },
-    { name = "procrastinate", specifier = "==3.5.3" },
+    { name = "procrastinate", specifier = "==3.7.2" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.9" },
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
@@ -1821,19 +1821,20 @@ wheels = [
 
 [[package]]
 name = "procrastinate"
-version = "3.5.3"
+version = "3.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "attrs" },
     { name = "croniter" },
+    { name = "packaging" },
     { name = "psycopg", extra = ["pool"] },
     { name = "python-dateutil" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/67/69/28bd55c8f2482822b0fca86d1f1d4659b37965587e05fd3b236ec157b9f5/procrastinate-3.5.3.tar.gz", hash = "sha256:97dd582b290c5c0efbc5d504244cc124bb17dde75d423da6cf71cd00d3450319", size = 82872, upload-time = "2025-09-26T05:50:47.399Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/b4/e4940db96fed26c50bb58bc184f060fd8025388a37dec384ac2f16887eae/procrastinate-3.7.2.tar.gz", hash = "sha256:9845f6aa464b525fd0f38934f56bc4c04f4631bbdcb23fedc8c656c006e89d79", size = 83942, upload-time = "2026-01-22T20:36:33.443Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7f/db/40f4e7dfeb4d82f518478419d3f255444f5885ae0b1243da942bd9b2ee30/procrastinate-3.5.3-py3-none-any.whl", hash = "sha256:ad2e13129b56c7e223241c7459d1f665c20d4877feb531bfccded9c6a26bf622", size = 146609, upload-time = "2025-09-26T05:50:45.606Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/a3/e07797a7aaf36892ea506c4520e7b605f25fb8ae0d7e7eb5ab1f22a55b51/procrastinate-3.7.2-py3-none-any.whl", hash = "sha256:a2c71eb592067c57ec19d1a5074c81d4859489d2f8036ec3c2c046edf175736f", size = 147690, upload-time = "2026-01-22T20:36:31.447Z" },
 ]
 
 [[package]]
