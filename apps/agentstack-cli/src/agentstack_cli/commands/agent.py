@@ -760,7 +760,7 @@ async def _run_agent(
                     FormServiceExtensionSpec.URI: {
                         "form_fulfillments": {
                             **(
-                                {"initial_form": typing.cast(FormResponse, input).model_dump(mode="json")}
+                                {"initial_form": input.model_dump(mode="json")}
                                 if isinstance(input, FormResponse)
                                 else {}
                             ),

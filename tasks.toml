@@ -94,7 +94,11 @@ run = "true" # Empty tests in case there are no tests
 # platform tasks
 
 ["agentstack:start"]
-depends = ["agentstack-server:build", "supergateway:build", "keycloak-theme:build" ]
+depends = [
+  "agentstack-server:build",
+  "supergateway:build",
+  "keycloak-theme:build",
+]
 dir = "{{config_root}}"
 run = """
 #!/bin/bash

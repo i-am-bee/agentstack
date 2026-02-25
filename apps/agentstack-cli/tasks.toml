@@ -57,6 +57,7 @@ outputs = { auto = true }
 description = "NOTE: Use double dash to pass extra args, like `mise agentstack-cli:run -- provider list`"
 depends = ["agentstack-cli:setup", "agentstack-cli:build:copy-helm-chart"]
 dir = "{{config_root}}/apps/agentstack-cli"
+raw = true
 run = "uv run agentstack"
 
 # build

@@ -28,7 +28,6 @@ lychee = "latest"
 
 [settings]
 python.uv_venv_auto = true
-raw = true
 task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 
 [hooks]
