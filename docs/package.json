@@ -13,7 +13,7 @@
   "packageManager": "pnpm@9.9.0",
   "devDependencies": {
     "@i-am-bee/lint-config": "workspace:*",
-    "embedme": "^1.22.1",
-    "mintlify": "^4.2.375"
+    "embedme": "1.22.1",
+    "mintlify": "4.2.375"
   }
 }
