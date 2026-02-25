@@ -30,12 +30,12 @@ export function AnimatedTextContent({ children, className, linesClamp, ...textOp
 
   if (linesClamp && displayedText.length > 0) {
     return (
-      <LineClampText lines={linesClamp} useBlockElement={contentIsMarkdown} className={className}>
-        {contentIsMarkdown ? (
-          <MarkdownContent>{displayedText}</MarkdownContent>
-        ) : (
-          <span className={classes.content}>{displayedText}</span>
-        )}
+      <LineClampText
+        lines={linesClamp}
+        useBlockElement={contentIsMarkdown}
+        className={clsx(classes.content, className)}
+      >
+        {contentIsMarkdown ? <MarkdownContent>{displayedText}</MarkdownContent> : displayedText}
       </LineClampText>
     );
   }
