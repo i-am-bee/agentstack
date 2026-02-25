@@ -804,7 +804,7 @@ docling:
     type: ClusterIP
   maxSyncWait: 300 # 5 minutes in seconds
   imagePullPolicy: IfNotPresent
-  image: "ghcr.io/docling-project/docling-serve-cpu:v1.5.0@sha256:69f3a5eb45419852a4c56bcea48be435d2d3fb0bdb57f104579aeb477c8226ca"
+  image: "ghcr.io/docling-project/docling-serve-cpu:v1.14.0@sha256:65656d843de0c405debf43f09b85a5d228e0fb97d4040a387392f94c97d9a44f"
 
 # This is to override the chart name.
 nameOverride: ""
