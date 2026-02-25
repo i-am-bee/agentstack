@@ -33,7 +33,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           context: .
           file: ./agents/${{ matrix.agent }}/Dockerfile
@@ -58,7 +58,7 @@ jobs:
           docker kill tmp-agent
           AGENT_MANIFEST=$(echo "$response" | base64 -w 0)
           echo "content=$AGENT_MANIFEST" >> $GITHUB_OUTPUT
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           context: .
           file: ./agents/${{ matrix.agent }}/Dockerfile
