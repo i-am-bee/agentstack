@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Docker
       - uses: docker/setup-qemu-action@v3

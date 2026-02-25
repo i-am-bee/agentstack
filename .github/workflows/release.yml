@@ -22,7 +22,7 @@ jobs:
           - form
           - canvas
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: version
         run: |
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
@@ -83,7 +83,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       HELM_EXPERIMENTAL_OCI: "1"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id: version
         run: |
           echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT

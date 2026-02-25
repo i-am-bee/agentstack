@@ -29,7 +29,7 @@ jobs:
     env:
       AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Maximize build space
         uses: ./.github/actions/maximize-build-space
         with:
@@ -45,7 +45,7 @@ jobs:
         with:
           path: ~/.cache/lima
           key: lima-${{ steps.lima-actions-setup.outputs.version }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
