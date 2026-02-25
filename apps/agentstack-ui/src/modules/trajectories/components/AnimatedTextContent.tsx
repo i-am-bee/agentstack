@@ -34,7 +34,7 @@ export function AnimatedTextContent({ children, className, linesClamp, ...textOp
         {contentIsMarkdown ? (
           <MarkdownContent>{displayedText}</MarkdownContent>
         ) : (
-          <div className={classes.content}>{displayedText}</div>
+          <span className={classes.content}>{displayedText}</span>
         )}
       </LineClampText>
     );
