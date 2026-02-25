@@ -1,6 +1,6 @@
 [tools]
 # runtime
-"lima" = "2.0.3" # using lima from asdf since the aqua one fails to install in CI
+"lima" = "2.0.3"
 
 # Python
 uv = "0.10"
