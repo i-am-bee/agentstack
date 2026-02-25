@@ -5,7 +5,7 @@ description = "Agent with structured input."
 authors = [
     { name = "IBM Corp." },
 ]
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "agentstack-sdk",
     "openinference-instrumentation-beeai>=0.1.14",

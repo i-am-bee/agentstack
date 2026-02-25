@@ -191,7 +191,7 @@ async def _server_side_build(
                 async for message in build.stream_logs():
                     print_log(message, ansi_mode=True, out_console=err_console)
             return await build.get()
-    except (KeyboardInterrupt, CancelledError):
+    except KeyboardInterrupt, CancelledError:
         async with Configuration().use_platform_client():
             if build:
                 await build.delete()

@@ -4,7 +4,7 @@ version = "0.6.3"
 description = "Agent Stack SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11,<3.15"
 dependencies = [
     "a2a-sdk==0.3.24",
     "objprint>=0.3.0",

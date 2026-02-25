@@ -4,7 +4,7 @@ version = "0.6.3"
 description = "Agent Stack CLI"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "anyio>=4.12.1",
     "pydantic>=2.12.5",
@@ -50,7 +50,7 @@ source-exclude = ["**/.DS_Store"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py313"
+target-version = "py314"
 lint.select = [
     "E", # pycodestyle errors
     "W", # pycodestyle warnings

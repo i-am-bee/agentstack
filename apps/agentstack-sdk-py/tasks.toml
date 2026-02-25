@@ -48,7 +48,7 @@ dir = "{{config_root}}/apps/agentstack-sdk-py"
 ["agentstack-sdk-py:test-all"]
 depends = ["agentstack-sdk-py:setup"]
 dir = "{{config_root}}/apps/agentstack-sdk-py"
-usage = 'flag "--python <python>" default="3.13"'
+usage = 'flag "--python <python>" default="3.14"'
 run = """
 #!/bin/bash
 uv run --python="${usage_python?}" pytest

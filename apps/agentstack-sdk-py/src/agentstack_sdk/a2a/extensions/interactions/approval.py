@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import annotations
 
 import uuid
 from types import NoneType
@@ -70,7 +69,7 @@ class ToolCallApprovalRequest(SecureBaseModel):
     @staticmethod
     def from_mcp_tool(
         tool: Tool, input: dict[str, Any] | None, server: Implementation | None = None
-    ) -> ToolCallApprovalRequest:
+    ) -> "ToolCallApprovalRequest":
         return ToolCallApprovalRequest(
             name=tool.name,
             title=tool.annotations.title if tool.annotations else None,

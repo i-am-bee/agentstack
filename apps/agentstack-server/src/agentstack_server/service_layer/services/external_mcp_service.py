@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Coroutine
@@ -30,6 +29,15 @@ from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 
 logger = logging.getLogger(__name__)
+
+
+class _ResourceServerMetadata(BaseModel):
+    authorization_servers: list[str]
+
+
+class _ClientRegistrationResponse(BaseModel):
+    client_id: str
+    client_secret: str | None = None
 
 
 @inject
@@ -286,15 +294,6 @@ async def _discover_resource_metadata(resource_url: str) -> _ResourceServerMetad
         exc_info=ExceptionGroup(f"Unable to discover metadata for resource {resource_url}", exceptions),
     )
     return None
-
-
-class _ResourceServerMetadata(BaseModel):
-    authorization_servers: list[str]
-
-
-class _ClientRegistrationResponse(BaseModel):
-    client_id: str
-    client_secret: str | None = None
 
 
 def _render_success():

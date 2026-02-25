@@ -1,7 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
-from __future__ import annotations
 
 import abc
 import typing
@@ -80,7 +79,7 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
         self.params = params
 
     @classmethod
-    def from_agent_card(cls: type[BaseExtensionSpec], agent: AgentCard) -> typing.Self | None:
+    def from_agent_card(cls: type["BaseExtensionSpec"], agent: AgentCard) -> typing.Self | None:
         """
         Client should construct an extension instance using this classmethod.
         """

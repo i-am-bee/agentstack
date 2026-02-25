@@ -4,7 +4,7 @@ version = "0.6.3"
 description = "Agent Stack server"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
-requires-python = "==3.13.*"
+requires-python = "==3.14.*"
 dependencies = [
     "a2a-sdk~=0.3.21",
     "aiohttp>=3.11.11",
@@ -96,7 +96,7 @@ env = [
 
 [tool.ruff]
 line-length = 120
-target-version = "py313"
+target-version = "py314"
 lint.select = [
     "E",     # pycodestyle errors
     "W",     # pycodestyle warnings

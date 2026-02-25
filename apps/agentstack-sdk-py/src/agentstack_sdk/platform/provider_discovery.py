@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-from __future__ import annotations
 
 from enum import StrEnum
 from uuid import UUID
@@ -32,7 +31,7 @@ class ProviderDiscovery(pydantic.BaseModel):
         *,
         docker_image: str,
         client: PlatformClient | None = None,
-    ) -> ProviderDiscovery:
+    ) -> "ProviderDiscovery":
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(ProviderDiscovery).validate_python(
                 (
@@ -45,7 +44,7 @@ class ProviderDiscovery(pydantic.BaseModel):
                 .json()
             )
 
-    async def get(self: ProviderDiscovery | str, *, client: PlatformClient | None = None) -> ProviderDiscovery:
+    async def get(self: "ProviderDiscovery" | str, *, client: PlatformClient | None = None) -> "ProviderDiscovery":
         discovery_id = self if isinstance(self, str) else str(self.id)
         async with client or get_platform_client() as client:
             result = pydantic.TypeAdapter(ProviderDiscovery).validate_json(

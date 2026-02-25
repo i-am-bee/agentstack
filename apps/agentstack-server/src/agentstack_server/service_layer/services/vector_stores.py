@@ -31,7 +31,7 @@ class VectorStoreService:
         self._uow = uow
         self._storage_limit_per_user = configuration.vector_stores.storage_limit_per_user_bytes
 
-    async def list(self, *, user: User) -> list[VectorStore]:
+    async def list(self, *, user: User) -> builtins.list[VectorStore]:
         """List all vector stores for a user."""
         async with self._uow() as uow:
             return [document async for document in uow.vector_stores.list(user_id=user.id)]

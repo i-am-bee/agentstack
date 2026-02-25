@@ -6,6 +6,16 @@ from collections.abc import AsyncIterator, Iterator
 from datetime import datetime
 from typing import Final, cast, override
 
+try:
+    import ibm_watsonx_ai.utils.utils
+
+    def safe_init(self, *args, **kwargs):
+        pass
+
+    ibm_watsonx_ai.utils.utils.StrEnum.__init__ = safe_init
+except ImportError:
+    pass
+
 import ibm_watsonx_ai.foundation_models.embeddings
 import openai.types.chat
 from httpx import AsyncClient
