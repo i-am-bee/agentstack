@@ -1,11 +1,9 @@
 # setup
 
 ["agentstack-cli:setup"]
+extends = "python:setup"
 depends = ["agentstack-sdk-py:setup"]
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "uv sync --all-extras --dev"
-sources = ["uv.lock", "pyproject.toml"]
-outputs = { auto = true }
 
 # check
 
@@ -13,24 +11,18 @@ outputs = { auto = true }
 depends = ["agentstack-cli:check:*"]
 
 ["agentstack-cli:check:ruff-check"]
+extends = "python:check:ruff"
 depends = ["agentstack-cli:setup"]
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "uv run python -m ruff check --quiet"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-cli:check:ruff-format"]
+extends = "python:check:ruff-format"
 depends = ["agentstack-cli:setup"]
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "uv run python -m ruff format --quiet --check"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-cli:check:pyrefly"]
+extends = "python:check:pyrefly"
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "uv run pyrefly check src"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 # fix
 
@@ -38,18 +30,14 @@ outputs = { auto = true }
 depends = ["agentstack-cli:fix:*"]
 
 ["agentstack-cli:fix:ruff-check"]
+extends = "python:fix:ruff"
 depends = ["agentstack-cli:setup"]
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "uv run python -m ruff check --quiet --fix"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-cli:fix:ruff-format"]
+extends = "python:fix:ruff-format"
 depends = ["agentstack-cli:setup"]
 dir = "{{config_root}}/apps/agentstack-cli"
-run = "uv run python -m ruff format --quiet"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 # run
 
@@ -66,7 +54,7 @@ run = "uv run agentstack"
 dir = "{{config_root}}/apps/agentstack-cli"
 run = '''
 set -e
-LIMA_VERSION=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
+LIMA_VERSION=$(yq -r '.tools["lima"]' ../../mise.toml)
 mkdir -p ./vendor
 echo '*' >./vendor/.gitignore
 ( test -f ./vendor/lima-$LIMA_VERSION/manylinux_2_34_x86_64/bin/limactl  || ( mkdir -p ./vendor/lima-$LIMA_VERSION/manylinux_2_34_x86_64  && curl -fsL -H "Authorization: Bearer $GITHUB_TOKEN" https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-Linux-x86_64.tar.gz  | tar -xzf - -C ./vendor/lima-$LIMA_VERSION/manylinux_2_34_x86_64  )) &
@@ -99,7 +87,7 @@ set -euo pipefail
 # Build sdist and wheel
 rm -rf ./dist
 uv build -q --out-dir ./dist
-export lima_version=$(yq -r '.tools["asdf:CrouchingMuppet/asdf-lima"]' ../../mise.toml)
+export lima_version=$(yq -r '.tools["lima"]' ../../mise.toml)
 export version="$(yq -r '.project.version' pyproject.toml | tr -d -)"
 export universal_wheel=$(realpath "./dist/agentstack_cli-$version-py3-none-any.whl")
 
@@ -158,12 +146,6 @@ build_wheel macosx_12_0_x86_64     x86_64  &
 build_wheel macosx_12_0_arm64      aarch64 &
 for job in $(jobs -p); do wait $job; done
 '''
-
-# clean
-
-["agentstack-cli:clean"]
-dir = "{{config_root}}/apps/agentstack-cli"
-run = "rm -rf ./dist"
 
 # docs
 

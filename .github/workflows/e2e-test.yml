@@ -25,7 +25,7 @@ on:
       - 'helm/**'
 jobs:
   e2e-test:
-    timeout-minutes: 25
+    timeout-minutes: 40
     runs-on: ubuntu-latest
     env:
       AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack

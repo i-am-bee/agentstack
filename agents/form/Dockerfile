@@ -8,7 +8,7 @@ COPY ./apps/agentstack-sdk-py/ /app/apps/agentstack-sdk-py/
 WORKDIR /app/agents/form
 RUN --mount=type=cache,target=/tmp/.cache/uv \
     --mount=type=bind,from=uv,source=/uv,target=/bin/uv \
-    UV_COMPILE_BYTECODE=1 HOME=/tmp uv sync --no-dev
+    UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy HOME=/tmp uv sync --no-dev
 ENV PRODUCTION_MODE=True \
     RELEASE_VERSION=${RELEASE_VERSION}
 CMD ["/app/agents/form/.venv/bin/server"]

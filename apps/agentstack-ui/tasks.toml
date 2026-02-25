@@ -4,40 +4,29 @@
 depends = ["agentstack-ui:check:*"]
 
 ["agentstack-ui:check:prettier"]
+extends = "node:check:prettier"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
-run = "pnpm prettier --log-level silent --check src"
-sources = [
-    "src/**/*.js",
-    "src/**/*.jsx",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.html",
-    "src/**/*.css",
-    "src/**/*.scss",
-]
-outputs = { auto = true }
 
 ["agentstack-ui:check:eslint"]
+extends = "node:check:eslint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
-run = "pnpm eslint ."
-sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
-outputs = { auto = true }
 
 ["agentstack-ui:check:tsc"]
+extends = "node:check:tsc"
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
 dir = "{{config_root}}/apps/agentstack-ui"
 run = "pnpm tsc --noEmit -p tsconfig.check.json"
-sources = ["src/**/*.ts", "src/**/*.tsx"]
-outputs = { auto = true }
 
 ["agentstack-ui:check:stylelint"]
+extends = "node:check:stylelint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
-run = "pnpm stylelint \"src/**/*.css\" \"src/**/*.scss\""
-sources = ["src/**/*.css", "src/**/*.scss"]
-outputs = { auto = true }
+
+["agentstack-ui:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/apps/agentstack-ui"
 
 # fix
 
@@ -45,33 +34,20 @@ outputs = { auto = true }
 depends = ["agentstack-ui:fix:*"]
 
 ["agentstack-ui:fix:prettier"]
+extends = "node:fix:prettier"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
-run = "pnpm prettier --log-level silent --write src"
-sources = [
-    "src/**/*.js",
-    "src/**/*.jsx",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.html",
-    "src/**/*.css",
-    "src/**/*.scss",
-]
-outputs = { auto = true }
 
 ["agentstack-ui:fix:next"]
+extends = "node:fix:eslint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
-run = "pnpm eslint . --fix"
-sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
-outputs = { auto = true }
 
 ["agentstack-ui:fix:stylelint"]
+extends = "node:fix:stylelint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/agentstack-ui"
 run = "pnpm stylelint --fix=lax \"src/**/*.css\" \"src/**/*.scss\""
-sources = ["src/**/*.css", "src/**/*.scss"]
-outputs = { auto = true }
 
 # run
 

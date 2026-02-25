@@ -1,0 +1,58 @@
+# agents:check
+
+["agents:check"]
+depends = ["agents:*:check"]
+
+# canvas
+
+["agents:canvas:check"]
+depends = ["agents:canvas:check:*"]
+
+["agents:canvas:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/canvas"
+
+# chat
+
+["agents:chat:check"]
+depends = ["agents:chat:check:*"]
+
+["agents:chat:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/chat"
+
+# deepagents_content_builder
+
+["agents:deepagents_content_builder:check"]
+depends = ["agents:deepagents_content_builder:check:*"]
+
+["agents:deepagents_content_builder:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/deepagents_content_builder"
+
+# form
+
+["agents:form:check"]
+depends = ["agents:form:check:*"]
+
+["agents:form:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/form"
+
+# langgraph-reflection
+
+["agents:langgraph-reflection:check"]
+depends = ["agents:langgraph-reflection:check:*"]
+
+["agents:langgraph-reflection:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/langgraph-reflection"
+
+# rag
+
+["agents:rag:check"]
+depends = ["agents:rag:check:*"]
+
+["agents:rag:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/rag"

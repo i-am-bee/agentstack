@@ -25,9 +25,10 @@ fd = "latest"
 "github:google/addlicense" = "latest"
 gum = "latest"
 lychee = "latest"
+hadolint = "latest"
 
 [settings]
-python.uv_venv_auto = true
+experimental = true
 task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 
 [hooks]
@@ -35,6 +36,93 @@ postinstall = ["{{ mise_bin }} setup"]
 
 [env]
 UV_PYTHON_PREFERENCE = "only-managed"
+
+[task_templates."python:setup"]
+run = "uv sync --all-extras --dev"
+sources = ["uv.lock", "pyproject.toml"]
+outputs = { auto = true }
+
+[task_templates."python:check:ruff"]
+run = "uv run ruff check --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+[task_templates."python:check:ruff-format"]
+run = "uv run ruff format --quiet --check"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+[task_templates."python:check:pyrefly"]
+run = "uv run pyrefly check src"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+[task_templates."python:check:pytest-marks"]
+run = """
+#!/bin/bash
+unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
+if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
+    echo "ERROR: Found tests without required pytest marks:\n"
+    echo "$unmarked_tests" | grep 'tests collected'
+    echo ""
+    echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
+    exit 1
+else
+    echo "✓ All tests have pytest marks"
+fi
+"""
+sources = ["tests/**/*.py"]
+outputs = { auto = true }
+
+[task_templates."python:fix:ruff"]
+run = "uv run ruff check --quiet --fix"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+[task_templates."python:fix:ruff-format"]
+run = "uv run ruff format --quiet"
+sources = ["src/**/*.py"]
+outputs = { auto = true }
+
+[task_templates."node:check:prettier"]
+run = "pnpm prettier --log-level silent --check src"
+sources = ["src/**/*.{js,jsx,ts,tsx,html,css,scss}"]
+outputs = { auto = true }
+
+[task_templates."node:check:eslint"]
+run = "pnpm eslint ."
+sources = ["src/**/*.{js,jsx,ts,tsx}"]
+outputs = { auto = true }
+
+[task_templates."node:check:tsc"]
+run = "pnpm tsc --noEmit"
+sources = ["src/**/*.{ts,tsx}"]
+outputs = { auto = true }
+
+[task_templates."node:check:stylelint"]
+run = "pnpm stylelint \"src/**/*.css\" \"src/**/*.scss\""
+sources = ["src/**/*.{css,scss}"]
+outputs = { auto = true }
+
+[task_templates."node:fix:prettier"]
+run = "pnpm prettier --log-level silent --write src"
+sources = ["src/**/*.{js,jsx,ts,tsx,html,css,scss}"]
+outputs = { auto = true }
+
+[task_templates."node:fix:eslint"]
+run = "pnpm eslint . --fix"
+sources = ["src/**/*.{js,jsx,ts,tsx}"]
+outputs = { auto = true }
+
+[task_templates."node:fix:stylelint"]
+run = "pnpm stylelint --fix \"src/**/*.css\" \"src/**/*.scss\""
+sources = ["src/**/*.{css,scss}"]
+outputs = { auto = true }
+
+[task_templates."docker:check:hadolint"]
+run = "hadolint --ignore DL3018 Dockerfile"
+sources = ["Dockerfile"]
+outputs = { auto = true }
 
 [task_config]
 includes = [
@@ -48,5 +136,6 @@ includes = [
     "apps/beeai-web/tasks.toml",
     "apps/agentstack-sdk-ts/tasks.toml",
     "apps/supergateway/tasks.toml",
+    "agents/tasks.toml",
     "docs/tasks.toml",
 ]

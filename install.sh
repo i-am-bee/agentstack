@@ -8,6 +8,10 @@ set -eu
 LATEST_STABLE_AGENTSTACK_VERSION=0.6.1
 LATEST_AGENTSTACK_VERSION=0.6.2-rc3
 
+# This gets updated by Renovate:
+# renovate: datasource=python-version depName=python
+PYTHON_VERSION=3.13
+
 error() {
     printf "\n💥 \033[31mERROR:\033[0m: Agent Stack installation has failed. Please report the above error: https://github.com/i-am-bee/agentstack/issues\n" >&2
     exit 1
@@ -31,7 +35,7 @@ curl -LsSf https://astral.sh/uv/install.sh | UV_PRINT_QUIET=1 sh || error
 # Install a uv-managed Python version (uv should do that automatically but better be explicit)
 # --no-bin to avoid putting it in PATH (not necessary)
 echo "Installing Python..."
-uv python install --quiet --python-preference=only-managed --no-bin 3.13 || error
+uv python install --quiet --python-preference=only-managed --no-bin $PYTHON_VERSION || error
 
 # Separately uninstall potential old version of agentstack-cli (old name beeai-cli) to remove envs created with wrong Python versions
 # Also remove obsolete version from Homebrew and any local executables potentially left behind by Homebrew or old uv versions
@@ -46,7 +50,7 @@ while command -v beeai >/dev/null && rm $(command -v beeai); do true; done
 # It also avoids accidentally installing prereleases of dependencies by only allowing explicitly set ones
 echo "Installing Agent Stack CLI..."
 case "${AGENTSTACK_VERSION:-latest}" in "latest") AGENTSTACK_VERSION=$LATEST_STABLE_AGENTSTACK_VERSION ;; "pre") AGENTSTACK_VERSION=$LATEST_AGENTSTACK_VERSION ;; esac
-uv tool install --quiet --python-preference=only-managed --python=3.13 --refresh --prerelease if-necessary-or-explicit --with "agentstack-sdk==$AGENTSTACK_VERSION" "agentstack-cli==$AGENTSTACK_VERSION" --force || error
+uv tool install --quiet --python-preference=only-managed --python=$PYTHON_VERSION --refresh --prerelease if-necessary-or-explicit --with "agentstack-sdk==$AGENTSTACK_VERSION" "agentstack-cli==$AGENTSTACK_VERSION" --force || error
 
 # Finish set up using CLI (install QEMU on Linux, start platform, set up API keys, run UI, ...)
 agentstack self install

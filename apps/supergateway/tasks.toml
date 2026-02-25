@@ -1,3 +1,12 @@
+# check
+
+["supergateway:check"]
+depends = ["supergateway:check:*"]
+
+["supergateway:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/apps/supergateway"
+
 # build
 
 ["supergateway:build"]

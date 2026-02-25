@@ -34,6 +34,15 @@ backend = "aqua:charmbracelet/gum"
 "platforms.macos-x64" = { checksum = "sha256:cd66576aeebe6cd19c771863c7e8d696e0e1d5387d1e7075666baa67c2052e53", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Darwin_x86_64.tar.gz"}
 "platforms.windows-x64" = { checksum = "sha256:b2be80531c6babc8d4e0e6ca95773d58118a2e1582ae006aace08dbc55503072", url = "https://github.com/charmbracelet/gum/releases/download/v0.17.0/gum_0.17.0_Windows_x86_64.zip"}
 
+[[tools.hadolint]]
+version = "2.14.0"
+backend = "aqua:hadolint/hadolint"
+"platforms.linux-arm64" = { checksum = "sha256:331f1d3511b84a4f1e3d18d52fec284723e4019552f4f47b19322a53ce9a40ed", url = "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-arm64"}
+"platforms.linux-x64" = { checksum = "sha256:6bf226944684f56c84dd014e8b979d27425c0148f61b3bd99bcc6f39e9dc5a47", url = "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-linux-x86_64"}
+"platforms.macos-arm64" = { checksum = "sha256:3625e2e9f43dcfe7bd38738a5f5520ed50ce39ed28485266e6803dd7bc197b10", url = "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-macos-arm64"}
+"platforms.macos-x64" = { checksum = "sha256:2b69a853433f1eca522ffb921cd490bd1321424d03331fd8390f93b7fb4a02e9", url = "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-macos-x86_64"}
+"platforms.windows-x64" = { checksum = "sha256:8e0ee174f88edb14f207a68430c7a53c2883ed509cdbde9a3a26fffa140fa5e4", url = "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-windows-x86_64.exe"}
+
 [[tools.helm]]
 version = "3.19.0"
 backend = "aqua:helm/helm"
@@ -46,6 +55,7 @@ backend = "aqua:helm/helm"
 [[tools.java]]
 version = "21.0.2"
 backend = "core:java"
+"platforms.linux-arm64" = { checksum = "sha256:08db1392a48d4eb5ea5315cf8f18b89dbaf36cda663ba882cf03c704c9257ec2", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-aarch64_bin.tar.gz"}
 "platforms.linux-x64" = { checksum = "sha256:a2def047a73941e01a73739f92755f86b895811afb1f91243db214cff5bdac3f", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz"}
 "platforms.macos-arm64" = { checksum = "sha256:b3d588e16ec1e0ef9805d8a696591bd518a5cea62567da8f53b5ce32d11d22e4", url = "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_macos-aarch64_bin.tar.gz"}
 
@@ -99,6 +109,7 @@ backend = "pipx:toml-cli"
 [[tools.pnpm]]
 version = "10.15.1"
 backend = "aqua:pnpm/pnpm"
+"platforms.linux-arm64" = { checksum = "sha256:19bfe962692d285b0186a7305a0fc8b45dd7f1aeabfa61fc70f039ff8b74829a", url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-linux-arm64"}
 "platforms.linux-x64" = { checksum = "sha256:d4ac2a22e45b50da881855ea6a3734cf83f984eb5fba7163c3f07492fa43c2b0", url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-linux-x64"}
 "platforms.macos-arm64" = { checksum = "sha256:b64bd9e75d92934251bd0b890d3d4d1073e85d71bf39227ff6a6408d27c3106d", url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-macos-arm64"}
 

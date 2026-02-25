@@ -9,7 +9,23 @@
     {
       "matchPackageNames": ["python", "alpine", "astral-sh/uv"],
       "groupSlug": "runtime",
-      "groupName": "Python, uv and Alpine"
+      "groupName": "Python, uv and Alpine",
+      "rangeStrategy": "widen"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "**/[Dd]ockerfile*",
+        "**/[Cc]ontainerfile*",
+        "**/*.[Dd]ockerfile*",
+        "**/*.[Cc]ontainerfile*",
+        "install.sh"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-zA-Z0-9-._]+?) depName=(?<depName>[^\\s]+?)(?: (lookupName|packageName)=(?<packageName>[^\\s]+?))?(?: versioning=(?<versioning>[^\\s]+?))?(?: extractVersion=(?<extractVersion>[^\\s]+?))?(?: registryUrl=(?<registryUrl>[^\\s]+?))?\\s(?:ENV|ARG|export|)\\s+[A-Za-z0-9_]+?_VERSION[ =][\"']?(?<currentValue>.+?)[\"']?\\s"
+      ]
     }
   ]
 }

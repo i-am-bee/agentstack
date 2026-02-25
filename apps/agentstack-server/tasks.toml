@@ -1,11 +1,9 @@
 # setup
 
 ["agentstack-server:setup"]
+extends = "python:setup"
 depends = ["agentstack-sdk-py:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = "uv sync --all-extras --dev"
-sources = ["uv.lock", "pyproject.toml"]
-outputs = { auto = true }
 
 # check
 ["agentstack-server:test"]
@@ -15,47 +13,28 @@ depends = ["agentstack-server:test:unit"]
 depends = ["agentstack-server:check:*"]
 
 ["agentstack-server:check:pytest-marks"]
+extends = "python:check:pytest-marks"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = """
-#!/bin/bash
-
-# Use pytest to collect tests that are not marked with unit, integration, or e2e
-unmarked_tests=$(uv run pytest --collect-only --no-header --no-summary -q -m "not (unit or integration or e2e)" tests/ 2>/dev/null)
-
-if echo "$unmarked_tests" | grep "tests collected" | grep -qv "no tests collected"; then
-    echo "ERROR: Found tests without required pytest marks:\n"
-    echo "$unmarked_tests"
-    echo ""
-    echo "All tests must be marked with @pytest.mark.unit, @pytest.mark.integration, or @pytest.mark.e2e"
-    exit 1
-else
-    echo "✓ All tests have pytest marks"
-fi
-"""
-sources = ["tests/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-server:check:ruff-check"]
+extends = "python:check:ruff"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = "uv run ruff check --quiet"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-server:check:ruff-format"]
+extends = "python:check:ruff-format"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = "uv run ruff format --quiet --check"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-server:check:pyrefly"]
+extends = "python:check:pyrefly"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = "uv run pyrefly check src"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
+
+["agentstack-server:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/apps/agentstack-server"
 
 # fix
 
@@ -63,18 +42,14 @@ outputs = { auto = true }
 depends = ["agentstack-server:fix:*"]
 
 ["agentstack-server:fix:ruff-check"]
+extends = "python:fix:ruff"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = "uv run ruff check --quiet --fix"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 ["agentstack-server:fix:ruff-format"]
+extends = "python:fix:ruff-format"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
-run = "uv run ruff format --quiet"
-sources = ["src/**/*.py"]
-outputs = { auto = true }
 
 # run
 

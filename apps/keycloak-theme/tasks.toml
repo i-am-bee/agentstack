@@ -42,36 +42,29 @@ run = "npx storybook dev -p 6006"
 depends = ["keycloak-theme:check:*"]
 
 ["keycloak-theme:check:prettier"]
+extends = "node:check:prettier"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
-run = "pnpm prettier --log-level silent --check src"
-sources = [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.scss",
-]
-outputs = { auto = true }
 
 ["keycloak-theme:check:eslint"]
+extends = "node:check:eslint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
 run = "pnpm eslint ./src"
-sources = ["src/**/*.ts", "src/**/*.tsx"]
-outputs = { auto = true }
 
 ["keycloak-theme:check:tsc"]
+extends = "node:check:tsc"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
-run = "pnpm tsc --noEmit"
-sources = ["src/**/*.ts", "src/**/*.tsx"]
-outputs = { auto = true }
 
 ["keycloak-theme:check:stylelint"]
+extends = "node:check:stylelint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
-run = "pnpm stylelint \"src/**/*.scss\""
-sources = ["src/**/*.scss"]
-outputs = { auto = true }
+
+["keycloak-theme:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/apps/keycloak-theme"
 
 # fix
 
@@ -79,26 +72,17 @@ outputs = { auto = true }
 depends = ["keycloak-theme:fix:*"]
 
 ["keycloak-theme:fix:prettier"]
+extends = "node:fix:prettier"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
-run = "pnpm prettier --log-level silent --write src"
-sources = [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.scss",
-]
-outputs = { auto = true }
 
 ["keycloak-theme:fix:eslint"]
+extends = "node:fix:eslint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
 run = "pnpm eslint ./src --fix"
-sources = ["src/**/*.ts", "src/**/*.tsx"]
-outputs = { auto = true }
 
 ["keycloak-theme:fix:stylelint"]
+extends = "node:fix:stylelint"
 depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/apps/keycloak-theme"
-run = "pnpm stylelint --fix \"src/**/*.scss\""
-sources = ["src/**/*.scss"]
-outputs = { auto = true }

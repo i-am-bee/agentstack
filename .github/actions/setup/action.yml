@@ -35,4 +35,4 @@ runs:
 
     - uses: jdx/mise-action@3030cd82391f2e220592ce16f94aee0fb43ce254
       with:
-        version: 2026.1.0
+        version: 2026.2.20
