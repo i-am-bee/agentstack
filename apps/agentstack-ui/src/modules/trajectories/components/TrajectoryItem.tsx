@@ -5,6 +5,7 @@
 
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import { match } from 'ts-pattern';
 import { v5 as uuidv5 } from 'uuid';
 
@@ -32,14 +33,10 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent, animate
 
   const contentKey = content ? uuidv5(content, TRAJECTORY_NAMESPACE) : undefined;
 
-  if (!parsed) {
-    return null;
-  }
-
   const isAnimating = animateStatus === AnimationStatus.Animating;
 
   const titleLength = title?.length ?? 0;
-  const contentCharsToAnimate = Math.min(parsed.value.length, DEFAULT_MAX_ANIMATED_CHARS);
+  const contentCharsToAnimate = Math.min(parsed?.value.length ?? 0, DEFAULT_MAX_ANIMATED_CHARS);
   const totalCharsToAnimate = titleLength + contentCharsToAnimate;
   const delayPerChar =
     totalCharsToAnimate > 0 && trajectory.duration
@@ -49,45 +46,60 @@ export function TrajectoryItem({ trajectory, isPending, canClampContent, animate
   const titleDuration = titleLength * delayPerChar;
   const contentDuration = contentCharsToAnimate * delayPerChar;
 
+  const hasContent = Boolean(parsed);
+
+  useEffect(() => {
+    if (!hasContent && !title && isAnimating) {
+      onAnimationEnd();
+    }
+  }, [hasContent, isAnimating, onAnimationEnd, title]);
+
   return (
     <div className={clsx(classes.root, { [classes.isAnimating]: isAnimating })}>
       {title && (
-        <motion.h3 {...fadeProps()} className={classes.title} key={title}>
+        <motion.h3
+          {...fadeProps()}
+          className={classes.title}
+          key={title}
+          onAnimationEnd={!hasContent ? onAnimationEnd : undefined}
+        >
           <AnimatedTextContent status={animateStatus} totalDurationMs={titleDuration}>
             {title}
           </AnimatedTextContent>
         </motion.h3>
       )}
 
-      <motion.div {...fadeProps()} className={classes.body} key={contentKey}>
-        {match(parsed)
-          .with({ type: 'string' }, ({ value }) => (
-            <AnimatedTextContent
-              status={animateStatus}
-              totalDurationMs={contentDuration}
-              delayMs={titleDuration}
-              className={classes.content}
-              linesClamp={!isPending && canClampContent ? 5 : undefined}
-              maxAnimatedChars={DEFAULT_MAX_ANIMATED_CHARS}
-              onAnimationEnd={onAnimationEnd}
-            >
-              {value}
-            </AnimatedTextContent>
-          ))
-          .otherwise(({ value }) => {
-            return (
-              <AnimatedCodeContent
+      {parsed && (
+        <motion.div {...fadeProps()} className={classes.body} key={contentKey}>
+          {match(parsed)
+            .with({ type: 'string' }, ({ value }) => (
+              <AnimatedTextContent
                 status={animateStatus}
                 totalDurationMs={contentDuration}
                 delayMs={titleDuration}
+                className={classes.content}
+                linesClamp={!isPending && canClampContent ? 5 : undefined}
                 maxAnimatedChars={DEFAULT_MAX_ANIMATED_CHARS}
                 onAnimationEnd={onAnimationEnd}
               >
                 {value}
-              </AnimatedCodeContent>
-            );
-          })}
-      </motion.div>
+              </AnimatedTextContent>
+            ))
+            .otherwise(({ value }) => {
+              return (
+                <AnimatedCodeContent
+                  status={animateStatus}
+                  totalDurationMs={contentDuration}
+                  delayMs={titleDuration}
+                  maxAnimatedChars={DEFAULT_MAX_ANIMATED_CHARS}
+                  onAnimationEnd={onAnimationEnd}
+                >
+                  {value}
+                </AnimatedCodeContent>
+              );
+            })}
+        </motion.div>
+      )}
     </div>
   );
 }
