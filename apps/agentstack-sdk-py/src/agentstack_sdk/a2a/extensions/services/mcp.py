@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 import re
 from contextlib import asynccontextmanager
 from types import NoneType

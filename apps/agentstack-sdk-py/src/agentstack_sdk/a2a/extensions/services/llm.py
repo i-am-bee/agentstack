@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 import re
 from types import NoneType
 from typing import TYPE_CHECKING, Any, Self

@@ -3,6 +3,8 @@
 
 # Based on: https://github.com/a2aproject/a2a-samples/tree/main/samples/python/hosts/cli
 
+from __future__ import annotations
+
 import asyncio
 import base64
 import os

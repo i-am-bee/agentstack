@@ -5,6 +5,8 @@
 # However, that is technically challenging with the current workspaces and build setup
 
 
+from __future__ import annotations
+
 from typing import Annotated, Literal
 
 import pydantic

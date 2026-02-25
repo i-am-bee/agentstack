@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 
 

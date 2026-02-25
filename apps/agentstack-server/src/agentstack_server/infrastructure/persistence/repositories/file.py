@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 import builtins
 from collections.abc import AsyncIterator
 from typing import Any, cast

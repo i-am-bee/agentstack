@@ -5,6 +5,8 @@
 #   The reason why an sdk test file is in the server tests folder is so we don't start the VM etc. twice.
 #   All the e2e test should be moved to a common e2e tests folder outside of the apps folder in the future.
 
+from __future__ import annotations
+
 """E2E tests for Connector SDK using the agentstack-sdk-py PlatformClient."""
 
 import json

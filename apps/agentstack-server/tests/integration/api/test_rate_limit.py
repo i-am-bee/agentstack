@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-20
 
+from __future__ import annotations
+
 import time
 from collections.abc import AsyncIterator
 from typing import override

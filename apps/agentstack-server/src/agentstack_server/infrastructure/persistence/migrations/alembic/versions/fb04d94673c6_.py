@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 """add disconnect reason to connectors
 
 Revision ID: fb04d94673c6

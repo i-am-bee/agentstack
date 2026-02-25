@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from typing import Any
 
 from pydantic import AnyUrl, BaseModel, Secret, SecretBytes, SecretStr, field_serializer
@@ -70,3 +72,44 @@ def redact_url(v: AnyUrl, info: SerializationInfo) -> AnyUrl:
 
 def redact_dict(v: dict[str, str], info: SerializationInfo) -> dict[str, str]:
     return {k: redact_str(val, info) for k, val in v.items()} if should_redact(info) else v
+
+
+def apply_beeai_framework_pydantic_fix():
+    """
+    Workaround for Pydantic + Python 3.14 issue where TypeAdapter[ChatModelKwargs] is not fully defined.
+    This happens because TypedDict annotations are deferred in 3.14 and Pydantic's lazy build fails to resolve them.
+    """
+    from contextlib import suppress
+    with suppress(ImportError):
+        from beeai_framework.context import RunContext, RunMiddlewareType  # noqa: F401
+        from pydantic import BaseModel, TypeAdapter
+
+        # Fix ChatModelKwargs
+        with suppress(ImportError, AttributeError):
+            import beeai_framework.backend.chat as chat_module
+
+            try:
+                chat_module._ChatModelKwargsAdapter.validate_python({})
+            except Exception:
+                class _ChatModelKwargsRebuilder(BaseModel):
+                    kwargs: chat_module.ChatModelKwargs
+
+                _ChatModelKwargsRebuilder.model_rebuild()
+                # Re-create the adapter with explicit module to ensure forward references are resolved
+                chat_module._ChatModelKwargsAdapter = TypeAdapter(chat_module.ChatModelKwargs, module=chat_module.__name__)
+
+        # Fix EmbeddingModelKwargs
+        with suppress(ImportError, AttributeError):
+            import beeai_framework.backend.embedding as embedding_module
+
+            try:
+                embedding_module._EmbeddingModelKwargsAdapter.validate_python({})
+            except Exception:
+                class _EmbeddingModelKwargsRebuilder(BaseModel):
+                    kwargs: embedding_module.EmbeddingModelKwargs
+
+                _EmbeddingModelKwargsRebuilder.model_rebuild()
+                # Re-create the adapter with explicit module to ensure forward references are resolved
+                embedding_module._EmbeddingModelKwargsAdapter = TypeAdapter(
+                    embedding_module.EmbeddingModelKwargs, module=embedding_module.__name__
+                )
