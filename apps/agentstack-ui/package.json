@@ -45,7 +45,7 @@
     "react": "catalog:",
     "react-aria": "^3.46.0",
     "react-dom": "catalog:",
-    "react-dropzone": "^14.4.1",
+    "react-dropzone": "^15.0.0",
     "react-error-boundary": "^6.1.1",
     "react-hook-form": "^7.71.2",
     "react-intersection-observer": "^10.0.3",
