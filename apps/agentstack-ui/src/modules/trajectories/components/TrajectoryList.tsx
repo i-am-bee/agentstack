@@ -87,8 +87,6 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
     return animatedTrajectories;
   }, [animatedDoneTrajectoryIds, isPending, trajectories]);
 
-  console.log(animatedTrajectories, trajectories);
-
   return (
     <AnimatePresence>
       {isOpen && (
