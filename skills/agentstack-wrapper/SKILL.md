@@ -7,6 +7,10 @@ metadata:
 
 # AgentStack Wrapper Skill
 
+## Security Overview
+
+This SKILL.md is an operational integration guide for wrapping Python agents to run on AgentStack. It does not contain executable malicious code, hardcoded credentials, obfuscated payloads, or instructions to exfiltrate secrets to attacker-controlled endpoints. The primary security considerations are normal supply-chain risks (installing packages from PyPI) and the fact that wrappers will handle and forward sensitive LLM credentials provided via platform extensions — both expected for this functionality. Recommend standard mitigations: verify package versions from trusted PyPI metadata, pin versions, audit installed agentstack-sdk/a2a-sdk packages before use, and ensure secrets passed via platform extensions are protected and not logged or forwarded to untrusted intermediaries.
+
 ## Purpose
 
 Transform an existing Python agent into a running [AgentStack](https://agentstack.beeai.dev/stable/introduction/welcome.md) service. The wrapper exposes the agent via the A2A protocol so it can be discovered, called, and composed with other agents on the platform.
