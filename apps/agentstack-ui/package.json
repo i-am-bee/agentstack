@@ -33,7 +33,7 @@
     "humanize-duration": "^3.33.2",
     "immer": "^11.1.4",
     "json5": "^2.2.3",
-    "katex": "^0.16.32",
+    "katex": "^0.16.33",
     "keycode-js": "^3.1.0",
     "lodash": "catalog:",
     "mermaid": "^11.12.3",
