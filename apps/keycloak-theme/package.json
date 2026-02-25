@@ -27,7 +27,7 @@
     "@storybook/react-vite": "^8.6.17",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.0",
     "@vitejs/plugin-react": "^4.7.0",
     "eslint": "catalog:",
