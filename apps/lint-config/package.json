@@ -19,7 +19,7 @@
   "dependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.3",
-    "@next/eslint-plugin-next": "^15.5.12",
+    "@next/eslint-plugin-next": "^16.1.6",
     "eslint-config-next": "^15.5.12",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-css-modules": "^2.12.0",
