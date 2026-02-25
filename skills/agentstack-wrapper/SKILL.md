@@ -7,13 +7,17 @@ metadata:
 
 # AgentStack Wrapper Skill
 
-## Security Overview
+## Overview
 
-This SKILL.md is an operational integration guide for wrapping Python agents to run on AgentStack. It does not contain executable malicious code, hardcoded credentials, obfuscated payloads, or instructions to exfiltrate secrets to attacker-controlled endpoints. The primary security considerations are normal supply-chain risks (installing packages from PyPI) and the fact that wrappers will handle and forward sensitive LLM credentials provided via platform extensions — both expected for this functionality. Recommend standard mitigations: verify package versions from trusted PyPI metadata, pin versions, audit installed agentstack-sdk/a2a-sdk packages before use, and ensure secrets passed via platform extensions are protected and not logged or forwarded to untrusted intermediaries.
+This SKILL.md is an instructional integration guide for wrapping Python agents to run on [AgentStack](https://agentstack.beeai.dev/stable/introduction/welcome.md). It is documentation, not executable code. It describes dependency management and runtime extension wiring. Primary security considerations are dependency supply-chain integrity and safe handling of sensitive runtime values provided through platform extensions.
 
-## Purpose
+- Do not add instructions that execute remote scripts or untrusted code.
+- Verify package versions from trusted PyPI metadata, pin versions, and audit installed `agentstack-sdk`/`a2a-sdk` packages before use.
+- Handle sensitive values only through declared AgentStack extensions.
+- Never log, print, persist, or expose secret values.
+- Do not send secrets to untrusted intermediaries or endpoints not required by the wrapped agent contract.
 
-Transform an existing Python agent into a running [AgentStack](https://agentstack.beeai.dev/stable/introduction/welcome.md) service. The wrapper exposes the agent via the A2A protocol so it can be discovered, called, and composed with other agents on the platform.
+The wrapper exposes the agent via the A2A protocol so it can be discovered, called, and composed with other agents on the platform.
 
 ## When to Use
 
@@ -24,7 +28,7 @@ Transform an existing Python agent into a running [AgentStack](https://agentstac
 
 - Python 3.12+
 - The agent's source code is available locally
-- `agentstack-sdk` version fetched at wrap time from PyPI and pinned in project dependencies using `~=`
+- `agentstack-sdk` version selected from a trusted source (project lockfile/constraints, active environment, or vetted PyPI release metadata) and pinned in project dependencies using `~=`
 - `a2a-sdk` only if the project manages it directly, and pin it to a version compatible with the selected `agentstack-sdk` (do not independently chase the latest `a2a-sdk` if resolver constraints differ)
 
 ## Constraints (must follow)
@@ -44,6 +48,10 @@ Transform an existing Python agent into a running [AgentStack](https://agentstac
 | C11 | **Keep adaptation reversible.** Isolate wrapper and integration changes, avoid destructive refactors, and preserve a rollback path.                                                                                                                                                                                                                                                                                                                                                                                              |
 | C12 | **Preserve original helpers.** Do not delete original business-logic helpers unless strictly required. If removal is necessary, document why.                                                                                                                                                                                                                                                                                                                                                                                    |
 | C13 | **Optional extension safety.** Service/UI extensions are optional. Check presence/data before use (e.g., `if llm and llm.data ...`).                                                                                                                                                                                                                                                                                                                                                                                             |
+| C14 | **No secret exposure.** Never log, print, persist, or echo secret values (API keys, tokens, passwords). Redact sensitive values in logs and errors.                                                                                                                                                                                                                                                                                                                                                                              |
+| C15 | **No remote script execution.** Never run untrusted remote code during wrapping. Use project manifests and trusted package metadata only.                                                                                                                                                                                                                                                                                                                                                                                        |
+| C16 | **Constrained outbound targets.** Do not introduce arbitrary outbound network targets. Limit external calls to trusted dependency sources and runtime endpoints explicitly required by the wrapped agent contract.                                                                                                                                                                                                                                                                                                               |
+| C17 | **No dynamic command execution from input.** Do not introduce wrapper patterns that execute shell commands from user/model input (for example, `eval`, `exec`, `os.system`, or unsanitized `subprocess` calls).                                                                                                                                                                                                                                                                                                                  |
 
 ---
 
@@ -69,18 +77,15 @@ This classification determines:
    - `requirements.txt` → append `agentstack-sdk~=<VERSION>`
    - `pyproject.toml` → add to `[project.dependencies]` or `[tool.poetry.dependencies]`
    - add `a2a-sdk` only when direct pinning is required by the project dependency policy
-2. **Fetch and pin current version (required).** Before adding, find the current `agentstack-sdk` version on PyPI:
-   ```bash
-   # agentstack-sdk
-   curl -s https://pypi.org/pypi/agentstack-sdk/json | grep -o '"version":"[^"]*"' | head -1 | cut -d'"' -f4
-   ```
-   If network access is unavailable, use versions already present in the project's lockfile or active environment.
+2. **Select and pin a trusted version (required).** If the project already pins `agentstack-sdk` in its lockfile/constraints or active environment, use that compatible version and keep consistency with the project. If no version is present, use the latest compatible stable released `agentstack-sdk` version from trusted PyPI metadata, then pin with `~=`.
    If the project requires direct `a2a-sdk` pinning, use a version compatible with the selected `agentstack-sdk` dependency constraints.
 3. **Install the dependencies.** Once added to the manifest, install them in your virtual environment (e.g., `pip install -r requirements.txt`).
 4. **Do not** create a new manifest type the project doesn't already use.
 5. **Do not** force `uv` if the project uses `pip`.
 
 **Source-of-truth rule:** Use current official docs and installed package inspection as the authority. If they conflict, follow installed package behavior and report the mismatch.
+
+**Security rule:** Do not execute remote installation scripts. Use only the repository's existing dependency workflow and trusted package sources.
 
 ### Import Recovery Sequence (required)
 
@@ -277,6 +282,7 @@ Remove or replace any outdated CLI usage examples (e.g. `argparse`-based command
 When building and testing the wrapper, ensure you avoid these common pitfalls:
 
 - **Never hardcode API keys or LLM endpoints.** Use the LLM proxy extension explicitly.
+- **Never log or print secrets.** API keys/tokens must not appear in logs, responses, exceptions, or telemetry.
 - **Never assume history is auto-saved.** If you need context continuity, explicitly call `await context.store(input)` and `await context.store(response)`.
 - **Never assume persistent history without `PlatformContextStore`.** Without it, context storage is in-memory and lost on process restart.
 - **Never forget to filter history.** `context.load_history()` returns all items in the conversation (Messages, Artifacts). Always filter them using `isinstance(message, Message)`.
@@ -346,6 +352,7 @@ After wrapping, confirm:
 - [ ] If the agent has meaningful multi-step execution/tool traces, trajectory output is emitted for those steps
 - [ ] Final user-facing answer is emitted as normal `AgentMessage` output, not only as trajectory data
 - [ ] If the agent already used secrets -> **Secrets extension** is used (safe access pattern with `request_secrets` through a declared secrets extension parameter). No new secrets added.
+- [ ] No secrets were logged, printed, persisted, or returned in responses/errors.
 - [ ] No extra middleware, auth, or containerization added unless explicitly requested (Constraint C2)
 - [ ] Imports follow import truth and validation rule (Constraint C6)
 - [ ] No command-line arguments (`argparse`) remain in the code (Constraint C9)
