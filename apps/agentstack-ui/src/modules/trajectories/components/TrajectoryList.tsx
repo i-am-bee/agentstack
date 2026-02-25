@@ -5,7 +5,7 @@
 
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
@@ -37,13 +37,13 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
     }
   }, [isOpen, isPending, previouslyOpen]);
 
-  const handleAnimationEnd = (trajectoryId: string) => {
+  const handleAnimationEnd = useCallback((trajectoryId: string) => {
     setAnimatedDoneTrajectoryIds((prev) => {
       const newIds = new Set(prev);
       newIds.add(trajectoryId);
       return newIds;
     });
-  };
+  }, []);
 
   const animatedTrajectories: AnimatedTrajectory[] = useMemo(() => {
     const animatedTrajectories: AnimatedTrajectory[] = [];
@@ -86,6 +86,8 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
 
     return animatedTrajectories;
   }, [animatedDoneTrajectoryIds, isPending, trajectories]);
+
+  console.log(animatedTrajectories, trajectories);
 
   return (
     <AnimatePresence>
