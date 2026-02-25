@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.14-slim
 ARG RELEASE_VERSION="main"
 COPY ./agents/langgraph-reflection/ /app/agents/langgraph-reflection
 COPY ./apps/agentstack-sdk-py/ /app/apps/agentstack-sdk-py/
