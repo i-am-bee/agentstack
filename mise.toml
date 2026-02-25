@@ -1,6 +1,6 @@
 [tools]
 # runtime
-"asdf:CrouchingMuppet/asdf-lima" = "2.0.3" # using lima from asdf since the aqua one fails to install in CI
+"lima" = "2.0.3" # using lima from asdf since the aqua one fails to install in CI
 
 # Python
 uv = "0.10"
@@ -27,10 +27,8 @@ gum = "latest"
 lychee = "latest"
 
 [settings]
-experimental = true # for python.uv_venv_auto
 python.uv_venv_auto = true
 raw = true
-node.gpg_verify = false # tends to randomly fail; sha is checked by lockfile
 task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 
 [hooks]
