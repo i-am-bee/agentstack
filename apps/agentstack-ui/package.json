@@ -90,5 +90,5 @@
     "stylelint": "catalog:",
     "typescript": "catalog:"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@10.30.1"
 }
