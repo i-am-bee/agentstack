@@ -5,13 +5,14 @@ description: Wraps existing Python agent as Agent Stack service using agentstack
 
 # Agent Stack Wrapper
 
+Integration guide for wrapping Python agents for [Agent Stack](https://agentstack.beeai.dev/stable/introduction/welcome.md) platform.
+
 ## Table of Contents
 
-- [Overview](#overview)
-- [When to Use](#when-to-use)
-- [Prerequisites](#prerequisites)
+- [Security Requirements](#security-requirements)
 - [Constraints (must follow)](#constraints-must-follow)
 - [Integration Workflow Checklist](#integration-workflow-checklist)
+- [Readiness Check (before Step 1)](#readiness-check-before-step-1)
 - [Step 1 – Classify the Agent](#step-1--classify-the-agent)
 - [Step 2 – Add and Install Dependencies](#step-2--add-and-install-dependencies)
 - [Step 3 – Create the Server Wrapper](#step-3--create-the-server-wrapper)
@@ -26,25 +27,13 @@ description: Wraps existing Python agent as Agent Stack service using agentstack
 - [Finalization Report (Required)](#finalization-report-required)
 - [Verification Checklist](#verification-checklist)
 
-## Overview
+## Security Requirements
 
-This SKILL.md is an instructional integration guide for wrapping Python agents to run on [Agent Stack](https://agentstack.beeai.dev/stable/introduction/welcome.md). It is documentation, not executable code. It describes dependency management and runtime extension wiring. Primary security considerations are dependency supply-chain integrity and safe handling of sensitive runtime values provided through platform extensions.
-
-- Do not add instructions that execute remote scripts or untrusted code.
-- Verify package versions from trusted PyPI metadata, pin versions, and audit installed `agentstack-sdk`/`a2a-sdk` packages before use.
+- Never run remote scripts or untrusted code.
+- Use trusted package metadata, pin versions, and audit installed `agentstack-sdk`/`a2a-sdk`.
 - Handle sensitive values only through declared Agent Stack extensions.
 - Never log, print, persist, or expose secret values.
-- Do not send secrets to untrusted intermediaries or endpoints not required by the wrapped agent contract.
-
-The wrapper exposes the agent via the A2A protocol so it can be discovered, called, and composed with other agents on the platform.
-
-## Prerequisites
-
-- Python 3.12+
-- The agent's source code is available locally
-- Agent Stack server is running locally and is properly configured
-- `agentstack-sdk` version selected from a trusted source (project lockfile/constraints, active environment, or vetted PyPI release metadata) and pinned in project dependencies using `~=`
-- `a2a-sdk` only if the project manages it directly, and pin it to a version compatible with the selected `agentstack-sdk` (do not independently chase the latest `a2a-sdk` if resolver constraints differ)
+- Never send secrets to untrusted intermediaries or unnecessary endpoints.
 
 ## Constraints (must follow)
 
@@ -77,6 +66,7 @@ Copy this checklist into your context and check off items as you complete them:
 
 ```
 Task Progress:
+- [ ] Readiness Check (before Step 1)
 - [ ] Step 1: Classify the Agent
 - [ ] Step 2: Add and Install Dependencies
 - [ ] Step 3: Create the Server Wrapper
@@ -88,6 +78,14 @@ Task Progress:
 - [ ] Step 9: Update README
 - [ ] Finalization: Run Verification Checklist and Finalization Report
 ```
+
+## Readiness Check (before Step 1)
+
+- [ ] Python 3.12+ is available.
+- [ ] Agent source code is available locally.
+- [ ] The project dependency workflow is identified.
+
+If any item fails, stop and ask the user.
 
 ## Step 1 – Classify the Agent
 
@@ -118,6 +116,16 @@ This classification determines:
 3. **Install the dependencies.** Once added to the manifest, install them in your virtual environment (e.g., `pip install -r requirements.txt`).
 4. **Do not** create a new manifest type the project doesn't already use.
 5. **Do not** force `uv` if the project uses `pip`.
+
+### Version Pins
+
+- `agentstack-sdk`
+  - If already pinned compatibly: keep it.
+  - Otherwise: pin a trusted stable release with `~=`.
+- `a2a-sdk`
+  - If the project directly manages it: keep/add a version compatible with the selected `agentstack-sdk`.
+  - If not: do not add a direct pin.
+- Never bump `a2a-sdk` just to follow "latest" when constraints disagree.
 
 **Source-of-truth rule:** Use current official docs and installed package inspection as the authority. If they conflict, follow installed package behavior and report the mismatch.
 
@@ -392,7 +400,6 @@ When building and testing the wrapper, ensure you avoid these common pitfalls:
 
 ## Failure Conditions
 
-- If the project's primary language is not Python, stop and report unsupported runtime.
 - If fresh docs cannot be fetched, stop and report that execution cannot continue without current docs.
 
 ---
