@@ -14,7 +14,7 @@ java = "21"
 maven = "3"
 
 # Kubernetes
-helm = "3"
+helm = "4.1.1"
 kubeconform = "latest"
 "github:telepresenceio/telepresence" = "latest"
 
