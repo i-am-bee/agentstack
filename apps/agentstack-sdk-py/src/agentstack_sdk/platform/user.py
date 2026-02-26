@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -29,7 +30,7 @@ class User(pydantic.BaseModel):
     created_at: pydantic.AwareDatetime
 
     @staticmethod
-    async def get(*, client: PlatformClient | None = None) -> User:
+    async def get(*, client: PlatformClient | None = None) -> "User":
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(User).validate_python(
                 (await client.get(url="/api/v1/user")).raise_for_status().json()
@@ -42,7 +43,7 @@ class User(pydantic.BaseModel):
         limit: int = 40,
         page_token: str | None = None,
         client: PlatformClient | None = None,
-    ) -> PaginatedResult[User]:
+    ) -> PaginatedResult["User"]:
         async with client or get_platform_client() as client:
             params: dict[str, int | str] = {"limit": limit}
             if email:

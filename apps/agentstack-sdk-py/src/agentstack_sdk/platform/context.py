@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 import builtins
@@ -73,7 +74,7 @@ class Context(pydantic.BaseModel):
         metadata: Metadata | None = None,
         provider_id: str | None = None,
         client: PlatformClient | None = None,
-    ) -> Context:
+    ) -> "Context":
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(Context).validate_python(
                 (
@@ -96,7 +97,7 @@ class Context(pydantic.BaseModel):
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
         include_empty: bool = True,
         provider_id: str | None = None,
-    ) -> PaginatedResult[Context]:
+    ) -> PaginatedResult["Context"]:
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(PaginatedResult[Context]).validate_python(
@@ -120,10 +121,10 @@ class Context(pydantic.BaseModel):
             )
 
     async def get(
-        self: Context | str,
+        self: "Context" | str,
         *,
         client: PlatformClient | None = None,
-    ) -> Context:
+    ) -> "Context":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         context_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -132,11 +133,11 @@ class Context(pydantic.BaseModel):
             )
 
     async def update(
-        self: Context | str,
+        self: "Context" | str,
         *,
         metadata: Metadata | None,
         client: PlatformClient | None = None,
-    ) -> Context:
+    ) -> "Context":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         context_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -151,11 +152,11 @@ class Context(pydantic.BaseModel):
         return result
 
     async def patch_metadata(
-        self: Context | str,
+        self: "Context" | str,
         *,
         metadata: MetadataPatch | None,
         client: PlatformClient | None = None,
-    ) -> Context:
+    ) -> "Context":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `File.get("123")` to obtain a new instance
         context_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -170,7 +171,7 @@ class Context(pydantic.BaseModel):
         return result
 
     async def delete(
-        self: Context | str,
+        self: "Context" | str,
         *,
         client: PlatformClient | None = None,
     ) -> None:
@@ -180,7 +181,7 @@ class Context(pydantic.BaseModel):
             _ = (await client.delete(url=f"/api/v1/contexts/{context_id}")).raise_for_status()
 
     async def generate_token(
-        self: Context | str,
+        self: "Context" | str,
         *,
         providers: builtins.list[str] | builtins.list[Provider] | None = None,
         client: PlatformClient | None = None,
@@ -226,7 +227,7 @@ class Context(pydantic.BaseModel):
         return pydantic.TypeAdapter(ContextToken).validate_python({**token_response, "context_id": context_id})
 
     async def add_history_item(
-        self: Context | str,
+        self: "Context" | str,
         *,
         data: Message | Artifact,
         client: PlatformClient | None = None,
@@ -241,7 +242,7 @@ class Context(pydantic.BaseModel):
             ).raise_for_status()
 
     async def delete_history_from_id(
-        self: Context | str,
+        self: "Context" | str,
         *,
         from_id: UUID | str,
         client: PlatformClient | None = None,
@@ -256,7 +257,7 @@ class Context(pydantic.BaseModel):
             ).raise_for_status()
 
     async def list_history(
-        self: Context | str,
+        self: "Context" | str,
         *,
         page_token: str | None = None,
         limit: int | None = None,
@@ -281,7 +282,7 @@ class Context(pydantic.BaseModel):
             )
 
     async def list_all_history(
-        self: Context | str, client: PlatformClient | None = None
+        self: "Context" | str, client: PlatformClient | None = None
     ) -> AsyncIterator[ContextHistoryItem]:
         result = await Context.list_history(self, client=client)
         for item in result.items:

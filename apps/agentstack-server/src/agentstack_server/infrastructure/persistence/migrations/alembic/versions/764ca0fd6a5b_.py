@@ -1,6 +1,8 @@
 # Copyright 2026 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 """add unmanaged state and registry to model providers
 
 Revision ID: 764ca0fd6a5b

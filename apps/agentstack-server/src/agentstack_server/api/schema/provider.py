@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 from datetime import timedelta
 
 from a2a.types import AgentCard

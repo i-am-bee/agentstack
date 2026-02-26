@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 """Add procrastinate initial migrations
 
 Revision ID: 638be28ea3f9

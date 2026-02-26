@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
@@ -8,7 +9,7 @@ from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 
 class Variables(dict[str, str]):
     async def save(
-        self: Variables | dict[str, str | None] | dict[str, str],
+        self: "Variables" | dict[str, str | None] | dict[str, str],
         *,
         client: PlatformClient | None = None,
     ) -> None:
@@ -26,7 +27,7 @@ class Variables(dict[str, str]):
                 )
             ).raise_for_status()
 
-    async def load(self: Variables | None = None, *, client: PlatformClient | None = None) -> Variables:
+    async def load(self: "Variables" | None = None, *, client: PlatformClient | None = None) -> "Variables":
         """
         Load variables from the Agent Stack platform.
 

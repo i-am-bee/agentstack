@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 import pydantic
@@ -16,7 +17,7 @@ class SystemConfiguration(pydantic.BaseModel):
     created_by: str
 
     @staticmethod
-    async def get(*, client: PlatformClient | None = None) -> SystemConfiguration:
+    async def get(*, client: PlatformClient | None = None) -> "SystemConfiguration":
         """Get the current system configuration."""
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(SystemConfiguration).validate_python(
@@ -29,7 +30,7 @@ class SystemConfiguration(pydantic.BaseModel):
         default_llm_model: str | None = None,
         default_embedding_model: str | None = None,
         client: PlatformClient | None = None,
-    ) -> SystemConfiguration:
+    ) -> "SystemConfiguration":
         """Update the system configuration."""
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(SystemConfiguration).validate_python(

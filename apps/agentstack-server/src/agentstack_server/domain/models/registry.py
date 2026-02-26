@@ -1,5 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
 from collections import Counter
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
@@ -36,7 +38,7 @@ if TYPE_CHECKING:
 
 
 class ProviderRegistryRecord(BaseModel, extra="allow"):
-    location: "ProviderLocation"
+    location: ProviderLocation
     origin: str = Field(default_factory=lambda data: data["location"].origin)
     auto_stop_timeout_sec: int = Field(
         default=int(DEFAULT_AUTO_STOP_TIMEOUT.total_seconds()),
@@ -119,7 +121,7 @@ RegistryLocation = GithubRegistryLocation | NetworkRegistryLocation | FileSystem
 class ModelProviderRegistryRecord(BaseModel, extra="allow"):
     name: str | None = None
     description: str | None = None
-    type: "ModelProviderType"
+    type: ModelProviderType
     base_url: HttpUrl
     api_key: str
     watsonx_project_id: str | None = None

@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import configparser
 import datetime
 import functools
@@ -500,7 +502,7 @@ async def start_cmd(
                 textwrap.dedent("""\
                     command -v helm && exit 0
                     case $(uname -m) in x86_64) ARCH="amd64" ;; aarch64) ARCH="arm64" ;; esac
-                    curl -fsSL "https://get.helm.sh/helm-v3.20.0-linux-${ARCH}.tar.gz" | tar -xzf - --strip-components=1 -C /usr/local/bin "linux-${ARCH}/helm"
+                    curl -fsSL "https://get.helm.sh/helm-v4.1.1-linux-${ARCH}.tar.gz" | tar -xzf - --strip-components=1 -C /usr/local/bin "linux-${ARCH}/helm"
                     chmod +x /usr/local/bin/helm
                 """),
             ],

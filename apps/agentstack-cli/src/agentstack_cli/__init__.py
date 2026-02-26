@@ -1,11 +1,14 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 import re
 import typing
 from copy import deepcopy
 
+import agentstack_sdk  # noqa: F401 -- imported early due to Pydantic patches
 import typer
 
 import agentstack_cli.commands.agent

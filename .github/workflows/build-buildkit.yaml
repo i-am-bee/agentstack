@@ -35,6 +35,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: quay.io
+          username: beeai+github
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - name: Create Dockerfile
         run: |
@@ -65,3 +70,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/i-am-bee/moby/buildkit:${{ github.event.inputs.tag }}-uid-${{ github.event.inputs.uid }}
+            quay.io/beeai/moby/buildkit:${{ github.event.inputs.tag }}-uid-${{ github.event.inputs.uid }}

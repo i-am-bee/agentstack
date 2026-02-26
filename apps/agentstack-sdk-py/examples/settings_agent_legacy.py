@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 # TODO: remove once legacy settings extension is fully deprecated
+from __future__ import annotations
+
 import os
 from collections.abc import AsyncGenerator
 from typing import Annotated

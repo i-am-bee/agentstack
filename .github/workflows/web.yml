@@ -25,6 +25,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: quay.io
+          username: beeai+github
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
       - uses: ./.github/actions/setup
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -34,5 +39,9 @@ jobs:
           context: .
           file: ./apps/beeai-web/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/beeai-web:${{ github.sha }},ghcr.io/${{ github.repository }}/beeai-web:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/beeai-web:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/beeai-web:latest
+            quay.io/beeai/beeai-web:${{ github.sha }}
+            quay.io/beeai/beeai-web:latest
       - run: uv cache prune --ci

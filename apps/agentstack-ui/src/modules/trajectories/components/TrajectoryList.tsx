@@ -5,14 +5,20 @@
 
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { usePrevious } from '#hooks/usePrevious.ts';
 import type { UITrajectoryPart } from '#modules/messages/types.ts';
 import { fadeProps } from '#utils/fadeProps.ts';
 
+import { AnimationStatus } from '../hooks/useAnimatedText';
 import { TrajectoryItem } from './TrajectoryItem';
 import classes from './TrajectoryList.module.scss';
+
+export interface AnimatedTrajectory extends UITrajectoryPart {
+  status: AnimationStatus;
+  duration?: number;
+}
 
 interface Props {
   trajectories: UITrajectoryPart[];
@@ -22,15 +28,64 @@ interface Props {
 
 export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
   const [canClampContent, setCanClampContent] = useState(!isPending);
+  const [animatedDoneTrajectoryIds, setAnimatedDoneTrajectoryIds] = useState<Set<string>>(new Set());
 
   const previouslyOpen = usePrevious(isOpen);
   useEffect(() => {
-    // Re-enable clamping when closed while no longer pending - ensuring trajectories
-    // are not clamped when pending, or on first open after being in pending state
     if (previouslyOpen && !isOpen && !isPending) {
       setCanClampContent(true);
     }
   }, [isOpen, isPending, previouslyOpen]);
+
+  const handleAnimationEnd = useCallback((trajectoryId: string) => {
+    setAnimatedDoneTrajectoryIds((prev) => {
+      const newIds = new Set(prev);
+      newIds.add(trajectoryId);
+      return newIds;
+    });
+  }, []);
+
+  const animatedTrajectories: AnimatedTrajectory[] = useMemo(() => {
+    const animatedTrajectories: AnimatedTrajectory[] = [];
+    let animatingTrajectoryIdx: number | null = null;
+    for (const [index, trajectory] of trajectories.entries()) {
+      if (!isPending) {
+        animatedTrajectories.push({
+          ...trajectory,
+          status: AnimationStatus.Completed,
+        });
+        continue;
+      }
+
+      if (animatingTrajectoryIdx !== null) {
+        continue;
+      }
+
+      const wasAnimated = animatedDoneTrajectoryIds.has(trajectory.id);
+      const isExpired = !trajectory.createdAt || Date.now() - trajectory.createdAt > SKIP_ANIMATION_THRESHOLD_MS;
+
+      if (wasAnimated || isExpired) {
+        animatedTrajectories.push({
+          ...trajectory,
+          status: AnimationStatus.Completed,
+        });
+        continue;
+      }
+
+      const pendingCount = trajectories.length - index;
+      const durationMs = BASE_ANIMATION_DURATION_MS / pendingCount;
+
+      animatedTrajectories.push({
+        ...trajectory,
+        status: AnimationStatus.Animating,
+        duration: durationMs,
+      });
+
+      animatingTrajectoryIdx = index;
+    }
+
+    return animatedTrajectories;
+  }, [animatedDoneTrajectoryIds, isPending, trajectories]);
 
   return (
     <AnimatePresence>
@@ -44,9 +99,15 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
         >
           <div className={classes.border} />
           <ul className={classes.list}>
-            {trajectories.map((trajectory) => (
+            {animatedTrajectories.map((trajectory) => (
               <li key={trajectory.id}>
-                <TrajectoryItem trajectory={trajectory} isPending={isPending} canClampContent={canClampContent} />
+                <TrajectoryItem
+                  trajectory={trajectory}
+                  isPending={isPending}
+                  canClampContent={canClampContent}
+                  animateStatus={trajectory.status}
+                  onAnimationEnd={() => handleAnimationEnd(trajectory.id)}
+                />
               </li>
             ))}
           </ul>
@@ -55,3 +116,6 @@ export function TrajectoryList({ trajectories, isOpen, isPending }: Props) {
     </AnimatePresence>
   );
 }
+
+const BASE_ANIMATION_DURATION_MS = 1500;
+const SKIP_ANIMATION_THRESHOLD_MS = 3000;

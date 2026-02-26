@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 """provider upgrading
 
 Revision ID: d39dd1ff796f
@@ -89,7 +91,7 @@ def upgrade() -> None:
                 # Only update if the ID actually changed
                 if str(old_id) != str(new_id):
                     id_mappings[str(old_id)] = str(new_id)
-            except (ValueError, Exception):
+            except ValueError, Exception:
                 # Skip non-docker images or invalid formats
                 continue
 
@@ -137,7 +139,7 @@ def downgrade() -> None:
                 # Only update if the ID actually changed
                 if str(current_id) != str(old_id):
                     id_mappings[str(current_id)] = str(old_id)
-            except (ValueError, Exception):
+            except ValueError, Exception:
                 # Skip non-docker images or invalid formats
                 continue
 

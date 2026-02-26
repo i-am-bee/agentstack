@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import clsx from 'clsx';
 import { useMemo } from 'react';
 
 import { LineClampText } from '#components/LineClampText/LineClampText.tsx';
@@ -11,6 +12,7 @@ import { MarkdownContent } from '#components/MarkdownContent/MarkdownContent.tsx
 import type { UseAnimatedTextOptions } from '../hooks/useAnimatedText';
 import { useAnimatedText } from '../hooks/useAnimatedText';
 import { isMarkdown } from '../utils';
+import classes from './AnimatedTextContent.module.scss';
 
 interface Props extends UseAnimatedTextOptions {
   children: string;
@@ -28,12 +30,19 @@ export function AnimatedTextContent({ children, className, linesClamp, ...textOp
 
   if (linesClamp && displayedText.length > 0) {
     return (
-      <LineClampText lines={linesClamp} useBlockElement={contentIsMarkdown} className={className}>
+      <LineClampText
+        lines={linesClamp}
+        useBlockElement={contentIsMarkdown}
+        className={clsx(classes.content, className)}
+      >
         {contentIsMarkdown ? <MarkdownContent>{displayedText}</MarkdownContent> : displayedText}
       </LineClampText>
     );
   }
 
-  const Component = contentIsMarkdown ? MarkdownContent : 'div';
-  return <Component className={className}>{displayedText}</Component>;
+  return contentIsMarkdown ? (
+    <MarkdownContent className={className}>{displayedText}</MarkdownContent>
+  ) : (
+    <div className={clsx(classes.content, className)}>{displayedText}</div>
+  );
 }

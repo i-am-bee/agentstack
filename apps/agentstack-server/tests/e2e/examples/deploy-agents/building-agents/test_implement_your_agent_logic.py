@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import TaskState

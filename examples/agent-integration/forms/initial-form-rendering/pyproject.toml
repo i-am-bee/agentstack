@@ -5,7 +5,7 @@ description = "Example demonstrating a form as the first interaction before user
 authors = [
     { name = "IBM Corp." },
 ]
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "agentstack-sdk>=0.5.3",
     "pyyaml>=6.0.2",
@@ -13,7 +13,7 @@ dependencies = [
 
 [tool.ruff]
 line-length = 120
-target-version = "py313"
+target-version = "py314"
 
 [tool.uv.sources]
 agentstack-sdk = { path = "../../../../apps/agentstack-sdk-py", editable = true }
@@ -26,7 +26,7 @@ project-includes = [
     "**/*.py*",
     "**/*.ipynb",
 ]
-search-path = ['../../../../apps/agentstack-sdk-py/src', '.venv/lib/python3.13/site-packages']
+search-path = ['../../../../apps/agentstack-sdk-py/src', '.venv/lib/python3.14/site-packages']
 
 [build-system]
 requires = ["uv_build>=0.10.0,<0.11.0"]

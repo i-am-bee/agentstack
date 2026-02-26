@@ -33,6 +33,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: quay.io
+          username: beeai+github
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
@@ -70,6 +75,9 @@ jobs:
             ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ github.sha }}
             ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:${{ steps.version.outputs.latestTag }}
+            quay.io/beeai/agents/${{ matrix.agent }}:${{ github.sha }}
+            quay.io/beeai/agents/${{ matrix.agent }}:${{ steps.version.outputs.version }}
+            quay.io/beeai/agents/${{ matrix.agent }}:${{ steps.version.outputs.latestTag }}
           labels: |
             beeai.dev.agent.json=${{ steps.agent-manifest.outputs.content }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache
@@ -117,6 +125,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: quay.io
+          username: beeai+github
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       - run: mise run 'agentstack-server:build:*'
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
@@ -128,6 +141,9 @@ jobs:
             ghcr.io/${{ github.repository }}/agentstack-server:${{ github.sha }}
             ghcr.io/${{ github.repository }}/agentstack-server:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}/agentstack-server:${{ steps.version.outputs.latestTag }}
+            quay.io/beeai/agentstack-server:${{ github.sha }}
+            quay.io/beeai/agentstack-server:${{ steps.version.outputs.version }}
+            quay.io/beeai/agentstack-server:${{ steps.version.outputs.latestTag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-server:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-server:cache,mode=max
 
@@ -137,7 +153,9 @@ jobs:
           file: ./apps/supergateway/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/${{ github.repository }}/supergateway:${{ github.sha }}
+          tags: |
+            ghcr.io/${{ github.repository }}/supergateway:${{ github.sha }}
+            quay.io/beeai/supergateway:${{ github.sha }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/supergateway:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/supergateway:cache,mode=max
 
@@ -155,6 +173,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}/keycloak-themed:${{ github.sha }}
             ghcr.io/${{ github.repository }}/keycloak-themed:${{ steps.keycloak-version.outputs.version }}
+            quay.io/beeai/keycloak-themed:${{ github.sha }}
+            quay.io/beeai/keycloak-themed:${{ steps.keycloak-version.outputs.version }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/keycloak-themed:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/keycloak-themed:cache,mode=max
 
@@ -169,6 +189,9 @@ jobs:
             ghcr.io/${{ github.repository }}/agentstack-ui:${{ github.sha }}
             ghcr.io/${{ github.repository }}/agentstack-ui:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}/agentstack-ui:${{ steps.version.outputs.latestTag }}
+            quay.io/beeai/agentstack-ui:${{ github.sha }}
+            quay.io/beeai/agentstack-ui:${{ steps.version.outputs.version }}
+            quay.io/beeai/agentstack-ui:${{ steps.version.outputs.latestTag }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-ui:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agentstack-ui:cache,mode=max
 

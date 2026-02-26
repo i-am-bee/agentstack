@@ -1,6 +1,9 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
+from __future__ import annotations
+
 import contextlib
 import functools
 import json
@@ -145,9 +148,9 @@ prompt_session = None
 
 def prompt_user(
     prompt: str | None = None,
-    completer: "Completer | None" = None,
+    completer: Completer | None = None,
     placeholder: str | None = None,
-    validator: "Validator | None" = None,
+    validator: Validator | None = None,
     open_autocomplete_by_default=False,
 ) -> str:
     global prompt_session
@@ -372,7 +375,7 @@ def get_local_github_token() -> str | None:
         )
         if result.returncode == 0 and (token := result.stdout.strip()):
             return token
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except FileNotFoundError, subprocess.TimeoutExpired:
         pass
 
     return None

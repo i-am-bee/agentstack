@@ -3,6 +3,8 @@
 
 # Modified version of https://github.com/a2aproject/a2a-python/blob/2acd838796d44ab9bfe6ba8c8b4ea0c2571a59dc/src/a2a/utils/telemetry.py
 
+from __future__ import annotations
+
 import asyncio
 import functools
 import inspect

@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import asyncio
 import inspect
 import typing
@@ -129,8 +131,7 @@ def agent(
 
     def decorator(fn: OriginalFnType) -> AgentFactory:
         def agent_factory(modify_dependencies: Callable[[dict[str, Depends]], None]):
-            signature = inspect.signature(fn)
-            dependencies = extract_dependencies(signature)
+            dependencies = extract_dependencies(fn)
             modify_dependencies(dependencies)
 
             sdk_extensions = [dep.extension for dep in dependencies.values() if dep.extension is not None]

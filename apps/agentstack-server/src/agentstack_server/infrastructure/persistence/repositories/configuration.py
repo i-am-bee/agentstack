@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
 from enum import StrEnum
 
 from sqlalchemy import UUID as SQL_UUID

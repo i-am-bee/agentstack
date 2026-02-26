@@ -1,6 +1,9 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
+import builtins
 from datetime import datetime
 from uuid import UUID
 
@@ -19,7 +22,7 @@ class UserFeedback(pydantic.BaseModel):
     rating: int
     message: str
     comment: str | None = None
-    comment_tags: list[str] | None = None
+    comment_tags: builtins.list[str] | None = None
     created_at: datetime
     agent_name: str
 

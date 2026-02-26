@@ -55,6 +55,7 @@ pyrefly check "$TMPDIR/snippets"
 """
 
 ["docs:check:links"]
+depends = ["common:setup:pnpm"]
 dir = "{{config_root}}/docs"
 sources = ["**/*.mdx"]
 outputs = { auto = true }
@@ -93,6 +94,7 @@ outputs = { auto = true }
 ## manual check
 
 ["docs:manual-check:external-links"]
+tools = { lychee = "latest" }
 dir = "{{config_root}}/docs"
 sources = ["**/*.mdx"]
 outputs = { auto = true }

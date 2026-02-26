@@ -1,10 +1,22 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
 import asyncio
 import typing
 from collections.abc import AsyncIterator, Iterator
 from datetime import datetime
 from typing import Final, cast, override
+
+try:
+    import ibm_watsonx_ai.utils.utils
+
+    def safe_init(self, *args, **kwargs):
+        pass
+
+    ibm_watsonx_ai.utils.utils.StrEnum.__init__ = safe_init
+except ImportError:
+    pass
 
 import ibm_watsonx_ai.foundation_models.embeddings
 import openai.types.chat

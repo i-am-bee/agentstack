@@ -1,6 +1,8 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 import re
 import time
@@ -66,7 +68,7 @@ class ResolvedGithubUrl(BaseModel):
     path: str | None = None
 
     @property
-    def _github_config(self) -> "GithubPATConfiguration | GithubAppConfiguration | None":
+    def _github_config(self) -> GithubPATConfiguration | GithubAppConfiguration | None:
         from agentstack_server.configuration import Configuration
 
         configuration = di[Configuration]  # not using inject due to a  circular import

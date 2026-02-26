@@ -1,5 +1,6 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -87,7 +88,7 @@ class ProviderBuild(pydantic.BaseModel):
         client: PlatformClient | None = None,
         on_complete: OnCompleteAction | None = None,
         build_configuration: BuildConfiguration | None = None,
-    ) -> ProviderBuild:
+    ) -> "ProviderBuild":
         on_complete = on_complete or NoAction()
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(ProviderBuild).validate_python(
@@ -110,7 +111,7 @@ class ProviderBuild(pydantic.BaseModel):
     @staticmethod
     async def preview(
         *, location: str, client: PlatformClient | None = None, on_complete: OnCompleteAction | None = None
-    ) -> ProviderBuild:
+    ) -> "ProviderBuild":
         on_complete = on_complete or NoAction()
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(ProviderBuild).validate_python(
@@ -125,7 +126,7 @@ class ProviderBuild(pydantic.BaseModel):
             )
 
     async def stream_logs(
-        self: ProviderBuild | str, *, client: PlatformClient | None = None
+        self: "ProviderBuild" | str, *, client: PlatformClient | None = None
     ) -> AsyncIterator[dict[str, Any]]:
         # `self` has a weird type so that you can call both `instance.stream_logs()` or `ProviderBuild.stream_logs("123")`
         provider_build_id = self if isinstance(self, str) else self.id
@@ -140,7 +141,7 @@ class ProviderBuild(pydantic.BaseModel):
             async for line in parse_stream(response):
                 yield line
 
-    async def get(self: ProviderBuild | str, *, client: PlatformClient | None = None) -> ProviderBuild:
+    async def get(self: "ProviderBuild" | str, *, client: PlatformClient | None = None) -> "ProviderBuild":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `ProviderBuild.get("123")` to obtain a new instance
         provider_build_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -152,7 +153,7 @@ class ProviderBuild(pydantic.BaseModel):
             return self
         return result
 
-    async def delete(self: ProviderBuild | str, *, client: PlatformClient | None = None) -> None:
+    async def delete(self: "ProviderBuild" | str, *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `ProviderBuild.delete("123")`
         provider_build_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -167,7 +168,7 @@ class ProviderBuild(pydantic.BaseModel):
         order_by: Literal["created_at"] | Literal["updated_at"] | None = None,
         user_owned: bool | None = None,
         client: PlatformClient | None = None,
-    ) -> PaginatedResult[ProviderBuild]:
+    ) -> PaginatedResult["ProviderBuild"]:
         # `self` has a weird type so that you can call both `instance.list_history()` or `ProviderBuild.list_history("123")`
         async with client or get_platform_client() as platform_client:
             return pydantic.TypeAdapter(PaginatedResult[ProviderBuild]).validate_python(

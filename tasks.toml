@@ -45,6 +45,17 @@ sources = [
 ]
 outputs = { auto = true }
 
+["common:setup:corepack"]
+hide = true
+dir = "{{config_root}}"
+run = "corepack enable"
+sources = [
+  "apps/*/package.json",
+  "docs/package.json",
+  "agents/*/*/package.json",
+]
+outputs = { auto = true }
+
 ## check
 
 ["common:check"]
@@ -601,4 +612,73 @@ rm -rf **/.venv **/node_modules **/.next
 brew upgrade mise || mise self-update || true
 {{mise_bin}} install
 {{mise_bin}} run --force setup ::: check
+"""
+
+# yolobox [experimental: macOS >=15, CPU >=M3]
+["yolobox:start"]
+dir = "{{ config_root }}"
+usage = 'arg "[name]"'
+run = '''
+#!/usr/bin/env bash
+set -euxo pipefail
+VM_NAME="yolobox${usage_name:+-$usage_name}"
+export REPO=$(basename $(pwd))
+if limactl create template:ubuntu --yes --name "$VM_NAME" --plain --vm-type=vz --rosetta --memory 36 --cpus 4 --set '.nestedVirtualization=true'; then
+    limactl start "$VM_NAME"
+    mkdir -p "$HOME/.ssh" && touch "$HOME/.ssh/config" && printf "\nInclude ${LIMA_HOME:-$HOME/.lima}/$VM_NAME/ssh.config" >> "$HOME/.ssh/config"
+    limactl shell "$VM_NAME" bash -c "
+        set -euxo pipefail
+        export DEBIAN_FRONTEND=noninteractive
+        export GITHUB_TOKEN="${GITHUB_TOKEN-}"
+        
+        # Git
+        sudo mkdir -p /git/$REPO
+        sudo chown \$(id -u):\$(id -g) /git/$REPO
+        cd /git/$REPO
+        git init --initial-branch=main
+        git config receive.denyCurrentBranch updateInstead
+        git config user.name \"$(git config user.name)\"
+        git config user.email \"$(git config user.email)\"
+        
+        # Mise
+        curl https://mise.run | sh
+        eval \"\$(\$HOME/.local/bin/mise activate bash)\"
+        echo 'eval \"\$(\$HOME/.local/bin/mise activate bash)\"' >> \$HOME/.bashrc
+
+        # Docker
+        sudo mkdir -p /etc/systemd/system/docker.socket.d
+        printf '[Socket]\nSocketUser='\$USER | sudo tee /etc/systemd/system/docker.socket.d/override.conf
+        curl -fsSL https://get.docker.com | sh
+        
+        # Lima & Virtualization Support
+        sudo apt-get update -qq
+        sudo apt-get install -qqy --no-install-recommends ovmf qemu-system-aarch64 qemu-efi-aarch64 qemu-utils ipxe-qemu
+        sudo modprobe kvm
+        sudo chmod 666 /dev/kvm
+        mise use -g lima@2.0.3
+
+        # Extra tools
+        mise use -g kubectl@latest
+    "
+    git remote add "$VM_NAME" "ssh://lima-$VM_NAME:/git/$REPO"
+    git push "$VM_NAME" main:main
+else
+    limactl start "$VM_NAME"
+fi
+limactl shell "$VM_NAME" bash -c "cd /git/$REPO && mise trust && mise install"
+code --new-window --wait --folder-uri "vscode-remote://ssh-remote+lima-$VM_NAME/git/$REPO"
+limactl stop -f "$VM_NAME"
+'''
+
+["yolobox:delete"]
+dir = "{{ config_root }}"
+usage = 'arg "[name]"'
+run = """
+#!/usr/bin/env bash
+set -euxo pipefail
+VM_NAME="yolobox${usage_name:+-$usage_name}"
+grep -Fxv "Include ${LIMA_HOME:-$HOME/.lima}/$VM_NAME/ssh.config" "$HOME/.ssh/config" > "$HOME/.ssh/config.tmp" || true
+mv "$HOME/.ssh/config.tmp" "$HOME/.ssh/config"
+git remote remove "$VM_NAME" 2>/dev/null || true
+limactl delete -f "$VM_NAME"
 """

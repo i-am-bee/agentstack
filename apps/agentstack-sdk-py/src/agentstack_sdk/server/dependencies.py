@@ -1,9 +1,11 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 import inspect
+import typing
 from collections import Counter
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
@@ -58,7 +60,9 @@ class Depends:
         return lifespan()
 
 
-def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
+def extract_dependencies(fn: Callable[..., Any]) -> dict[str, Depends]:
+    sign = inspect.signature(fn)
+    type_hints = typing.get_type_hints(fn, include_extras=True)
     dependencies = {}
     seen_keys = set()
 
@@ -76,28 +80,31 @@ def extract_dependencies(sign: inspect.Signature) -> dict[str, Depends]:
 
     for name, param in sign.parameters.items():
         seen_keys.add(name)
+        annotation = type_hints.get(name, param.annotation)
 
-        if get_origin(param.annotation) is Annotated:
-            args = get_args(param.annotation)
+        if get_origin(annotation) is Annotated:
+            args = get_args(annotation)
             process_args(name, args)
 
-        elif inspect.isclass(param.annotation):
+        elif inspect.isclass(annotation):
             # message: Message
-            if param.annotation == Message:
+            if annotation == Message:
                 dependencies[name] = Depends(lambda message, _run_context, _request_context, _dependencies: message)
             # context: Context
-            elif param.annotation == RunContext:
+            elif annotation == RunContext:
                 dependencies[name] = Depends(lambda _message, run_context, _request_context, _dependencies: run_context)
             # extension: BaseExtensionServer = BaseExtensionSpec()
             # TODO: this does not get past linters, should we enable it or somehow fix the typing?
             # elif issubclass(param.annotation, BaseExtensionServer) and isinstance(param.default, BaseExtensionSpec):
             #     dependencies[name] = Depends(param.annotation(param.default))
         elif param.kind is inspect.Parameter.VAR_KEYWORD:
-            origin = get_origin(param.annotation)
+            origin = get_origin(annotation)
             if origin is Unpack:
                 seen_keys.discard(name)
-                (typed_dict,) = get_args(param.annotation)
-                for field_name, field_type in typed_dict.__annotations__.items():
+                (typed_dict,) = get_args(annotation)
+                # For TypedDict, get_type_hints on the TypedDict class should resolve its annotations
+                typed_dict_hints = typing.get_type_hints(typed_dict, include_extras=True)
+                for field_name, field_type in typed_dict_hints.items():
                     seen_keys.add(field_name)
                     if get_origin(field_type) is Annotated:
                         args = get_args(field_type)

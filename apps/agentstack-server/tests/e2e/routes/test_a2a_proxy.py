@@ -3,6 +3,8 @@
 
 # Testing proxy server capabilities, using tests from a2a:
 # https://github.com/a2aproject/a2a-python/blob/main/tests/server/test_integration.py
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import socket

@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 import asyncio
@@ -81,7 +82,7 @@ class Connector(pydantic.BaseModel):
         metadata: Metadata | None = None,
         match_preset: bool = True,
         client: PlatformClient | None = None,
-    ) -> Connector:
+    ) -> "Connector":
         """
         Create a new connector.
 
@@ -114,7 +115,7 @@ class Connector(pydantic.BaseModel):
     async def list(
         *,
         client: PlatformClient | None = None,
-    ) -> PaginatedResult[Connector]:
+    ) -> PaginatedResult["Connector"]:
         """
         List all connectors for the current user.
 
@@ -127,10 +128,10 @@ class Connector(pydantic.BaseModel):
             return pydantic.TypeAdapter(PaginatedResult[Connector]).validate_python(response.json())
 
     async def get(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         client: PlatformClient | None = None,
-    ) -> Connector:
+    ) -> "Connector":
         """
         Read a specific connector by ID.
         """
@@ -141,7 +142,7 @@ class Connector(pydantic.BaseModel):
             return pydantic.TypeAdapter(Connector).validate_python(response.json())
 
     async def delete(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         client: PlatformClient | None = None,
     ) -> None:
@@ -157,10 +158,10 @@ class Connector(pydantic.BaseModel):
             response.raise_for_status()
 
     async def refresh(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         client: PlatformClient | None = None,
-    ) -> Connector:
+    ) -> "Connector":
         """
         This is just a syntactic sugar for calling Connector.get().
         """
@@ -168,12 +169,12 @@ class Connector(pydantic.BaseModel):
             return await Connector.get(self, client=client)
 
     async def wait_for_state(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         state: ConnectorState = ConnectorState.connected,
         poll_interval: int = 1,
         client: PlatformClient | None = None,
-    ) -> Connector:
+    ) -> "Connector":
         """
         Wait for the connector to reach connected state.
 
@@ -201,7 +202,7 @@ class Connector(pydantic.BaseModel):
             return connector
 
     async def wait_for_deletion(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         poll_interval: int = 1,
         client: PlatformClient | None = None,
@@ -216,12 +217,12 @@ class Connector(pydantic.BaseModel):
                     await asyncio.sleep(poll_interval)
 
     async def connect(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         redirect_url: AnyUrl | str | None = None,
         access_token: str | None = None,
         client: PlatformClient | None = None,
-    ) -> Connector:
+    ) -> "Connector":
         """
         Connect a connector (establish authorization).
 
@@ -255,10 +256,10 @@ class Connector(pydantic.BaseModel):
         return connector
 
     async def disconnect(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         client: PlatformClient | None = None,
-    ) -> Connector:
+    ) -> "Connector":
         """
         Disconnect a connector.
 
@@ -275,7 +276,7 @@ class Connector(pydantic.BaseModel):
             return pydantic.TypeAdapter(Connector).validate_python(response.json())
 
     async def mcp_proxy(
-        self: Connector | UuidStr,
+        self: "Connector" | UuidStr,
         *,
         method: str,
         headers: dict | None = None,
@@ -324,7 +325,7 @@ class Connector(pydantic.BaseModel):
     async def presets(
         *,
         client: PlatformClient | None = None,
-    ) -> PaginatedResult[ConnectorPreset]:
+    ) -> PaginatedResult["ConnectorPreset"]:
         """
         List all available connector presets.
 

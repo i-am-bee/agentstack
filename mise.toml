@@ -3,20 +3,18 @@
 "lima" = "2.0.3"
 
 # Python
-uv = "0.10"
+uv = "latest"
 
 # Node.js
 nodejs = "24"
-pnpm = "10"
 
 # Java
 java = "21"
-maven = "3"
+maven = "latest"
 
 # Kubernetes
-helm = "3"
+helm = "latest"
 kubeconform = "latest"
-"github:telepresenceio/telepresence" = "latest"
 
 # misc
 yq = "latest"
@@ -24,11 +22,10 @@ yq = "latest"
 fd = "latest"
 "github:google/addlicense" = "latest"
 gum = "latest"
-lychee = "latest"
 hadolint = "latest"
 
 [settings]
-experimental = true
+experimental = true # for task_templates
 task.disable_spec_from_run_scripts = true # opt-in to new task behavior
 
 [hooks]
@@ -86,37 +83,37 @@ outputs = { auto = true }
 
 [task_templates."node:check:prettier"]
 run = "pnpm prettier --log-level silent --check src"
-sources = ["src/**/*.{js,jsx,ts,tsx,html,css,scss}"]
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 [task_templates."node:check:eslint"]
 run = "pnpm eslint ."
-sources = ["src/**/*.{js,jsx,ts,tsx}"]
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 [task_templates."node:check:tsc"]
 run = "pnpm tsc --noEmit"
-sources = ["src/**/*.{ts,tsx}"]
+sources = ["src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 [task_templates."node:check:stylelint"]
-run = "pnpm stylelint \"src/**/*.css\" \"src/**/*.scss\""
-sources = ["src/**/*.{css,scss}"]
+run = 'pnpm stylelint --fix "src/**/*.{css,scss}"'
+sources = ["src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 [task_templates."node:fix:prettier"]
 run = "pnpm prettier --log-level silent --write src"
-sources = ["src/**/*.{js,jsx,ts,tsx,html,css,scss}"]
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/**/*.html", "src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 [task_templates."node:fix:eslint"]
 run = "pnpm eslint . --fix"
-sources = ["src/**/*.{js,jsx,ts,tsx}"]
+sources = ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
 outputs = { auto = true }
 
 [task_templates."node:fix:stylelint"]
-run = "pnpm stylelint --fix \"src/**/*.css\" \"src/**/*.scss\""
-sources = ["src/**/*.{css,scss}"]
+run = 'pnpm stylelint --fix "src/**/*.{css,scss}"'
+sources = ["src/**/*.css", "src/**/*.scss"]
 outputs = { auto = true }
 
 [task_templates."docker:check:hadolint"]

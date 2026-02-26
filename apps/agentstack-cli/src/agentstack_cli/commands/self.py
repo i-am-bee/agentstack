@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
+from __future__ import annotations
+
 import functools
 import importlib.metadata
 import os
@@ -112,7 +114,7 @@ async def install(
                             await run_command(cmd, f"Installing QEMU with {cmd[0]}")
                             ready_to_start = True
                             break
-                        except (subprocess.CalledProcessError, FileNotFoundError):
+                        except subprocess.CalledProcessError, FileNotFoundError:
                             console.warning(
                                 "Failed to install QEMU automatically. Please install QEMU manually before using Agent Stack. Refer to https://www.qemu.org/download/ for instructions."
                             )

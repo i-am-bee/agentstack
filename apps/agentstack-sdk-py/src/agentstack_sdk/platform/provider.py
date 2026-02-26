@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
+import builtins
 import typing
 import urllib.parse
 from contextlib import asynccontextmanager
@@ -47,7 +50,7 @@ class Provider(pydantic.BaseModel):
     managed: bool
     last_error: ProviderErrorMessage | None = None
     created_by: UUID
-    missing_configuration: list[EnvVar] = pydantic.Field(default_factory=list)
+    missing_configuration: builtins.list[EnvVar] = pydantic.Field(default_factory=list)
 
     @staticmethod
     async def create(
@@ -82,7 +85,7 @@ class Provider(pydantic.BaseModel):
             )
 
     async def patch(
-        self: "Provider | str",
+        self: "Provider" | str,
         *,
         location: str | None = None,
         agent_card: AgentCard | None = None,
@@ -138,7 +141,7 @@ class Provider(pydantic.BaseModel):
                 .json()
             )
 
-    async def get(self: "Provider | str", *, client: PlatformClient | None = None) -> "Provider":
+    async def get(self: "Provider" | str, *, client: PlatformClient | None = None) -> "Provider":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `Provider.get("123")` to obtain a new instance
         provider_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -159,14 +162,14 @@ class Provider(pydantic.BaseModel):
                 .content
             )
 
-    async def delete(self: "Provider | str", *, client: PlatformClient | None = None) -> None:
+    async def delete(self: "Provider" | str, *, client: PlatformClient | None = None) -> None:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
         provider_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
             _ = (await client.delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
 
     async def update_variables(
-        self: "Provider | str",
+        self: "Provider" | str,
         *,
         variables: dict[str, str | None] | dict[str, str],
         client: PlatformClient | None = None,
@@ -179,7 +182,7 @@ class Provider(pydantic.BaseModel):
             ).raise_for_status()
 
     async def stream_logs(
-        self: "Provider| str", *, client: PlatformClient | None = None
+        self: "Provider" | str, *, client: PlatformClient | None = None
     ) -> typing.AsyncIterator[dict[str, typing.Any]]:
         # `self` has a weird type so that you can call both `instance.stream_logs()` or `ProviderBuild.stream_logs("123")`
         provider_id = self if isinstance(self, str) else self.id
@@ -194,7 +197,7 @@ class Provider(pydantic.BaseModel):
             async for line in parse_stream(response):
                 yield line
 
-    async def list_variables(self: "Provider | str", *, client: PlatformClient | None = None) -> dict[str, str]:
+    async def list_variables(self: "Provider" | str, *, client: PlatformClient | None = None) -> dict[str, str]:
         # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
         provider_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
@@ -204,10 +207,10 @@ class Provider(pydantic.BaseModel):
     @staticmethod
     async def list(
         *, origin: str | None = None, user_owned: bool | None = None, client: PlatformClient | None = None
-    ) -> list["Provider"]:
+    ) -> builtins.list["Provider"]:
         async with client or get_platform_client() as client:
             params = filter_dict({"origin": origin, "user_owned": user_owned})
-            return pydantic.TypeAdapter(list[Provider]).validate_python(
+            return pydantic.TypeAdapter(builtins.list[Provider]).validate_python(
                 (
                     await client.get(
                         url="/api/v1/providers",

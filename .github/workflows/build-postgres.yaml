@@ -30,6 +30,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: quay.io
+          username: beeai+github
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
 
       # Extract version components
       - name: Extract version components
@@ -65,3 +70,8 @@ jobs:
             ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_version }}
             ghcr.io/i-am-bee/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_os_tag }}
             ghcr.io/i-am-bee/bitnami/postgresql-pgvector:latest
+            quay.io/beeai/bitnami/postgresql-pgvector:${{ steps.version.outputs.exact_tag }}
+            quay.io/beeai/bitnami/postgresql-pgvector:${{ steps.version.outputs.version }}
+            quay.io/beeai/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_version }}
+            quay.io/beeai/bitnami/postgresql-pgvector:${{ steps.version.outputs.major_os_tag }}
+            quay.io/beeai/bitnami/postgresql-pgvector:latest

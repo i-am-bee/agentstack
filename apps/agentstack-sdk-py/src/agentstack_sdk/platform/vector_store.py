@@ -1,6 +1,7 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
 
+
 from __future__ import annotations
 
 import typing
@@ -71,7 +72,7 @@ class VectorStore(pydantic.BaseModel):
         model_id: str,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
-    ) -> VectorStore:
+    ) -> "VectorStore":
         async with client or get_platform_client() as platform_client:
             context_id = platform_client.context_id if context_id == "auto" else context_id
             return pydantic.TypeAdapter(VectorStore).validate_json(
@@ -87,12 +88,12 @@ class VectorStore(pydantic.BaseModel):
             )
 
     async def get(
-        self: VectorStore | str,
+        self: "VectorStore" | str,
         /,
         *,
         client: PlatformClient | None = None,
         context_id: str | None | Literal["auto"] = "auto",
-    ) -> VectorStore:
+    ) -> "VectorStore":
         # `self` has a weird type so that you can call both `instance.get()` to update an instance, or `VectorStore.get("123")` to obtain a new instance
         vector_store_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as platform_client:
@@ -113,7 +114,7 @@ class VectorStore(pydantic.BaseModel):
         return result
 
     async def delete(
-        self: VectorStore | str,
+        self: "VectorStore" | str,
         /,
         *,
         client: PlatformClient | None = None,
@@ -131,7 +132,7 @@ class VectorStore(pydantic.BaseModel):
             ).raise_for_status()
 
     async def add_documents(
-        self: VectorStore | str,
+        self: "VectorStore" | str,
         /,
         items: list[VectorStoreItem],
         *,
@@ -151,7 +152,7 @@ class VectorStore(pydantic.BaseModel):
             ).raise_for_status()
 
     async def search(
-        self: VectorStore | str,
+        self: "VectorStore" | str,
         /,
         query_vector: list[float],
         *,
@@ -176,7 +177,7 @@ class VectorStore(pydantic.BaseModel):
             )
 
     async def list_documents(
-        self: VectorStore | str,
+        self: "VectorStore" | str,
         /,
         *,
         client: PlatformClient | None = None,
@@ -198,7 +199,7 @@ class VectorStore(pydantic.BaseModel):
             )
 
     async def delete_document(
-        self: VectorStore | str,
+        self: "VectorStore" | str,
         /,
         document_id: str,
         *,
