@@ -67,8 +67,8 @@ catalogs:
       specifier: ^1.97.3
       version: 1.97.3
     stylelint:
-      specifier: ^16.26.1
-      version: 16.26.1
+      specifier: ^17.0.0
+      version: 17.3.0
     typescript:
       specifier: ^5.9.3
       version: 5.9.3
@@ -394,7 +394,7 @@ importers:
         version: 1.97.3
       stylelint:
         specifier: 'catalog:'
-        version: 16.26.1(typescript@5.9.3)
+        version: 17.3.0(typescript@5.9.3)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -497,7 +497,7 @@ importers:
         version: 1.97.3
       stylelint:
         specifier: 'catalog:'
-        version: 16.26.1(typescript@5.9.3)
+        version: 17.3.0(typescript@5.9.3)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
@@ -579,7 +579,7 @@ importers:
         version: 8.6.17(prettier@3.8.1)
       stylelint:
         specifier: 'catalog:'
-        version: 16.26.1(typescript@5.9.3)
+        version: 17.3.0(typescript@5.9.3)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
