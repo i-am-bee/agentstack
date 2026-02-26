@@ -44,13 +44,13 @@ backend = "aqua:hadolint/hadolint"
 "platforms.windows-x64" = { checksum = "sha256:8e0ee174f88edb14f207a68430c7a53c2883ed509cdbde9a3a26fffa140fa5e4", url = "https://github.com/hadolint/hadolint/releases/download/v2.14.0/hadolint-windows-x86_64.exe"}
 
 [[tools.helm]]
-version = "3.19.0"
+version = "4.1.1"
 backend = "aqua:helm/helm"
-"platforms.linux-arm64" = { checksum = "sha256:440cf7add0aee27ebc93fada965523c1dc2e0ab340d4348da2215737fc0d76ad", url = "https://get.helm.sh/helm-v3.19.0-linux-arm64.tar.gz"}
-"platforms.linux-x64" = { checksum = "sha256:a7f81ce08007091b86d8bd696eb4d86b8d0f2e1b9f6c714be62f82f96a594496", url = "https://get.helm.sh/helm-v3.19.0-linux-amd64.tar.gz"}
-"platforms.macos-arm64" = { checksum = "sha256:31513e1193da4eb4ae042eb5f98ef9aca7890cfa136f4707c8d4f70e2115bef6", url = "https://get.helm.sh/helm-v3.19.0-darwin-arm64.tar.gz"}
-"platforms.macos-x64" = { checksum = "sha256:09a108c0abda42e45af172be65c49125354bf7cd178dbe10435e94540e49c7b9", url = "https://get.helm.sh/helm-v3.19.0-darwin-amd64.tar.gz"}
-"platforms.windows-x64" = { checksum = "sha256:0d6cd301dd49ebe500692efafbbdd39ca84376331f4dac359eb00e3160dae264", url = "https://get.helm.sh/helm-v3.19.0-windows-amd64.tar.gz"}
+"platforms.linux-arm64" = { checksum = "sha256:02a5fb7742469d2d132e24cb7c3f52885894043576588c6788b6813297629edd", url = "https://get.helm.sh/helm-v4.1.1-linux-arm64.tar.gz"}
+"platforms.linux-x64" = { checksum = "sha256:5d4c7623283e6dfb1971957f4b755468ab64917066a8567dd50464af298f4031", url = "https://get.helm.sh/helm-v4.1.1-linux-amd64.tar.gz"}
+"platforms.macos-arm64" = { checksum = "sha256:b8f49e105b1d2fd8c8a90ba3fc9af48db91d2d1ca3b9e788352fc7c896bbb71a", url = "https://get.helm.sh/helm-v4.1.1-darwin-arm64.tar.gz"}
+"platforms.macos-x64" = { checksum = "sha256:6b8dbb03abb74e9ab8e69ca3f9b6459178be11317d0ac502f922621c05fdc866", url = "https://get.helm.sh/helm-v4.1.1-darwin-amd64.tar.gz"}
+"platforms.windows-x64" = { checksum = "sha256:bd0528a18d8a22431426eab3138a9479dfae00350719ac4150e81b123bfd6081", url = "https://get.helm.sh/helm-v4.1.1-windows-amd64.tar.gz"}
 
 [[tools.java]]
 version = "21.0.2"
