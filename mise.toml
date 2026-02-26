@@ -10,7 +10,7 @@ nodejs = "24"
 pnpm = "10"
 
 # Java
-java = "21"
+java = "25.0.2+10.0.LTS"
 maven = "3"
 
 # Kubernetes
