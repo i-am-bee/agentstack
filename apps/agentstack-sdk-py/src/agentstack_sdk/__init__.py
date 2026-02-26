@@ -5,8 +5,8 @@ from __future__ import annotations
 
 from importlib.metadata import version
 
-from agentstack_sdk.util.pydantic import apply_beeai_framework_pydantic_fix
+from agentstack_sdk.util.pydantic import apply_compatibility_monkey_patching
 
 __version__ = version("agentstack-sdk")
 
-apply_beeai_framework_pydantic_fix()
+apply_compatibility_monkey_patching()

@@ -74,12 +74,31 @@ def redact_dict(v: dict[str, str], info: SerializationInfo) -> dict[str, str]:
     return {k: redact_str(val, info) for k, val in v.items()} if should_redact(info) else v
 
 
-def apply_beeai_framework_pydantic_fix():
+def apply_compatibility_monkey_patching():
     """
     Workaround for Pydantic + Python 3.14 issue where TypeAdapter[ChatModelKwargs] is not fully defined.
     This happens because TypedDict annotations are deferred in 3.14 and Pydantic's lazy build fails to resolve them.
     """
+    import sys
     from contextlib import suppress
+
+    # Fix for Python 3.14 + Pydantic 2.12.x + prefer_fwd_module TypeError
+    if sys.version_info >= (3, 14):
+        import typing
+        with suppress(ImportError, AttributeError):
+            import pydantic._internal._typing_extra as typing_extra
+
+            if hasattr(typing_extra, "_eval_type"):
+                def patched_eval_type(value, globalns=None, localns=None, type_params=None):
+                    # Python 3.14 typing._eval_type doesn't support prefer_fwd_module
+                    # but Pydantic 2.12.x incorrectly passes it.
+                    evaluated = typing._eval_type(value, globalns, localns, type_params=type_params)
+                    if evaluated is None:
+                        evaluated = type(None)
+                    return evaluated
+
+                typing_extra._eval_type = patched_eval_type
+
     with suppress(ImportError):
         from beeai_framework.context import RunContext, RunMiddlewareType  # noqa: F401
         from pydantic import BaseModel, TypeAdapter

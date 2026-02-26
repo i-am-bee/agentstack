@@ -8,6 +8,7 @@ import re
 import typing
 from copy import deepcopy
 
+import agentstack_sdk  # noqa: F401 -- imported early due to Pydantic patches
 import typer
 
 import agentstack_cli.commands.agent
