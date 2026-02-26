@@ -1,6 +1,7 @@
 [tools]
 # runtime
 "lima" = "2.0.3"
+packer = "latest"
 
 # Python
 uv = "latest"
@@ -29,6 +30,7 @@ hadolint = "latest"
 experimental = true # for task_templates and python.uv_venv_auto
 python.uv_venv_auto = true
 task.disable_spec_from_run_scripts = true # opt-in to new task behavior
+raw = true
 
 [hooks]
 postinstall = ["{{ mise_bin }} setup"]
@@ -135,6 +137,7 @@ includes = [
     "apps/beeai-web/tasks.toml",
     "apps/agentstack-sdk-ts/tasks.toml",
     "apps/supergateway/tasks.toml",
+    "apps/microshift-vm/tasks.toml",
     "agents/tasks.toml",
     "docs/tasks.toml",
 ]

@@ -252,6 +252,7 @@ run = "uv run pytest -m unit"
 
 ["agentstack-server:test:e2e"]
 dir = "{{config_root}}/apps/agentstack-server"
+raw = true
 usage = '''
 flag "--no-clean"
 flag "--only <only>"
@@ -347,6 +348,7 @@ exit $result
 
 ["agentstack-server:test:e2e-examples"]
 dir = "{{config_root}}/apps/agentstack-server"
+raw = true
 usage = 'flag "--no-clean"'
 run = """
 #!/bin/bash
@@ -431,6 +433,7 @@ exit $result
 
 ["agentstack-server:test:integration"]
 dir = "{{config_root}}/apps/agentstack-server"
+raw = true
 run = """
 #!/bin/bash
 set -euxo pipefail

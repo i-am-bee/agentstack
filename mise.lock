@@ -102,6 +102,15 @@ backend = "core:node"
 "platforms.macos-x64" = { checksum = "sha256:527f0578d9812e7dfa225121bda0b1546a6a0e4b5f556295fc8299c272de5fbf", url = "https://nodejs.org/dist/v24.13.1/node-v24.13.1-darwin-x64.tar.gz"}
 "platforms.windows-x64" = { checksum = "sha256:fba577c4bb87df04d54dd87bbdaa5a2272f1f99a2acbf9152e1a91b8b5f0b279", url = "https://nodejs.org/dist/v24.13.1/node-v24.13.1-win-x64.zip"}
 
+[[tools.packer]]
+version = "1.15.0"
+backend = "aqua:hashicorp/packer"
+"platforms.linux-arm64" = { checksum = "sha256:1687f43bd120601f62e54b970b1cc06f83e95897357dc5c679b57ec9d2fb40a7", url = "https://releases.hashicorp.com/packer/1.15.0/packer_1.15.0_linux_arm64.zip"}
+"platforms.linux-x64" = { checksum = "sha256:2fd1149c5c6c7604ced64d7b56638af05f6b7ed3f6835182bc913ddaba1f16b8", url = "https://releases.hashicorp.com/packer/1.15.0/packer_1.15.0_linux_amd64.zip"}
+"platforms.macos-arm64" = { checksum = "sha256:ebd8eb03503627471f39b036ff5dbb24070d21518d59aa8cbf962386257d21a4", url = "https://releases.hashicorp.com/packer/1.15.0/packer_1.15.0_darwin_arm64.zip"}
+"platforms.macos-x64" = { checksum = "sha256:a565b825aed17ac9a7c422b5ed22e6598dd42b9f705de161695853b1f5c6bd80", url = "https://releases.hashicorp.com/packer/1.15.0/packer_1.15.0_darwin_amd64.zip"}
+"platforms.windows-x64" = { checksum = "sha256:5cf875e39b5d4ad552dd0e6f52a6e46c6d0b6b0ee1f8104824445892febe58c6", url = "https://releases.hashicorp.com/packer/1.15.0/packer_1.15.0_windows_amd64.zip"}
+
 [[tools."pipx:toml-cli"]]
 version = "0.8.2"
 backend = "pipx:toml-cli"

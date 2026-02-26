@@ -85,38 +85,49 @@ async def client_side_build(
         if extract_agent_card:
             container_id = str(uuid.uuid4())
 
-            with status("Extracting agent metadata"):
-                async with (
-                    await open_process(
-                        f"docker run --name {container_id} --rm -p {port}:8000 -e HOST=0.0.0.0 -e PORT=8000 {image_id}",
-                    ) as process,
-                ):
-                    async with capture_output(process) as task_group:
-                        try:
-                            async for attempt in AsyncRetrying(
-                                stop=stop_after_delay(timedelta(seconds=30)),
-                                wait=wait_fixed(timedelta(seconds=0.5)),
-                                retry=retry_if_exception_type(HTTPError),
-                                reraise=True,
-                            ):
-                                with attempt:
-                                    async with AsyncClient() as client:
-                                        resp = await client.get(
-                                            f"http://localhost:{port}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1
-                                        )
-                                        resp.raise_for_status()
-                                        agent_card = resp.json()
-                            process.terminate()
-                            with suppress(ProcessLookupError):
-                                process.kill()
-                        except BaseException as ex:
-                            raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
-                        finally:
-                            task_group.cancel_scope.cancel()
-                            with suppress(BaseException):
-                                await run_command(["docker", "kill", container_id], "Killing container")
-                            with suppress(ProcessLookupError):
-                                process.kill()
+            try:
+                with status("Extracting agent metadata"):
+                    async with (
+                        await open_process(
+                            [
+                                "docker",
+                                "run",
+                                "--name",
+                                container_id,
+                                "-p",
+                                f"{port}:8000",
+                                "-e",
+                                "HOST=0.0.0.0",
+                                "-e",
+                                "PORT=8000",
+                                image_id,
+                            ],
+                        ) as process,
+                    ):
+                        async with capture_output(process) as task_group:
+                            try:
+                                async for attempt in AsyncRetrying(
+                                    stop=stop_after_delay(timedelta(seconds=30)),
+                                    wait=wait_fixed(timedelta(seconds=0.5)),
+                                    retry=retry_if_exception_type(HTTPError),
+                                    reraise=True,
+                                ):
+                                    with attempt:
+                                        async with AsyncClient() as client:
+                                            resp = await client.get(
+                                                f"http://localhost:{port}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1
+                                            )
+                                            resp.raise_for_status()
+                                            agent_card = resp.json()
+                            except BaseException as ex:
+                                raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
+                            finally:
+                                task_group.cancel_scope.cancel()
+                        # Kill the docker run process so open_process.__aexit__ can proceed
+                        process.kill()
+            finally:
+                with suppress(BaseException):
+                    await run_command(["docker", "rm", "-f", container_id], "Removing container", check=False)
 
         context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
         context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")

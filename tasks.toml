@@ -98,11 +98,13 @@ depends = [
   "agentstack-server:build",
   "supergateway:build",
   "keycloak-theme:build",
+  "microshift-vm:build:qemu",
 ]
+raw = true
 dir = "{{config_root}}"
 run = """
 #!/bin/bash
-set -e
+set -euxo pipefail
 
 if [[ "$*" != *"--set externalRegistry="* ]]; then
   latest_tag=$(git ls-remote --tags $(git remote get-url origin) 'v*' | grep -o 'refs/tags/v[0-9]*\\.[0-9]*\\.[0-9]*$' | sed 's|refs/tags/||' | sort -V | tail -n 1)
@@ -115,20 +117,22 @@ if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
     UI_TAG="--set ui.image.tag=local"
 fi
 
-if [[ -n "$CI" ]]; then
+if [[ -n "${CI-}" ]]; then
   PULL_MODE="hybrid"
-elif [[ -n "$SKIP_PULL" ]]; then
+elif [[ -n "${SKIP_PULL-}" ]]; then
   PULL_MODE="skip"
 else
   PULL_MODE="host"
 fi
 
+ARCH=$(uname -m | sed -e 's/arm64/aarch64/' -e 's/amd64/x86_64/')
 {{ mise_bin }} run agentstack-cli:run -- platform start -v \
+    --lima-image={{config_root}}/apps/microshift-vm/dist/$ARCH/microshift-vm-$ARCH.qcow2 \
     --image-pull-mode="$PULL_MODE" \
     --set auth.nextauthDevUrl="http://localhost:3000" \
     --set image.tag=local \
     --set keycloak.image.tag=local \
-    $UI_TAG "$@"
+    ${UI_TAG-} "$@"
 """
 
 ["agentstack:delete"]

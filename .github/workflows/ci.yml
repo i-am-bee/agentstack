@@ -1,0 +1,186 @@
+name: CI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      agentstack-server: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.agentstack-server == 'true' }}
+      agentstack-cli: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.agentstack-cli == 'true' }}
+      agentstack-sdk-py: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.agentstack-sdk-py == 'true' }}
+      helm: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.helm == 'true' }}
+      examples: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.examples == 'true' }}
+      microshift-vm: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.microshift-vm == 'true' }}
+    steps:
+      - uses: dorny/paths-filter@668c092af3649c4b664c54e4b704aa46782f6f7c
+        id: filter
+        with:
+          filters: |
+            agentstack-server: 'apps/agentstack-server/**'
+            agentstack-cli: 'apps/agentstack-cli/**'
+            agentstack-sdk-py: 'apps/agentstack-sdk-py/**'
+            helm: 'helm/**'
+            examples: 'examples/**'
+            microshift-vm: 'apps/microshift-vm/**'
+
+  check:
+    name: mise check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run check
+
+  test:
+    name: mise test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run test
+
+  microshift-vm-build:
+    name: mise microshift-vm:build:qemu
+    needs: changes
+    if: needs.changes.outputs.microshift-vm == 'true'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - name: Set arch
+        run: echo "ARCH=$(uname -m | sed -e 's/arm64/aarch64/;s/amd64/x86_64/')" >> $GITHUB_ENV
+      - id: cache-check
+        uses: actions/cache@565629816435f6c0b50676926c9b05c254113c0c
+        with:
+          path: apps/microshift-vm/dist/${{ env.ARCH }}
+          key: microshift-vm-dist-v1-${{ runner.os }}-${{ env.ARCH }}-${{ hashFiles('apps/microshift-vm/**') }}
+          lookup-only: true
+      - if: steps.cache-check.outputs.cache-hit != 'true'
+        uses: ./.github/actions/setup
+        with:
+          install_vm_deps: 'build'
+      - if: steps.cache-check.outputs.cache-hit != 'true'
+        run: mise run microshift-vm:build:qemu
+
+  agentstack-server-test-integration:
+    name: mise agentstack-server:test:integration
+    needs: [changes, microshift-vm-build]
+    if: >-
+      always() &&
+      needs.microshift-vm-build.result != 'failure' &&
+      (needs.changes.outputs.agentstack-server == 'true' ||
+      needs.changes.outputs.agentstack-cli == 'true')
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        with:
+          maximize_space: 'true'
+          install_vm_deps: 'run'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run agentstack-server:test:integration
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
+          LLM_MODEL: "${{ vars.OPENAI_MODEL }}"
+          LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+
+  agentstack-server-test-e2e:
+    name: mise agentstack-server:test:e2e
+    needs: [changes, microshift-vm-build]
+    if: >-
+      always() &&
+      needs.microshift-vm-build.result != 'failure' &&
+      (needs.changes.outputs.agentstack-server == 'true' ||
+      needs.changes.outputs.agentstack-cli == 'true' ||
+      needs.changes.outputs.agentstack-sdk-py == 'true' ||
+      needs.changes.outputs.helm == 'true')
+    timeout-minutes: 25
+    runs-on: ubuntu-latest
+    env:
+      AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        with:
+          maximize_space: 'true'
+          install_vm_deps: 'run'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run agentstack-server:test:e2e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
+          LLM_MODEL: "${{ vars.OPENAI_MODEL }}"
+          EMBEDDING_MODEL: "${{ vars.OPENAI_EMBEDDING_MODEL }}"
+          LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+
+  agentstack-server-test-e2e-examples:
+    name: mise agentstack-server:test:e2e-examples
+    needs: [changes, microshift-vm-build]
+    if: >-
+      always() &&
+      needs.microshift-vm-build.result != 'failure' &&
+      (needs.changes.outputs.agentstack-server == 'true' ||
+      needs.changes.outputs.agentstack-sdk-py == 'true' ||
+      needs.changes.outputs.examples == 'true' ||
+      needs.changes.outputs.helm == 'true') &&
+      (github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'e2e-examples'))
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    env:
+      AGENTSTACK__HOME: ${{ github.workspace }}/.agentstack
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        with:
+          maximize_space: 'true'
+          install_vm_deps: 'run'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run agentstack-server:test:e2e-examples
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_BASE: "${{ secrets.OPENAI_API_BASE }}"
+          LLM_MODEL: "${{ vars.OPENAI_MODEL }}"
+          EMBEDDING_MODEL: "${{ vars.OPENAI_EMBEDDING_MODEL }}"
+          LLM_API_KEY: "${{ secrets.OPENAI_API_KEY }}"
+
+  agentstack-sdk-py-test-all:
+    name: "mise agentstack-sdk-py:test-all --python=${{ matrix.python }}"
+    needs: changes
+    if: needs.changes.outputs.agentstack-sdk-py == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python:
+          - "3.11"
+          - "3.14"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        with:
+          install_vm_deps: 'run'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: mise run agentstack-sdk-py:test-all --python=${{ matrix.python }}

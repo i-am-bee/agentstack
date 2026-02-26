@@ -1,0 +1,83 @@
+# build
+
+["microshift-vm:build:qemu"]
+dir = "{{config_root}}/apps/microshift-vm"
+usage = '''
+flag "--arch <arch>" {
+  choices "x86_64" "aarch64"
+}
+'''
+run = '''
+#!/bin/bash
+set -euxo pipefail
+
+ARCH=${usage_arch:-$(uname -m | sed -e 's/arm64/aarch64/;s/amd64/x86_64/')}
+DIST_DIR="./dist/$ARCH"
+
+SRC_HASH=$(fd -t f . | LC_ALL=C sort | xargs cat | sha256sum)
+
+if test "$(cat "$DIST_DIR/src-hash.txt" 2>/dev/null)" == "$SRC_HASH"; then
+  echo "Source files hash matches, skipping build for $ARCH."
+  exit 0
+fi
+
+rm -rf "$DIST_DIR"
+
+if [ "$(uname)" = "Darwin" ]; then
+  ACCELERATOR="hvf"
+  BREW_PREFIX=$(brew --prefix)
+  if [ "$ARCH" = "x86_64" ]; then
+    EFI_CODE="$BREW_PREFIX/share/qemu/edk2-x86_64-code.fd"
+    EFI_VARS="$BREW_PREFIX/share/qemu/edk2-i386-vars.fd"
+  else
+    EFI_CODE="$BREW_PREFIX/share/qemu/edk2-aarch64-code.fd"
+    EFI_VARS="$BREW_PREFIX/share/qemu/edk2-arm-vars.fd"
+  fi
+else
+  [ -w /dev/kvm ] && ACCELERATOR="kvm" || ACCELERATOR="tcg"
+  if [ "$ARCH" = "x86_64" ]; then
+    EFI_CODE="/usr/share/OVMF/OVMF_CODE_4M.fd"
+    [ -f "$EFI_CODE" ] || EFI_CODE="/usr/share/OVMF/OVMF_CODE.fd"
+    EFI_VARS="/usr/share/OVMF/OVMF_VARS_4M.fd"
+    [ -f "$EFI_VARS" ] || EFI_VARS="/usr/share/OVMF/OVMF_VARS.fd"
+  else
+    EFI_CODE="/usr/share/AAVMF/AAVMF_CODE.fd"
+    [ -f "$EFI_CODE" ] || EFI_CODE="/usr/share/qemu-efi-aarch64/QEMU_EFI.fd"
+    EFI_VARS="/usr/share/AAVMF/AAVMF_VARS.fd"
+    [ -f "$EFI_VARS" ] || EFI_VARS="/usr/share/qemu-efi-aarch64/vars-template-pflash.raw"
+  fi
+fi
+
+if [ ! -f "$EFI_CODE" ]; then
+  echo "ERROR: EFI firmware not found at $EFI_CODE" >&2
+  exit 1
+fi
+
+packer init .
+packer build \
+  -var "arch=$ARCH" \
+  -var "output_dir=./dist" \
+  -var "efi_code=$EFI_CODE" \
+  -var "efi_vars=$EFI_VARS" \
+  -var "accelerator=$ACCELERATOR" \
+  microshift.pkr.hcl
+
+echo "$SRC_HASH" > "$DIST_DIR/src-hash.txt"
+'''
+sources = ["microshift.pkr.hcl", "cloud-init/*", "rootfs/**/*", "install.sh"]
+outputs = ["dist/**/*"]
+
+["microshift-vm:build:wsl"]
+depends = ["microshift-vm:build:qemu"]
+dir = "{{config_root}}/apps/microshift-vm"
+run = '''
+#!/bin/bash
+set -euxo pipefail
+MOUNTPOINT=$(mktemp -d)
+trap 'guestunmount "$MOUNTPOINT" 2>/dev/null; rmdir "$MOUNTPOINT" 2>/dev/null' EXIT
+guestmount -a "./dist/x86_64/microshift-vm-x86_64.qcow2" -i --ro "$MOUNTPOINT"
+tar -czf "./dist/x86_64/microshift-vm-x86_64.tar.gz" \
+  -C "$MOUNTPOINT" \
+  --exclude='./boot' --exclude='./lib/modules' \
+  bin etc lib lib64 opt sbin srv usr var/lib/crio var/lib/containers postgresql-data seaweedfs-data registry-data redis-data
+'''

@@ -1,25 +1,67 @@
 name: 'Setup environment'
 description: 'Set up mise tools (Python, Node.js, ...) and install project dependencies'
 
+inputs:
+  install_vm_deps:
+    description: 'Install VM dependencies: none, run (QEMU + OVMF), or build (QEMU + OVMF + xorriso)'
+    required: false
+    default: 'none'
+  maximize_space:
+    description: 'Maximize available disk space (removes .NET, reclaims swap)'
+    required: false
+    default: 'false'
+
 runs:
   using: "composite"
   steps:
-    - name: Cache uv .venv
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+    - if: inputs.maximize_space == 'true'
+      uses: ./.github/actions/maximize-build-space
+      with:
+        root-reserve-mb: 15360
+        temp-reserve-mb: 2048
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
+
+    - if: inputs.maximize_space == 'true'
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+    - if: inputs.install_vm_deps != 'none'
+      shell: bash
+      run: |
+        sudo apt-get update -qq
+        PACKAGES="qemu-utils"
+        ARCH=$(uname -m)
+        if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
+          PACKAGES="$PACKAGES qemu-system-x86 ovmf"
+        else
+          PACKAGES="$PACKAGES qemu-system-arm qemu-efi-aarch64"
+        fi
+        if [ "${{ inputs.install_vm_deps }}" = "build" ]; then
+          PACKAGES="$PACKAGES xorriso"
+        fi
+        sudo apt-get install -qqy --no-install-recommends $PACKAGES
+        sudo modprobe kvm || true
+        [ -e /dev/kvm ] && sudo chown $(whoami) /dev/kvm || true
+
+    - shell: bash
+      run: |
+        echo "UV_FROZEN=true" >> $GITHUB_ENV
+        echo "UV_CACHE_DIR=/tmp/.uv-cache" >> $GITHUB_ENV
+        echo "ARCH=$(uname -m | sed -e 's/arm64/aarch64/;s/amd64/x86_64/')" >> $GITHUB_ENV
+
+    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: /tmp/.uv-cache
         key: uv-cache-v1-${{ runner.os }}-${{ hashFiles('**/uv.lock') }}
         restore-keys: uv-cache-v1-${{ runner.os }}-
 
-    - name: Cache pnpm store
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ~/.local/share/pnpm/store
         key: pnpm-store-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-store-v1-${{ runner.os }}-
 
-    - name: Cache Next.js cache
-      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ${{ github.workspace }}/**/.next/cache
         key: nextjs-cache-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
@@ -27,12 +69,13 @@ runs:
           nextjs-cache-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
           nextjs-cache-v1-${{ runner.os }}-
 
-    - name: Set environment variables
-      shell: bash
-      run: |
-        echo "UV_FROZEN=true" >> $GITHUB_ENV
-        echo "UV_CACHE_DIR=/tmp/.uv-cache" >> $GITHUB_ENV
+    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
+        path: apps/microshift-vm/dist/${{ env.ARCH }}
+        key: microshift-vm-dist-v1-${{ runner.os }}-${{ env.ARCH }}-${{ hashFiles('apps/microshift-vm/**') }}
 
     - uses: jdx/mise-action@e79ddf65a11cec7b0e882bedced08d6e976efb2d
+
+    - uses: gacts/run-and-post-run@4f9ae8f313ea7ec57ab5e6f82ae343c9a614bfbf # v1
       with:
-        version: 2026.2.20
+        post: uv cache prune --ci

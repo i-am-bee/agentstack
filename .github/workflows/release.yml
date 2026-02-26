@@ -83,8 +83,33 @@ jobs:
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache
           cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/agents/${{ matrix.agent }}:cache,mode=max
 
+  vm:
+    environment: release
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            runs-on: ubuntu-latest
+          - arch: aarch64
+            runs-on: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        with:
+          install_vm_deps: 'build'
+      - run: mise run microshift-vm:build:qemu --arch ${{ matrix.arch }}
+      - if: matrix.arch == 'x86_64'
+        run: mise run microshift-vm:build:wsl
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6dc5a # v2
+        with:
+          files: |
+            apps/microshift-vm/dist/${{ matrix.arch }}/microshift-vm-${{ matrix.arch }}.qcow2
+            ${{ matrix.arch == 'x86_64' && format('apps/microshift-vm/dist/{0}/microshift-vm-{0}.tar.gz', matrix.arch) || '' }}
+
   agentstack:
-    needs: agents
+    needs: [agents, vm]
     runs-on: ubuntu-latest
     environment: release
     env:
@@ -103,20 +128,10 @@ jobs:
             echo "npmTag=latest" >> $GITHUB_OUTPUT
           fi
       - uses: ./.github/actions/setup
+        with:
+          install_vm_deps: 'run'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Set up QEMU" # required by [agentstack-cli:build]
-        id: "setup-qemu"
-        shell: bash
-        run: |
-          set -eux -o pipefail
-          [ "$(uname)" = "Linux" ]
-          [ "$(uname -m)" = "x86_64" ]
-          sudo apt-get update -qq
-          sudo apt-get install -qqy --no-install-recommends ovmf qemu-system-x86 qemu-utils
-          sudo modprobe kvm
-          # `sudo usermod -aG kvm $(whoami)` does not take an effect on GHA
-          sudo chown $(whoami) /dev/kvm
       - run: mise run common:check:version
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
@@ -218,5 +233,3 @@ jobs:
           git fetch origin
           git checkout -B install origin/main
           git push --force --set-upstream origin install
-
-      - run: uv cache prune --ci

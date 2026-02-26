@@ -6,6 +6,7 @@ from __future__ import annotations
 import configparser
 import datetime
 import functools
+import importlib.metadata
 import importlib.resources
 import json
 import os
@@ -152,23 +153,6 @@ async def run_in_vm(
     )
 
 
-async def sync_vm_files(vm_name: str, sub_path: typing.Literal["common", "wsl"] = "common"):
-    async def _sync(traversable, rel_parts: list[str]):
-        for entry in traversable.iterdir():
-            if entry.is_dir():
-                await _sync(entry, [*rel_parts, entry.name])
-            else:
-                dest = "".join(f"/{p}" for p in [*rel_parts, entry.name])
-                await run_in_vm(
-                    vm_name,
-                    ["bash", "-c", f"mkdir -p $(dirname {shlex.quote(dest)}) && cat > {shlex.quote(dest)}"],
-                    f"Writing {dest}",
-                    input=entry.read_bytes(),
-                )
-
-    await _sync(importlib.resources.files("agentstack_cli") / "data" / "vm" / sub_path, [])
-
-
 #     ######  ########    ###    ########  ########
 #    ##    ##    ##      ## ##   ##     ##    ##
 #    ##          ##     ##   ##  ##     ##    ##
@@ -207,7 +191,7 @@ async def detect_image_shas(
                     vm_name,
                     {
                         "k3s": ["k3s", "ctr", "image", "ls"],
-                        "microshift": ["crictl", "images"],
+                        "microshift": ["crictl", "--timeout=30s", "images"],
                     }[platform],
                     "Listing guest images",
                 )
@@ -253,6 +237,12 @@ async def start_cmd(
     values_file: typing.Annotated[
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
+    lima_image: typing.Annotated[
+        str | None, typer.Option("--lima-image", help="Local path or URL to Lima .qcow2 image")
+    ] = None,
+    wsl_image: typing.Annotated[
+        str | None, typer.Option("--wsl-image", help="Local path or URL to WSL rootfs .tar.gz image")
+    ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     skip_login: typing.Annotated[bool, typer.Option(hidden=True)] = False,
@@ -260,10 +250,12 @@ async def start_cmd(
 ):
     import agentstack_cli.commands.server
 
-    if values_file and not pathlib.Path(values_file).is_file():  # noqa: ASYNC240
+    if values_file and not await anyio.Path(values_file).is_file():
         raise FileNotFoundError(f"Values file {values_file} not found.")
 
     with verbosity(verbose):
+        version = importlib.metadata.version("agentstack-cli")
+        arch = "x86_64" if platform_module.machine().lower() in ["x86_64", "amd64"] else "aarch64"
         Configuration().home.mkdir(exist_ok=True)
         match detect_driver():
             case "lima":
@@ -286,6 +278,16 @@ async def start_cmd(
                             sys.exit(1)
                         if total_memory_gib < 8:
                             console.warning("Less than 8 GB of RAM detected. Performance may be degraded.")
+
+                        current_lima_image = (
+                            lima_image
+                            or f"https://github.com/i-am-bee/agentstack/releases/download/v{version}/microshift-vm-{arch}.qcow2"
+                        )
+
+
+                        if current_lima_image.startswith("/") or current_lima_image.startswith("./"):
+                            current_lima_image = str(await anyio.Path(current_lima_image).absolute())
+
                         with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete_on_close=False) as f:
                             f.write(
                                 yaml.dump(
@@ -293,12 +295,8 @@ async def start_cmd(
                                         "env": {"KUBECONFIG": "/kubeconfig"},
                                         "images": [
                                             {
-                                                "location": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
-                                                "arch": "x86_64",
-                                            },
-                                            {
-                                                "location": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img",
-                                                "arch": "aarch64",
+                                                "location": current_lima_image,
+                                                "arch": arch,
                                             },
                                         ],
                                         "portForwards": [
@@ -317,6 +315,7 @@ async def start_cmd(
                                                 "writable": True,
                                             }
                                         ],
+                                        "mountTypesUnsupported": ["9p"],
                                         "containerd": {"system": False, "user": False},
                                         "hostResolver": {"hosts": {"host.docker.internal": "host.lima.internal"}},
                                         "memory": f"{round(min(8.0, max(3.0, total_memory_gib / 2)))}GiB",
@@ -346,7 +345,7 @@ async def start_cmd(
                         "Run [green]wsl.exe --install[/green] as administrator. If you just did this, restart your PC and run the same command again. Full installation may require up to two restarts. WSL is properly set up once you reach a working Linux terminal. You can verify this by running [green]wsl.exe[/green] without arguments."
                     )
                     sys.exit(1)
-                config_file = (
+                config_file_path = (
                     pathlib.Path.home()
                     if platform_module.system() == "Windows"
                     else pathlib.Path(
@@ -360,11 +359,11 @@ async def start_cmd(
                         .strip()
                     )
                 ) / ".wslconfig"
-                config_file.touch()
-                with config_file.open("r+") as f:
+                config_file_path.touch()
+                with config_file_path.open("r+") as f:
+                    content = f.read()
                     config = configparser.ConfigParser()
-                    f.seek(0)
-                    config.read_file(f)
+                    config.read_string(content)
                     if not config.has_section("wsl2"):
                         config.add_section("wsl2")
                     wsl2_networking_mode = config.get("wsl2", "networkingMode", fallback=None)
@@ -372,7 +371,11 @@ async def start_cmd(
                         config.set("wsl2", "networkingMode", "nat")
                         f.seek(0)
                         f.truncate(0)
-                        config.write(f)
+                        import io
+
+                        with io.StringIO() as ss:
+                            config.write(ss)
+                            f.write(ss.getvalue())
                         if platform_module.system() == "Linux":
                             console.warning(
                                 "WSL networking mode updated. Please close WSL, run [green]wsl --shutdown[/green] from PowerShell, re-open WSL and run [green]agentstack platform start[/green] again."
@@ -389,11 +392,18 @@ async def start_cmd(
                         "Cleaning up remains of legacy instance",
                         check=False,
                     )
-                    await run_command(
-                        ["wsl.exe", "--install", "--name", vm_name, "--no-launch", "--web-download"],
-                        "Creating a WSL distribution",
+
+                    current_wsl_image = (
+                        wsl_image
+                        or f"https://github.com/i-am-bee/agentstack/releases/download/v{version}/microshift-vm-{arch}.tar.gz"
                     )
-                    await sync_vm_files(vm_name, "wsl")
+                    install_dir = Configuration().home / "wsl" / vm_name
+                    install_dir.mkdir(parents=True, exist_ok=True)
+                    await run_command(
+                        ["wsl.exe", "--import", vm_name, str(install_dir), current_wsl_image],
+                        "Importing a WSL distribution",
+                    )
+
                     await run_in_vm(
                         vm_name,
                         [
@@ -416,98 +426,45 @@ async def start_cmd(
                     "Setting up internal networking",
                 )
 
-        await sync_vm_files(vm_name, "common")
-
-        detected_platform = {
-            "microshift": typing.cast(typing.Literal["microshift"], "microshift"),
-            "k3s": typing.cast(typing.Literal["k3s"], "k3s"),
-            "none": None,
-        }[
+        platform = typing.cast(
+            typing.Literal["k3s", "microshift"],
             (
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "bash",
-                        "-c",
-                        "command -v k3s || command -v microshift || echo none",
-                    ],
-                    "Detecting Kubernetes platform",
+                (
+                    await run_in_vm(
+                        vm_name,
+                        ["bash", "-c", "command -v k3s || command -v microshift"],
+                        "Detecting Kubernetes platform",
+                    )
                 )
+                .stdout.decode()
+                .strip()
+                .splitlines()[0]
+                .split("/")[-1]
+            ),
+        )
+
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                "kubectl --kubeconfig=/kubeconfig get nodes --no-headers -o custom-columns=NAME:.metadata.name 2>/dev/null | xargs -I {} sh -c \"grep -q '{}' /etc/hosts || echo '127.0.0.1 {}' >> /etc/hosts\"",
+            ],
+            "Ensuring node name resolution",
+            check=False,
+        )
+
+        if platform == "k3s":
+            await run_in_vm(
+                vm_name,
+                [
+                    "bash",
+                    "-c",
+                    "ln -sf /etc/rancher/k3s/k3s.yaml /kubeconfig && chmod 644 /kubeconfig",
+                ],
+                "Setting up kubeconfig symlink",
             )
-            .stdout.decode()
-            .strip()
-            .splitlines()[0]
-            .split("/")[-1]
-        ]
 
-        match detected_platform:
-            case None:
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "bash",
-                        "-c",
-                        textwrap.dedent("""\
-                            sysctl -w net.ipv4.ip_forward=1
-                            mkdir -p /tmp/microshift-install
-                            curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz -C /tmp/microshift-install &
-                            eatmydata apt-get update -y -q
-                            eatmydata apt-get install -y -q --no-install-recommends skopeo cri-o cri-tools containernetworking-plugins kubectl
-                            mkdir -p -m 777 /postgresql-data /seaweedfs-data /registry-data /redis-data
-                            systemctl enable --now crio
-                            wait
-                            eatmydata dpkg -i /tmp/microshift-install/microshift_*.deb /tmp/microshift-install/microshift-kindnet_*.deb
-                            rm -rf /tmp/microshift-install
-                            systemctl enable --now microshift
-                        """),
-                    ],
-                    "Installing MicroShift",
-                )
-            case "k3s":
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "bash",
-                        "-c",
-                        "apt-get install -y -q skopeo; systemctl is-active --quiet k3s || systemctl enable --now k3s",
-                    ],
-                    "Refreshing existing k3s VM",
-                )
-            case "microshift":
-                await run_in_vm(
-                    vm_name,
-                    [
-                        "bash",
-                        "-c",
-                        "systemctl is-active --quiet crio && systemctl is-active --quiet microshift || systemctl enable --now crio && systemctl enable --now microshift",
-                    ],
-                    "Refreshing existing MicroShift VM",
-                )
-
-        platform: typing.Literal["k3s", "microshift"] = detected_platform or "microshift"
-        await run_in_vm(
-            vm_name,
-            [
-                "bash",
-                "-c",
-                f"ln -sf {'/etc/rancher/k3s/k3s.yaml' if platform == 'k3s' else '/var/lib/microshift/resources/kubeadmin/kubeconfig'} /kubeconfig && chmod 644 /kubeconfig",
-            ],
-            "Setting up kubeconfig symlink",
-        )
-        await run_in_vm(
-            vm_name,
-            [
-                "bash",
-                "-c",
-                textwrap.dedent("""\
-                    command -v helm && exit 0
-                    case $(uname -m) in x86_64) ARCH="amd64" ;; aarch64) ARCH="arm64" ;; esac
-                    curl -fsSL "https://get.helm.sh/helm-v4.1.1-linux-${ARCH}.tar.gz" | tar -xzf - --strip-components=1 -C /usr/local/bin "linux-${ARCH}/helm"
-                    chmod +x /usr/local/bin/helm
-                """),
-            ],
-            "Installing Helm",
-        )
         await run_in_vm(
             vm_name,
             ["bash", "-c", "cat >/tmp/agentstack-chart.tgz"],
@@ -540,7 +497,7 @@ async def start_cmd(
                             "allowCredentials": True,
                         },
                     },
-                    yaml.safe_load(pathlib.Path(values_file).read_text()) if values_file else {},  # noqa: ASYNC240
+                    yaml.safe_load(await anyio.Path(values_file).read_text()) if values_file else {},
                 )
             ).encode("utf-8"),
         )
@@ -564,6 +521,12 @@ async def start_cmd(
         }
         images_to_import_from_host, shas_guest_before = set[str](), {}
         if image_pull_mode in {ImagePullMode.host, ImagePullMode.hybrid}:
+            if platform == "microshift":
+                await run_in_vm(
+                    vm_name,
+                    ["timeout", "2m", "bash", "-c", "until crictl info >/dev/null 2>&1; do sleep 2; done"],
+                    "Waiting for CRI-O to be ready",
+                )
             shas_guest_before = await detect_image_shas(vm_name, platform, loaded_images, mode="guest")
             shas_host = await detect_image_shas(vm_name, platform, loaded_images, mode="host")
             if image_pull_mode == ImagePullMode.host:
@@ -689,7 +652,7 @@ async def start_cmd(
                 vm_name,
                 [
                     "timeout",
-                    "2m",
+                    "5m",
                     "bash",
                     "-c",
                     "until kubectl --kubeconfig=/kubeconfig wait --for=condition=Ready pod -n openshift-dns -l dns.operator.openshift.io/daemonset-dns=default --timeout=2m; do sleep 5; done",
@@ -891,7 +854,7 @@ async def exec_cmd(
             sys.exit(1)
         if detect_driver() == "lima":
             await anyio.run_process(
-                [detect_limactl(), "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--", *(command or ["/bin/bash"])],
+                [detect_limactl(), "shell", f"--tty={sys.stdin.isatty()}", vm_name, "--", "sudo", *(command or ["/bin/bash"])],
                 check=False,
                 stdin=sys.stdin,
                 stdout=sys.stdout,
