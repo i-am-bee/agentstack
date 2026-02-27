@@ -16,13 +16,12 @@ metadata:
 - [Integration Workflow Checklist](#integration-workflow-checklist)
 - [Step 1 – Classify the Agent](#step-1--classify-the-agent)
 - [Step 2 – Add and Install Dependencies](#step-2--add-and-install-dependencies)
-- [Step 3 – Create the Server Wrapper](#step-3--create-the-server-wrapper)
+- [Step 3 – Create the Server Wrapper & Entrypoint](#step-3--create-the-server-wrapper--entrypoint)
 - [Step 4 – Wire LLM / Services via Extensions](#step-4--wire-llm--services-via-extensions)
 - [Step 5 – Error Handling](#step-5--error-handling)
 - [Step 6 – Forms (Single-Turn Structured Input)](#step-6--forms-single-turn-structured-input)
-- [Step 7 – Entrypoint](#step-7--entrypoint)
-- [Step 8 – Use Platform Extensions](#step-8--use-platform-extensions)
-- [Step 9 – Update README](#step-9--update-readme)
+- [Step 7 – Use Platform Extensions](#step-7--use-platform-extensions)
+- [Step 8 – Update README](#step-8--update-readme)
 - [Anti-Patterns](#anti-patterns)
 - [Failure Conditions](#failure-conditions)
 - [Finalization Report (Required)](#finalization-report-required)
@@ -75,6 +74,14 @@ The wrapper exposes the agent via the A2A protocol so it can be discovered, call
 | C16 | **Constrained outbound targets.** Do not introduce arbitrary outbound network targets. Limit external calls to trusted dependency sources and runtime endpoints explicitly required by the wrapped agent contract.                                                                                                                                                                                                                                                                                                               |
 | C17 | **No dynamic command execution from input.** Do not introduce wrapper patterns that execute shell commands from user/model input (for example, `eval`, `exec`, `os.system`, or unsanitized `subprocess` calls).                                                                                                                                                                                                                                                                                                                  |
 | C18 | **Read Wrapper Documentation First.** Before starting any implementation, you must read the official guide: [Wrap Your Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents.md).                                                                                                                                                                                                                                                                                                              |
+| C19 | **Read Extension Documentation.** Before implementing any extension (Forms, LLM, Error, etc.), you **MUST** read its corresponding documentation URL (listed in Step 7) and extract the exact imports, class names, method names, properties, and types. Do not guess these values. Only modify the agent code after reading the documentation.                                                                                                                                                                                  |
+
+**CRITICAL WORKFLOW REQUIREMENT:** For _every_ extension you decide to use (whether from LLM/Forms/Error steps or Platform Extensions), you MUST follow these exact steps in order:
+
+1. Decide if the extension should be implemented.
+2. If yes, **READ the documentation URL provided in the extension table below** (e.g., using a tool to read the webpage).
+3. Extract the correct imports, class names, method names, properties, and their exact types directly from the official documentation.
+4. **Only AFTER reading the documentation**, proceed to write or modify the agent code. Never guess imports or rely on outdated memory.
 
 ---
 
@@ -86,13 +93,12 @@ Copy this checklist into your context and check off items as you complete them:
 Task Progress:
 - [ ] Step 1: Classify the Agent
 - [ ] Step 2: Add and Install Dependencies
-- [ ] Step 3: Create the Server Wrapper
-- [ ] Step 4: Wire LLM / Services via Extensions
-- [ ] Step 5: Implement Error Handling
-- [ ] Step 6: Map Forms (if applicable)
-- [ ] Step 7: Create Entrypoint
-- [ ] Step 8: Use Platform Extensions
-- [ ] Step 9: Update README
+- [ ] Step 3: Create the Server Wrapper & Entrypoint
+- [ ] Step 4: Wire LLM / Services via Extensions (requires reading docs)
+- [ ] Step 5: Implement Error Handling (requires reading docs)
+- [ ] Step 6: Map Forms (if applicable) (requires reading docs)
+- [ ] Step 7: Use Platform Extensions (requires reading docs for each chosen extension)
+- [ ] Step 8: Update README
 - [ ] Finalization: Run Verification Checklist and Finalization Report
 ```
 
@@ -141,10 +147,10 @@ If import validation fails, follow this exact order:
 
 ### Exploring Unknown Packages Without Test Files (Zero-File Discovery)
 
-If you need to figure out exact imports from installed libraries (`agentstack_sdk`, `a2a`) but docs are unavailable, **do not create temporary test scripts**. Instead, use inline Python execution (`python -c`) or your native search tools. This is the cleanest and fastest way to map imports without polluting the project repository.
+If you need to figure out exact imports from installed libraries (`agentstack_sdk`, `a2a`) but docs are unavailable, **do not create temporary test scripts**. Instead, use inline Python execution (`python -c`) or your native search tools to map imports without polluting the project repository.
 
-**The Most Reliable Method (Inline Package Search):**
-Execute this single inline Python command to crawl the installed SDK and locate the exact module exporting your target class (e.g., `AgentDetail`). This reliably finds the correct import path in a single attempt:
+**Fallback Method (Inline Package Search):**
+Use this approach **only** if you ran the code and it failed due to a missing or incorrect import. In that case, you can execute this single inline Python command to crawl the installed SDK and locate the exact module exporting your target class:
 
 ```bash
 python -c '
@@ -161,7 +167,7 @@ find_class("agentstack_sdk", "AgentDetail")
 '
 ```
 
-Once the module is located (e.g., `agentstack_sdk.server.agent`), you can inspect its signature or docstring directly via another short inline command:
+Once the module is located, you can inspect its signature or docstring directly via another short inline command:
 
 ```bash
 python -c "from agentstack_sdk.server.agent import AgentDetail; help(AgentDetail)"
@@ -169,13 +175,9 @@ python -c "from agentstack_sdk.server.agent import AgentDetail; help(AgentDetail
 
 ---
 
-## Step 3 – Create the Server Wrapper
+## Step 3 – Create the Server Wrapper & Entrypoint
 
-Create a new file (e.g. `agent.py` or `server.py`) with the wrapping code, or modify the original agent files directly. The original code **can** be changed for AgentStack compatibility (e.g. accepting config as parameters instead of reading env vars), but the agent's business logic must not be altered.
-
-Prefer additive wrapper files and minimal adapters over invasive refactors to keep migration reversible.
-
-If the original repository exposes legacy HTTP endpoints that are asserted by tests or explicit contracts, preserve those endpoints or provide compatibility shim routes.
+Create a new file (e.g., `agent.py`) with wrapping code, adapting original inputs without altering core business logic. Prefer additive files and minimal adapters. Preserve legacy HTTP contract endpoints if asserted by tests.
 
 Follow the wrapping pattern from the official guide: **[Wrap Your Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents.md)**
 
@@ -241,6 +243,13 @@ Multi-turn Implementation:
 - [ ] Store response: Save the final response with `await context.store(response)`
 ```
 
+#### Entrypoint
+
+Create a `run()` / `serve()` function protected by an `if __name__ == "__main__":` guard:
+
+- **Remove all CLI argument parsing** (`argparse`). Map required CLI inputs to the wrapper parameters instead (e.g. from Forms or Environment variables).
+- Only add `configure_telemetry` or `auth_backend` if explicitly requested.
+
 ---
 
 ## Step 4 – Wire LLM / Services via Extensions
@@ -300,21 +309,7 @@ See the [form agent example](https://github.com/i-am-bee/agentstack/blob/main/ag
 
 ---
 
-## Step 7 – Entrypoint
-
-Create a `run()` / `serve()` function that calls `server.run(host=os.getenv("HOST", "127.0.0.1"), port=int(os.getenv("PORT", 8000)), context_store=PlatformContextStore())` with an `if __name__ == "__main__"` guard.
-
-The server defaults to an in-memory context store when `context_store` is omitted, so wrappers that persist or read context history must pass `PlatformContextStore()` explicitly.
-
-For wrappers that implement context or history persistence via `context.store()` or `context.load_history()`, `context_store=PlatformContextStore()` is required.
-
-**Remove all CLI argument parsing** (`argparse.ArgumentParser`, etc.). If the agent previously relied on CLI arguments for input (e.g. `--repo-url`), refactor the input to come from its wrapper function parameters (mapped from a Form or environment variable).
-
-Only add `configure_telemetry` or `auth_backend` if the user explicitly requests platform integration.
-
----
-
-## Step 8 – Use Platform Extensions
+## Step 7 – Use Platform Extensions
 
 Enhance the agent with platform-level capabilities by injecting extensions via `Annotated` function parameters. Use them if the original agent's behavior warrants it.
 
@@ -351,7 +346,7 @@ For third-party framework callbacks (for example sync-only step callbacks), capt
 
 ---
 
-## Step 9 – Update README
+## Step 8 – Update README
 
 Update the project's `README.md` (or create one if missing) with instructions on how to run the wrapped agent server. Include:
 
