@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@i-am-bee/lint-config": "workspace:*",
-    "@types/node": "^22.19.11",
+    "@types/node": "^25.0.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^5.1.4",
