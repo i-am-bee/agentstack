@@ -33,7 +33,7 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 - Use trusted package metadata, pin versions, and audit installed `agentstack-sdk`/`a2a-sdk`.
 - Handle sensitive values only through declared Agent Stack extensions.
 - Never log, print, persist, or expose secret values.
-- Never send secrets to untrusted intermediaries or unnecessary endpoints.
+- Never send secrets to untrusted intermediaries or endpoints not required by the wrapped agent contract.
 
 ## Constraints (must follow)
 
