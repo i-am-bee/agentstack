@@ -4,7 +4,7 @@ requires-python = "==3.14.*"
 
 [[package]]
 name = "a2a-sdk"
-version = "0.3.21"
+version = "0.3.24"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core" },
@@ -13,9 +13,9 @@ dependencies = [
     { name = "protobuf" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/13/d3/bff391f9be2e56bdccb8f1fb7058a88e03582010890f1c3622174244972d/a2a_sdk-0.3.21.tar.gz", hash = "sha256:627aa841187540f5975625c7f0383754795d55fe3e774073f2741c5bdd7c9972", size = 231305, upload-time = "2025-12-12T17:05:31.755Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ad/76/cefa956fb2d3911cb91552a1da8ce2dbb339f1759cb475e2982f0ae2332b/a2a_sdk-0.3.24.tar.gz", hash = "sha256:3581e6e8a854cd725808f5732f90b7978e661b6d4e227a4755a8f063a3c1599d", size = 255550, upload-time = "2026-02-20T10:05:43.423Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/33/02/26f02c84d7037dbd5c662140434f6e5085e3fe13d9c1e85984852af06930/a2a_sdk-0.3.21-py3-none-any.whl", hash = "sha256:5d817dd424a4396587416241de1342a97d6a8bb1c0b31a47d8dc6546b389ab68", size = 144138, upload-time = "2025-12-12T17:05:29.8Z" },
+    { url = "https://files.pythonhosted.org/packages/10/6e/cae5f0caea527b39c0abd7204d9416768764573c76649ca03cc345a372be/a2a_sdk-0.3.24-py3-none-any.whl", hash = "sha256:7b248767096bb55311f57deebf6b767349388d94c1b376c60cb8f6b715e053f6", size = 145752, upload-time = "2026-02-20T10:05:41.729Z" },
 ]
 
 [package.optional-dependencies]
@@ -55,7 +55,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.75" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.77" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "tiktoken", specifier = ">=0.12.0" },
@@ -98,7 +98,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "a2a-sdk", specifier = "==0.3.21" },
+    { name = "a2a-sdk", specifier = "==0.3.24" },
     { name = "anyio", specifier = ">=4.9.0" },
     { name = "async-lru", specifier = ">=2.0.4" },
     { name = "asyncclick", specifier = ">=8.1.8" },
@@ -296,7 +296,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.75"
+version = "0.1.77"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -310,9 +310,9 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/59/42693afbd87dd692a2fb353a47941b8c773df7174fc1ff44e273d3af6162/beeai_framework-0.1.75.tar.gz", hash = "sha256:b8e0a6709088539b0683636f6b0c418a8ed77e14cbb7648c3b01db8227ac85a9", size = 189965, upload-time = "2026-01-08T15:25:37.286Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/b5/c2fd0b8154a99cc30066d54143ccd0e53792f47a09fa9905a1e0760c15ef/beeai_framework-0.1.77.tar.gz", hash = "sha256:3c7db852fa2d62ef4100fc65b685417e8362e60a9a7127d7a12b0432c05cc77e", size = 198879, upload-time = "2026-02-11T14:09:09.152Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/00/dedb7e5037dc7022f711cded4ddf297150231b6d294ec489f2d8c5f7f378/beeai_framework-0.1.75-py3-none-any.whl", hash = "sha256:e1930465e3650a3da4ab086053338b3b996712bdc2831c0fc3e39ca0b369b76f", size = 348832, upload-time = "2026-01-08T15:25:35.597Z" },
+    { url = "https://files.pythonhosted.org/packages/72/73/a904622564667429b0c2c44eac85186583845357aab18737c3114331aff4/beeai_framework-0.1.77-py3-none-any.whl", hash = "sha256:f8bbf792d2856d39f8809a6254e1635ff3a61f7492c9ea3671f38829f4b71aca", size = 360523, upload-time = "2026-02-11T14:09:07.476Z" },
 ]
 
 [package.optional-dependencies]
