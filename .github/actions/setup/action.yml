@@ -33,6 +33,6 @@ runs:
         echo "UV_FROZEN=true" >> $GITHUB_ENV
         echo "UV_CACHE_DIR=/tmp/.uv-cache" >> $GITHUB_ENV
 
-    - uses: jdx/mise-action@3030cd82391f2e220592ce16f94aee0fb43ce254
+    - uses: jdx/mise-action@9b0f77b0f21431931f7146a88eb076aa9e335240
       with:
         version: 2026.2.20
