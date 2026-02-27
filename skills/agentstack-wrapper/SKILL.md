@@ -340,17 +340,18 @@ For a complete overview of all available extensions: **[Agent Integration Overvi
 
 ### Trajectory Output Rule
 
-Trajectory is strongly recommended for most agents to improve observability and debugging.
+Use this decision rule:
 
-Trajectory is conditionally required whenever the agent emits meaningful intermediate logs, execution steps, tool activity, or progress updates. Those intermediate signals must be surfaced as trajectory output, and the final user answer should remain focused on the final result.
-
-For simple single-step responders with no meaningful intermediate activity, trajectory may be omitted.
+- **Required:** emit trajectory for meaningful intermediate activity: multi-step execution, loops, tool calls, or progress updates.
+- **Required (hidden internals):** if internal steps are not directly visible, emit trajectory at visible milestones: start, major phase change, completion, and failure.
+- **Optional:** for simple single-step responders with no meaningful intermediate activity, trajectory may be omitted.
+- **Default:** when uncertain, enable trajectory.
 
 Trajectory entries are metadata for transparency and observability. They are not a substitute for the agent's user-facing response message.
 
 User-facing text should be emitted as normal `AgentMessage` output. Trajectory should contain the intermediate context behind that answer.
 
-For third-party framework callbacks (for example sync-only step callbacks), capture callback data and emit it later from the main agent handler so trajectory output remains consistent.
+If callbacks are sync-only, capture callback data and emit it later from the main agent handler.
 
 ---
 
@@ -382,8 +383,7 @@ When building and testing the wrapper, ensure you avoid these common pitfalls:
 - **Never access `.text` directly on a `Message` object.** Message content is multipart. Always use `get_message_text(input)`.
 - **Never use synchronous functions for the agent handler.** Agent functions must be `async def` generators using `yield`.
 - **Never hide platform integration behind wrapper classes.** Keep decorators, imports, and config visible in the main agent entrypoint file. Enterprise developers must be able to inspect exactly what the agent does.
-- **Never force trajectory on trivial wrappers.** For simple single-step text responders with no meaningful intermediate activity, trajectory may be omitted.
-- **Never skip trajectory when meaningful intermediate logs or tool traces are emitted.** Those signals must be surfaced as trajectory output.
+- **Never misapply trajectory rules.** Omit trajectory only for true single-step responders. Use it for multi-step, tool-use, or progress-driven runs.
 - **Never treat trajectory as the final answer channel.** Trajectory is primarily metadata. User-visible answers must still be emitted as normal `AgentMessage` text.
 - **Never bury meaningful intermediate logs in the final answer text.** Keep progress/execution visibility separate from the final user-facing response.
 - **Never silently remove existing optional auth inputs.** If the original agent supported optional tokens/keys for higher limits or private resources, preserve that optional path or document an approved behavior change.
