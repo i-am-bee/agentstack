@@ -21,7 +21,7 @@ catalog:
   '@types/react-dom': ^19.2.3
   babel-plugin-react-compiler: 1.0.0
   clsx: ^2.1.1
-  eslint: ^9.39.3
+  eslint: ^10.0.0
   lodash: ^4.17.23
   next: ^16.1.6
   prettier: ^3.8.1
