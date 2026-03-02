@@ -13,6 +13,6 @@
   "devDependencies": {
     "@i-am-bee/lint-config": "workspace:*",
     "embedme": "1.22.1",
-    "mintlify": "4.2.377"
+    "mintlify": "4.2.389"
   }
 }
