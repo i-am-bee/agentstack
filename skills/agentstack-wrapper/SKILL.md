@@ -245,10 +245,12 @@ Multi-turn Implementation:
 
 #### Entrypoint
 
-Create a `run()` / `serve()` function protected by an `if __name__ == "__main__":` guard:
+Create a `run()` / `serve()` function protected by an `if __name__ == "__main__":` guard. This function should call `server.run()`:
 
+- The server should be configured to listen on a `host` and `port` from environment variables (e.g., `host=os.getenv("HOST", "127.0.0.1")`, `port=int(os.getenv("PORT", 8000))`).
+- If the agent persists or reads context history, you must pass `context_store=PlatformContextStore()` to `server.run()`.
 - **Remove all CLI argument parsing** (`argparse`). Map required CLI inputs to the wrapper parameters instead (e.g. from Forms or Environment variables).
-- Only add `configure_telemetry` or `auth_backend` if explicitly requested.
+- Only `auth_backend` if explicitly requested.
 
 ---
 
