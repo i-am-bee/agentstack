@@ -263,7 +263,7 @@ wheels = [
 
 [[package]]
 name = "beeai-framework"
-version = "0.1.77"
+version = "0.1.78"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -277,15 +277,17 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d4/b5/c2fd0b8154a99cc30066d54143ccd0e53792f47a09fa9905a1e0760c15ef/beeai_framework-0.1.77.tar.gz", hash = "sha256:3c7db852fa2d62ef4100fc65b685417e8362e60a9a7127d7a12b0432c05cc77e", size = 198879, upload-time = "2026-02-11T14:09:09.152Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/da/646ecb929e6e47e072e05a0b30b1da5adb369a37cebe0c03958ad2b34f42/beeai_framework-0.1.78.tar.gz", hash = "sha256:5e696705def4b5205da179488b66db306466dc1cfdcf2bcac928a320000d84ad", size = 199187, upload-time = "2026-02-26T12:25:38.671Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/73/a904622564667429b0c2c44eac85186583845357aab18737c3114331aff4/beeai_framework-0.1.77-py3-none-any.whl", hash = "sha256:f8bbf792d2856d39f8809a6254e1635ff3a61f7492c9ea3671f38829f4b71aca", size = 360523, upload-time = "2026-02-11T14:09:07.476Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/9d/380212575e02d8a3bf9090290e6a770833e33e7aecdccfab2592ec6af80d/beeai_framework-0.1.78-py3-none-any.whl", hash = "sha256:8575c34a3ffdca75438ed5ef8e3a7c719fe9db94c4ec1bde49a883352cd4415d", size = 360652, upload-time = "2026-02-26T12:25:37.308Z" },
 ]
 
 [package.optional-dependencies]
 a2a = [
     { name = "a2a-sdk", extra = ["grpc", "http-server", "telemetry"] },
+    { name = "cryptography" },
     { name = "grpcio-health-checking" },
+    { name = "starlette" },
     { name = "types-grpcio" },
     { name = "types-grpcio-health-checking" },
     { name = "types-grpcio-reflection" },
@@ -432,7 +434,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agentstack-sdk", editable = "../../apps/agentstack-sdk-py" },
-    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.77" },
+    { name = "beeai-framework", extras = ["duckduckgo", "wikipedia", "a2a"], specifier = "==0.1.78" },
     { name = "fastuuid", specifier = ">=0.14.0" },
     { name = "openai", specifier = ">=1.107.1" },
     { name = "openinference-instrumentation-beeai", specifier = ">=0.1.14" },
