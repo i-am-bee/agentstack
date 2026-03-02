@@ -90,7 +90,7 @@ Task Progress:
 
 ```
 
-**⚠ STOP GATE:** After Step 8, you MUST complete the Finalization Report and walk through every item in the Verification Checklist before reporting completion. The task is NOT done until both are finished.
+**STOP GATE:** After Step 8, you MUST complete the Finalization Report and walk through every item in the Verification Checklist before reporting completion. The task is NOT done until both are finished.
 
 ## Readiness Check (before Step 1)
 
@@ -369,8 +369,6 @@ Update the project's `README.md` (or create one if missing) with instructions on
 Remove or replace any outdated CLI usage examples (e.g. `argparse`-based commands) that no longer apply after wrapping.
 
 ---
-
-## Anti-Patterns (API Gotchas)
 
 ## Anti-Patterns
 
