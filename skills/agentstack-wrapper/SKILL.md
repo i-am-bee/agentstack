@@ -19,6 +19,7 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 - [Step 4 – Wire LLM / Services via Extensions](#step-4--wire-llm--services-via-extensions)
 - [Step 5 – Error Handling](#step-5--error-handling)
 - [Step 6 – Forms (Single-Turn Structured Input)](#step-6--forms-single-turn-structured-input)
+- [Step 6b – Adapt File Inputs](#step-6b--adapt-file-inputs)
 - [Step 7 – Use Platform Extensions](#step-7--use-platform-extensions)
 - [Step 8 – Update README](#step-8--update-readme)
 - [Anti-Patterns](#anti-patterns)
@@ -57,6 +58,7 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 | C17 | **No dynamic command execution from input.** Do not introduce wrapper patterns that execute shell commands from user/model input (for example, `eval`, `exec`, `os.system`, or unsanitized `subprocess` calls).                                                                                                                                                                                                                                                                                                                  |
 | C18 | **Read Wrapper Documentation First.** Before starting any implementation, you must read the official guide: [Wrap Your Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents.md).                                                                                                                                                                                                                                                                                                              |
 | C19 | **Read Extension Documentation.** Before implementing any extension (Forms, LLM, Error, etc.), you **MUST** read its corresponding documentation URL (listed in Step 7) and extract the exact imports, class names, method names, properties, and types. Do not guess these values. Only modify the agent code after reading the documentation.                                                                                                                                                                                  |
+| C20 | **Replace filesystem file inputs with platform file uploads.** If the original agent reads files from the local filesystem (e.g., `open()`, `pathlib.Path`, CLI file path arguments), replace those inputs with `FileField` form uploads and the platform `File` API. Do not assume local filesystem access at runtime. See Step 6b.                                                                                                                                                                                             |
 
 **CRITICAL WORKFLOW REQUIREMENT:** For _every_ extension you decide to use (whether from LLM/Forms/Error steps or Platform Extensions), you MUST follow these exact steps in order:
 
@@ -80,10 +82,15 @@ Task Progress:
 - [ ] Step 4: Wire LLM / Services via Extensions (requires reading docs)
 - [ ] Step 5: Implement Error Handling (requires reading docs)
 - [ ] Step 6: Map Forms (if applicable) (requires reading docs)
+- [ ] Step 6b: Adapt File Inputs (if applicable) (requires reading docs)
 - [ ] Step 7: Use Platform Extensions (requires reading docs for each chosen extension)
 - [ ] Step 8: Update README
-- [ ] Finalization: Run Verification Checklist and Finalization Report
+- [ ] Finalization Report (required)
+- [ ] Verification Checklist (required)
+
 ```
+
+**⚠ STOP GATE:** After Step 8, you MUST complete the Finalization Report and walk through every item in the Verification Checklist before reporting completion. The task is NOT done until both are finished.
 
 ## Readiness Check (before Step 1)
 
@@ -296,21 +303,17 @@ See the [official error guide](https://agentstack.beeai.dev/stable/agent-integra
 
 ## Step 6 – Forms (Single-Turn Structured Input)
 
-If the original agent accepts **named parameters** (not just free text), map them to an `initial_form` using the Forms extension.
+If the original agent accepts **named parameters** (not just free text), map them to an `initial_form` using the Forms extension. For free-text agents, the plain message input is sufficient — skip this step.
 
-1. Define a `FormRender` with appropriate field types (`TextField`, `DateField`, `CheckboxField`, etc.). Always use `fields=[...]` (not `items=[...]`) and `label="..."` (not `title="..."`).
-2. Create a Pydantic `BaseModel` matching the form fields
-3. Add `form: Annotated[FormServiceExtensionServer, FormServiceExtensionSpec.demand(initial_form=form_render)]` as an agent parameter
-4. Parse input via `form.parse_initial_form(model=MyParams)`
+**Read `references/forms.md` for the full implementation guide** (field types, Pydantic model, mid-conversation input).
 
-Only use forms when the agent has clearly defined, structured parameters. For free-text agents, the plain message input is sufficient.
+---
 
-For mid-conversation input:
+## Step 6b – Adapt File Inputs
 
-- Single free-form question, use A2A `input-required` event.
-- Structured multi-field input, use dynamic form request extension (`FormRequestExtensionServer` / `FormRequestExtensionSpec`).
+If the original agent reads files from the local filesystem or accepts file paths as CLI/function arguments, those inputs must be replaced with platform file uploads. Local filesystem access is not available at runtime. Even if the file contains plain text, still use a `FileField` upload — do not flatten file inputs into message text.
 
-See the [form agent example](https://github.com/i-am-bee/agentstack/blob/main/agents/form/src/form/agent.py) on GitHub for a complete implementation.
+**Read `references/files.md` for detection patterns, replacement steps, text extraction, and mid-conversation uploads.**
 
 ---
 
@@ -367,35 +370,30 @@ Remove or replace any outdated CLI usage examples (e.g. `argparse`-based command
 
 ---
 
+## Anti-Patterns (API Gotchas)
+
 ## Anti-Patterns
 
 When building and testing the wrapper, ensure you avoid these common pitfalls:
 
-- **Never hardcode API keys or LLM endpoints.** Use the LLM proxy extension explicitly.
-- **Never log or print secrets.** API keys/tokens must not appear in logs, responses, exceptions, or telemetry.
-- **Never assume history is auto-saved.** If you need context continuity, explicitly call `await context.store(input)` and `await context.store(response)`.
-- **Never assume persistent history without `PlatformContextStore`.** Without it, context storage is in-memory and lost on process restart.
-- **Never forget to filter history.** `context.load_history()` returns all items in the conversation (Messages, Artifacts). Always filter them using `isinstance(message, Message)`.
-- **Never store individual streaming chunks.** Accumulate the full response and store once using `context.store()`.
-- **Never hallucinate import paths.** You must never guess imports. `a2a` and `agentstack_sdk` are two separate packages. Always find the exact import name by inspecting the installed packages, and explicitly verify their functionality by running an import check.
-- **Never assume extension availability.** Check extension objects and payloads before using them.
 - **Never access `.text` directly on a `Message` object.** Message content is multipart. Always use `get_message_text(input)`.
 - **Never use synchronous functions for the agent handler.** Agent functions must be `async def` generators using `yield`.
-- **Never hide platform integration behind wrapper classes.** Keep decorators, imports, and config visible in the main agent entrypoint file. Enterprise developers must be able to inspect exactly what the agent does.
-- **Never misapply trajectory rules.** Omit trajectory only for true single-step responders. Use it for multi-step, tool-use, or progress-driven runs.
-- **Never treat trajectory as the final answer channel.** Trajectory is primarily metadata. User-visible answers must still be emitted as normal `AgentMessage` text.
-- **Never bury meaningful intermediate logs in the final answer text.** Keep progress/execution visibility separate from the final user-facing response.
-- **Never silently remove existing optional auth inputs.** If the original agent supported optional tokens/keys for higher limits or private resources, preserve that optional path or document an approved behavior change.
-- **Never use forms for a single free-form question.** Use the A2A `input-required` event instead if a simple free-text answer is needed.
-- **Never mismatch form field IDs and model fields.** When using Forms, mismatching IDs means values will fail to parse or silently drop.
-- **Never guess platform object attributes.** For example: `FormRender` uses `fields` (not `items`), `TextField` uses `label` (not `title`), and `AgentDetail.author` must be a dictionary.
-- **Never assume all extension specs have `.demand()`.** For instance, `TrajectoryExtensionSpec()` can be instantiated directly, and others may use `.single_demand()`. Always verify the specific extension spec class.
+- **Never hide platform wiring behind abstraction layers.** Keep `@server.agent(...)`, extension parameters, and integration contracts visible in the main entrypoint so behavior is auditable.
+- **Never hallucinate SDK import paths.** `agentstack_sdk` and `a2a` are separate packages; validate imports against the installed environment before finalizing.
+- **Never assume history is auto-saved.** Explicitly call `await context.store(input)` and `await context.store(response)`.
+- **Never assume persistent history without `PlatformContextStore`.** Without it, context storage is in-memory and lost on restart.
+- **Never forget to filter history.** `context.load_history()` returns Messages and Artifacts. Filter with `isinstance(message, Message)`.
+- **Never store individual streaming chunks.** Accumulate the full response and store once.
+- **Never treat extension data as dictionaries.** Use dot notation (e.g., `config.api_key`, not `config.get("api_key")`).
+- **Never use `llm_config.identifier` as the model name.** Use `llm_config.api_model` instead.
+- **Never assume all extension specs have `.demand()`.** Some use `.single_demand()` or direct instantiation. Always verify.
+- **Never silently remove existing optional auth paths.** If the source agent supported optional tokens/keys, preserve that optional behavior unless an approved behavior change is explicitly documented.
+- **Never use Forms for a single free-form follow-up.** Use A2A `input-required` for one-question free text prompts; reserve Forms for structured multi-field input.
+- **Never mismatch form field IDs and model fields.** Mismatched IDs cause silent parse failures.
+- **Never guess platform object attributes.** `FormRender` uses `fields` (not `items`), `TextField` uses `label` (not `title`).
 - **Never skip null-path handling for forms.** Handle `None` for cancelled or unsubmitted forms.
-- **Never treat extension data as dictionaries.** Data attached to extensions (e.g., `llm.data.llm_fulfillments["default"]`) are Pydantic objects, not dicts. Always access properties using dot notation (e.g., `config.api_key`, not `config.get("api_key")`).
-- **Never use `llm_config.identifier` as the model name.** `identifier` points to the provider binding (for example `llm_proxy`), not to the deployable model. Use `llm_config.api_model` for model selection.
-- **Never apply silent fallback when `llm.data.llm_fulfillments["default"]` is missing.** Either request secrets through a declared `secrets` extension and construct explicit `api_key`/`api_base`/`api_model` values, or raise a clear error.
-- **Never rely on framework default LLM fallback chains.** If the wrapped runtime tries alternate providers automatically, disable that path by passing explicit provider/client config from the extension contract.
-- **Never rewrite agent business logic.** Only wrap the existing entry point. Never attempt to "fix" the original agent's internal workings.
+- **Never assume uploaded file URIs are HTTP URLs.** Parse `agentstack://` URIs with `PlatformFileUrl`.
+- **Never skip extraction polling.** `create_extraction()` is async — poll `get_extraction()` until `status == 'completed'`.
 
 ## Failure Conditions
 
@@ -416,42 +414,48 @@ Before completion, provide all of the following:
 
 ---
 
-## Verification Checklist
+## Verification Checklist (Required)
 
 After wrapping, confirm:
 
-- [ ] Every `import` resolves to a real, installed module
-- [ ] The agent function has a meaningful docstring (used as description in UI)
-- [ ] `yield AgentMessage(text=...)` is used for all responses
-- [ ] No env vars are used for API keys or model config (extensions used instead)
-- [ ] Agent uses an OpenAI-compatible interface or has necessary provider libraries installed for other LLMs
-- [ ] Wrapper passes explicit runtime LLM config from extensions and does not rely on framework/provider fallback defaults
-- [ ] Single-turn vs multi-turn classification matches the actual agent behavior
-- [ ] If single-turn with structured params → `initial_form` is defined
-- [ ] `input` and `response` are stored via `context.store()` unless explicit stateless behavior is justified
-- [ ] `context.load_history()` is required for multi-turn; for single-turn, it is used only when continuity is intentionally required
-- [ ] No business-logic changes were made to the original agent code unless explicitly approved per Constraint C10
-- [ ] If business-logic change was required, explicit approval and justification are recorded
-- [ ] No Dockerfile was added unless explicitly requested
-- [ ] Temp files created at runtime are cleaned up
-- [ ] `agentstack-sdk` (pinned with `~=`) was added to the project's **existing** dependency file
-- [ ] If `a2a-sdk` is pinned directly, its version is explicitly compatible with the selected `agentstack-sdk`
-- [ ] Errors raise exceptions (handled by Error extension), not yielded as `AgentMessage`
-- [ ] Optional extensions are checked for presence/data before use
-- [ ] If the agent references sources -> **Citations extension** is used
-- [ ] If the agent has meaningful multi-step execution/tool traces, trajectory output is emitted for those steps
-- [ ] Final user-facing answer is emitted as normal `AgentMessage` output, not only as trajectory data
-- [ ] If the agent already used secrets -> **Secrets extension** is used (safe access pattern with `request_secrets` through a declared secrets extension parameter). No new secrets added.
-- [ ] No secrets were logged, printed, persisted, or returned in responses/errors.
-- [ ] No extra middleware, auth, or containerization added unless explicitly requested (Constraint C2)
-- [ ] Imports follow import truth and validation rule (Constraint C6)
-- [ ] No command-line arguments (`argparse`) remain in the code (Constraint C9)
-- [ ] You have provided a **Mapping summary** showing inbound mapping (A2A Message to agent input), outbound mapping (agent output to AgentMessage), and streaming path selected.
-- [ ] `context_store=PlatformContextStore()` is present whenever the wrapper persists or reads context history.
-- [ ] If legacy HTTP endpoints were contract-tested, compatibility is preserved or shimmed.
-- [ ] If behavior changed, the Finalization Report includes an explicit change list and impact.
-- [ ] Agent responds at `/.well-known/agent-card.json` with HTTP 200 and a valid and parseable JSON.
-- [ ] Agent card includes required identity fields used for discovery.
-- [ ] **Validate the Agent Card** by fetching `/.well-known/agent-card.json` from the agent's server (Make sure it is running, and pass the correct `host:port` if it's not on the default `127.0.0.1:8000`). Ensure it returns HTTP 200 and the JSON is valid. **Show the full JSON output to the user.**
-- [ ] The user was asked if they want to add a `Dockerfile` (and if requested, it was generated based on the agentstack-starter example without forcing `uv`).
-- [ ] The user was asked if they want to test the agent's functionality. If they said yes, the agent was started first, and then in a separate terminal, the `agentstack run AGENT_NAME` command was executed (**do not activate the virtual environment before running this command**). Valid inputs with appropriate literal newlines were sent to the interactive terminal. The `run` command was allowed to run without interruption, and any errors encountered were investigated, fixed, and the test was rerun. **No additional files or test scripts were created during testing.**
+### Code Quality
+
+- [ ] Every `import` resolves to a real, installed module (run import validation)
+- [ ] Agent function has a meaningful docstring (shown in UI)
+- [ ] Agent handler is `async def` and uses `yield` for responses
+- [ ] No `argparse` or `sys.argv` remains
+- [ ] No business-logic changes unless explicitly approved (C1/C10)
+- [ ] Temp files created at runtime are cleaned up (C3)
+
+### Extensions & Config
+
+- [ ] `yield AgentMessage(text=...)` used for all user-facing responses
+- [ ] No env vars for API keys/model config — extensions used instead
+- [ ] LLM config passed explicitly from extension, no fallback chains
+- [ ] Optional extensions checked for presence/data before use (C13)
+- [ ] Errors raise exceptions (Error extension), not yielded as `AgentMessage`
+- [ ] No secrets logged, printed, or persisted (C14)
+
+### Context & History
+
+- [ ] `input` and `response` stored via `context.store()`
+- [ ] `context_store=PlatformContextStore()` present if context is persisted/read
+- [ ] Multi-turn uses `context.load_history()`; single-turn only if intentionally needed
+
+### Forms & Files
+
+- [ ] Single-turn with structured params → `initial_form` is defined (C8)
+- [ ] Filesystem file inputs replaced with `FileField` form uploads (C20)
+- [ ] Text-processing agents use broad MIME types with content-type branching and extraction
+- [ ] No local filesystem reads for user-provided files
+
+### Dependencies
+
+- [ ] `agentstack-sdk~=<VERSION>` added to project's existing dependency file (C5)
+- [ ] No Dockerfile unless explicitly requested (C2)
+
+### Validation (must be performed live)
+
+- [ ] Start the server, fetch `/.well-known/agent-card.json` — confirm HTTP 200 and valid JSON. **Show full output to the user.**
+- [ ] Ask user if they want a `Dockerfile`
+- [ ] Ask user if they want to test via `agentstack run AGENT_NAME` (no test scripts — use terminals directly)
