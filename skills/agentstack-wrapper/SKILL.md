@@ -1,19 +1,18 @@
 ---
 name: agentstack-wrapper
-description: Wrap an existing Python agent as an Agent Stack service using agentstack-sdk server wrapper, without changing business logic.
-metadata:
-  internal: true
+description: Wraps existing Python agent as Agent Stack service using agentstack-sdk with minimal compatibility changes and no business-logic rewrites. Use when migrating, wrapping, or deploying an existing plain Python or framework-based agent to Agent Stack; not for non-Python runtimes or building new agent from scratch.
 ---
 
-# AgentStack Wrapper Skill
+# Agent Stack Wrapper
+
+Integration guide for wrapping Python agents for [Agent Stack](https://agentstack.beeai.dev/stable/introduction/welcome.md) platform.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [When to Use](#when-to-use)
-- [Prerequisites](#prerequisites)
+- [Security Requirements](#security-requirements)
 - [Constraints (must follow)](#constraints-must-follow)
 - [Integration Workflow Checklist](#integration-workflow-checklist)
+- [Readiness Check (before Step 1)](#readiness-check-before-step-1)
 - [Step 1 – Classify the Agent](#step-1--classify-the-agent)
 - [Step 2 – Add and Install Dependencies](#step-2--add-and-install-dependencies)
 - [Step 3 – Create the Server Wrapper & Entrypoint](#step-3--create-the-server-wrapper--entrypoint)
@@ -27,36 +26,19 @@ metadata:
 - [Finalization Report (Required)](#finalization-report-required)
 - [Verification Checklist](#verification-checklist)
 
-## Overview
+## Security Requirements
 
-This SKILL.md is an instructional integration guide for wrapping Python agents to run on [AgentStack](https://agentstack.beeai.dev/stable/introduction/welcome.md). It is documentation, not executable code. It describes dependency management and runtime extension wiring. Primary security considerations are dependency supply-chain integrity and safe handling of sensitive runtime values provided through platform extensions.
-
-- Do not add instructions that execute remote scripts or untrusted code.
-- Verify package versions from trusted PyPI metadata, pin versions, and audit installed `agentstack-sdk`/`a2a-sdk` packages before use.
-- Handle sensitive values only through declared AgentStack extensions.
+- Never run remote scripts or untrusted code.
+- Use trusted package metadata, pin versions, and audit installed `agentstack-sdk`/`a2a-sdk`.
+- Handle sensitive values only through declared Agent Stack extensions.
 - Never log, print, persist, or expose secret values.
-- Do not send secrets to untrusted intermediaries or endpoints not required by the wrapped agent contract.
-
-The wrapper exposes the agent via the A2A protocol so it can be discovered, called, and composed with other agents on the platform.
-
-## When to Use
-
-- You have a working Python agent (CLI tool, library function, framework-based agent) and need to deploy it as an AgentStack service.
-- You want to expose an agent over A2A without rewriting its business logic.
-
-## Prerequisites
-
-- Python 3.12+
-- The agent's source code is available locally
-- AgentStack server is running locally and is properly configured
-- `agentstack-sdk` version selected from a trusted source (project lockfile/constraints, active environment, or vetted PyPI release metadata) and pinned in project dependencies using `~=`
-- `a2a-sdk` only if the project manages it directly, and pin it to a version compatible with the selected `agentstack-sdk` (do not independently chase the latest `a2a-sdk` if resolver constraints differ)
+- Never send secrets to untrusted intermediaries or endpoints not required by the wrapped agent contract.
 
 ## Constraints (must follow)
 
 | ID  | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1  | **No business-logic changes.** Only modify code for AgentStack compatibility.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| C1  | **No business-logic changes.** Only modify code for Agent Stack compatibility.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | C2  | **Strict minimal changes.** Do not add auth, Dockerfile (containerization is optional and separate), telemetry, or platform middleware unless explicitly requested. If an agent works with simple text, don't force a Form. If it works with env vars, refactor minimally.                                                                                                                                                                                                                                                       |
 | C3  | **Cleanup temp files.** If the agent downloads or creates helper files at runtime, add a cleanup step before the function returns.                                                                                                                                                                                                                                                                                                                                                                                               |
 | C4  | **Prioritize Public Access (No redundant tokens).** Only use the Secrets extension if the secret is strictly mandatory for the agent's core functionality and no public/anonymous access is viable. Do not add secrets or tokens that increase configuration burden if they were optional in the original agent (e.g., optional GitHub token). Preserve existing optional auth behavior unless removal is explicitly approved and documented as a behavior change. API keys must be passed explicitly, never read from env vars. |
@@ -64,7 +46,7 @@ The wrapper exposes the agent via the A2A protocol so it can be discovered, call
 | C6  | **Import Truth and Validation.** All imports must match modules that exist in the active virtual environment (`agentstack_sdk`, `a2a`). If official docs conflict with installed package layout, follow installed package reality and note the mismatch. After wrapping, run import validation and fail the task if any import is unresolved.                                                                                                                                                                                    |
 | C7  | **Analyze installed SDK packages in active virtual environment.** Inspect the installed `agentstack_sdk` and `a2a` modules in the active environment and revisit all imports to ensure they match actual installed files, avoiding hallucinations. See also [source structure](https://github.com/i-am-bee/agentstack/tree/main/apps/agentstack-sdk-py/src/agentstack_sdk).                                                                                                                                                      |
 | C8  | **Structured Parameters to Forms.** For single-turn agents with named parameters, map them to an `initial_form` using `FormServiceExtensionSpec.demand(initial_form=...)`.                                                                                                                                                                                                                                                                                                                                                       |
-| C9  | **Remove CLI arguments.** Remove all `argparse` or `sys.argv` logic. Replace mandatory CLI inputs with `initial_form` items or AgentStack Environment Variables.                                                                                                                                                                                                                                                                                                                                                                 |
+| C9  | **Remove CLI arguments.** Remove all `argparse` or `sys.argv` logic. Replace mandatory CLI inputs with `initial_form` items or Agent Stack Environment Variables.                                                                                                                                                                                                                                                                                                                                                                |
 | C10 | **Approval gate for business-logic changes.** If compatibility requires business-logic changes, stop and request explicit approval with justification before proceeding.                                                                                                                                                                                                                                                                                                                                                         |
 | C11 | **Keep adaptation reversible.** Isolate wrapper and integration changes, avoid destructive refactors, and preserve a rollback path.                                                                                                                                                                                                                                                                                                                                                                                              |
 | C12 | **Preserve original helpers.** Do not delete original business-logic helpers unless strictly required. If removal is necessary, document why.                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -91,6 +73,7 @@ Copy this checklist into your context and check off items as you complete them:
 
 ```
 Task Progress:
+- [ ] Readiness Check (before Step 1)
 - [ ] Step 1: Classify the Agent
 - [ ] Step 2: Add and Install Dependencies
 - [ ] Step 3: Create the Server Wrapper & Entrypoint
@@ -101,6 +84,14 @@ Task Progress:
 - [ ] Step 8: Update README
 - [ ] Finalization: Run Verification Checklist and Finalization Report
 ```
+
+## Readiness Check (before Step 1)
+
+- [ ] Python 3.12+ is available.
+- [ ] Agent source code is available locally.
+- [ ] The project dependency workflow is identified.
+
+If any item fails, stop and ask the user.
 
 ## Step 1 – Classify the Agent
 
@@ -131,6 +122,16 @@ This classification determines:
 3. **Install the dependencies.** Once added to the manifest, install them in your virtual environment (e.g., `pip install -r requirements.txt`).
 4. **Do not** create a new manifest type the project doesn't already use.
 5. **Do not** force `uv` if the project uses `pip`.
+
+### Version Pins
+
+- `agentstack-sdk`
+  - If already pinned compatibly: keep it.
+  - Otherwise: pin a trusted stable release with `~=`.
+- `a2a-sdk`
+  - If the project directly manages it: keep/add a version compatible with the selected `agentstack-sdk`.
+  - If not: do not add a direct pin.
+- Never bump `a2a-sdk` just to follow "latest" when constraints disagree.
 
 **Source-of-truth rule:** Use current official docs and installed package inspection as the authority. If they conflict, follow installed package behavior and report the mismatch.
 
@@ -179,6 +180,8 @@ python -c "from agentstack_sdk.server.agent import AgentDetail; help(AgentDetail
 
 Create a new file (e.g., `agent.py`) with wrapping code, adapting original inputs without altering core business logic. Prefer additive files and minimal adapters. Preserve legacy HTTP contract endpoints if asserted by tests.
 
+Prefer additive wrapper files and minimal adapters over invasive refactors to keep migration reversible.
+
 Follow the wrapping pattern from the official guide: **[Wrap Your Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents.md)**
 
 For building agents from scratch or understanding the full server pattern: **[Build New Agents](https://agentstack.beeai.dev/stable/deploy-agents/building-agents.md)**
@@ -200,7 +203,7 @@ Before writing the code, analyze the original source (docstrings, CLI help, READ
 
 | Element                                      | Purpose                                                                                           |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `Server()`                                   | Creates the AgentStack server instance                                                            |
+| `Server()`                                   | Creates the Agent Stack server instance                                                           |
 | `@server.agent()`                            | Registers the function as an agent; function name becomes agent ID, docstring becomes description |
 | `input: Message`                             | A2A message from the caller; use `get_message_text(input)` to extract the text                    |
 | `context: RunContext`                        | Execution context (`task_id`, `context_id`, session store, history)                               |
@@ -258,7 +261,7 @@ Create a `run()` / `serve()` function protected by an `if __name__ == "__main__"
 
 **OpenAI-compatible interface required.** The agent must be designed to work with an OpenAI-compatible interface. If the original agent uses a different LLM provider (e.g., Anthropic, Google), you must install the necessary library (e.g., `langchain-openai`) and use that provider class, passing the configuration received from the LLM extension.
 
-**Do not read API keys from environment variables.** Use AgentStack's platform extensions to receive LLM configuration at runtime.
+**Do not read API keys from environment variables.** Use Agent Stack platform extensions to receive LLM configuration at runtime.
 _(Note: Sometimes the exact structure of the credentials provided by the extension can only be fully explored and validated by running the agent and inspecting the injected objects)._
 
 Add `llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()]` as an agent function parameter. Extract the config from `llm.data.llm_fulfillments["default"]` and pass `api_key`, `api_base`, `api_model` explicitly to the original agent.
@@ -315,36 +318,39 @@ See the [form agent example](https://github.com/i-am-bee/agentstack/blob/main/ag
 
 Enhance the agent with platform-level capabilities by injecting extensions via `Annotated` function parameters. Use them if the original agent's behavior warrants it.
 
-| Extension         | When to Use                                                                           | Documentation                                                                                                                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| **Forms**         | Agent requires structured, named parameter inputs (not just free text)                | [Forms](https://agentstack.beeai.dev/stable/agent-integration/forms.md)                                                                                                                             |
-| **LLM Service**   | Agent needs platform-provided language model access and credentials                   | [LLM Proxy](https://agentstack.beeai.dev/stable/agent-integration/llm-proxy-service.md)                                                                                                             |
-| **Error**         | Agent needs to report structured, user-visible failures and stack traces              | [Error Handling](https://agentstack.beeai.dev/stable/agent-integration/error.md)                                                                                                                    |
-| **Files**         | Agent expects to read image or document files uploaded by the user                    | [Files](https://agentstack.beeai.dev/stable/agent-integration/files.md)                                                                                                                             |
-| **Citations**     | Agent references documents or external URLs                                           | [Citations](https://agentstack.beeai.dev/stable/agent-integration/citations.md)                                                                                                                     |
-| **Trajectory**    | Multi-step reasoning, tool calls, long-running progress, or explicit debugging traces | [Trajectory](https://agentstack.beeai.dev/stable/agent-integration/trajectory.md)                                                                                                                   |
-| **Secrets**       | Agent needs user-provided API keys or tokens at runtime                               | [Secrets](https://agentstack.beeai.dev/stable/agent-integration/secrets.md) (Note: Check `secrets.data` and use `request_secrets` only through a declared `secrets` extension parameter if missing) |
-| **Settings**      | Agent has configurable behavior (e.g., "Thinking Mode")                               | [Settings](https://agentstack.beeai.dev/stable/agent-integration/agent-settings.md)                                                                                                                 |
-| **Env Variables** | Agent requires custom environment-level deployment configuration variables            | [Environment Variables](https://agentstack.beeai.dev/stable/agent-integration/env-variables.md)                                                                                                     |
-| **Canvas**        | Agent needs to edit artifacts or code selected by user                                | [Canvas](https://agentstack.beeai.dev/stable/agent-integration/canvas.md)                                                                                                                           |
-| **Approval**      | Agent performs sensitive tool calls requiring user consent                            | [Tool Call Approval](https://agentstack.beeai.dev/stable/agent-integration/tool-calls.md)                                                                                                           |
-| **MCP**           | Agent uses Model Context Protocol tools/servers                                       | [MCP Integration](https://agentstack.beeai.dev/stable/agent-integration/mcp.md)                                                                                                                     |
-| **Embedding**     | Agent performs vector search or uses RAG strategies                                   | [RAG / Embeddings](https://agentstack.beeai.dev/stable/agent-integration/rag.md)                                                                                                                    |     |
-| **Platform API**  | Agent calls AgentStack internal platform APIs securely via an injected client         | [Platform API](https://agentstack.beeai.dev/stable/agent-integration/platform.md)                                                                                                                   |
+| Extension             | Use when the Agent                                                                          | Documentation                                                                                                                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **LLM Proxy Service** | Needs platform-provided language model access and credentials                               | [LLM Proxy Service](https://agentstack.beeai.dev/stable/agent-integration/llm-proxy-service.md)                                                                                                                    |
+| **Forms**             | Requires structured, named parameter inputs (not just free text)                            | [Collect Input with Forms](https://agentstack.beeai.dev/stable/agent-integration/forms.md)                                                                                                                         |
+| **Trajectory**        | Emits multi-step reasoning, tool calls, long-running progress, or explicit debugging traces | [Visualize Agent Trajectories](https://agentstack.beeai.dev/stable/agent-integration/trajectory.md)                                                                                                                |
+| **Files**             | Needs to read image or document files uploaded by the user                                  | [Working with Files](https://agentstack.beeai.dev/stable/agent-integration/files.md)                                                                                                                               |
+| **Error**             | Needs to report structured, user-visible failures and stack traces                          | [Handle Errors](https://agentstack.beeai.dev/stable/agent-integration/error.md)                                                                                                                                    |
+| **Settings**          | Has configurable behavior (for example, "Thinking Mode")                                    | [Configure Agent Settings](https://agentstack.beeai.dev/stable/agent-integration/agent-settings.md)                                                                                                                |
+| **OAuth**             | Accesses OAuth-protected third-party APIs (for example, GitHub or Slack)                    | [OAuth](https://agentstack.beeai.dev/stable/agent-integration/oauth.md)                                                                                                                                            |
+| **MCP**               | Uses Model Context Protocol tools or servers                                                | [MCP Integration](https://agentstack.beeai.dev/stable/agent-integration/mcp.md)                                                                                                                                    |
+| **Embedding**         | Performs vector search or uses RAG strategies                                               | [Build RAG Pipelines](https://agentstack.beeai.dev/stable/agent-integration/rag.md)                                                                                                                                |
+| **Approval**          | Performs sensitive tool calls requiring user consent                                        | [Approve Tool Calls](https://agentstack.beeai.dev/stable/agent-integration/tool-calls.md)                                                                                                                          |
+| **Secrets**           | Needs user-provided API keys or tokens at runtime                                           | [Manage Runtime Secrets](https://agentstack.beeai.dev/stable/agent-integration/secrets.md) (Note: Check `secrets.data` and use `request_secrets` only through a declared `secrets` extension parameter if missing) |
+| **Env Variables**     | Requires custom environment-level deployment configuration variables                        | [Environment Variables](https://agentstack.beeai.dev/stable/agent-integration/env-variables.md)                                                                                                                    |
+| **Canvas**            | Needs to edit artifacts or code selected by the user                                        | [Work with Canvas](https://agentstack.beeai.dev/stable/agent-integration/canvas.md)                                                                                                                                |
+| **Citations**         | References documents or external URLs                                                       | [Add Citations to Agent Responses](https://agentstack.beeai.dev/stable/agent-integration/citations.md)                                                                                                             |
 
 For a complete overview of all available extensions: **[Agent Integration Overview](https://agentstack.beeai.dev/stable/agent-integration/overview.md)**
 
 ### Trajectory Output Rule
 
-Trajectory is optional for simple single-step responders.
+Use this decision rule:
 
-Trajectory is required whenever the agent emits meaningful intermediate logs, execution steps, tool activity, or progress updates. Those intermediate signals must be surfaced as trajectory output, and the final user answer should remain focused on the final result.
+- **Required:** emit trajectory for meaningful intermediate activity: multi-step execution, loops, tool calls, or progress updates.
+- **Required (hidden internals):** if internal steps are not directly visible, emit trajectory at visible milestones: start, major phase change, completion, and failure.
+- **Optional:** for simple single-step responders with no meaningful intermediate activity, trajectory may be omitted.
+- **Default:** when uncertain, enable trajectory.
 
 Trajectory entries are metadata for transparency and observability. They are not a substitute for the agent's user-facing response message.
 
 User-facing text should be emitted as normal `AgentMessage` output. Trajectory should contain the intermediate context behind that answer.
 
-For third-party framework callbacks (for example sync-only step callbacks), capture callback data and emit it later from the main agent handler so trajectory output remains consistent.
+If callbacks are sync-only, capture callback data and emit it later from the main agent handler.
 
 ---
 
@@ -376,8 +382,7 @@ When building and testing the wrapper, ensure you avoid these common pitfalls:
 - **Never access `.text` directly on a `Message` object.** Message content is multipart. Always use `get_message_text(input)`.
 - **Never use synchronous functions for the agent handler.** Agent functions must be `async def` generators using `yield`.
 - **Never hide platform integration behind wrapper classes.** Keep decorators, imports, and config visible in the main agent entrypoint file. Enterprise developers must be able to inspect exactly what the agent does.
-- **Never force trajectory on trivial wrappers.** For simple single-step text responders, trajectory is optional.
-- **Never skip trajectory when meaningful intermediate logs or tool traces are emitted.** Those signals must be surfaced as trajectory output.
+- **Never misapply trajectory rules.** Omit trajectory only for true single-step responders. Use it for multi-step, tool-use, or progress-driven runs.
 - **Never treat trajectory as the final answer channel.** Trajectory is primarily metadata. User-visible answers must still be emitted as normal `AgentMessage` text.
 - **Never bury meaningful intermediate logs in the final answer text.** Keep progress/execution visibility separate from the final user-facing response.
 - **Never silently remove existing optional auth inputs.** If the original agent supported optional tokens/keys for higher limits or private resources, preserve that optional path or document an approved behavior change.
@@ -394,7 +399,6 @@ When building and testing the wrapper, ensure you avoid these common pitfalls:
 
 ## Failure Conditions
 
-- If the project's primary language is not Python, stop and report unsupported runtime.
 - If fresh docs cannot be fetched, stop and report that execution cannot continue without current docs.
 
 ---
