@@ -13,15 +13,16 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 - [Constraints (must follow)](#constraints-must-follow)
 - [Integration Workflow Checklist](#integration-workflow-checklist)
 - [Readiness Check (before Step 1)](#readiness-check-before-step-1)
-- [Step 1 – Classify the Agent](#step-1--classify-the-agent)
-- [Step 2 – Add and Install Dependencies](#step-2--add-and-install-dependencies)
-- [Step 3 – Create the Server Wrapper & Entrypoint](#step-3--create-the-server-wrapper--entrypoint)
-- [Step 4 – Wire LLM / Services via Extensions](#step-4--wire-llm--services-via-extensions)
-- [Step 5 – Error Handling](#step-5--error-handling)
-- [Step 6 – Forms (Single-Turn Structured Input)](#step-6--forms-single-turn-structured-input)
-- [Step 6b – Adapt File Inputs](#step-6b--adapt-file-inputs)
-- [Step 7 – Use Platform Extensions](#step-7--use-platform-extensions)
-- [Step 8 – Update README](#step-8--update-readme)
+- [Step 1 – Study the Project](#step-1--study-the-project)
+- [Step 2 – Classify the Agent](#step-2--classify-the-agent)
+- [Step 3 – Add and Install Dependencies](#step-3--add-and-install-dependencies)
+- [Step 4 – Create the Server Wrapper & Entrypoint](#step-4--create-the-server-wrapper--entrypoint)
+- [Step 5 – Wire LLM / Services via Extensions](#step-5--wire-llm--services-via-extensions)
+- [Step 6 – Error Handling](#step-6--error-handling)
+- [Step 7 – Forms (Single-Turn Structured Input)](#step-7--forms-single-turn-structured-input)
+- [Step 7b – Adapt File Inputs](#step-7b--adapt-file-inputs)
+- [Step 8 – Use Platform Extensions](#step-8--use-platform-extensions)
+- [Step 9 – Update README](#step-9--update-readme)
 - [Anti-Patterns](#anti-patterns)
 - [Failure Conditions](#failure-conditions)
 - [Finalization Report (Required)](#finalization-report-required)
@@ -47,18 +48,18 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 | C6  | **Import Truth and Validation.** All imports must match modules that exist in the active virtual environment (`agentstack_sdk`, `a2a`). If official docs conflict with installed package layout, follow installed package reality and note the mismatch. After wrapping, run import validation and fail the task if any import is unresolved.                                                                                                                                                                                    |
 | C7  | **Analyze installed SDK packages in active virtual environment.** Inspect the installed `agentstack_sdk` and `a2a` modules in the active environment and revisit all imports to ensure they match actual installed files, avoiding hallucinations. See also [source structure](https://github.com/i-am-bee/agentstack/tree/main/apps/agentstack-sdk-py/src/agentstack_sdk).                                                                                                                                                      |
 | C8  | **Structured Parameters to Forms.** For single-turn agents with named parameters, map them to an `initial_form` using `FormServiceExtensionSpec.demand(initial_form=...)`.                                                                                                                                                                                                                                                                                                                                                       |
-| C9  | **Remove CLI arguments.** Remove all `argparse` or `sys.argv` logic. Replace mandatory CLI inputs with `initial_form` items or Agent Stack Environment Variables.                                                                                                                                                                                                                                                                                                                                                                |
+| C9  | **Remove CLI arguments.** Remove all `argparse` or `sys.argv` logic. Replace mandatory CLI inputs with `initial_form` items, AgentStack Settings Extension (for runtime options), or AgentStack Env Variables.                                                                                                                                                                                                                                                                                                                   |
 | C10 | **Approval gate for business-logic changes.** If compatibility requires business-logic changes, stop and request explicit approval with justification before proceeding.                                                                                                                                                                                                                                                                                                                                                         |
 | C11 | **Keep adaptation reversible.** Isolate wrapper and integration changes, avoid destructive refactors, and preserve a rollback path.                                                                                                                                                                                                                                                                                                                                                                                              |
 | C12 | **Preserve original helpers.** Do not delete original business-logic helpers unless strictly required. If removal is necessary, document why.                                                                                                                                                                                                                                                                                                                                                                                    |
 | C13 | **Optional extension safety.** Service/UI extensions are optional. Check presence/data before use (e.g., `if llm and llm.data ...`).                                                                                                                                                                                                                                                                                                                                                                                             |
 | C14 | **No secret exposure.** Never log, print, persist, or echo secret values (API keys, tokens, passwords). Redact sensitive values in logs and errors.                                                                                                                                                                                                                                                                                                                                                                              |
 | C15 | **No remote script execution.** Never run untrusted remote code during wrapping. Use project manifests and trusted package metadata only.                                                                                                                                                                                                                                                                                                                                                                                        |
-| C16 | **Constrained outbound targets.** Do not introduce arbitrary outbound network targets. Limit external calls to trusted dependency sources and runtime endpoints explicitly required by the wrapped agent contract.                                                                                                                                                                                                                                                                                                               |
+| C16 | **Constrained outbound targets.** Do not introduce arbitrary network targets. Limit external calls to trusted dependency sources and runtime endpoints explicitly required by the wrapped agent contract.                                                                                                                                                                                                                                                                                                                        |
 | C17 | **No dynamic command execution from input.** Do not introduce wrapper patterns that execute shell commands from user/model input (for example, `eval`, `exec`, `os.system`, or unsanitized `subprocess` calls).                                                                                                                                                                                                                                                                                                                  |
 | C18 | **Read Wrapper Documentation First.** Before starting any implementation, you must read the official guide: [Wrap Your Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents.md).                                                                                                                                                                                                                                                                                                              |
-| C19 | **Read Extension Documentation.** Before implementing any extension (Forms, LLM, Error, etc.), you **MUST** read its corresponding documentation URL (listed in Step 7) and extract the exact imports, class names, method names, properties, and types. Do not guess these values. Only modify the agent code after reading the documentation.                                                                                                                                                                                  |
-| C20 | **Replace filesystem file inputs with platform file uploads.** If the original agent reads files from the local filesystem (e.g., `open()`, `pathlib.Path`, CLI file path arguments), replace those inputs with `FileField` form uploads and the platform `File` API. Do not assume local filesystem access at runtime. See Step 6b.                                                                                                                                                                                             |
+| C19 | **Read Extension Documentation.** Before implementing any extension (Forms, LLM, Error, etc.), you **MUST** read its corresponding documentation URL (listed in Step 9) and extract the exact imports, class names, method names, properties, and their exact types directly from the official documentation. Do not guess these values. Only modify the agent code after reading the documentation.                                                                                                                             |
+| C20 | **Replace filesystem file inputs with platform file uploads.** If the original agent reads files from the local filesystem (e.g., `open()`, `pathlib.Path`, CLI file path arguments), replace those inputs with `FileField` form uploads and the platform `File` API. Do not assume local filesystem access at runtime. See Step 7b.                                                                                                                                                                                             |
 
 **CRITICAL WORKFLOW REQUIREMENT:** For _every_ extension you decide to use (whether from LLM/Forms/Error steps or Platform Extensions), you MUST follow these exact steps in order:
 
@@ -76,21 +77,22 @@ Copy this checklist into your context and check off items as you complete them:
 ```
 Task Progress:
 - [ ] Readiness Check (before Step 1)
-- [ ] Step 1: Classify the Agent
-- [ ] Step 2: Add and Install Dependencies
-- [ ] Step 3: Create the Server Wrapper & Entrypoint
-- [ ] Step 4: Wire LLM / Services via Extensions (requires reading docs)
-- [ ] Step 5: Implement Error Handling (requires reading docs)
-- [ ] Step 6: Map Forms (if applicable) (requires reading docs)
-- [ ] Step 6b: Adapt File Inputs (if applicable) (requires reading docs)
-- [ ] Step 7: Use Platform Extensions (requires reading docs for each chosen extension)
-- [ ] Step 8: Update README
+- [ ] Step 1: Study the Project
+- [ ] Step 2: Classify the Agent
+- [ ] Step 3: Add and Install Dependencies
+- [ ] Step 4: Create the Server Wrapper & Entrypoint
+- [ ] Step 5: Wire LLM / Services via Extensions (requires reading docs)
+- [ ] Step 6: Implement Error Handling (requires reading docs)
+- [ ] Step 7: Map Forms (if applicable) (requires reading docs)
+- [ ] Step 7b: Adapt File Inputs (if applicable) (requires reading docs)
+- [ ] Step 8: Use Platform Extensions (requires reading docs for each chosen extension)
+- [ ] Step 9: Update README
 - [ ] Finalization Report (required)
 - [ ] Verification Checklist (required)
 
 ```
 
-**STOP GATE:** After Step 8, you MUST complete the Finalization Report and walk through every item in the Verification Checklist before reporting completion. The task is NOT done until both are finished.
+**STOP GATE:** After Step 9, you MUST complete the Finalization Report and walk through every item in the Verification Checklist before reporting completion. The task is NOT done until both are finished.
 
 ## Readiness Check (before Step 1)
 
@@ -100,9 +102,20 @@ Task Progress:
 
 If any item fails, stop and ask the user.
 
-## Step 1 – Classify the Agent
+## Step 1 – Study the Project
+
+Before making any changes, you must thoroughly study the existing project to understand its architecture and requirements.
 
 If there is a `README.md` or `AGENTS.md` file, read it first to better understand the structure and purpose of the agent.
+
+Evaluate and document the following:
+
+- **Core Functionality**: What does the agent do? What are its primary inputs and outputs?
+- **Dependencies**: What external systems, APIs, or databases does the agent depend on?
+- **Configuration**: How is the agent configured (e.g., environment variables, configuration files, CLI arguments)?
+- **Tools & Libraries**: What primary libraries does it use for LLM interaction (e.g., LangChain, bare OpenAI SDK)?
+
+## Step 2 – Classify the Agent
 
 Read the agent's code and classify it:
 
@@ -118,7 +131,7 @@ This classification determines:
 
 ---
 
-## Step 2 – Add and Install Dependencies
+## Step 3 – Add and Install Dependencies
 
 1. Find the existing dependency file:
    - `requirements.txt` → append `agentstack-sdk~=<VERSION>`
@@ -155,10 +168,32 @@ If import validation fails, follow this exact order:
 
 ### Exploring Unknown Packages Without Test Files (Zero-File Discovery)
 
-If you need to figure out exact imports from installed libraries (`agentstack_sdk`, `a2a`) but docs are unavailable, **do not create temporary test scripts**. Instead, use inline Python execution (`python -c`) or your native search tools to map imports without polluting the project repository.
+**Primary Method (Documentation Search):**
+First, you MUST attempt to find the exact import path, class names, method names, and properties in the official Agent Stack documentation. Use your web search or documentation reading tools to locate the correct information.
 
 **Fallback Method (Inline Package Search):**
-Use this approach **only** if you ran the code and it failed due to a missing or incorrect import. In that case, you can execute this single inline Python command to crawl the installed SDK and locate the exact module exporting your target class:
+If you need to figure out exact imports from installed libraries (`agentstack_sdk`, `a2a`) but docs are unavailable, **do not create temporary test scripts**. Instead, use inline Python execution (`python -c`) or your native search tools to map imports without polluting the project repository.
+
+Use this approach **only** if you ran the code and it failed due to a missing or incorrect import. You have several options for inline exploration depending on what you need:
+
+**1. Quick Overview with `dir()`:**
+The simplest way to see what's available in a module is the built-in `dir()` function, which returns a list of all names (variables, functions, classes, modules) in the given object's namespace.
+
+```bash
+python -c 'import agentstack_sdk; print(dir(agentstack_sdk))'
+```
+
+_Note: This will also show internal attributes (starting with an underscore), which you generally should avoid using._
+
+**2. Official Exports with `__all__`:**
+Many well-written packages define an `__all__` list, specifying strictly what should be exported as the public API.
+
+```bash
+python -c 'import agentstack_sdk; print(getattr(agentstack_sdk, "__all__", "Module does not define __all__, use dir()"))'
+```
+
+**3. Deep Search (for nested/hidden classes):**
+**Last Resort:** If you know the exact name of the target class but cannot find its import path in the documentation, use this snippet to crawl the package:
 
 ```bash
 python -c '
@@ -183,7 +218,7 @@ python -c "from agentstack_sdk.server.agent import AgentDetail; help(AgentDetail
 
 ---
 
-## Step 3 – Create the Server Wrapper & Entrypoint
+## Step 4 – Create the Server Wrapper & Entrypoint
 
 Create a new file (e.g., `agent.py`) with wrapping code, adapting original inputs without altering core business logic. Prefer additive files and minimal adapters. Preserve legacy HTTP contract endpoints if asserted by tests.
 
@@ -199,9 +234,9 @@ Real-world examples of wrapped agents are available at: **[agents/ on GitHub](ht
 
 Before writing the code, analyze the original source (docstrings, CLI help, README) to populate the `@server.agent()` parameters:
 
-- **Identity**: Set `name` and `version`.
+- **Identity**: Set a user-readable `name` and `version`.
 - **Documentation**: Use `documentation_url` pointing to the source.
-- **Detail**: Populate `AgentDetail` with `interaction_mode` (Step 1), `tools`, `author` (must be a dictionary, e.g., `{"name": "agentstack"}`), and `programming_language`.
+- **Detail**: Populate `AgentDetail` with `interaction_mode` (Step 2), `tools`, `author` (must be a dictionary, e.g., `{"name": "agentstack"}`), and `programming_language`.
 - **Skills**: Define `AgentSkill` entries with `id`, `name`, `description`, `tags`, and `examples`.
 - **Function Docstring**: The wrapper function's docstring should be a concise summary shown in registries.
 - **Extensions**: Identify if the agent needs optional platform capabilities (Step 8) like Citations, Secrets, or Trajectory.
@@ -214,6 +249,7 @@ Before writing the code, analyze the original source (docstrings, CLI help, READ
 | `@server.agent()`                            | Registers the function as an agent; function name becomes agent ID, docstring becomes description |
 | `input: Message`                             | A2A message from the caller; use `get_message_text(input)` to extract the text                    |
 | `context: RunContext`                        | Execution context (`task_id`, `context_id`, session store, history)                               |
+| `error_ext: Annotated[...]`                  | `ErrorExtensionServer` parameter mapping to `ErrorExtensionSpec()` to configure UI stacktraces    |
 | `yield AgentMessage(text=...)`               | Stream one or more response chunks back to the caller                                             |
 | `yield AgentArtifact(...)` / `ArtifactChunk` | Return files, documents, or chunks of structured content back to the caller                       |
 | `yield AuthRequired(...)`                    | Pause execution to request an OAuth or platform authentication token                              |
@@ -223,7 +259,7 @@ Before writing the code, analyze the original source (docstrings, CLI help, READ
 
 ### Implementation: Conditional Workflows
 
-Based on the classification in Step 1, follow exactly ONE of these workflows:
+Based on the classification in Step 2, follow exactly ONE of these workflows:
 
 #### If the agent is Single-turn:
 
@@ -259,12 +295,12 @@ Create a `run()` / `serve()` function protected by an `if __name__ == "__main__"
 
 - The server should be configured to listen on a `host` and `port` from environment variables (e.g., `host=os.getenv("HOST", "127.0.0.1")`, `port=int(os.getenv("PORT", 8000))`).
 - If the agent persists or reads context history, you must pass `context_store=PlatformContextStore()` to `server.run()`.
-- **Remove all CLI argument parsing** (`argparse`). Map required CLI inputs to the wrapper parameters instead (e.g. from Forms or Environment variables).
+- **Remove all CLI argument parsing** (`argparse`). Map required CLI inputs to the wrapper parameters instead (e.g., from Forms, Settings, or Environment variables).
 - Only `auth_backend` if explicitly requested.
 
 ---
 
-## Step 4 – Wire LLM / Services via Extensions
+## Step 5 – Wire LLM / Services via Extensions
 
 **OpenAI-compatible interface required.** The agent must be designed to work with an OpenAI-compatible interface. If the original agent uses a different LLM provider (e.g., Anthropic, Google), you must install the necessary library (e.g., `langchain-openai`) and use that provider class, passing the configuration received from the LLM extension.
 
@@ -284,7 +320,7 @@ See the [chat agent](https://github.com/i-am-bee/agentstack/blob/main/agents/cha
 
 ---
 
-## Step 5 – Error Handling
+## Step 6 – Error Handling
 
 Use the **Error extension** for user-visible failures. Do not report errors via a normal `AgentMessage`.
 
@@ -301,7 +337,7 @@ See the [official error guide](https://agentstack.beeai.dev/stable/agent-integra
 
 ---
 
-## Step 6 – Forms (Single-Turn Structured Input)
+## Step 7 – Forms (Single-Turn Structured Input)
 
 If the original agent accepts **named parameters** (not just free text), map them to an `initial_form` using the Forms extension. For free-text agents, the plain message input is sufficient — skip this step.
 
@@ -309,7 +345,7 @@ If the original agent accepts **named parameters** (not just free text), map the
 
 ---
 
-## Step 6b – Adapt File Inputs
+## Step 7b – Adapt File Inputs
 
 If the original agent reads files from the local filesystem or accepts file paths as CLI/function arguments, those inputs must be replaced with platform file uploads. Local filesystem access is not available at runtime. Even if the file contains plain text, still use a `FileField` upload — do not flatten file inputs into message text.
 
@@ -317,7 +353,7 @@ If the original agent reads files from the local filesystem or accepts file path
 
 ---
 
-## Step 7 – Use Platform Extensions
+## Step 8 – Use Platform Extensions
 
 Enhance the agent with platform-level capabilities by injecting extensions via `Annotated` function parameters. Use them if the original agent's behavior warrants it.
 
@@ -340,11 +376,32 @@ Enhance the agent with platform-level capabilities by injecting extensions via `
 
 For a complete overview of all available extensions: **[Agent Integration Overview](https://agentstack.beeai.dev/stable/agent-integration/overview.md)**
 
+### Configuration Mapping Rule
+
+It is critical to determine if the agent has any configuration and what environment variables it uses. You must investigate the following three sources:
+
+1. **Agent code**: Look for `os.environ.get`, `os.getenv`, `os.environ[...]`, `dotenv`, or configuration classes.
+2. **README.md**: Check deployment or configuration instructions.
+3. **`.env` or `.env.example`** file if present in the repository.
+
+If you identify variables, you must decide how to handle them. Use the following extension logic:
+
+- **AgentStack Settings Extension**: Best for runtime configuration options that alter agent behavior (e.g., toggles, multiple-choice options like a \"select\" dropdown, \"thinking mode\").
+- **AgentStack Env Variables Extension**: Best for low-level system configuration needed just to run the container/service (e.g., `PORT`, `HOST`, database connection strings).
+- **AgentStack Secrets Extension**: Best for sensitive user-level settings like API keys for external services.
+
+**IMPORTANT CAUTION**: If you are unsure which extension to use for a particular secret or environment variable (especially regarding API keys to external services), **always ask the user** before making structural changes.
+
+### Secret Handling Rule
+
+**Do not use global environment assignment.** Never use `os.environ["KEY"] = secrets.data["KEY"]`. Instead, pass the secret value directly to the function or class that requires it (e.g., as a client constructor argument or a method parameter). This prevents global side effects and ensures that secrets are correctly scoped to the specific execution context.
+
 ### Trajectory Output Rule
 
 Use this decision rule:
 
-- **Required:** emit trajectory for meaningful intermediate activity: multi-step execution, loops, tool calls, or progress updates.
+- **Required:** emit trajectory for meaningful intermediate activity: multi-step execution, loops, tool calls, or progress updates. If the agent has multiple steps, it almost always needs trajectories.
+- **Required (Logs/Prints):** if the original agent uses logging or `print` statements, these are prime candidates to be converted into trajectory entries.
 - **Required (hidden internals):** if internal steps are not directly visible, emit trajectory at visible milestones: start, major phase change, completion, and failure.
 - **Optional:** for simple single-step responders with no meaningful intermediate activity, trajectory may be omitted.
 - **Default:** when uncertain, enable trajectory.
@@ -355,9 +412,17 @@ User-facing text should be emitted as normal `AgentMessage` output. Trajectory s
 
 If callbacks are sync-only, capture callback data and emit it later from the main agent handler.
 
+### Trajectory Implementation
+
+When implementing trajectories, follow the [Trajectory Documentation](https://agentstack.beeai.dev/stable/agent-integration/trajectory.md) and utilize these patterns:
+
+- **`yield`**: Use `trajectory.trajectory_metadata(title="", content="")` within the main agent generator to emit progress updates.
+- **`context.yield_async() or context.yield_sync()`**: to emit trajectory entries from within nested asynchronous functions or utility methods.
+- **`trajectory_metadata`**: Use the `metadata` field (often referred to as `trajectory_metadata` in configuration) to provide structured, machine-readable context for each trajectory step.
+
 ---
 
-## Step 8 – Update README
+## Step 9 – Update README
 
 Update the project's `README.md` (or create one if missing) with instructions on how to run the wrapped agent server. Include:
 
@@ -409,6 +474,7 @@ Before completion, provide all of the following:
 4. **Legacy endpoint compatibility result:** state preserved, shimmed, or not applicable.
 5. **Dockerfile prompt:** Ask the user if they also want to add a `Dockerfile`. If the user says yes, review the example at `https://github.com/i-am-bee/agentstack-starter/blob/main/Dockerfile` and assemble a `Dockerfile` for the project. Do not force the use of `uv` if the project does not use it.
 6. **Testing prompt:** Ask the user if they want to test the agent functionality. If they say yes, start the agent first in one terminal, and then use a separate terminal to run `agentstack run AGENT_NAME`. Do not attempt to interrupt the `run` command, as it may take a long time to complete. If the execution fails and an error is encountered, attempt to fix the error and run the test again. **Critically, do not create any new files or scripts (e.g., Python test scripts using pexpect) to perform this test. You must interact with the terminals directly.** Note that `agentstack run` triggers an interactive form; when testing programmatically via stdin, ensure you send precise literal newline characters to advance prompts.
+7. **Run prompt:** Ask the user if they want to run the agent and be redirected to the Web UI. If the user agrees, start the agent and monitor the terminal for errors. If an error occurs, attempt to fix it and restart the agent.
 
 ---
 
