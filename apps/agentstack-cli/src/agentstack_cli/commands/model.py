@@ -75,6 +75,10 @@ RECOMMENDED_EMBEDDING_MODELS = [
 
 LLM_PROVIDERS = [
     Choice(
+        name="Amazon Bedrock".ljust(20),
+        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", None),
+    ),
+    Choice(
         name="Anthropic Claude".ljust(20),
         value=(ModelProviderType.ANTHROPIC, "Anthropic Claude", "https://api.anthropic.com/v1"),
     ),
@@ -138,12 +142,16 @@ LLM_PROVIDERS = [
         value=(ModelProviderType.TOGETHER, "together.ai", "https://api.together.xyz/v1"),
     ),
     Choice(
-        name="🛠️  Other (RITS, Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
+        name="🛠️  Other (RITS, vLLM, ..., any OpenAI-compatible API)",
         value=(ModelProviderType.OTHER, "Other", None),
     ),
 ]
 
 EMBEDDING_PROVIDERS = [
+    Choice(
+        name="Amazon Bedrock".ljust(20),
+        value=(ModelProviderType.BEDROCK, "Amazon Bedrock", None),
+    ),
     Choice(
         name="Cohere".ljust(20) + "🆓 has a free tier",
         value=(ModelProviderType.COHERE, "Cohere", "https://api.cohere.ai/compatibility/v1"),
@@ -173,7 +181,7 @@ EMBEDDING_PROVIDERS = [
         value=(ModelProviderType.VOYAGE, "Voyage", "https://api.voyageai.com/v1"),
     ),
     Choice(
-        name="🛠️  Other (Amazon Bedrock, vLLM, ..., any OpenAI-compatible API)",
+        name="🛠️  Other (vLLM, ..., any OpenAI-compatible API)",
         value=(ModelProviderType.OTHER, "Other", None),
     ),
 ]
@@ -233,17 +241,35 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
         watsonx_project_id = watsonx_project_or_space_id if watsonx_project_or_space == "project" else None
         watsonx_space_id = watsonx_project_or_space_id if watsonx_project_or_space == "space" else None
 
-    api_key: str = (
-        "dummy"
-        if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
-        else env_api_key
-        if (env_api_key := os.environ.get(f"{provider_type.upper()}_API_KEY"))
-        and await inquirer.confirm(
-            message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
-            default=True,
-        ).execute_async()
-        else await inquirer.secret(message="Enter API key:").execute_async() or ""
-    )
+    if provider_type == ModelProviderType.BEDROCK:
+        region: str = await inquirer.select(
+            message="Select AWS Region:",
+            choices=[
+                Choice(name="us-east-1", value="us-east-1"),
+                Choice(name="us-west-2", value="us-west-2"),
+                Choice(name="eu-central-1", value="eu-central-1"),
+                Choice(name="ap-northeast-1", value="ap-northeast-1"),
+                Choice(name="ap-southeast-1", value="ap-southeast-1"),
+            ],
+        ).execute_async() or sys.exit(1)
+
+        base_url = f"https://bedrock-runtime.{region}.amazonaws.com/openai/v1"
+        access_key = await inquirer.secret(message="AWS Access Key ID:").execute_async() or ""
+        secret_key = await inquirer.secret(message="AWS Secret Access Key:").execute_async() or ""
+        session_token = await inquirer.secret(message="AWS Session Token (optional):").execute_async() or ""
+        api_key = f"{access_key}:{secret_key}:{session_token}:{region}"
+    else:
+        api_key = (
+            "dummy"
+            if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
+            else env_api_key
+            if (env_api_key := os.environ.get(f"{provider_type.upper()}_API_KEY"))
+            and await inquirer.confirm(
+                message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
+                default=True,
+            ).execute_async()
+            else await inquirer.secret(message="Enter API key:").execute_async() or ""
+        )
 
     try:
         if provider_type == ModelProviderType.OLLAMA:
@@ -368,10 +394,14 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
                             {"role": "user", "content": "Hello!"},
                         ],
                     )
+                    console.print(f"DEBUG: LLM test response: {test_response}")
                     if not test_response.choices or "Hello" not in (test_response.choices[0].message.content or ""):
-                        raise ModelProviderError("Model did not provide a proper response.")
+                        raise ModelProviderError(
+                            f"Model did not provide a proper response. Content: {getattr(test_response.choices[0].message, 'content', 'None') if test_response.choices else 'No choices'}"
+                        )
                 else:
                     test_response = await client.embeddings.create(model=selected_model, input="Hello!")
+                    console.print(f"DEBUG: Embedding test response: {test_response}")
                     if not test_response.data or not test_response.data[0].embedding:
                         raise ModelProviderError("Model did not provide a proper response.")
         return selected_model
