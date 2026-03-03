@@ -23,7 +23,7 @@
     "eslint-config-next": "^15.5.12",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-css-modules": "^2.12.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "^3.8.1",
     "stylelint-config-css-modules": "^4.6.0",
