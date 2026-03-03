@@ -96,7 +96,7 @@ Task Progress:
 
 ## Readiness Check (before Step 1)
 
-- [ ] Python 3.12+ is available.
+- [ ] A supported Python interpreter is selected in the active environment (not merely installed).
 - [ ] Agent source code is available locally.
 - [ ] The project dependency workflow is identified.
 
@@ -137,7 +137,7 @@ This classification determines:
    - `requirements.txt` → append `agentstack-sdk~=<VERSION>`
    - `pyproject.toml` → add to `[project.dependencies]` or `[tool.poetry.dependencies]`
    - add `a2a-sdk` only when direct pinning is required by the project dependency policy
-2. **Select and pin a trusted version (required).** If the project already pins `agentstack-sdk` in its lockfile/constraints or active environment, use that compatible version and keep consistency with the project. If no version is present, use the latest compatible stable released `agentstack-sdk` version from trusted PyPI metadata, then pin with `~=`.
+2. **Select and pin a trusted version (required).** If the current interpreter is unsupported, select a local interpreter that can install `agentstack-sdk` and use that same interpreter for all dependency commands via `python -m pip`. If the project already pins `agentstack-sdk` in its lockfile/constraints or active environment, use that compatible version and keep consistency with the project. If no version is present, use the latest compatible stable released `agentstack-sdk` version from trusted PyPI metadata, then pin with `~=`.
    If the project requires direct `a2a-sdk` pinning, use a version compatible with the selected `agentstack-sdk` dependency constraints.
 3. **Install the dependencies.** Once added to the manifest, install them in your virtual environment (e.g., `pip install -r requirements.txt`).
 4. **Do not** create a new manifest type the project doesn't already use.
@@ -148,6 +148,7 @@ This classification determines:
 - `agentstack-sdk`
   - If already pinned compatibly: keep it.
   - Otherwise: pin a trusted stable release with `~=`.
+  - To resolve latest stable reliably, run `python -m pip install --upgrade agentstack-sdk`, read the installed version with `python -m pip show agentstack-sdk`, then write `agentstack-sdk~=<resolved_version>` to the existing manifest.
 - `a2a-sdk`
   - If the project directly manages it: keep/add a version compatible with the selected `agentstack-sdk`.
   - If not: do not add a direct pin.
@@ -455,6 +456,7 @@ When building and testing the wrapper, ensure you avoid these common pitfalls:
 - **Never mismatch form field IDs and model fields.** Mismatched IDs cause silent parse failures.
 - **Never guess platform object attributes.** `FormRender` uses `fields` (not `items`), `TextField` uses `label` (not `title`).
 - **Never skip null-path handling for forms.** Handle `None` for cancelled or unsubmitted forms.
+- **Never use `parse_initial_form(...)` truthiness to route turns in multi-turn agents.** Route by presence/absence of persisted session state from `context.load_history()`.
 - **Never assume uploaded file URIs are HTTP URLs.** Parse `agentstack://` URIs with `PlatformFileUrl`.
 - **Never skip extraction polling.** `create_extraction()` is async — poll `get_extraction()` until `status == 'completed'`.
 
