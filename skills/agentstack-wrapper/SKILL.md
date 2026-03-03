@@ -235,7 +235,7 @@ Real-world examples of wrapped agents are available at: **[agents/ on GitHub](ht
 
 Before writing the code, analyze the original source (docstrings, CLI help, README) to populate the `@server.agent()` parameters:
 
-- **Identity**: Set a user-readable `name` and `version`.
+- **Identity**: Set a user-friendly `name` and `version`.
 - **Documentation**: Use `documentation_url` pointing to the source.
 - **Detail**: Populate `AgentDetail` with `interaction_mode` (Step 2), `tools`, `author` (must be a dictionary, e.g., `{"name": "agentstack"}`), and `programming_language`.
 - **Skills**: Define `AgentSkill` entries with `id`, `name`, `description`, `tags`, and `examples`.
@@ -391,6 +391,8 @@ If you identify variables, you must decide how to handle them. Use the following
 - **AgentStack Env Variables Extension**: Best for low-level system configuration needed just to run the container/service (e.g., `PORT`, `HOST`, database connection strings).
 - **AgentStack Secrets Extension**: Best for sensitive user-level settings like API keys for external services.
 
+**API Tools & Environment Variables Constraint**: Third-party library integrations often implicitly depend on standard environment variables, which will fail in the AgentStack wrapper sandbox. You must systematically identify these required credentials, extract them using the `SecretsExtension`, and pass them explicitly as named parameters to component constructors.
+
 **IMPORTANT CAUTION**: If you are unsure which extension to use for a particular secret or environment variable (especially regarding API keys to external services), **always ask the user** before making structural changes.
 
 ### Secret Handling Rule
@@ -409,17 +411,25 @@ Use this decision rule:
 
 Trajectory entries are metadata for transparency and observability. They are not a substitute for the agent's user-facing response message.
 
-User-facing text should be emitted as normal `AgentMessage` output. Trajectory should contain the intermediate context behind that answer.
+**Final Output Rule**: The primary, final output returned to the user from the agent or LLM must **always** be emitted as a normal `AgentMessage` or `AgentArtifact`.
+
+Trajectory should only contain the intermediate context, reasoning, and steps behind that final answer, but it is not a substitute for the final response.
 
 If callbacks are sync-only, capture callback data and emit it later from the main agent handler.
+
+### Artifact Output Rule
+
+If the original agent generates, processes, or outputs **files** (such as CSVs, PDFs, images, or structured data dumps) as part of its execution, you **must** return those files to the caller as an `AgentArtifact`. Do not just write the file to the local disk and yield a text message saying "File generated", as local filesystem changes are not returned to the platform UI.
+
+Use the platform's API to construct an `AgentArtifact` pointing to the generated content. For specific implementation details, refer to the [AgentArtifact Documentation](https://agentstack.beeai.dev/stable/agent-integration/messages#agentartifact).
 
 ### Trajectory Implementation
 
 When implementing trajectories, follow the [Trajectory Documentation](https://agentstack.beeai.dev/stable/agent-integration/trajectory.md) and utilize these patterns:
 
-- **`yield`**: Use `trajectory.trajectory_metadata(title="", content="")` within the main agent generator to emit progress updates.
-- **`context.yield_async() or context.yield_sync()`**: to emit trajectory entries from within nested asynchronous functions or utility methods.
-- **`trajectory_metadata`**: Use the `metadata` field (often referred to as `trajectory_metadata` in configuration) to provide structured, machine-readable context for each trajectory step.
+- **`yield`**: Use `yield AgentMessage(text="", metadata=trajectory_ext.trajectory_metadata(title="", content=""))` within the main agent generator to emit progress updates.
+- **`context.yield_async() or context.yield_sync()`**: to emit trajectory entries from within nested asynchronous functions or utility methods, yielding an `AgentMessage` with trajectory metadata.
+- **`trajectory_metadata`**: Use the `metadata` field of `AgentMessage` constructed via the extension's `trajectory_metadata()` method to provide structured, machine-readable context for each trajectory step.
 
 ---
 
