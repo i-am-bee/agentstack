@@ -25,7 +25,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@tanstack/react-query": "catalog:",
     "agentstack-sdk": "workspace:*",
-    "cacheable": "2.3.2",
+    "cacheable": "2.3.3",
     "clsx": "catalog:",
     "date-fns": "4.1.0",
     "eventsource-parser": "^3.0.6",
