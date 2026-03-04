@@ -26,6 +26,16 @@ If you identify variables, you must decide how to handle them. Use the following
 
 **Do not use global environment assignment.** Never use `os.environ["KEY"] = secrets.data["KEY"]`. Instead, pass the secret value directly to the function or class that requires it (e.g., as a client constructor argument or a method parameter). This prevents global side effects and ensures that secrets are correctly scoped to the specific execution context.
 
+## Requesting Secrets (Required)
+
+Follow the official guide: [Manage Runtime Secrets](https://agentstack.beeai.dev/stable/agent-integration/secrets.md).
+
+- Declare required secrets with the Secrets extension.
+- Before using a secret, check whether it is present in secret fulfillments.
+- If missing, request it through the Secrets extension and pause until provided.
+- Do not proceed with external API/tool calls until the required secret is available.
+- Never expose secret values in logs, messages, metadata, or trajectory output.
+
 ## Anti-Patterns (Required)
 
 - **Never collect API keys or other sensitive secrets in an `initial_form`.**

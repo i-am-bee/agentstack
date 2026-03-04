@@ -194,7 +194,7 @@ If the original agent reads files from the local filesystem or accepts file path
 
 ## Step 9 – Agent Output
 
-### Trajectory Output Rule
+### Trajectory Output Rule and Implementation
 
 **Read `references/trajectory.md` and follow it completely for trajectory decision rules and implementation.**
 
@@ -211,7 +211,6 @@ If callbacks are sync-only, capture callback data and emit it later from the mai
 If the original agent generates, processes, or outputs **files** (such as CSVs, PDFs, images, or structured data dumps) as part of its execution, you **must** return those files to the caller as an `AgentArtifact`. Do not just write the file to the local disk and yield a text message saying "File generated", as local filesystem changes are not returned to the platform UI.
 
 Use the platform's API to construct an `AgentArtifact` pointing to the generated content. For specific implementation details, refer to the [AgentArtifact Documentation](https://agentstack.beeai.dev/stable/agent-integration/messages#agentartifact).
-
 
 ---
 

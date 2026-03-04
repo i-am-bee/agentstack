@@ -18,6 +18,10 @@ Trajectory entries are metadata for transparency and observability. They are not
 
 When implementing trajectories, follow the [Trajectory Documentation](https://agentstack.beeai.dev/stable/agent-integration/trajectory.md) and utilize these patterns:
 
-- **`yield`**: Use `yield AgentMessage(text="", metadata=trajectory_ext.trajectory_metadata(title="", content=""))` within the main agent generator to emit progress updates.
+- **`yield`**: Use `yield trajectory.trajectory_metadata(title="", content="")` within the main agent generator to emit progress updates.
 - **`context.yield_async() or context.yield_sync()`**: to emit trajectory entries from within nested asynchronous functions or utility methods, yielding an `AgentMessage` with trajectory metadata.
 - **`trajectory_metadata`**: Use the `metadata` field of `AgentMessage` constructed via the extension's `trajectory_metadata()` method to provide structured, machine-readable context for each trajectory step.
+
+## Anti-Patterns
+
+- Never use `AgentMessage` with empty text to send trajectory metadata
