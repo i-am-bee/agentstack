@@ -225,3 +225,4 @@ mise.local.toml
 
 # Claude
 .claude/tasks
+.claude/worktrees
