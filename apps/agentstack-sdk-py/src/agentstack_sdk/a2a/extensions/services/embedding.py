@@ -109,7 +109,7 @@ class EmbeddingServiceExtensionServer(
             return
 
         for fullfilment in self.data.embedding_fulfillments.values():
-            platform_url = str(get_platform_client().base_url)
+            platform_url = str(get_platform_client().base_url).rstrip("/")
             fullfilment.api_base = re.sub("{platform_url}", platform_url, fullfilment.api_base)
 
 

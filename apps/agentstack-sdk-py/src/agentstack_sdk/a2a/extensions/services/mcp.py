@@ -138,7 +138,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
         if not self.data:
             return
 
-        platform_url = str(get_platform_client().base_url)
+        platform_url = str(get_platform_client().base_url).rstrip("/")
         for fullfilment in self.data.mcp_fulfillments.values():
             if fullfilment.transport.type == "streamable_http":
                 try:
