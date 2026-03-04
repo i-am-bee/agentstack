@@ -71,7 +71,7 @@ If the agent needs **text** from non-plaintext files (PDFs, DOCX, XLSX, PPTX, im
 
 When uploaded files are provided via `FileField`, use this required strategy:
 
-1. Determine the file `content_type`.
+1. Determine the file `content_type` (MIME type). **Always use the MIME type for identification; do not rely on file extensions.**
 2. For plain-text-like types (`text/*`, `text/csv`), attempt direct read first.
 3. For document/image types, run extraction: call `create_extraction()` and poll `get_extraction()` until `status == "completed"`.
 4. Handle extraction `failed` status explicitly with a clear error.

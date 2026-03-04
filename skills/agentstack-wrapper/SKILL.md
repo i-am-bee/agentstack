@@ -121,12 +121,12 @@ Evaluate and document the following:
 
 ## Step 2 – Classify the Agent
 
-Read the agent's code and classify it:
+Read the agent's code and classify it. This determines the `interaction_mode` value:
 
-| Pattern         | Classification             | Indicators                                                                                                              |
-| --------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Single-turn** | One request → one response | CLI entrypoint, `argparse` (must be removed), primarily stateless business logic, context persistence still recommended |
-| **Multi-turn**  | Conversation with memory   | Chat loop, message history, session state, memory object                                                                |
+| interaction_mode | Pattern                    | Indicators                                                                                                              |
+| ---------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **single-turn**  | One request → one response | CLI entrypoint, `argparse` (must be removed), primarily stateless business logic, context persistence still recommended |
+| **multi-turn**   | Conversation with memory   | Chat loop, message history, session state, memory object                                                                |
 
 This classification determines:
 
@@ -255,6 +255,7 @@ When building and testing the wrapper, ensure you avoid these common pitfalls:
 - **Never silently remove existing optional auth paths.** If the source agent supported optional tokens/keys, preserve that optional behavior unless an approved behavior change is explicitly documented.
 - **Never use Forms for a single free-form follow-up.** Use A2A `input-required` for one-question free text prompts; reserve Forms for structured multi-field input.
 - **Never mismatch form field IDs and model fields.** Mismatched IDs cause silent parse failures.
+- **Never use `context.session_id`.** The `RunContext` object uses `context.context_id` for session identification.
 - **Never guess platform object attributes.** `FormRender` uses `fields` (not `items`), `TextField` uses `label` (not `title`).
 - **Never skip null-path handling for forms.** Handle `None` for cancelled or unsubmitted forms.
 - **Never use `parse_initial_form(...)` truthiness to route turns in multi-turn agents.** Route by presence/absence of persisted session state from `context.load_history()`.

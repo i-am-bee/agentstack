@@ -16,7 +16,7 @@ Before writing the code, analyze the original source (docstrings, CLI help, READ
 
 - **Identity**: Set a user-friendly `name` and `version`.
 - **Documentation**: Use `documentation_url` pointing to the source.
-- **Detail**: Populate `AgentDetail` with `interaction_mode` (Step 2), `tools`, `author` (must be a dictionary, e.g., `{"name": "agentstack"}`), and `programming_language`.
+- **Detail**: Populate `AgentDetail` with `interaction_mode` (Step 2; must be either `"multi-turn"` or `"single-turn"`), `tools`, `author` (must be a dictionary, e.g., `{"name": "agentstack"}`), and `programming_language`.
 - **Skills**: Define `AgentSkill` entries with `id`, `name`, `description`, `tags`, and `examples`.
 - **Function Docstring**: The wrapper function's docstring should be a concise summary shown in registries.
 - **Extensions**: Identify if the agent needs optional platform capabilities (Step 8) like Citations, Secrets, or Trajectory.
@@ -34,7 +34,7 @@ Before writing the code, analyze the original source (docstrings, CLI help, READ
 | `yield AgentArtifact(...)` / `ArtifactChunk` | Return files, documents, or chunks of structured content back to the caller                       |
 | `yield AuthRequired(...)`                    | Pause execution to request an OAuth or platform authentication token                              |
 | `Metadata(...)`                              | Attach extension metadata (e.g., Citations, Canvas references) to an `AgentMessage`               |
-| `emit trajectory output`                     | Surface meaningful intermediate logs/progress separately from final user-facing response          |
+| `yield trajectory.trajectory_metadata(...)`  | Surface meaningful intermediate logs/progress separately from final user-facing response          |
 | `server.run(host, port)`                     | Starts the HTTP server                                                                            |
 
 ## Implementation: Conditional Workflows
@@ -47,7 +47,7 @@ Based on the classification in Step 2, follow exactly ONE of these workflows:
 - [ ] Extract user message with `get_message_text(input)`
 - [ ] Only call `context.load_history()` if continuity is intentionally required
 - [ ] Pass necessary inputs (from forms or text) to original agent logic
-- [ ] Emit trajectory for meaningful intermediate activity (same rule as all agents)
+- [ ] Yield trajectory for meaningful intermediate activity (same rule as all agents)
 - [ ] Yield the final response via `AgentMessage(text=result)`
 - [ ] Persist both input and response via `context.store()`
 ```
@@ -58,7 +58,7 @@ Based on the classification in Step 2, follow exactly ONE of these workflows:
 - [ ] Store input: Save incoming user message immediately with `await context.store(input)`
 - [ ] Load history: Retrieve past conversation via `[msg async for msg in context.load_history() if isinstance(msg, Message)]`
 - [ ] Execute agent: Pass the filtered history to the original agent logic
-- [ ] Emit trajectory for meaningful intermediate activity (same rule as all agents)
+- [ ] Yield trajectory for meaningful intermediate activity (same rule as all agents)
 - [ ] Yield response: Return final answering chunks with `yield AgentMessage(text=...)`
 - [ ] Store response: Save the final response with `await context.store(response)`
 ```
