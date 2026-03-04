@@ -62,6 +62,19 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 | C18 | **Read Wrapper Documentation First.** Before starting any implementation, you must read the official guide: [Wrap Your Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents.md).                                                                                                                                                                                                                                                                                                              |
 | C19 | **Read Extension Documentation.** Before implementing any extension (Forms, LLM, Error, etc.), you **MUST** read its corresponding documentation URL (listed in Step 10) and extract the exact imports, class names, method names, properties, and their exact types directly from the official documentation. Do not guess these values. Only modify the agent code after reading the documentation.                                                                                                                            |
 | C20 | **Replace filesystem file inputs with platform file uploads.** If the original agent reads files from the local filesystem (e.g., `open()`, `pathlib.Path`, CLI file path arguments), replace those inputs with `FileField` form uploads and the platform `File` API. Do not assume local filesystem access at runtime. See Step 7b.                                                                                                                                                                                             |
+| C21 | **Context & Memory Optimization.** Do not attempt the entire transformation in one tool call. Follow the checklist iteratively. Maintain state in Markdown artifacts (`task.md`, `implementation_plan.md`) to minimize chat history bloat. Do not paste massive stack traces into the chat; extract only the relevant error.                                                                                                                                                                                                     |
+
+---
+
+## Context & Memory Optimization
+
+To ensure the highest success rate and prevent AI context window exhaustion during complex transformations:
+
+1. **Iterative Progress**: Execute the [Integration Workflow Checklist](#integration-workflow-checklist) strictly step-by-step. Update `task.md` continuously.
+2. **Leverage Artifacts**: Rely heavily on `implementation_plan.md` and `walkthrough.md` to maintain the architectural state, rather than relying on linear conversational memory.
+3. **Minimize Terminal Output**: When debugging, prevent massive stack traces from polluting the context. Extract specifically the `Exception` line and the immediate traceback file, omitting massive framework logs.
+4. **Targeted Code Reading**: Do not repeatedly load massive files like `SKILL.md` or large source code files if they haven't changed.
+5. **Close Unused Files**: If you have the ability to manage your workspace, keep only the actively modified files open in your mental context.
 
 **CRITICAL WORKFLOW REQUIREMENT:** For _every_ extension you decide to use (whether from LLM/Forms/Error steps or Platform Extensions), you MUST follow these exact steps in order:
 
@@ -241,7 +254,8 @@ Remove or replace any outdated CLI usage examples (e.g. `argparse`-based command
 
 When building and testing the wrapper, ensure you avoid these common pitfalls:
 
-- **Never access `.text` directly on a `Message` object.** Message content is multipart. Always use `get_message_text(input)`.
+- **Never access `.text` directly on a `Message` object.** Message content is multipart. Always use `get_message_text(input)` (requires `from a2a.utils.message import get_message_text`).
+- **Never save files to local disk.** AgentStack environments are ephemeral. All generated files should be instantiated directly in memory and yielded as `AgentArtifact(parts=[file.to_file_part()])`. See [Manage Files](https://agentstack.beeai.dev/stable/agent-integration/files.md) for the correct `File.create()` API usage.
 - **Never use synchronous functions for the agent handler.** Agent functions must be `async def` generators using `yield`.
 - **Never hide platform wiring behind abstraction layers.** Keep `@server.agent(...)`, extension parameters, and integration contracts visible in the main entrypoint so behavior is auditable.
 - **Never hallucinate SDK import paths.** `agentstack_sdk` and `a2a` are separate packages; validate imports against the installed environment before finalizing.

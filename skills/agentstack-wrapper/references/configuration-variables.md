@@ -24,15 +24,34 @@ If you identify variables, you must decide how to handle them. Use the following
 
 ## Secret Handling Rule
 
-**Do not use global environment assignment.** Never use `os.environ["KEY"] = secrets.data["KEY"]`. Instead, pass the secret value directly to the function or class that requires it (e.g., as a client constructor argument or a method parameter). This prevents global side effects and ensures that secrets are correctly scoped to the specific execution context.
+> [!CAUTION]
+> **NEVER ASSIGN SECRETS TO `os.environ`!**
+> Setting `os.environ["KEY"] = value` is a critical security vulnerability in AgentStack. The platform runs multiple isolated agent instances in a shared environment (multi-tenant infrastructure). Modifying the global OS environment exposes the private keys of one user to every other concurrent execution on the same pod.
+
+Instead, pass the secret value directly to the function or class that requires it (e.g., as a client constructor argument: `Client(api_key=secret_value)`). This prevents global side effects and ensures that secrets are correctly scoped to the specific execution context.
 
 ## Requesting Secrets (Required)
 
 Follow the official guide: [Manage Runtime Secrets](https://agentstack.beeai.dev/stable/agent-integration/secrets.md).
 
 - Declare required secrets with the Secrets extension.
-- Before using a secret, check whether it is present in secret fulfillments.
-- If missing, request it through the Secrets extension and pause until provided.
+- Before using a secret, check whether it is present in `secret_fulfillments` and request it if missing:
+
+  ```python
+  api_key = None
+
+  if secrets and secrets.data and secrets.data.secret_fulfillments and "API_KEY" in secrets.data.secret_fulfillments:
+      api_key = secrets.data.secret_fulfillments["API_KEY"].secret
+  else:
+      secrets_meta = await secrets.request_secrets(
+          params=SecretsServiceExtensionParams(secret_demands={"API_KEY": SecretDemand(name="API_KEY")})
+      )
+      if secrets_meta and secrets_meta.secret_fulfillments and "API_KEY" in secrets_meta.secret_fulfillments:
+          api_key = secrets_meta.secret_fulfillments["API_KEY"].secret
+  ```
+
+- **Do not** assign values to `secrets.data` (e.g. `secrets.data["KEY"] = value`) since it is a Pydantic model (`SecretsServiceExtensionMetadata`), returning a `TypeError`. Save the secret to a local variable instead.
+- **Do not** `yield` the result of `request_secrets` and do not `return` after calling it; it suspends execution automatically and returns the fulfillment when resumed.
 - Do not proceed with external API/tool calls until the required secret is available.
 - Never expose secret values in logs, messages, metadata, or trajectory output.
 

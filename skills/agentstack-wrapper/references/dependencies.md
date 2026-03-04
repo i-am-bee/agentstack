@@ -57,13 +57,6 @@ python -c 'import agentstack_sdk; print(dir(agentstack_sdk))'
 
 _Note: This will also show internal attributes (starting with an underscore), which you generally should avoid using._
 
-**2. Official Exports with `__all__`:**
-Many well-written packages define an `__all__` list, specifying strictly what should be exported as the public API.
-
-```bash
-python -c 'import agentstack_sdk; print(getattr(agentstack_sdk, "__all__", "Module does not define __all__, use dir()"))'
-```
-
 **3. Deep Search (for nested/hidden classes):**
 **Last Resort:** If you know the exact name of the target class but cannot find its import path in the documentation, use this snippet to crawl the package:
 

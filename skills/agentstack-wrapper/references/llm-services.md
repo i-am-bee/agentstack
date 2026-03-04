@@ -20,7 +20,7 @@ See the [chat agent](https://github.com/i-am-bee/agentstack/blob/main/agents/cha
 
 ## Anti-Patterns
 
-- Do not reference `secrets.request_secrets()` unless a `secrets` extension parameter is declared on the agent function.
+- Do not reference `secrets.request_secrets(params=...)` unless a `secrets` extension parameter is declared on the agent function.
 - Do not skip the docs/examples and improvise imports or extension usage.
 - Do not read model/API key/base URL from env vars when LLM extension is available.
 - Do not rewrite `api_base` heuristically unless the official docs explicitly require it.

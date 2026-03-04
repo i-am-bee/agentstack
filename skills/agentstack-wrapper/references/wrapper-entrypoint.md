@@ -23,19 +23,19 @@ Before writing the code, analyze the original source (docstrings, CLI help, READ
 
 ## Key Elements
 
-| Element                                      | Purpose                                                                                           |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `Server()`                                   | Creates the Agent Stack server instance                                                           |
-| `@server.agent()`                            | Registers the function as an agent; function name becomes agent ID, docstring becomes description |
-| `input: Message`                             | A2A message from the caller; use `get_message_text(input)` to extract the text                    |
-| `context: RunContext`                        | Execution context (`task_id`, `context_id`, session store, history)                               |
-| `error_ext: Annotated[...]`                  | `ErrorExtensionServer` parameter mapping to `ErrorExtensionSpec()` to configure UI stacktraces    |
-| `yield AgentMessage(text=...)`               | Stream one or more response chunks back to the caller                                             |
-| `yield AgentArtifact(...)` / `ArtifactChunk` | Return files, documents, or chunks of structured content back to the caller                       |
-| `yield AuthRequired(...)`                    | Pause execution to request an OAuth or platform authentication token                              |
-| `Metadata(...)`                              | Attach extension metadata (e.g., Citations, Canvas references) to an `AgentMessage`               |
-| `yield trajectory.trajectory_metadata(...)`  | Surface meaningful intermediate logs/progress separately from final user-facing response          |
-| `server.run(host, port)`                     | Starts the HTTP server                                                                            |
+| Element                                      | Purpose                                                                                                       |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `Server()`                                   | Creates the Agent Stack server instance                                                                       |
+| `@server.agent()`                            | Registers the function as an agent; function name becomes agent ID, docstring becomes description             |
+| `input: Message`                             | A2A message from the caller; use `get_message_text(input)` (`from a2a.utils.message import get_message_text`) |
+| `context: RunContext`                        | Execution context (`task_id`, `context_id`, session store, history)                                           |
+| `error_ext: Annotated[...]`                  | `ErrorExtensionServer` parameter mapping to `ErrorExtensionSpec()` to configure UI stacktraces                |
+| `yield AgentMessage(text=...)`               | Stream one or more response chunks back to the caller                                                         |
+| `yield AgentArtifact(...)` / `ArtifactChunk` | Return files, documents, or chunks of structured content back to the caller                                   |
+| `yield AuthRequired(...)`                    | Pause execution to request an OAuth or platform authentication token                                          |
+| `Metadata(...)`                              | Attach extension metadata (e.g., Citations, Canvas references) to an `AgentMessage`                           |
+| `yield trajectory.trajectory_metadata(...)`  | Surface meaningful intermediate logs/progress separately from final user-facing response                      |
+| `server.run(host, port)`                     | Starts the HTTP server                                                                                        |
 
 ## Implementation: Conditional Workflows
 
@@ -44,7 +44,7 @@ Based on the classification in Step 2, follow exactly ONE of these workflows:
 ### If the agent is Single-turn
 
 ```
-- [ ] Extract user message with `get_message_text(input)`
+- [ ] Extract user message with `get_message_text(input)` (remember to import it from `a2a.utils.message`)
 - [ ] Only call `context.load_history()` if continuity is intentionally required
 - [ ] Pass necessary inputs (from forms or text) to original agent logic
 - [ ] Yield trajectory for meaningful intermediate activity (same rule as all agents)
