@@ -15,3 +15,13 @@ Only use forms when the agent has clearly defined, structured parameters. For fr
 - Structured multi-field input, use dynamic form request extension (`FormRequestExtensionServer` / `FormRequestExtensionSpec`).
 
 See the [form agent example](https://github.com/i-am-bee/agentstack/blob/main/agents/form/src/form/agent.py) on GitHub for a complete implementation.
+
+## Turn Detection Guard (for multi-turn agents that also use initial forms)
+
+Do **not** determine first-turn vs follow-up by checking whether `form.parse_initial_form(...)` returned an object. The initial form is available beyond the first interaction.
+
+Use this decision order instead:
+
+1. Load prior session state from `context.load_history()`.
+2. If no stored state exists, treat the request as the initial turn and parse/require form fields.
+3. If stored state exists, treat the request as a follow-up turn and ignore form truthiness for routing.
