@@ -704,7 +704,7 @@ async def start_cmd(
                     systemctl daemon-reload
                     kubectl --kubeconfig=/kubeconfig get svc -n default -o 'jsonpath={range .items[*]}{.metadata.name}{":"}{.spec.ports[*].port}{"\\n"}{end}' | while IFS=: read svc ports; do
                         for port in $ports; do
-                            if [ "$port" -ge 8333 ] && [ "$port" -le 8399 ]; then
+                            if ([ "$port" -ge 8333 ] && [ "$port" -le 8399 ]) || [ "$port" -eq 4318 ]; then
                                 systemctl start "kubectl-port-forward@${svc}:${port}" &
                             fi
                         done
