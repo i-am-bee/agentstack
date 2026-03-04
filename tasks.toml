@@ -598,8 +598,10 @@ run = """
 set -eu -o pipefail
 {{mise_bin}} uninstall --all
 rm -rf **/.venv **/node_modules **/.next
-rm -rf ~/.local/state/mise/task-sources/ && mkdir -p ~/.local/state/mise/task-sources/
-rm -rf ~/.local/state/mise/task-auto-outputs/ && mkdir -p ~/.local/state/mise/task-auto-outputs/
+MISE_STATE_DIR="${MISE_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/mise}"
+for d in "task-sources" "task-auto-outputs"; do
+  rm -rf "$MISE_STATE_DIR/$d" && mkdir -p "$MISE_STATE_DIR/$d"
+done
 brew upgrade mise || mise self-update || true
 {{mise_bin}} install
 {{mise_bin}} run --force setup ::: check
