@@ -6,6 +6,8 @@ Use `gh` command for GitHub operations.
 
 Repo: `i-am-bee/agentstack`
 
+All commits must be signed off for DCO compliance (`git commit --signoff`).
+
 ## Useful scripts
 - `mise run agentstack-server:migrations:run` run migrations
 
