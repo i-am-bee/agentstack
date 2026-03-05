@@ -9,7 +9,7 @@ _(Note: Sometimes the exact structure of the credentials provided by the extensi
 
 Add `llm: Annotated[LLMServiceExtensionServer, LLMServiceExtensionSpec.single_demand()]` as an agent function parameter. Extract the config from `llm.data.llm_fulfillments["default"]` and pass `api_key`, `api_base`, `api_model` explicitly to the original agent.
 
-If the `default` fulfillment is missing, declare a secrets parameter (for example `secrets: Annotated[SecretsExtensionServer, SecretsExtensionSpec.single_demand(...)]`), request required secrets through that declared parameter, then construct fulfillment-compatible values and pass `api_key`, `api_base`, and `api_model` explicitly.
+If the `default` fulfillment is missing, declare a secrets parameter (for example `secrets: Annotated[SecretsExtensionServer, SecretsExtensionSpec.single_demand(name="...")]`), request required secrets through that declared parameter, then construct fulfillment-compatible values and pass `api_key`, `api_base`, and `api_model` explicitly.
 
 If the original agent reads env vars for API keys internally, refactor it so keys are passed as explicit parameters instead.
 Always pass runtime LLM config explicitly, avoid provider/default fallback chains, and fail fast with a clear error if required values are missing.
