@@ -6,9 +6,6 @@ settings:
 
 catalogs:
   default:
-    '@carbon/icons-react':
-      specifier: ^11.75.0
-      version: 11.75.0
     '@carbon/layout':
       specifier: ^11.48.0
       version: 11.48.0
@@ -177,7 +174,7 @@ importers:
         version: 3.2.12(next@16.1.6(@babel/core@7.29.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@carbon/icons-react':
         specifier: 'catalog:'
-        version: 11.75.0(react@19.2.4)
+        version: 11.76.0(react@19.2.4)
       '@carbon/layout':
         specifier: 'catalog:'
         version: 11.48.0
@@ -403,7 +400,7 @@ importers:
     dependencies:
       '@carbon/icons-react':
         specifier: 'catalog:'
-        version: 11.75.0(react@19.2.4)
+        version: 11.76.0(react@19.2.4)
       '@carbon/react':
         specifier: 'catalog:'
         version: 1.101.0(react-dom@19.2.4(react@19.2.4))(react-is@19.2.4)(react@19.2.4)(sass@1.97.3)
@@ -506,7 +503,7 @@ importers:
     dependencies:
       '@carbon/icons-react':
         specifier: 'catalog:'
-        version: 11.75.0(react@18.3.1)
+        version: 11.76.0(react@18.3.1)
       '@carbon/layout':
         specifier: 'catalog:'
         version: 11.48.0
@@ -1324,11 +1321,11 @@ packages:
   '@carbon/grid@11.50.0':
     resolution: {integrity: sha512-TzDPTTm6SoUK13AwrBlJEBM//k1TfhvG9ZchpfsQrt0QJPaM4HgIOrLGXTwj/Mye4xXLV7uIglQsL30821dYtA==}
 
-  '@carbon/icon-helpers@10.72.0':
-    resolution: {integrity: sha512-KUBzy7JtZhL+FxWJB4O8fyyJQ5zXuLX160vpQAK75Xo7VqY1l5QTF7VMZxo7HF6Q129M/7u5oHOg4ob4gtn6HQ==}
+  '@carbon/icon-helpers@10.73.0':
+    resolution: {integrity: sha512-Grn/QxHZfSOdXp/WBadegVfq1LT96QwX9b977dqMU5qmxp6cxKqUGvV1oqs6GiBacKoQFrH2xgbKwlcecgSHfA==}
 
-  '@carbon/icons-react@11.75.0':
-    resolution: {integrity: sha512-2hfp5GcA5ihpyiJ5oY4oExHz2xncgfg8wSoRFoBSgHljugIK5GYfVKf16EWYKMrg8YT2W1PQpHneSHq0gkKKXQ==}
+  '@carbon/icons-react@11.76.0':
+    resolution: {integrity: sha512-FsRlufW8lcdEX/Vj0NpdloBDPmXGRCIaD6ENhYt0f42zJncs6OqNQ58plqNteHg/JMQAdA+pP8f5tSkopNhRRg==}
     peerDependencies:
       react: '>=16'
 
@@ -10127,20 +10124,20 @@ snapshots:
       '@carbon/layout': 11.48.0
       '@ibm/telemetry-js': 1.11.0
 
-  '@carbon/icon-helpers@10.72.0':
+  '@carbon/icon-helpers@10.73.0':
     dependencies:
       '@ibm/telemetry-js': 1.11.0
 
-  '@carbon/icons-react@11.75.0(react@18.3.1)':
+  '@carbon/icons-react@11.76.0(react@18.3.1)':
     dependencies:
-      '@carbon/icon-helpers': 10.72.0
+      '@carbon/icon-helpers': 10.73.0
       '@ibm/telemetry-js': 1.11.0
       prop-types: 15.8.1
       react: 18.3.1
 
-  '@carbon/icons-react@11.75.0(react@19.2.4)':
+  '@carbon/icons-react@11.76.0(react@19.2.4)':
     dependencies:
-      '@carbon/icon-helpers': 10.72.0
+      '@carbon/icon-helpers': 10.73.0
       '@ibm/telemetry-js': 1.11.0
       prop-types: 15.8.1
       react: 19.2.4
@@ -10157,7 +10154,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.6
       '@carbon/feature-flags': 1.0.0
-      '@carbon/icons-react': 11.75.0(react@18.3.1)
+      '@carbon/icons-react': 11.76.0(react@18.3.1)
       '@carbon/layout': 11.48.0
       '@carbon/styles': 1.100.0(sass@1.97.3)
       '@carbon/utilities': 0.16.0
@@ -10181,7 +10178,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.6
       '@carbon/feature-flags': 1.0.0
-      '@carbon/icons-react': 11.75.0(react@19.2.4)
+      '@carbon/icons-react': 11.76.0(react@19.2.4)
       '@carbon/layout': 11.48.0
       '@carbon/styles': 1.100.0(sass@1.97.3)
       '@carbon/utilities': 0.16.0
@@ -15211,7 +15208,7 @@ snapshots:
       eslint: 9.39.3(jiti@1.21.7)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.3(jiti@1.21.7))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.3(jiti@1.21.7))
       eslint-plugin-react: 7.37.5(eslint@9.39.3(jiti@1.21.7))
       eslint-plugin-react-hooks: 5.2.0(eslint@9.39.3(jiti@1.21.7))
@@ -15245,7 +15242,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.3(jiti@1.21.7))
     transitivePeerDependencies:
       - supports-color
 
@@ -15266,7 +15263,7 @@ snapshots:
       gonzales-pe: 4.3.0
       lodash: 4.17.23
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7)))(eslint@9.39.3(jiti@1.21.7)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.56.1(eslint@9.39.3(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.3(jiti@1.21.7)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
