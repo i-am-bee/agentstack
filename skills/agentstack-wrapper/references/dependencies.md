@@ -48,35 +48,14 @@ If you need to figure out exact imports from installed libraries (`agentstack_sd
 
 Use this approach **only** if you ran the code and it failed due to a missing or incorrect import. You have several options for inline exploration depending on what you need:
 
-**1. Quick Overview with `dir()`:**
-The simplest way to see what's available in a module is the built-in `dir()` function, which returns a list of all names (variables, functions, classes, modules) in the given object's namespace.
+**Last Resort:** If you know the exact name of the target class but cannot find its import path in the documentation, use this snippet to crawl the package for `agentstack_sdk`:
 
 ```bash
-python -c 'import agentstack_sdk; print(dir(agentstack_sdk))'
+.venv/bin/python -c "import pkgutil, inspect, agentstack_sdk as sdk; classes = {}; [classes.update({n: f'{m.name}.{n}' for n, o in inspect.getmembers(__import__(m.name, fromlist=['*']), inspect.isclass)}) for m in pkgutil.walk_packages(sdk.__path__, sdk.__name__ + '.')]; [print(path) for path in sorted(classes.values())]"
 ```
 
-_Note: This will also show internal attributes (starting with an underscore), which you generally should avoid using._
-
-**3. Deep Search (for nested/hidden classes):**
-**Last Resort:** If you know the exact name of the target class but cannot find its import path in the documentation, use this snippet to crawl the package:
+And similarly for the A2A SDK (`a2a`):
 
 ```bash
-python -c '
-import pkgutil, importlib
-def find_class(pkg_name, target):
-    pkg = importlib.import_module(pkg_name)
-    for _, modname, _ in pkgutil.walk_packages(pkg.__path__, pkg.__name__ + "."):
-        try:
-            if hasattr(importlib.import_module(modname), target):
-                print(f"Found {target} in: {modname}")
-        except Exception:
-            pass
-find_class("agentstack_sdk", "AgentDetail")
-'
-```
-
-Once the module is located, you can inspect its signature or docstring directly via another short inline command:
-
-```bash
-python -c "from agentstack_sdk.server.agent import AgentDetail; help(AgentDetail)"
+.venv/bin/python -c "import pkgutil, inspect, a2a as sdk; classes = {}; [classes.update({n: f'{m.name}.{n}' for n, o in inspect.getmembers(__import__(m.name, fromlist=['*']), inspect.isclass)}) for m in pkgutil.walk_packages(sdk.__path__, sdk.__name__ + '.')]; [print(path) for path in sorted(classes.values())]"
 ```

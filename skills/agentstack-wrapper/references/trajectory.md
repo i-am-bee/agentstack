@@ -18,7 +18,7 @@ Trajectory entries are metadata for transparency and observability. They are not
 
 When implementing trajectories, follow the [Trajectory Documentation](https://agentstack.beeai.dev/stable/agent-integration/trajectory.md) and utilize these patterns:
 
-- **Import**: `from agentstack_sdk.a2a.extensions.services.trajectory import TrajectoryExtensionServer, TrajectoryExtensionSpec`
+- **Import**: `from agentstack_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionServer, TrajectoryExtensionSpec`
 - **Injection**: `trajectory: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]` as an agent function parameter.
 - **`yield`**: Use `yield trajectory.trajectory_metadata(title="...", content="...")` within the main agent generator to emit progress updates.
 - **`group_id` for updates**: Use `yield trajectory.trajectory_metadata(title="...", content="...", group_id="...")` to update an existing step instead of creating a new one.

@@ -37,6 +37,7 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 - Handle sensitive values only through declared Agent Stack extensions.
 - Never log, print, persist, or expose secret values.
 - Never send secrets to untrusted intermediaries or endpoints not required by the wrapped agent contract.
+- If installing anything via `pip`, always use the `-qq` flag to suppress unnecessary output.
 
 ## Constraints (must follow)
 
@@ -47,7 +48,7 @@ Integration guide for wrapping Python agents for [Agent Stack](https://agentstac
 | C3  | **Cleanup temp files.** If the agent downloads or creates helper files at runtime, add a cleanup step before the function returns.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | C4  | **Prioritize Public Access (No redundant tokens).** Only use the Secrets extension if the secret is strictly mandatory for the agent's core functionality and no public/anonymous access is viable. Do not add secrets or tokens that increase configuration burden if they were optional in the original agent (e.g., optional GitHub token). Preserve existing optional auth behavior unless removal is explicitly approved and documented as a behavior change. API keys must be passed explicitly, never read from env vars. For required third-party API credentials, Secrets or Env Variables extension is mandatory in the wrapped path. |
 | C5  | **Detect existing tooling.** If the project uses `requirements.txt`, add `agentstack-sdk~=<VERSION>` there. If it uses `pyproject.toml`, add it there. Add `a2a-sdk` only when the project manages it directly, and keep it compatible with the chosen `agentstack-sdk` version. Never force `uv` or create duplicate manifests.                                                                                                                                                                                                                                                                                                                |
-| C6  | **Documentation-First Source of Truth.** When this skill provides docs/references/URLs, those docs are the primary authority for imports, APIs, and behavior. Do not start from runtime/package introspection while documented guidance exists.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| C6  | **Documentation-First Source of Truth.** Local skill files in the `references/` folder hold absolute priority over online documentation. When this skill provides local references, they are the primary authority for imports, APIs, and behavior. Do not start from online docs or runtime/package introspection while local documented guidance exists.                                                                                                                                                                                                                                                                                      |
 | C7  | **Fallback and Validation Order.** Use local source inspection and installed-package introspection only if required details are missing/ambiguous in docs. Keep runtime/package verification as a final validation step after implementation, and document any doc gaps before falling back.                                                                                                                                                                                                                                                                                                                                                    |
 | C8  | **Structured Parameters to Forms.** For single-turn agents with named parameters, map them to an `initial_form` using `FormServiceExtensionSpec.demand(initial_form=...)`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | C9  | **Remove CLI arguments.** Remove all `argparse` or `sys.argv` logic. Replace mandatory CLI inputs with `initial_form` items, AgentStack Settings Extension (for runtime options), or AgentStack Env Variables.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -79,10 +80,11 @@ To ensure the highest success rate and prevent AI context window exhaustion duri
 
 For every wrapping task, use this exact precedence order:
 
-1. **Primary (required first):** Skill-provided references and official documentation URLs linked by this skill.
-2. **Secondary:** Local project source code and repository docs (README/AGENTS) to map behavior and integration points.
-3. **Last resort:** Installed package/runtime introspection (e.g., `inspect`, package source probing) only when docs do not provide enough detail.
-4. **Final step only:** Runtime verification (imports/server checks) after implementation is complete.
+1. **Absolute Primary (highest priority):** Local skill-provided files in the `references/` folder.
+2. **Primary (required second):** Official documentation URLs linked by this skill.
+3. **Secondary:** Local project source code and repository docs (README/AGENTS) to map behavior and integration points.
+4. **Last resort:** Installed package/runtime introspection (e.g., `inspect`, package source probing) only when docs do not provide enough detail.
+5. **Final step only:** Runtime verification (imports/server checks) after implementation is complete.
 
 If you use step 3, explicitly record what was missing from docs and why fallback was necessary.
 
@@ -162,19 +164,19 @@ This classification determines:
 
 ## Step 3 – Add and Install Dependencies
 
-**Read `references/dependencies.md` and follow it completely for Step 3.**
+**Read [references/dependencies.md](reference/dependencies.md) and follow it completely for Step 3.**
 
 ---
 
 ## Step 4 – Create the Server Wrapper & Entrypoint
 
-**Read `references/wrapper-entrypoint.md` and follow it completely for Step 4.**
+**Read [references/wrapper-entrypoint.md](reference/wrapper-entrypoint.md) and follow it completely for Step 4.**
 
 ---
 
 ## Step 5 – Wire LLM / Services via Extensions
 
-**Read `references/llm-services.md` and follow it completely for Step 5.**
+**Read [references/llm-services.md](reference/llm-services.md) and follow it completely for Step 5.**
 
 ---
 
@@ -199,7 +201,7 @@ See the [official error guide](https://agentstack.beeai.dev/stable/agent-integra
 
 If the original agent accepts **named parameters** (not just free text), map them to an `initial_form` using the Forms extension. For free-text agents, the plain message input is sufficient — skip this step.
 
-**Read `references/forms.md` for the full implementation guide** (field types, Pydantic model, mid-conversation input).
+**Read [references/forms.md](reference/forms.md) for the full implementation guide** (field types, Pydantic model, mid-conversation input).
 
 ---
 
@@ -207,13 +209,13 @@ If the original agent accepts **named parameters** (not just free text), map the
 
 If the original agent reads files from the local filesystem or accepts file paths as CLI/function arguments, those inputs must be replaced with platform file uploads. Local filesystem access is not available at runtime. Even if the file contains plain text, still use a `FileField` upload — do not flatten file inputs into message text.
 
-**Read `references/files.md` for detection patterns, replacement steps, text extraction, and mid-conversation uploads.**
+**Read [references/files.md](reference/files.md) for detection patterns, replacement steps, text extraction, and mid-conversation uploads.**
 
 ---
 
 ## Step 8 – Configuration Variables & Secrets
 
-**Read `references/configuration-variables.md` and follow it completely for configuration mapping, secret handling, and anti-patterns.**
+**Read [references/configuration-variables.md](reference/configuration-variables.md) and follow it completely for configuration mapping, secret handling, and anti-patterns.**
 
 ---
 
@@ -221,7 +223,7 @@ If the original agent reads files from the local filesystem or accepts file path
 
 ### Trajectory Output Rule and Implementation
 
-**Read `references/trajectory.md` and follow it completely for trajectory decision rules and implementation.**
+**Read [references/trajectory.md](reference/trajectory.md) and follow it completely for trajectory decision rules and implementation.**
 
 ### Final Output Rule
 
@@ -243,7 +245,7 @@ Use the platform's API to construct an `AgentArtifact` pointing to the generated
 
 Enhance the agent with platform-level capabilities by injecting extensions via `Annotated` function parameters.
 
-**Read `references/platform-extensions.md` for extension selection and documentation links.**
+**Read [references/platform-extensions.md](reference/platform-extensions.md) for extension selection and documentation links.**
 
 Treat this reference as required input for Step 10 decisions and implementation.
 
@@ -253,7 +255,7 @@ Treat this reference as required input for Step 10 decisions and implementation.
 
 Update the project's `README.md` (or create one if missing) with instructions on how to run the wrapped agent server. Include:
 
-1. **Install dependencies** using the project's existing tooling (e.g. `uv pip install -r requirements.txt` or `pip install -r requirements.txt`).
+1. **Install dependencies** using the project's existing tooling (e.g. `uv pip install -qq -r requirements.txt` or `pip install -qq -r requirements.txt`). Make sure to use the `-qq` flag to keep the terminal output clean.
 2. **Environment Configuration** — Document required `.env` patterns if `python-dotenv` is used. However, ensure the agent still receives configuration explicitly instead of reading env arguments internally.
 3. **Run the server** with the appropriate command (e.g. `uv run server.py` or `python server.py`).
 4. **Default address** — mention that the server starts at `http://127.0.0.1:8000` by default and can be configured via `HOST` and `PORT` environment variables.
