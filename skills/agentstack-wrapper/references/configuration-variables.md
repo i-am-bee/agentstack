@@ -12,11 +12,13 @@ It is critical to determine if the agent has any configuration and what environm
 2. **README.md**: Check deployment or configuration instructions.
 3. **`.env` or `.env.example`** file if present in the repository.
 
-If you identify variables, you must decide how to handle them. Use the following extension logic:
+If you identify variables, you must decide how to handle them. Use the following extension logic without ambiguity:
 
-- **AgentStack Settings Extension**: Best for runtime configuration options that alter agent behavior (e.g., toggles, multiple-choice options like a "select" dropdown, "thinking mode").
-- **AgentStack Env Variables Extension**: Best for low-level system/deployment configuration needed to run the service (e.g., `PORT`, `HOST`, database connection strings).
-- **AgentStack Secrets Extension**: Best for sensitive user-level settings such as API keys and tokens for external services.
+- **Third-party API key/token required for a runtime call** (examples: Tavily, SerpAPI, Pinecone) → **Secrets extension (mandatory)**.
+- **Deployment/runtime host settings** (examples: `HOST`, `PORT`, service URLs, database connection strings) → **Env Variables extension**.
+- **User-tunable behavior options** (examples: mode/toggle/choice that changes behavior) → **Settings extension**.
+
+If a third-party integration can truly run anonymously and the credential is optional, preserve optional behavior and do not force a secret demand.
 
 **API Tools & Environment Variables Constraint**: Third-party library integrations often implicitly depend on standard environment variables, which will fail in the AgentStack wrapper sandbox. You must systematically identify these required credentials, extract them using the `SecretsExtension`, and pass them explicitly as named parameters to component constructors.
 
@@ -65,3 +67,11 @@ Sensitive values must be provided via:
 
 - **Secrets extension** for user-level/runtime secrets.
 - **Env Variables extension** for deployment-level configuration.
+
+## External API Credential Audit (Required)
+
+Before completion, explicitly confirm all three checks:
+
+1. [ ] Every external API/tool client was inspected for credential source (implicit env lookup, constructor args, config object).
+2. [ ] Any required credential was sourced from Secrets extension and passed explicitly to the client/tool constructor.
+3. [ ] No wrapped execution path leaves required API credentials in implicit env-var mode (`os.getenv`, `os.environ`, `dotenv` lookups).
