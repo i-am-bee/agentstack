@@ -28,8 +28,21 @@ depends = ["common:setup:*"]
 ["common:setup:git-hooks"]
 hide = true
 dir = "{{config_root}}"
-run = "test ! -d .git || (printf '#!/bin/sh\n{{ mise_bin }} run git-hooks:pre-commit' >.git/hooks/pre-commit && chmod +x .git/hooks/pre-commit)"
-sources = [".git/hooks/pre-commit"]
+run = """
+#!/bin/bash
+test ! -d .git && exit 0
+cat >.git/hooks/pre-commit <<'HOOK'
+#!/bin/sh
+{{ mise_bin }} run git-hooks:pre-commit
+HOOK
+chmod +x .git/hooks/pre-commit
+cat >.git/hooks/commit-msg <<'HOOK'
+#!/bin/sh
+bash scripts/commit-msg.sh "$1"
+HOOK
+chmod +x .git/hooks/commit-msg
+"""
+sources = [".git/hooks/pre-commit", ".git/hooks/commit-msg"]
 outputs = { auto = true }
 
 ["common:setup:pnpm"]
