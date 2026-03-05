@@ -6,7 +6,7 @@ TEMP_FILE=$(mktemp)
 
 # Check if any AI co-author trailers exist before stripping
 HAS_AI_TRAILER=false
-if grep -qi -E '^Co-authored-by:.*(Claude|Cursor|anthropic)' "$COMMIT_MSG_FILE"; then
+if grep -qi -E '^Co-authored-by:.*(Claude|Cursor|anthropic|cursor)' "$COMMIT_MSG_FILE"; then
   HAS_AI_TRAILER=true
 fi
 
