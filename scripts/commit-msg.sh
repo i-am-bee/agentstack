@@ -3,7 +3,7 @@ set -euo pipefail
 
 COMMIT_MSG_FILE="$1"
 TEMP_FILE=$(mktemp)
-
+trap 'rm -f "$TEMP_FILE"' EXIT
 # Check if any AI co-author trailers exist before stripping
 HAS_AI_TRAILER=false
 if grep -qi -E '^Co-authored-by:.*(Claude|Cursor|anthropic|cursor)' "$COMMIT_MSG_FILE"; then
