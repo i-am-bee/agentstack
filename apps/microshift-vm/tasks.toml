@@ -64,8 +64,8 @@ packer build \
 
 echo "$SRC_HASH" > "$DIST_DIR/src-hash.txt"
 '''
-sources = ["microshift.pkr.hcl", "cloud-init/*", "rootfs/**/*", "install.sh"]
-outputs = ["dist/**/*"]
+sources = ["microshift.pkr.hcl", "cloud-init/*", "rootfs/**/*", "install.sh", "wsl/*"]
+outputs = ["dist/**/*.qcow2"]
 
 ["microshift-vm:build:wsl"]
 depends = ["microshift-vm:build:qemu"]
@@ -74,10 +74,19 @@ run = '''
 #!/bin/bash
 set -euxo pipefail
 MOUNTPOINT=$(mktemp -d)
-trap 'guestunmount "$MOUNTPOINT" 2>/dev/null; rmdir "$MOUNTPOINT" 2>/dev/null' EXIT
+WSL_ROOTFS=$(mktemp -d)
+trap 'guestunmount "$MOUNTPOINT" 2>/dev/null; rmdir "$MOUNTPOINT" 2>/dev/null; rm -rf "$WSL_ROOTFS" 2>/dev/null' EXIT
 guestmount -a "./dist/x86_64/microshift-vm-x86_64.qcow2" -i --ro "$MOUNTPOINT"
-tar -czf "./dist/x86_64/microshift-vm-x86_64.tar.gz" \
-  -C "$MOUNTPOINT" \
-  --exclude='./boot' --exclude='./lib/modules' \
-  bin etc lib lib64 opt sbin srv usr var/lib/crio var/lib/containers postgresql-data seaweedfs-data registry-data redis-data
+mkdir -p "$WSL_ROOTFS"
+cp -a "$MOUNTPOINT/." "$WSL_ROOTFS/"
+cp wsl/wsl.conf "$WSL_ROOTFS/etc/wsl.conf"
+cp wsl/wsl-distribution.conf "$WSL_ROOTFS/etc/wsl-distribution.conf"
+truncate -s 0 "$WSL_ROOTFS/etc/fstab"
+rm -f "$WSL_ROOTFS/etc/resolv.conf"
+for svc in systemd-resolved.service systemd-networkd.service NetworkManager.service systemd-tmpfiles-setup.service systemd-tmpfiles-clean.service tmp.mount systemd-tmpfiles-setup-dev-early.service systemd-tmpfiles-setup-dev.service; do
+  ln -sf /dev/null "$WSL_ROOTFS/etc/systemd/system/$svc"
+done
+tar -c --numeric-owner --exclude=./proc --exclude=./sys --exclude=./dev --exclude=./run --exclude=./mnt -C "$WSL_ROOTFS" . | gzip --best >./dist/x86_64/microshift-vm-x86_64.wsl
 '''
+sources = ["microshift.pkr.hcl", "cloud-init/*", "rootfs/**/*", "install.sh", "wsl/*"]
+outputs = ["dist/**/*.wsl"]

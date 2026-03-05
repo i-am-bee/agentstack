@@ -50,6 +50,7 @@ runs:
         echo "ARCH=$(uname -m | sed -e 's/arm64/aarch64/;s/amd64/x86_64/')" >> $GITHUB_ENV
 
     - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      id: uv-cache
       with:
         path: /tmp/.uv-cache
         key: uv-cache-v1-${{ runner.os }}-${{ hashFiles('**/uv.lock') }}
@@ -76,6 +77,7 @@ runs:
 
     - uses: jdx/mise-action@e79ddf65a11cec7b0e882bedced08d6e976efb2d
 
-    - uses: gacts/run-and-post-run@4f9ae8f313ea7ec57ab5e6f82ae343c9a614bfbf # v1
+    - if: steps.uv-cache.outputs.cache-hit != 'true'
+      uses: gacts/run-and-post-run@4f9ae8f313ea7ec57ab5e6f82ae343c9a614bfbf # v1
       with:
         post: uv cache prune --ci

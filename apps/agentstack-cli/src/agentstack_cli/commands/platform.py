@@ -415,7 +415,7 @@ async def start_cmd(
                         check=False,
                     )
                     await run_command(["wsl.exe", "--terminate", vm_name], "Restarting Agent Stack VM")
-                await run_in_vm(vm_name, ["dbus-launch", "true"], "Ensuring persistence of Agent Stack VM")
+                await run_in_vm(vm_name, ["/usr/bin/setsid", "-f", "/usr/bin/sleep", "infinity"], "Ensuring persistence of Agent Stack VM")
                 await run_in_vm(
                     vm_name,
                     [
@@ -441,17 +441,6 @@ async def start_cmd(
                 .splitlines()[0]
                 .split("/")[-1]
             ),
-        )
-
-        await run_in_vm(
-            vm_name,
-            [
-                "bash",
-                "-c",
-                "kubectl --kubeconfig=/kubeconfig get nodes --no-headers -o custom-columns=NAME:.metadata.name 2>/dev/null | xargs -I {} sh -c \"grep -q '{}' /etc/hosts || echo '127.0.0.1 {}' >> /etc/hosts\"",
-            ],
-            "Ensuring node name resolution",
-            check=False,
         )
 
         if platform == "k3s":
@@ -595,6 +584,16 @@ async def start_cmd(
         await run_in_vm(
             vm_name,
             [
+                "bash",
+                "-c",
+                "timeout 5m bash -c 'until kubectl --kubeconfig=/kubeconfig get nodes --no-headers -o custom-columns=NAME:.metadata.name 2>/dev/null | grep -q .; do sleep 5; done' && "
+                "kubectl --kubeconfig=/kubeconfig get nodes --no-headers -o custom-columns=NAME:.metadata.name | xargs -I {} sh -c \"grep -q '{}' /etc/hosts || echo '127.0.0.1 {}' >> /etc/hosts\"",
+            ],
+            "Ensuring node name resolution",
+        )
+        await run_in_vm(
+            vm_name,
+            [
                 "helm",
                 "upgrade",
                 "--install",
@@ -604,6 +603,7 @@ async def start_cmd(
                 "--create-namespace",
                 "--values=/tmp/agentstack-values.yaml",
                 "--timeout=20m",
+                "--wait",
                 "--kubeconfig=/kubeconfig",
                 *(f"--set={value}" for value in set_values_list),
             ],
@@ -664,11 +664,12 @@ async def start_cmd(
             ["bash"],
             "Forwarding VM services to host",
             input=textwrap.dedent("""\
+                    set -euxo pipefail
                     systemctl daemon-reload
                     kubectl --kubeconfig=/kubeconfig get svc -n default -o 'jsonpath={range .items[*]}{.metadata.name}{":"}{.spec.ports[*].port}{"\\n"}{end}' | while IFS=: read svc ports; do
                         for port in $ports; do
                             if [[ ( "$port" -ge 8333 && "$port" -le 8399 ) || "$port" -eq 4318 ]]; then
-                                systemctl start "kubectl-port-forward@${svc}:${port}" &
+                                systemctl start "kubectl-port-forward@${svc}:${port}"
                             fi
                         done
                     done
