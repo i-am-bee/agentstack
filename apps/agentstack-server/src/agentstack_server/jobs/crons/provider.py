@@ -7,7 +7,6 @@ import logging
 from datetime import timedelta
 
 import httpx
-from a2a.types import AgentCard
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import HTTPError
 from kink import inject
@@ -145,16 +144,14 @@ async def refresh_unmanaged_provider_state(
         try:
             assert isinstance(provider.source, NetworkProviderLocation)
             async with httpx.AsyncClient(base_url=str(provider.source.a2a_url), timeout=timeout_sec) as client:
-                resp_card = AgentCard.model_validate(
-                    (await client.get(AGENT_CARD_WELL_KNOWN_PATH)).raise_for_status().json()
-                )
+                resp_card = (await client.get(AGENT_CARD_WELL_KNOWN_PATH)).raise_for_status().json()
 
                 # For self-registered provider we need to check their self-registration ID, because their URL
                 # might overlap (more agents on the same URL, only one can be online)
                 provider_self_reg_ext = get_extension(provider.agent_card, SELF_REGISTRATION_EXTENSION_URI)
                 resp_self_reg_ext = get_extension(resp_card, SELF_REGISTRATION_EXTENSION_URI)
                 if provider_self_reg_ext is not None and resp_self_reg_ext is not None:
-                    if provider_self_reg_ext.params == resp_self_reg_ext.params:
+                    if provider_self_reg_ext["params"] == resp_self_reg_ext["params"]:
                         state = UnmanagedState.ONLINE
                     else:
                         # Different agent responding at the same URL, don't update this provider

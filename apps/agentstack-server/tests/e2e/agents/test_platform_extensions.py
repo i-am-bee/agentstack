@@ -10,7 +10,7 @@ from uuid import uuid4
 
 import pytest
 from a2a.client import Client, create_text_message_object
-from a2a.types import FilePart, Message, Role, TaskState
+from a2a.types import Message, Role, TaskState
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionClient,
     PlatformApiExtensionServer,
@@ -37,14 +37,13 @@ async def file_reader_writer_factory(
             _: Annotated[PlatformApiExtensionServer, PlatformApiExtensionSpec()],
         ) -> AsyncIterator[RunYield]:
             for part in message.parts:
-                match part.root:
-                    case FilePart() as fp:
-                        async with load_file(fp, stream=True) as open_file:
-                            async for chunk in open_file.aiter_text(chunk_size=5):
-                                yield chunk
+                if part.HasField("raw") or part.HasField("url"):
+                    async with load_file(part, stream=True) as open_file:
+                        async for chunk in open_file.aiter_text(chunk_size=5):
+                            yield chunk
 
             file = await File.create(filename="1.txt", content=message.context_id.encode(), content_type="text/plain")
-            yield file.to_file_part()
+            yield file.to_part()
 
         async with create_server_with_agent(file_reader_writer, context_token=context_token) as (server, test_client):
             yield server, test_client
@@ -76,8 +75,8 @@ async def test_platform_api_extension(file_reader_writer_factory, permissions, s
         api_extension_client = PlatformApiExtensionClient(PlatformApiExtensionSpec())
 
         message = Message(
-            role=Role.user,
-            parts=[file.to_file_part()],
+            role=Role.ROLE_USER,
+            parts=[file.to_part()],
             message_id=str(uuid4()),
             context_id=context.id,
             metadata=api_extension_client.api_auth_metadata(auth_token=token.token, expires_at=token.expires_at),
@@ -87,20 +86,20 @@ async def test_platform_api_extension(file_reader_writer_factory, permissions, s
         task = await get_final_task_from_stream(client.send_message(message))
 
         if should_fail:
-            assert task.status.state == TaskState.failed
-            assert "403 Forbidden" in task.status.message.parts[0].root.text
+            assert task.status.state == TaskState.TASK_STATE_FAILED
+            assert "403 Forbidden" in task.status.message.parts[0].text
         else:
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, f"Fail: {task.status.message.parts[0].text}"
 
             # check that first message is the content of the first_file
-            first_message_text = task.history[0].parts[0].root.text
+            first_message_text = task.history[0].parts[0].text
             assert first_message_text == "01234"
 
-            second_message_text = task.history[1].parts[0].root.text
+            second_message_text = task.history[1].parts[0].text
             assert second_message_text == "56789"
 
             # check that the agent uploaded a new file with correct context_id as content
-            async with load_file(task.history[2].parts[0].root) as file:
+            async with load_file(task.history[2].parts[0]) as file:
                 assert file.text == context.id
 
 
@@ -125,7 +124,7 @@ async def test_self_registration_with_variables(
     os.environ.pop(SELF_REGISTRATION_TEST_VAR_NAME, None)
     _, client = self_registration_agent
     task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
-    assert task.history[-1].parts[0].root.text == "empty"
+    assert task.history[-1].parts[0].text == "empty"
 
     with subtests.test("register provider"):
         async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
@@ -143,7 +142,7 @@ async def test_self_registration_with_variables(
         async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
             with attempt:
                 task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
-                assert task.history[-1].parts[0].root.text == "test"
+                assert task.history[-1].parts[0].text == "test"
 
     with subtests.test("remove provider variable"):
         await provider.update_variables(variables={SELF_REGISTRATION_TEST_VAR_NAME: None})
@@ -151,4 +150,4 @@ async def test_self_registration_with_variables(
         async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
             with attempt:
                 task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
-                assert task.history[-1].parts[0].root.text == "empty"
+                assert task.history[-1].parts[0].text == "empty"

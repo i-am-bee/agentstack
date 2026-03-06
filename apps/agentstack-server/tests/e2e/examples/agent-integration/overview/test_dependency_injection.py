@@ -38,7 +38,9 @@ async def test_dependency_injection_example(
             message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "LLM service is available" in task.history[-1].parts[0].root.text
 
         with subtests.test("agent reports LLM not available without fulfillment"):
@@ -46,5 +48,7 @@ async def test_dependency_injection_example(
             message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "LLM service not available" in task.history[-1].parts[0].root.text

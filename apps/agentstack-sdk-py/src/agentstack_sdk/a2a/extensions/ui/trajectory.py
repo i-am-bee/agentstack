@@ -7,7 +7,7 @@ from __future__ import annotations
 from types import NoneType
 
 import pydantic
-from a2a.types import DataPart, FilePart, Part, TextPart
+from a2a.types import Message, Part
 
 from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -42,7 +42,7 @@ class Trajectory(pydantic.BaseModel):
     group_id: str | None = None
 
 
-class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec):
+class TrajectoryExtensionSpec(NoParamsBaseExtensionSpec[NoneType]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/trajectory/v1"
 
 
@@ -51,16 +51,20 @@ class TrajectoryExtensionServer(BaseExtensionServer[TrajectoryExtensionSpec, Non
         self, *, title: str | None = None, content: str | None = None, group_id: str | None = None
     ) -> Metadata:
         return Metadata(
-            {self.spec.URI: Trajectory(title=title, content=content, group_id=group_id).model_dump(mode="json")}
+            {
+                self.spec.URI: [
+                    Trajectory(title=title, content=content, group_id=group_id).model_dump(mode="json"),
+                ]
+            }
         )
 
     def message(
         self,
         text: str | None = None,
-        parts: list[Part | TextPart | FilePart | DataPart] | None = None,
+        parts: list[Part] | None = None,
         trajectory_title: str | None = None,
         trajectory_content: str | None = None,
-    ) -> AgentMessage:
+    ) -> Message:
         return AgentMessage(
             text=text,
             parts=parts or [],

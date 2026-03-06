@@ -28,10 +28,16 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "FormRequestExtensionClient",
+    "FormRequestExtensionServer",
+    "FormRequestExtensionSpec",
+]
+
 T = TypeVar("T")
 
 
-class FormRequestExtensionSpec(NoParamsBaseExtensionSpec):
+class FormRequestExtensionSpec(NoParamsBaseExtensionSpec[FormResponse]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/form_request/v1"
 
 
@@ -47,7 +53,7 @@ class FormRequestExtensionServer(BaseExtensionServer[FormRequestExtensionSpec, F
     async def request_form(self, *, form: FormRender, model: type[T]) -> T | None: ...
     async def request_form(self, *, form: FormRender, model: type[T] | None = None) -> T | FormResponse | None:
         message = await self.context.yield_async(
-            InputRequired(message=AgentMessage(text=form.title, metadata={self.spec.URI: form}))
+            InputRequired(message=AgentMessage(text=form.title, metadata={self.spec.URI: form.model_dump()}))
         )
         return self.parse_form_response(message=message, model=model or FormResponse) if message else None
 

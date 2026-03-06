@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 import fastapi
 from fastapi import HTTPException, status
 from fastapi.params import Depends, Query
 from fastapi.requests import Request
+from google.protobuf.json_format import MessageToDict
 from pydantic import TypeAdapter
 from starlette.responses import StreamingResponse
 
@@ -17,16 +18,25 @@ from agentstack_server.api.dependencies import (
     ProviderServiceDependency,
     RequiresPermissions,
 )
-from agentstack_server.api.routes.a2a import create_proxy_agent_card
+from agentstack_server.api.routes.a2a import create_proxy_agent_card as create_proxy_agent_card_
 from agentstack_server.api.schema.common import EntityModel
 from agentstack_server.api.schema.env import ListVariablesSchema, UpdateVariablesRequest
 from agentstack_server.api.schema.provider import CreateProviderRequest, PatchProviderRequest
+from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.permissions import AuthorizedUser
 from agentstack_server.domain.models.provider import ProviderLocation, ProviderWithState
 from agentstack_server.utils.fastapi import streaming_response
 
 router = fastapi.APIRouter()
+
+
+def create_proxy_agent_card(
+    agent_card: dict[str, Any], provider_id: UUID, request: Request, configuration: Configuration
+) -> dict[str, Any]:
+    return MessageToDict(
+        create_proxy_agent_card_(agent_card, provider_id=provider_id, request=request, configuration=configuration)
+    )
 
 
 @router.post("")

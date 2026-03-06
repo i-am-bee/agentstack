@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 from uuid import UUID
 
 from a2a.types import Artifact, Message
@@ -18,9 +18,6 @@ __all__ = [
     "ContextStoreInstance",
 ]
 
-if TYPE_CHECKING:
-    from agentstack_sdk.server.dependencies import Dependency, Depends
-
 
 class ContextStoreInstance(Protocol):
     def load_history(
@@ -31,8 +28,9 @@ class ContextStoreInstance(Protocol):
 
 
 class ContextStore(abc.ABC):
-    def modify_dependencies(self, dependencies: dict[str, Depends]) -> None:
-        return
+    @property
+    def required_extensions(self) -> set[str]:
+        return set()
 
     @abc.abstractmethod
-    async def create(self, context_id: str, initialized_dependencies: list[Dependency]) -> ContextStoreInstance: ...
+    async def create(self, context_id: str) -> ContextStoreInstance: ...

@@ -44,7 +44,7 @@ class AgentDetail(pydantic.BaseModel, extra="allow"):
     variables: list[EnvVar] | None = None
 
 
-class AgentDetailExtensionSpec(BaseExtensionSpec[AgentDetail]):
+class AgentDetailExtensionSpec(BaseExtensionSpec[AgentDetail, NoneType]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1"
 
 

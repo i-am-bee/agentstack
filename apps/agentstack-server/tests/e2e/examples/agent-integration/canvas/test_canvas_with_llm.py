@@ -25,7 +25,9 @@ async def test_canvas_with_llm_example(subtests, get_final_task_from_stream, a2a
             message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
 
             # Verify artifact is returned (the agent uses a mocked LLM response)
             assert len(task.artifacts) > 0
@@ -56,7 +58,9 @@ async def test_canvas_with_llm_example(subtests, get_final_task_from_stream, a2a
             }
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
 
             # Verify updated artifact is returned
             assert len(task.artifacts) > 0

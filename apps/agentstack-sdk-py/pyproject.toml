@@ -28,6 +28,8 @@ dependencies = [
     "typing-extensions>=4.15.0",
     "opentelemetry-instrumentation-httpx>=0.60b1",
     "opentelemetry-instrumentation-openai>=0.52.3",
+    "asgiref>=3.11.0",
+    "jsonpatch>=1.33",
 ]
 
 [dependency-groups]
@@ -37,7 +39,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "pytest-httpx>=0.35.0",
-    "ruff>=0.12.3",
+    "ruff>=0.15.0",
 ]
 
 [build-system]
@@ -82,3 +84,6 @@ project-includes = [
     "**/*.py*",
     "**/*.ipynb",
 ]
+
+[tool.uv.sources]
+a2a-sdk = { git = "https://github.com/a2aproject/a2a-python.git", rev = "1.0-dev" }

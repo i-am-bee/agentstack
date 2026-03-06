@@ -7,18 +7,26 @@ from typing import Annotated, TypedDict, Unpack
 
 import pytest
 
-from agentstack_sdk.a2a.extensions import CitationExtensionServer, CitationExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    CitationExtensionServer,
+    CitationExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
+)
+from agentstack_sdk.a2a.extensions.streaming import StreamingExtensionServer, StreamingExtensionSpec
 from agentstack_sdk.server.dependencies import extract_dependencies
+
+pytestmark = pytest.mark.unit
 
 
 class MyExtensions(TypedDict):
     a: Annotated[CitationExtensionServer, CitationExtensionSpec()]
-    b: Annotated[CitationExtensionServer, CitationExtensionSpec()]
-    c: Annotated[CitationExtensionServer, CitationExtensionSpec()]
+    b: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
+    c: Annotated[StreamingExtensionServer, StreamingExtensionSpec()]
 
 
 class MyExtensionsComplex(TypedDict):
-    b: Annotated[CitationExtensionServer, CitationExtensionSpec()]
+    b: Annotated[TrajectoryExtensionServer, TrajectoryExtensionSpec()]
 
 
 @pytest.mark.unit
@@ -29,7 +37,6 @@ def test_extract_dependencies_simple() -> None:
     assert extract_dependencies(agent).keys() == {"a"}
 
 
-@pytest.mark.unit
 def test_extract_dependencies_extra_parameters() -> None:
     def agent(a: Annotated[CitationExtensionServer, CitationExtensionSpec()], b: bool) -> None:
         pass
@@ -48,8 +55,8 @@ def test_extract_dependencies_kwargs() -> None:
     assert extract_dependencies(agent).keys() == {"a", "b", "c"}
 
 
-@pytest.mark.unit
 def test_extract_dependencies_complex() -> None:
+
     def agent(
         a: Annotated[CitationExtensionServer, CitationExtensionSpec()],
         **kwargs: Unpack[MyExtensionsComplex],

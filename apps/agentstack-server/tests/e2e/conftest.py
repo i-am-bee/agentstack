@@ -5,14 +5,14 @@ from __future__ import annotations
 import json
 import logging
 import socket
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager, closing, suppress
 from typing import Any
 
 import httpx
 import pytest
 from a2a.client import Client, ClientConfig, ClientEvent, ClientFactory
-from a2a.types import AgentCard, Message, Task
+from a2a.types import AgentCard, Task
 from agentstack_sdk.platform import ModelProvider, SystemConfiguration, use_platform_client
 from agentstack_sdk.platform.context import ContextToken
 from keycloak import KeycloakAdmin
@@ -21,15 +21,13 @@ logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
-def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent | Message]], Awaitable[Task]]:
-    async def fn(stream: AsyncIterator[ClientEvent | Message]) -> Task:
+def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent]], Awaitable[Task | None]]:
+    async def fn(stream: AsyncIterator[ClientEvent]) -> Task | None:
         """Helper to extract the final task from a client.send_message stream."""
         final_task = None
         async for event in stream:
             match event:
-                case (task, None):
-                    final_task = task
-                case (task, _):
+                case (_, task):
                     final_task = task
         return final_task
 
@@ -117,7 +115,7 @@ def _create_test_user(keycloak_admin: KeycloakAdmin, username: str, role: str | 
 
 
 @pytest.fixture(scope="session")
-def test_admin(keycloak_admin) -> tuple[str, str]:
+def test_admin(keycloak_admin, test_configuration) -> Iterator[tuple[str, str]]:
     username = "testadmin"
     _create_test_user(keycloak_admin, username, "agentstack-admin")
     try:
@@ -128,7 +126,7 @@ def test_admin(keycloak_admin) -> tuple[str, str]:
 
 
 @pytest.fixture(scope="session")
-def test_user(keycloak_admin) -> tuple[str, str]:
+def test_user(keycloak_admin) -> Iterator[tuple[str, str]]:
     username = "testuser"
     _create_test_user(keycloak_admin, username)
     try:

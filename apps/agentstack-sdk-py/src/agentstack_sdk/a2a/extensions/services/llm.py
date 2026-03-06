@@ -29,6 +29,18 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "LLMDemand",
+    "LLMFulfillment",
+    "LLMServiceExtensionClient",
+    "LLMServiceExtensionMetadata",
+    "LLMServiceExtensionParams",
+    "LLMServiceExtensionServer",
+    "LLMServiceExtensionSpec",
+]
+
+_DEFAULT_DEMAND_NAME = "default"
+
 
 class LLMFulfillment(SecureBaseModel):
     identifier: str | None = None
@@ -78,23 +90,28 @@ class LLMServiceExtensionParams(pydantic.BaseModel):
     """Model requests that the agent requires to be provided by the client."""
 
 
-class LLMServiceExtensionSpec(BaseExtensionSpec[LLMServiceExtensionParams]):
+class LLMServiceExtensionMetadata(pydantic.BaseModel):
+    llm_fulfillments: dict[str, LLMFulfillment] = {}
+    """Provided models corresponding to the model requests."""
+
+
+class LLMServiceExtensionSpec(BaseExtensionSpec[LLMServiceExtensionParams, LLMServiceExtensionMetadata]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/llm/v1"
 
     @classmethod
     def single_demand(
-        cls, name: str | None = None, description: str | None = None, suggested: tuple[str, ...] = ()
+        cls,
+        name: str = _DEFAULT_DEMAND_NAME,
+        description: str | None = None,
+        suggested: tuple[str, ...] = (),
+        default: LLMFulfillment | None = None,
     ) -> Self:
         return cls(
             params=LLMServiceExtensionParams(
-                llm_demands={name or "default": LLMDemand(description=description, suggested=suggested)}
-            )
+                llm_demands={name: LLMDemand(description=description, suggested=suggested)}
+            ),
+            default=LLMServiceExtensionMetadata(llm_fulfillments={name: default}) if default else None,
         )
-
-
-class LLMServiceExtensionMetadata(pydantic.BaseModel):
-    llm_fulfillments: dict[str, LLMFulfillment] = {}
-    """Provided models corresponding to the model requests."""
 
 
 class LLMServiceExtensionServer(BaseExtensionServer[LLMServiceExtensionSpec, LLMServiceExtensionMetadata]):

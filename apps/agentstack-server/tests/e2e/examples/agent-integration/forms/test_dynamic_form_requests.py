@@ -28,7 +28,7 @@ async def test_dynamic_form_requests_example(subtests, get_final_task_from_strea
 
             # Get the task - should be in input_required state with form
             task = await get_final_task_from_stream(running_example.client.send_message(message))
-            assert task.status.state == TaskState.input_required
+            assert task.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
 
             # Parse the form request from the task status message
             spec = FormRequestExtensionSpec()
@@ -46,7 +46,7 @@ async def test_dynamic_form_requests_example(subtests, get_final_task_from_strea
                 }
             )
             response_message = Message(
-                role=Role.user,
+                role=Role.ROLE_USER,
                 message_id=str(uuid4()),
                 task_id=task.id,
                 context_id=running_example.context.id,
@@ -57,7 +57,7 @@ async def test_dynamic_form_requests_example(subtests, get_final_task_from_strea
             # Send the form response and get final task
             final_task = await get_final_task_from_stream(running_example.client.send_message(response_message))
 
-            assert final_task.status.state == TaskState.completed, (
+            assert final_task.status.state == TaskState.TASK_STATE_COMPLETED, (
                 f"Fail: {final_task.status.message.parts[0].root.text}"
             )
             assert "test@example.com" in final_task.history[-1].parts[0].root.text

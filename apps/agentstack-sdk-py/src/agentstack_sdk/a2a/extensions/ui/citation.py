@@ -7,7 +7,7 @@ from __future__ import annotations
 from types import NoneType
 
 import pydantic
-from a2a.types import DataPart, FilePart, Part, TextPart
+from a2a.types import Message, Part
 
 from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -54,21 +54,21 @@ class CitationMetadata(pydantic.BaseModel):
     citations: list[Citation] = pydantic.Field(default_factory=list)
 
 
-class CitationExtensionSpec(NoParamsBaseExtensionSpec):
+class CitationExtensionSpec(NoParamsBaseExtensionSpec[NoneType]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/citation/v1"
 
 
 class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneType]):
     def citation_metadata(self, *, citations: list[Citation]) -> Metadata:
-        return Metadata({self.spec.URI: CitationMetadata(citations=citations).model_dump(mode="json")})
+        return Metadata({self.spec.URI: [c.model_dump(mode="json") for c in citations]})
 
     def message(
         self,
         text: str | None = None,
-        parts: list[Part | TextPart | FilePart | DataPart] | None = None,
+        parts: list[Part] | None = None,
         *,
         citations: list[Citation],
-    ) -> AgentMessage:
+    ) -> Message:
         return AgentMessage(
             text=text,
             parts=parts or [],
@@ -76,4 +76,4 @@ class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneTyp
         )
 
 
-class CitationExtensionClient(BaseExtensionClient[CitationExtensionSpec, CitationMetadata]): ...
+class CitationExtensionClient(BaseExtensionClient[CitationExtensionSpec, list[Citation]]): ...

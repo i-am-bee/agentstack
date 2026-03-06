@@ -8,7 +8,12 @@ from typing import Literal, overload
 from uuid import UUID
 
 import janus
-from a2a.types import Artifact, Message, MessageSendConfiguration, Task
+from a2a.types import (
+    Artifact,
+    Message,
+    Task,
+)
+from asgiref.sync import async_to_sync
 from pydantic import BaseModel, PrivateAttr
 
 from agentstack_sdk.a2a.types import RunYield, RunYieldResume
@@ -16,23 +21,46 @@ from agentstack_sdk.platform.context import ContextHistoryItem
 from agentstack_sdk.server.store.context_store import ContextStoreInstance
 
 
+class RunContextSettings(BaseModel):
+    strict: bool = False
+
+
 class RunContext(BaseModel, arbitrary_types_allowed=True):
-    configuration: MessageSendConfiguration | None = None
     task_id: str
     context_id: str
     current_task: Task | None = None
     related_tasks: list[Task] | None = None
+    strict: bool = False  # TODO: explain strict mode - what yields will stop message etc. Use in match/case
 
-    _store: ContextStoreInstance | None = PrivateAttr(None)
+    _store: ContextStoreInstance
     _yield_queue: janus.Queue[RunYield] = PrivateAttr(default_factory=janus.Queue)
-    _yield_resume_queue: janus.Queue[RunYieldResume] = PrivateAttr(default_factory=janus.Queue)
+    _yield_resume_queue: janus.Queue[RunYieldResume | Exception] = PrivateAttr(default_factory=janus.Queue)
+
+    def __init__(self, _store: ContextStoreInstance, **data):
+        super().__init__(**data)
+        self._store = _store
 
     async def store(self, data: Message | Artifact):
         if not self._store:
             raise RuntimeError("Context store is not initialized")
         if isinstance(data, Message):
-            data = data.model_copy(deep=True, update={"context_id": self.context_id, "task_id": self.task_id})
+            msg = Message()
+            msg.CopyFrom(data)
+            msg.context_id = self.context_id
+            msg.task_id = self.task_id
+            data = msg
         await self._store.store(data)
+
+    def store_sync(self, data: Message | Artifact):
+        if not self._store:
+            raise RuntimeError("Context store is not initialized")
+        if isinstance(data, Message):
+            msg = Message()
+            msg.CopyFrom(data)
+            msg.context_id = self.context_id
+            msg.task_id = self.task_id
+            data = msg
+        async_to_sync(self._store.store)(data)
 
     @overload
     def load_history(self, load_history_items: Literal[False] = False) -> AsyncGenerator[Message | Artifact, None]: ...
@@ -55,11 +83,17 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
 
     def yield_sync(self, value: RunYield) -> RunYieldResume:
         self._yield_queue.sync_q.put(value)
-        return self._yield_resume_queue.sync_q.get()
+        resp = self._yield_resume_queue.sync_q.get()
+        if isinstance(resp, Exception):
+            raise resp
+        return resp
 
     async def yield_async(self, value: RunYield) -> RunYieldResume:
         await self._yield_queue.async_q.put(value)
-        return await self._yield_resume_queue.async_q.get()
+        resp = await self._yield_resume_queue.async_q.get()
+        if isinstance(resp, Exception):
+            raise resp
+        return resp
 
     def shutdown(self) -> None:
         self._yield_queue.shutdown()

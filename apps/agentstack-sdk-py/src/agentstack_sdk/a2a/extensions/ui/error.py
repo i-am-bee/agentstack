@@ -13,6 +13,7 @@ from types import NoneType
 from typing import Any, Final
 
 import pydantic
+from a2a.types import Message
 
 from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -84,7 +85,7 @@ class ErrorExtensionParams(pydantic.BaseModel):
     include_stacktrace: bool = False
 
 
-class ErrorExtensionSpec(BaseExtensionSpec[ErrorExtensionParams]):
+class ErrorExtensionSpec(BaseExtensionSpec[ErrorExtensionParams, NoneType]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/ui/error/v1"
 
 
@@ -168,10 +169,7 @@ class ErrorExtensionServer(BaseExtensionServer[ErrorExtensionSpec, NoneType]):
             }
         )
 
-    def message(
-        self,
-        error: BaseException,
-    ) -> AgentMessage:
+    def message(self, error: BaseException) -> Message:
         """
         Create an AgentMessage with error metadata and serialized text representation.
 

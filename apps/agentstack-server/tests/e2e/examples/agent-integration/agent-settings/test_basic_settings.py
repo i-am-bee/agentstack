@@ -39,7 +39,9 @@ async def test_basic_settings_example(subtests, get_final_task_from_stream, a2a_
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
             # Verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "Thinking is enabled" in task.history[-1].parts[0].root.text
             assert "Memory is disabled" in task.history[-1].parts[0].root.text
             assert "Response style: humorous" in task.history[-1].parts[0].root.text

@@ -23,7 +23,9 @@ async def test_trajectory_basic_usage_example(subtests, get_final_task_from_stre
             message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
 
             # Verify trajectory metadata was yielded (should be in history)
             trajectory_uri = TrajectoryExtensionSpec.URI

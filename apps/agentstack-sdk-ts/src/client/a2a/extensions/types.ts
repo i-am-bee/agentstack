@@ -17,4 +17,5 @@ export * from './ui/canvas/types';
 export * from './ui/citation/types';
 export * from './ui/error/types';
 export * from './ui/settings/types';
+export * from './ui/streaming/types';
 export * from './ui/trajectory/types';

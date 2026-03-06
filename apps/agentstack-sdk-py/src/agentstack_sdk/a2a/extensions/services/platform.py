@@ -25,7 +25,6 @@ from agentstack_sdk.a2a.extensions.base import (
 from agentstack_sdk.a2a.extensions.exceptions import ExtensionError
 from agentstack_sdk.platform import use_platform_client
 from agentstack_sdk.platform.client import PlatformClient
-from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthenticatedUser
 from agentstack_sdk.util.httpx import BearerAuth
 from agentstack_sdk.util.pydantic import REVEAL_SECRETS, SecureBaseModel
 
@@ -40,6 +39,15 @@ __all__ = [
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+__all__ = [
+    "PlatformApiExtension",
+    "PlatformApiExtensionClient",
+    "PlatformApiExtensionMetadata",
+    "PlatformApiExtensionParams",
+    "PlatformApiExtensionServer",
+    "PlatformApiExtensionSpec",
+]
 
 
 class PlatformApiExtensionMetadata(SecureBaseModel):
@@ -58,7 +66,7 @@ class PlatformApiExtensionParams(pydantic.BaseModel):
     auto_use: bool = True
 
 
-class PlatformApiExtensionSpec(BaseExtensionSpec[PlatformApiExtensionParams]):
+class PlatformApiExtensionSpec(BaseExtensionSpec[PlatformApiExtensionParams, PlatformApiExtensionMetadata]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/platform_api/v1"
 
     def __init__(self, params: PlatformApiExtensionParams | None = None) -> None:
@@ -71,14 +79,15 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
     @asynccontextmanager
     @override
     async def lifespan(self) -> AsyncIterator[None]:
-        """Called when entering the agent context after the first message was parsed (__call__ was already called)"""
-        if self.data and self.spec.params.auto_use:
+        if self.data and self.data.auth_token and self.spec.params.auto_use:
             async with self.use_client():
                 yield
         else:
             yield
 
     def _get_header_token(self, request_context: RequestContext) -> pydantic.Secret[str] | None:
+        from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthenticatedUser
+
         header_token = None
         call_context = request_context.call_context
         assert call_context
@@ -100,9 +109,6 @@ class PlatformApiExtensionServer(BaseExtensionServer[PlatformApiExtensionSpec, P
         data.base_url = data.base_url or HttpUrl(os.getenv("PLATFORM_URL", "http://127.0.0.1:8333"))
         auth_token = data.auth_token or self._get_header_token(request_context)
         data.auth_token = pydantic.SecretStr(auth_token.get_secret_value()) if auth_token else None
-
-        if not data.auth_token:
-            raise ExtensionError(self.spec, "Platform extension metadata was not provided")
 
     @asynccontextmanager
     async def use_client(self) -> AsyncIterator[PlatformClient]:
@@ -146,5 +152,13 @@ class _PlatformSelfRegistrationExtensionParams(pydantic.BaseModel):
     self_registration_id: str
 
 
-class _PlatformSelfRegistrationExtensionSpec(BaseExtensionSpec[_PlatformSelfRegistrationExtensionParams]):
+class _PlatformSelfRegistrationExtensionSpec(
+    BaseExtensionSpec[_PlatformSelfRegistrationExtensionParams, _PlatformSelfRegistrationExtension]
+):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/platform-self-registration/v1"
+
+
+class _PlatformSelfRegistrationExtensionServer(
+    BaseExtensionServer[_PlatformSelfRegistrationExtensionSpec, _PlatformSelfRegistrationExtension]
+):
+    pass

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Self
 import pydantic
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
+from google.protobuf.json_format import MessageToDict
 from opentelemetry import trace
 from typing_extensions import override
 
@@ -32,8 +33,19 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "SecretDemand",
+    "SecretFulfillment",
+    "SecretsExtensionClient",
+    "SecretsExtensionServer",
+    "SecretsExtensionSpec",
+    "SecretsServiceExtensionMetadata",
+    "SecretsServiceExtensionParams",
+]
+
 A2A_EXTENSION_SECRETS_REQUESTED = "a2a_extension.secrets.requested"
 A2A_EXTENSION_SECRETS_RESOLVED = "a2a_extension.secrets.resolved"
+_DEFAULT_DEMAND_NAME = "default"
 
 
 class SecretDemand(pydantic.BaseModel):
@@ -53,15 +65,22 @@ class SecretsServiceExtensionMetadata(pydantic.BaseModel):
     secret_fulfillments: dict[str, SecretFulfillment] = {}
 
 
-class SecretsExtensionSpec(BaseExtensionSpec[SecretsServiceExtensionParams | None]):
+class SecretsExtensionSpec(BaseExtensionSpec[SecretsServiceExtensionParams | None, SecretsServiceExtensionMetadata]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/auth/secrets/v1"
 
     @classmethod
-    def single_demand(cls, name: str, key: str | None = None, description: str | None = None) -> Self:
+    def single_demand(
+        cls,
+        name: str,
+        key: str = _DEFAULT_DEMAND_NAME,
+        description: str | None = None,
+        default: SecretFulfillment | None = None,
+    ) -> Self:
         return cls(
             params=SecretsServiceExtensionParams(
-                secret_demands={key or "default": SecretDemand(description=description, name=name)}
-            )
+                secret_demands={key: SecretDemand(description=description, name=name)}
+            ),
+            default=SecretsServiceExtensionMetadata(secret_fulfillments={key: default}) if default else None,
         )
 
 
@@ -74,7 +93,7 @@ class SecretsExtensionServer(BaseExtensionServer[SecretsExtensionSpec, SecretsSe
         self.context = run_context
 
     def parse_secret_response(self, message: A2AMessage) -> SecretsServiceExtensionMetadata:
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not (data := MessageToDict(message.metadata).get(self.spec.URI)):
             raise ValueError("Secrets has not been provided in response.")
 
         return SecretsServiceExtensionMetadata.model_validate(data)

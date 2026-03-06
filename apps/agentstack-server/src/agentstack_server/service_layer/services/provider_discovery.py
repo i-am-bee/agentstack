@@ -7,9 +7,10 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import timedelta
+from typing import Any
 from uuid import UUID
 
-from a2a.types import AgentCapabilities, AgentCard, AgentExtension
+from a2a.types import AgentExtension
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 from httpx import AsyncClient
 from kink import inject
@@ -94,22 +95,12 @@ class ProviderDiscoveryService:
             await uow.commit()
             return count
 
-    async def _fetch_agent_card_from_container(self, location: DockerImageProviderLocation) -> AgentCard:
-        placeholder_card = AgentCard(
-            name="discovery",
-            description="",
-            url="",
-            version="",
-            capabilities=AgentCapabilities(),
-            default_input_modes=["text"],
-            default_output_modes=["text"],
-            skills=[],
-        )
+    async def _fetch_agent_card_from_container(self, location: DockerImageProviderLocation) -> dict[str, Any]:
         temp_provider = Provider(
             source=location,
             origin=str(location.root),
             created_by=uuid.UUID("00000000-0000-0000-0000-000000000000"),
-            agent_card=placeholder_card,
+            agent_card={"name": "placeholder"},
         )
         try:
             await self._deployment_manager.create_or_replace(provider=temp_provider)
@@ -118,8 +109,7 @@ class ProviderDiscoveryService:
             async with AsyncClient(base_url=str(url)) as client:
                 response = await client.get(AGENT_CARD_WELL_KNOWN_PATH, timeout=10)
                 response.raise_for_status()
-                agent_card = AgentCard.model_validate(response.json())
-                return self._inject_default_agent_detail_extension(agent_card, location)
+                return self._inject_default_agent_detail_extension(response.json(), location)
         finally:
             try:
                 await self._deployment_manager.delete(provider_id=temp_provider.id)
@@ -127,8 +117,8 @@ class ProviderDiscoveryService:
                 logger.exception(f"Failed to delete temporary deployment for provider {temp_provider.id}")
 
     def _inject_default_agent_detail_extension(
-        self, agent_card: AgentCard, location: DockerImageProviderLocation
-    ) -> AgentCard:
+        self, agent_card: dict[str, Any], location: DockerImageProviderLocation
+    ) -> dict[str, Any]:
         if get_extension(agent_card, AGENT_DETAIL_EXTENSION_URI):
             return agent_card
 
@@ -139,8 +129,6 @@ class ProviderDiscoveryService:
                 "container_image_url": str(location.root),
             },
         )
-
-        extensions = list(agent_card.capabilities.extensions or [])
-        extensions.append(default_extension)
-        agent_card.capabilities.extensions = extensions
+        extensions = [*agent_card.get("capabilities", {}).get("extensions", []), default_extension]
+        agent_card.setdefault("capabilities", {})["extensions"] = extensions
         return agent_card

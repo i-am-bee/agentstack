@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import base64
 import typing
 from collections.abc import AsyncIterator, Iterator
 from contextlib import AsyncExitStack, asynccontextmanager
@@ -11,7 +10,7 @@ from functools import cached_property
 from typing import Protocol
 
 import httpx
-from a2a.types import FilePart, FileWithBytes, FileWithUri
+from a2a.types import Part
 from httpx._decoders import LineDecoder
 from pydantic import AnyUrl, HttpUrl, RootModel, UrlConstraints
 
@@ -226,7 +225,7 @@ UriType = RootModel[PlatformFileUrl | HttpUrl]
 
 @asynccontextmanager
 async def load_file(
-    part: FilePart,
+    part: Part,
     stream: bool = False,
     client: httpx.AsyncClient | None = None,
 ) -> AsyncIterator[LoadedFile]:
@@ -234,29 +233,32 @@ async def load_file(
     :param stream: if stream is set to False, 'content' and 'text' fields are immediately available.
         Otherwise, they are only available after calling the '(a)read' method.
     """
-    match part.file:
-        case FileWithUri(mime_type=content_type, name=filename, uri=uri):
-            match UriType.model_validate(uri).root:
-                case PlatformFileUrl() as url:
-                    from agentstack_sdk.platform import File
+    if part.url:
+        match UriType.model_validate(part.url).root:
+            case PlatformFileUrl() as url:
+                from agentstack_sdk.platform import File
 
-                    async with File.load_content(url.file_id, stream=stream) as file:
-                        # override filename and content_type from part
-                        if filename:
-                            file.filename = filename
-                        if content_type:
-                            file.content_type = content_type
+                async with File.load_content(url.file_id, stream=stream) as file:
+                    # override filename and content_type from part
+                    if part.filename:
+                        file.filename = part.filename
+                    if part.media_type:
+                        file.content_type = part.media_type
+                    yield file
+            case HttpUrl():
+                async with AsyncExitStack() as stack:
+                    if client is None:
+                        client = await stack.enter_async_context(httpx.AsyncClient())
+                    async with client.stream("GET", part.url) as response:
+                        response.raise_for_status()
+                        file = LoadedFileWithUri(
+                            response=response, filename=part.filename, content_type=part.media_type
+                        )
+                        if not stream:
+                            await file.aread()
                         yield file
-                case HttpUrl():
-                    async with AsyncExitStack() as stack:
-                        if client is None:
-                            client = await stack.enter_async_context(httpx.AsyncClient())
-                        async with client.stream("GET", uri) as response:
-                            response.raise_for_status()
-                            file = LoadedFileWithUri(response=response, filename=filename, content_type=content_type)
-                            if not stream:
-                                await file.aread()
-                            yield file
 
-        case FileWithBytes(bytes=content, name=filename, mime_type=content_type):
-            yield LoadedFileWithBytes(content=base64.b64decode(content), filename=filename, content_type=content_type)
+    elif part.HasField("raw"):
+        yield LoadedFileWithBytes(content=part.raw, filename=part.filename, content_type=part.media_type)
+    else:
+        raise ValueError("Part must have either url or raw set to be loaded as a file.")

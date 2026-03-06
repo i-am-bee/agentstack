@@ -246,7 +246,7 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: Iterable[str]
                 "aud": {"essential": True, "values": aud},
             },
         )
-        claims.validate()
+        claims.validate(leeway=5)
         return claims
     except Exception as e:
         return e  # Cache exception response

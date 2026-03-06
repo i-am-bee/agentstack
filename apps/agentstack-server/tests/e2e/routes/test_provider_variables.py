@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import pytest
-from a2a.types import AgentCapabilities, AgentCard
+from a2a.types import AgentCard
 from agentstack_sdk.platform import Provider
 
 from tests.conftest import Configuration
@@ -19,16 +19,7 @@ async def test_provider_variables(subtests, test_configuration: Configuration):
     # First create a real test provider
     provider = await Provider.create(
         location=test_configuration.test_agent_image,
-        agent_card=AgentCard(
-            capabilities=AgentCapabilities(),
-            default_input_modes=[],
-            default_output_modes=[],
-            name="test_agent",
-            skills=[],
-            description="test agent",
-            url="http://localhost:8000",
-            version="0.0.1",
-        ),
+        agent_card=AgentCard(name="test_agent", description="test agent"),
     )
     provider_id = provider.id
 

@@ -40,6 +40,19 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "MCPDemand",
+    "MCPFulfillment",
+    "MCPServiceExtensionClient",
+    "MCPServiceExtensionMetadata",
+    "MCPServiceExtensionParams",
+    "MCPServiceExtensionServer",
+    "MCPServiceExtensionSpec",
+    "MCPTransport",
+    "StdioTransport",
+    "StreamableHTTPTransport",
+]
+
 _TRANSPORT_TYPES = Literal["streamable_http", "stdio"]
 
 _DEFAULT_DEMAND_NAME = "default"
@@ -102,7 +115,12 @@ class MCPServiceExtensionParams(pydantic.BaseModel):
     """Server requests that the agent requires to be provided by the client."""
 
 
-class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
+class MCPServiceExtensionMetadata(pydantic.BaseModel):
+    mcp_fulfillments: dict[str, MCPFulfillment] = {}
+    """Provided servers corresponding to the server requests."""
+
+
+class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams, MCPServiceExtensionMetadata]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/mcp/v1"
 
     @classmethod
@@ -112,6 +130,7 @@ class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
         description: str | None = None,
         suggested: tuple[str, ...] = (),
         allowed_transports: list[_TRANSPORT_TYPES] | None = None,
+        default: MCPFulfillment | None = None,
     ) -> Self:
         return cls(
             params=MCPServiceExtensionParams(
@@ -122,13 +141,9 @@ class MCPServiceExtensionSpec(BaseExtensionSpec[MCPServiceExtensionParams]):
                         allowed_transports=allowed_transports or _DEFAULT_ALLOWED_TRANSPORTS,
                     )
                 }
-            )
+            ),
+            default=MCPServiceExtensionMetadata(mcp_fulfillments={name: default}) if default else None,
         )
-
-
-class MCPServiceExtensionMetadata(pydantic.BaseModel):
-    mcp_fulfillments: dict[str, MCPFulfillment] = {}
-    """Provided servers corresponding to the server requests."""
 
 
 class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCPServiceExtensionMetadata]):
@@ -158,18 +173,6 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
                 if fulfillment.transport.type not in demand.allowed_transports:
                     raise ValueError(f'Transport "{fulfillment.transport.type}" not allowed for demand "{name}"')
         return metadata
-
-    def _get_oauth_server(self):
-        for dependency in self._dependencies.values():
-            if isinstance(dependency, OAuthExtensionServer):
-                return dependency
-        return None
-
-    def _get_platform_server(self):
-        for dependency in self._dependencies.values():
-            if isinstance(dependency, PlatformApiExtensionServer):
-                return dependency
-        return None
 
     @asynccontextmanager
     async def create_client(self, demand: str = _DEFAULT_DEMAND_NAME):
@@ -205,7 +208,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             raise NotImplementedError("Unsupported transport")
 
     async def _create_auth(self, transport: StreamableHTTPTransport):
-        platform = self._get_platform_server()
+        platform = PlatformApiExtensionServer.current()
         if (
             platform
             and platform.data
@@ -213,7 +216,7 @@ class MCPServiceExtensionServer(BaseExtensionServer[MCPServiceExtensionSpec, MCP
             and str(transport.url).startswith(str(platform.data.base_url))
         ):
             return await platform.create_httpx_auth()
-        oauth = self._get_oauth_server()
+        oauth = OAuthExtensionServer.current()
         if oauth:
             return await oauth.create_httpx_auth(resource_url=pydantic.AnyUrl(transport.url))
         return None

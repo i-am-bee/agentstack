@@ -23,7 +23,7 @@ async def test_adding_error_context_example(subtests, get_final_task_from_stream
             message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.failed
+            assert task.status.state == TaskState.TASK_STATE_FAILED
 
             # Verify error metadata contains context
             error_uri = ErrorExtensionSpec.URI

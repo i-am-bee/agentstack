@@ -53,7 +53,7 @@ async def file_processing_example(
                     content_type=mime_type,
                     content=content,
                 )
-                yield new_file.to_file_part()
+                yield new_file.to_part()
 
     yield "File processing complete"
 

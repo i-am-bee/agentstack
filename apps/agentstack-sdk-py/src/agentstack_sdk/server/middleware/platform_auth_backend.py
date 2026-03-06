@@ -9,7 +9,7 @@ from datetime import timedelta
 from urllib.parse import urljoin
 
 from a2a.auth.user import User
-from a2a.types import AgentCard, HTTPAuthSecurityScheme, SecurityScheme
+from a2a.types import HTTPAuthSecurityScheme, SecurityRequirement, SecurityScheme, StringList
 from async_lru import alru_cache
 from authlib.jose import JsonWebKey, JWTClaims, KeySet, jwt
 from authlib.jose.errors import JoseError
@@ -25,7 +25,7 @@ from starlette.requests import HTTPConnection
 from typing_extensions import override
 
 from agentstack_sdk.platform import use_platform_client
-from agentstack_sdk.types import JsonValue, SdkAuthenticationBackend
+from agentstack_sdk.types import A2ASecurity, JsonValue, SdkAuthenticationBackend
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +51,9 @@ class PlatformAuthenticatedUser(User, BaseUser):
     @override
     def display_name(self) -> str:
         name = self.claims.get("name", None)
-        assert name and isinstance(name, str)
-        return name
+        if name and isinstance(name, str):
+            return name
+        return self.user_name
 
     @property
     @override
@@ -106,12 +107,21 @@ class PlatformAuthBackend(SdkAuthenticationBackend):
             else:
                 audiences = [str(request.url.replace(path=path)) for path in ["/", "/jsonrpc"]]
 
+            # all variants with and without ending slash are valid
+            audiences = list(
+                {
+                    *(aud.rstrip("/") for aud in audiences),
+                    *(aud + "/" for aud in audiences if not aud.endswith("/")),
+                }
+            )
+
+        claims: JWTClaims | None = None
         try:
             # check only hostname urljoin("http://host:port/a/b", "/") -> "http://host:port/"
             jwks = await discover_jwks()
 
             # Verify signature
-            claims: JWTClaims = jwt.decode(
+            claims = jwt.decode(
                 auth.credentials,
                 jwks,
                 claims_options={
@@ -126,6 +136,8 @@ class PlatformAuthBackend(SdkAuthenticationBackend):
             return AuthCredentials(["authenticated"]), PlatformAuthenticatedUser(claims, auth.credentials)
 
         except (ValueError, JoseError) as e:
+            if "aud" in str(e) and claims:
+                logger.warning(f"Invalid audience: {claims.get('aud')}, expected: {audiences}")
             logger.warning(f"Authentication failed: {e}")
             raise AuthenticationError("Invalid token") from e
         except Exception as e:
@@ -133,14 +145,16 @@ class PlatformAuthBackend(SdkAuthenticationBackend):
             raise AuthenticationError(f"Authentication failed: {e}") from e
 
     @override
-    def update_card_security_schemes(self, agent_card: AgentCard) -> None:
-        agent_card.security_schemes = {
-            "platform_context_token": SecurityScheme(
-                HTTPAuthSecurityScheme(
-                    scheme="bearer",
-                    bearer_format="JWT",
-                    description="Platform context token, issued by the AgentStack server using POST /api/v1/context/{context_id}/token.",
+    def get_card_security_schemes(self) -> A2ASecurity:
+        return A2ASecurity(
+            security_requirements=[SecurityRequirement(schemes={"platform_context_token": StringList()})],
+            security_schemes={
+                "platform_context_token": SecurityScheme(
+                    http_auth_security_scheme=HTTPAuthSecurityScheme(
+                        scheme="bearer",
+                        bearer_format="JWT",
+                        description="Platform context token, issued by the AgentStack server using POST /api/v1/context/{context_id}/token.",
+                    )
                 )
-            ),
-        }
-        agent_card.security = [{"platform_context_token": []}]
+            },
+        )

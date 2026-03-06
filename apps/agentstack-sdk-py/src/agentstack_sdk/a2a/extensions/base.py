@@ -5,15 +5,19 @@
 from __future__ import annotations
 
 import abc
+import logging
 import typing
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from types import NoneType
+from typing import Self
 
 import pydantic
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import AgentCard, AgentExtension
 from a2a.types import Message as A2AMessage
+from google.protobuf.json_format import MessageToDict
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind
 from pydantic import BaseModel
@@ -26,13 +30,14 @@ from agentstack_sdk.util.telemetry import (
 )
 
 ParamsT = typing.TypeVar("ParamsT")
-MetadataFromClientT = typing.TypeVar("MetadataFromClientT")
-MetadataFromServerT = typing.TypeVar("MetadataFromServerT")
+MetadataFromClientT = typing.TypeVar("MetadataFromClientT", bound=BaseModel | NoneType)
+MetadataFromServerT = typing.TypeVar("MetadataFromServerT", bound=BaseModel | list | NoneType)
+
+logger = logging.getLogger(__name__)
 
 
 if typing.TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
-    from agentstack_sdk.server.dependencies import Dependency
 
 
 A2A_EXTENSION_URI = "a2a_extension.uri"
@@ -40,13 +45,14 @@ A2A_EXTENSION_METADATA_RECEIVED_EVENT = "a2a_extension.metadata.received"
 
 
 def _get_generic_args(cls: type, base_class: type) -> tuple[typing.Any, ...]:
-    for base in getattr(cls, "__orig_bases__", ()):
-        if typing.get_origin(base) is base_class and (args := typing.get_args(base)):
-            return args
+    for klass in cls.__mro__:
+        for base in getattr(klass, "__orig_bases__", ()):
+            if typing.get_origin(base) is base_class and (args := typing.get_args(base)):
+                return args
     raise TypeError(f"Missing Params type for {cls.__name__}")
 
 
-class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
+class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT, MetadataFromClientT]):
     """
     Base class for an A2A extension handler.
 
@@ -74,27 +80,29 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
     Params from the agent card.
     """
 
-    def __init__(self, params: ParamsT) -> None:
+    default: MetadataFromClientT | None = None
+    """
+    Default metadata to use if the client does not provide any.
+    """
+
+    def __init__(self, params: ParamsT, required: bool = False, default: MetadataFromClientT | None = None) -> None:
         """
         Agent should construct an extension instance using the constructor.
         """
         self.params = params
+        self.required = required
+        self.default = default
 
     @classmethod
-    def from_agent_card(cls: type["BaseExtensionSpec"], agent: AgentCard) -> typing.Self | None:
+    def from_agent_card(cls: type[typing.Self], agent: AgentCard) -> typing.Self | None:
         """
         Client should construct an extension instance using this classmethod.
         """
-        try:
-            return cls(
-                params=pydantic.TypeAdapter(cls.Params).validate_python(
-                    next(x for x in agent.capabilities.extensions or [] if x.uri == cls.URI).params
-                ),
-            )
-        except StopIteration:
-            return None
+        if extensions := [x for x in agent.capabilities.extensions or [] if x.uri == cls.URI]:
+            return cls(params=pydantic.TypeAdapter(cls.Params).validate_python(MessageToDict(extensions[0].params)))
+        return None
 
-    def to_agent_card_extensions(self, *, required: bool = False) -> list[AgentExtension]:
+    def to_agent_card_extensions(self, *, required: bool | None = None) -> list[AgentExtension]:
         """
         Agent should use this method to obtain extension definitions to advertise on the agent card.
         This returns a list, as it's possible to support multiple A2A extensions within a single class.
@@ -108,24 +116,24 @@ class BaseExtensionSpec(abc.ABC, typing.Generic[ParamsT]):
                     dict[str, typing.Any] | None,
                     pydantic.TypeAdapter(self.Params).dump_python(self.params, mode="json"),
                 ),
-                required=required,
+                required=required if required is not None else self.required,
             )
         ]
 
 
-class NoParamsBaseExtensionSpec(BaseExtensionSpec[NoneType]):
-    def __init__(self):
-        super().__init__(None)
+class NoParamsBaseExtensionSpec(typing.Generic[MetadataFromClientT], BaseExtensionSpec[NoneType, MetadataFromClientT]):
+    def __init__(self, required: bool = False, default: MetadataFromClientT | None = None):
+        super().__init__(None, required, default)
 
     @classmethod
     @override
     def from_agent_card(cls, agent: AgentCard) -> typing.Self | None:
-        if any(e.uri == cls.URI for e in agent.capabilities.extensions or []):
-            return cls()
+        if extensions := [e for e in agent.capabilities.extensions or [] if e.uri == cls.URI]:
+            return cls(required=extensions[0].required or False)
         return None
 
 
-ExtensionSpecT = typing.TypeVar("ExtensionSpecT", bound=BaseExtensionSpec[typing.Any])
+ExtensionSpecT = typing.TypeVar("ExtensionSpecT", bound=BaseExtensionSpec[typing.Any, typing.Any])
 
 
 class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromClientT]):
@@ -133,7 +141,9 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
     Type of the extension metadata, attached to messages.
     """
 
-    def __init_subclass__(cls, **kwargs):
+    _is_active: bool = False
+
+    def __init_subclass__(cls: type[Self], **kwargs):
         super().__init_subclass__(**kwargs)
 
         generic_args = _get_generic_args(cls, BaseExtensionServer)
@@ -143,16 +153,37 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
             attributes={A2A_EXTENSION_URI: generic_args[0].URI},
         )(cls)
         cls.MetadataFromClient = generic_args[1]
+        cls._context_var = ContextVar(f"extension_{cls.__name__}", default=None)
 
     _metadata_from_client: MetadataFromClientT | None = None
-    _dependencies: dict[str, Dependency] = {}  # noqa: RUF012
+
+    @classmethod
+    def current(cls) -> Self | None:
+        return cls._context_var.get()
 
     @property
-    def data(self):
-        return self._metadata_from_client
+    def data(self) -> MetadataFromClientT:
+        if self.MetadataFromClient is NoneType:
+            return None  # type: ignore
+
+        if self._metadata_from_client:
+            if not self._is_active:
+                logger.warning("Extension metadata received but extension is not active.")
+            return self._metadata_from_client
+
+        if self.spec.default is not None:
+            return self.spec.default
+
+        if not self._is_active:
+            raise AttributeError(f"Cannot access 'data' attribute: extension '{self.spec.URI}' is not active.")
+
+        raise AttributeError(
+            f"Extension '{self.spec.URI}' is active but no metadata provided and no default available."
+        )
 
     def __bool__(self):
-        return bool(self.data)
+        # fallback - if we receive metadata but not an extension activation header
+        return bool(self._is_active or self._metadata_from_client)
 
     def __init__(self, spec: ExtensionSpecT, *args, **kwargs) -> None:
         self.spec = spec
@@ -163,10 +194,11 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
         """
         Server should use this method to retrieve extension-associated metadata from a message.
         """
+        metadata = MessageToDict(message.metadata)
         return (
             None
-            if not message.metadata or self.spec.URI not in message.metadata
-            else pydantic.TypeAdapter(self.MetadataFromClient).validate_python(message.metadata[self.spec.URI])
+            if not metadata or self.spec.URI not in metadata
+            else pydantic.TypeAdapter(self.MetadataFromClient).validate_python(metadata[self.spec.URI])
         )
 
     def handle_incoming_message(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext):
@@ -178,20 +210,18 @@ class BaseExtensionServer(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromCl
                     attributes=flatten_dict(self._metadata_from_client.model_dump(context={REDACT_SECRETS: True})),
                 )
 
+        if not self._is_active and request_context.call_context:
+            self._is_active = self.spec.URI in request_context.call_context.requested_extensions
+            request_context.call_context.activated_extensions.add(self.spec.URI)
+
     def _fork(self) -> typing.Self:
         """Creates a clone of this instance with the same arguments as the original"""
         return type(self)(self.spec, *self._args, **self._kwargs)
 
-    def __call__(
-        self,
-        message: A2AMessage,
-        run_context: RunContext,
-        request_context: RequestContext,
-        dependencies: dict[str, Dependency],
-    ) -> typing.Self:
+    def __call__(self, message: A2AMessage, run_context: RunContext, request_context: RequestContext) -> typing.Self:
         """Works as a dependency constructor - create a private instance for the request"""
         instance = self._fork()
-        instance._dependencies = dependencies
+        instance._context_var.set(instance)  # type: ignore
         instance.handle_incoming_message(message, run_context, request_context)
         return instance
 
@@ -223,5 +253,7 @@ class BaseExtensionClient(abc.ABC, typing.Generic[ExtensionSpecT, MetadataFromSe
         return (
             None
             if not message.metadata or self.spec.URI not in message.metadata
-            else pydantic.TypeAdapter(self.MetadataFromServer).validate_python(message.metadata[self.spec.URI])
+            else pydantic.TypeAdapter(self.MetadataFromServer).validate_python(
+                MessageToDict(message.metadata)[self.spec.URI]
+            )
         )

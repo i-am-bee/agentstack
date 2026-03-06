@@ -4,24 +4,24 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 from collections.abc import AsyncIterator
 
 import pytest
 from a2a.client import Client, ClientEvent, create_text_message_object
-from a2a.client.errors import A2AClientJSONRPCError
+from a2a.utils.errors import A2AError
 from a2a.types import (
+    CancelTaskRequest,
+    GetTaskRequest,
     Message,
-    MessageSendParams,
+    Role,
     SendMessageRequest,
-    SendStreamingMessageRequest,
+    StreamResponse,
     Task,
     TaskArtifactUpdateEvent,
-    TaskIdParams,
-    TaskQueryParams,
     TaskState,
     TaskStatusUpdateEvent,
 )
+from google.protobuf.json_format import MessageToDict
 
 from agentstack_sdk.server import Server
 
@@ -35,7 +35,7 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
     final_task = None
     async for event in stream:
         match event:
-            case (task, _):
+            case (_, task):
                 final_task = task
     return final_task
 
@@ -44,20 +44,7 @@ def create_send_request_object(text: str | None = None, task_id: str | None = No
     message = create_text_message_object(content=text or input_text)
     if task_id:
         message.task_id = task_id
-    return SendMessageRequest(
-        id=str(uuid.uuid4()),
-        params=MessageSendParams(message=message),
-    )
-
-
-def create_streaming_request_object(text: str | None = None, task_id: str | None = None):
-    message = create_text_message_object(content=text or input_text)
-    if task_id:
-        message.task_id = task_id
-    return SendStreamingMessageRequest(
-        id=str(uuid.uuid4()),
-        params=MessageSendParams(message=message),
-    )
+    return SendMessageRequest(message=message)
 
 
 async def test_run_sync(echo: tuple[Server, Client]) -> None:
@@ -67,15 +54,15 @@ async def test_run_sync(echo: tuple[Server, Client]) -> None:
     final_task = await get_final_task_from_stream(client.send_message(message))
 
     assert final_task is not None
-    assert final_task.status.state == TaskState.completed
+    assert final_task.status.state == TaskState.TASK_STATE_COMPLETED
     # pyrefly: ignore [bad-argument-type]
     assert len(final_task.history) >= 1
     # The echo agent should return the same text as input
     # pyrefly: ignore [not-iterable]
-    agent_messages = [msg for msg in final_task.history if msg.role.value == "agent"]
+    agent_messages = [msg for msg in final_task.history if msg.role == Role.ROLE_AGENT]
     assert len(agent_messages) >= 1
 
-    assert agent_messages[0].parts[0].root.text == message.parts[0].root.text
+    assert agent_messages[0].parts[0].text == message.parts[0].text
 
 
 async def test_run_stream(echo: tuple[Server, Client]) -> None:
@@ -86,14 +73,14 @@ async def test_run_stream(echo: tuple[Server, Client]) -> None:
 
     # Should receive TaskStatusUpdateEvents
     status_events = []
-    for event in events:
+    for event, _ in events:
         match event:
-            case (_, TaskStatusUpdateEvent() as update):
+            case StreamResponse(status_update=TaskStatusUpdateEvent() as update):
                 status_events.append(update)
 
     assert len(status_events) > 0
     # Final event should be completion
-    assert status_events[-1].status.state == TaskState.completed
+    assert status_events[-1].status.state == TaskState.TASK_STATE_COMPLETED
 
 
 async def test_run_status(echo: tuple[Server, Client]) -> None:
@@ -106,10 +93,10 @@ async def test_run_status(echo: tuple[Server, Client]) -> None:
     task_id = final_task.id
 
     # Get current task status - should be completed for echo agent
-    task_params = TaskQueryParams(id=task_id)
+    task_params = GetTaskRequest(id=task_id)
     task_response = await client.get_task(task_params)
     assert hasattr(task_response, "status")
-    assert task_response.status.state == TaskState.completed
+    assert task_response.status.state == TaskState.TASK_STATE_COMPLETED
 
 
 async def test_failure_failer(failer: tuple[Server, Client]) -> None:
@@ -120,7 +107,7 @@ async def test_failure_failer(failer: tuple[Server, Client]) -> None:
 
     assert final_task is not None
     # Failer agent should fail
-    assert final_task.status.state == TaskState.failed
+    assert final_task.status.state == TaskState.TASK_STATE_FAILED
 
 
 async def test_failure_raiser(raiser: tuple[Server, Client]) -> None:
@@ -131,7 +118,7 @@ async def test_failure_raiser(raiser: tuple[Server, Client]) -> None:
 
     assert final_task is not None
     # Raiser agent should fail
-    assert final_task.status.state == TaskState.failed
+    assert final_task.status.state == TaskState.TASK_STATE_FAILED
 
 
 async def test_run_cancel_awaiter(awaiter: tuple[Server, Client]) -> None:
@@ -145,13 +132,13 @@ async def test_run_cancel_awaiter(awaiter: tuple[Server, Client]) -> None:
     task_id = initial_task.id
 
     # Cancel the task
-    cancel_params = TaskIdParams(id=task_id)
+    cancel_params = CancelTaskRequest(id=task_id)
     await client.cancel_task(cancel_params)
 
     # Check final status
-    task_params = TaskQueryParams(id=task_id)
+    task_params = GetTaskRequest(id=task_id)
     task_response = await client.get_task(task_params)
-    assert task_response.status.state == TaskState.canceled
+    assert task_response.status.state == TaskState.TASK_STATE_CANCELED
 
 
 async def test_run_cancel_stream(slow_echo: tuple[Server, Client]) -> None:
@@ -160,17 +147,17 @@ async def test_run_cancel_stream(slow_echo: tuple[Server, Client]) -> None:
     cancelled = False
     states = []
 
-    async for event in client.send_message(create_text_message_object()):
+    async for event, _ in client.send_message(create_text_message_object()):
         match event:
-            case (_, TaskStatusUpdateEvent() as update):
-                if not cancelled and update.status.state == TaskState.working:
+            case StreamResponse(status_update=TaskStatusUpdateEvent() as update) if update.task_id:
+                if not cancelled and update.status.state == TaskState.TASK_STATE_WORKING:
                     task_id = update.task_id
-                    cancel_params = TaskIdParams(id=task_id)
+                    cancel_params = CancelTaskRequest(id=task_id)
                     await client.cancel_task(cancel_params)
                     cancelled = True
                 states.append(update.status.state)
 
-    assert states == [TaskState.submitted, TaskState.working, TaskState.canceled]
+    assert states == [TaskState.TASK_STATE_SUBMITTED, TaskState.TASK_STATE_WORKING, TaskState.TASK_STATE_CANCELED]
 
 
 async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
@@ -179,7 +166,7 @@ async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
 
     initial_task = await get_final_task_from_stream(client.send_message(message))
 
-    assert initial_task.status.state == TaskState.input_required
+    assert initial_task.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
 
     resume_message = create_text_message_object(content="Resume input")
     resume_message.task_id = initial_task.id
@@ -187,9 +174,9 @@ async def test_run_resume_sync(awaiter: tuple[Server, Client]) -> None:
     final_task = await get_final_task_from_stream(client.send_message(resume_message))
 
     assert hasattr(final_task, "status")
-    assert final_task.status.state == TaskState.completed
+    assert final_task.status.state == TaskState.TASK_STATE_COMPLETED
     # pyrefly: ignore [missing-attribute, unsupported-operation]
-    assert "Received resume: Resume input" in final_task.history[-1].parts[0].root.text
+    assert "Received resume: Resume input" in final_task.history[-1].parts[0].text
 
 
 async def test_run_resume_stream(awaiter: tuple[Server, Client]) -> None:
@@ -206,13 +193,13 @@ async def test_run_resume_stream(awaiter: tuple[Server, Client]) -> None:
         events.append(event)
 
     status_events = []
-    for event in events:
+    for event, _ in events:
         match event:
-            case (_, TaskStatusUpdateEvent() as update):
+            case StreamResponse(status_update=TaskStatusUpdateEvent() as update):
                 status_events.append(update)
 
     assert len(status_events) > 0
-    assert status_events[-1].status.state == TaskState.completed
+    assert status_events[-1].status.state == TaskState.TASK_STATE_COMPLETED
 
 
 async def test_artifacts(artifact_producer: tuple[Server, Client]) -> None:
@@ -222,7 +209,7 @@ async def test_artifacts(artifact_producer: tuple[Server, Client]) -> None:
     final_task = await get_final_task_from_stream(client.send_message(message))
 
     assert hasattr(final_task, "status")
-    assert final_task.status.state == TaskState.completed
+    assert final_task.status.state == TaskState.TASK_STATE_COMPLETED
 
     # Check for artifacts in the task
     assert final_task.artifacts is not None
@@ -242,22 +229,22 @@ async def test_artifacts(artifact_producer: tuple[Server, Client]) -> None:
 
     assert text_artifact is not None
     assert len(text_artifact.parts) > 0
-    text_part = text_artifact.parts[0].root
+    text_part = text_artifact.parts[0]
     assert hasattr(text_part, "text")
     assert text_part.text == "This is a text artifact result"
 
     assert json_artifact is not None
     assert len(json_artifact.parts) > 0
-    json_part = json_artifact.parts[0].root
+    json_part = json_artifact.parts[0]
     assert hasattr(json_part, "data")
-    assert json_part.data == {"results": [1, 2, 3], "status": "complete"}
+    assert MessageToDict(json_part.data) == {"results": [1, 2, 3], "status": "complete"}
 
     assert image_artifact is not None
     assert len(image_artifact.parts) > 0
-    image_part = image_artifact.parts[0].root
-    assert hasattr(image_part, "file")
+    image_part = image_artifact.parts[0]
+    assert hasattr(image_part, "raw")
     # Verify it's valid PNG data by checking that it contains PNG in base64
-    assert "iVBOR" in image_part.file.bytes  # PNG header in base64
+    assert b"iVBOR" in image_part.raw  # PNG header in base64
 
 
 async def test_artifact_streaming(artifact_producer: tuple[Server, Client]) -> None:
@@ -270,15 +257,15 @@ async def test_artifact_streaming(artifact_producer: tuple[Server, Client]) -> N
     status_events = []
     artifact_events = []
 
-    for event in events:
+    for event, _ in events:
         match event:
-            case (_, TaskStatusUpdateEvent() as update):
+            case StreamResponse(status_update=TaskStatusUpdateEvent() as update) if update.task_id:
                 status_events.append(update)
-            case (_, TaskArtifactUpdateEvent() as update):
+            case StreamResponse(artifact_update=TaskArtifactUpdateEvent() as update) if update.artifact.artifact_id:
                 artifact_events.append(update)
 
     assert len(status_events) > 0
-    assert status_events[-1].status.state == TaskState.completed
+    assert status_events[-1].status.state == TaskState.TASK_STATE_COMPLETED
 
     # Check for artifact events
     assert len(artifact_events) >= 3  # Should have text, json, and image artifacts
@@ -294,7 +281,7 @@ async def test_artifact_streaming(artifact_producer: tuple[Server, Client]) -> N
     assert text_event is not None
     # Check artifact parts structure
     assert len(text_event.artifact.parts) > 0
-    text_part = text_event.artifact.parts[0].root
+    text_part = text_event.artifact.parts[0]
     assert hasattr(text_part, "text")
     assert text_part.text == "This is a text artifact result"
     assert text_event.last_chunk is True  # Should be complete artifacts
@@ -311,15 +298,15 @@ async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client
     status_events = []
     artifact_events = []
 
-    for event in events:
+    for event, _ in events:
         match event:
-            case (_, TaskStatusUpdateEvent() as update):
+            case StreamResponse(status_update=TaskStatusUpdateEvent() as update) if update.task_id:
                 status_events.append(update)
-            case (_, TaskArtifactUpdateEvent() as update):
+            case StreamResponse(artifact_update=TaskArtifactUpdateEvent() as update) if update.artifact.artifact_id:
                 artifact_events.append(update)
 
     assert len(status_events) > 0
-    assert status_events[-1].status.state == TaskState.completed
+    assert status_events[-1].status.state == TaskState.TASK_STATE_COMPLETED
 
     # Check for artifact events - should have 3 chunks for the same artifact
     chunked_events = [e for e in artifact_events if e.artifact.name == "large-file.txt"]
@@ -344,11 +331,11 @@ async def test_chunked_artifacts(chunked_artifact_producer: tuple[Server, Client
 
     # Verify artifact content
 
-    assert "first chunk" in first_chunk.artifact.parts[0].root.text
+    assert "first chunk" in first_chunk.artifact.parts[0].text
 
-    assert "second chunk" in second_chunk.artifact.parts[0].root.text
+    assert "second chunk" in second_chunk.artifact.parts[0].text
 
-    assert "final chunk" in final_chunk.artifact.parts[0].root.text
+    assert "final chunk" in final_chunk.artifact.parts[0].text
 
 
 async def test_run_timeout(awaiter_with_1s_timeout: tuple[Server, Client]) -> None:
@@ -356,14 +343,14 @@ async def test_run_timeout(awaiter_with_1s_timeout: tuple[Server, Client]) -> No
     message = create_text_message_object()
 
     initial_task = await get_final_task_from_stream(client.send_message(message))
-    assert initial_task.status.state == TaskState.input_required
+    assert initial_task.status.state == TaskState.TASK_STATE_INPUT_REQUIRED
 
     await asyncio.sleep(3)
-    task = await client.get_task(request=TaskQueryParams(id=initial_task.id))
-    assert task.status.state == TaskState.canceled
+    task = await client.get_task(request=GetTaskRequest(id=initial_task.id))
+    assert task.status.state == TaskState.TASK_STATE_CANCELED
 
     resume_message = create_text_message_object(content="Resume input")
     resume_message.task_id = initial_task.id
 
-    with pytest.raises(A2AClientJSONRPCError, match="is in terminal state"):
+    with pytest.raises(A2AError, match="is in terminal state"):
         await get_final_task_from_stream(client.send_message(resume_message))

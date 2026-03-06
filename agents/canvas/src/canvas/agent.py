@@ -67,7 +67,7 @@ async def canvas_agent(
 
     if edit_request:
         original_content = _get_text(edit_request.artifact)
-        selected_text = original_content[edit_request.start_index:edit_request.end_index]
+        selected_text = original_content[edit_request.start_index : edit_request.end_index]
         system_prompt = f"""You are an expert content editor. The user has selected a part of a larger text and wants to edit it.
 
 The user's instruction is: "{edit_request.description}"

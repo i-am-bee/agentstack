@@ -3,12 +3,13 @@
 
 from __future__ import annotations
 
-from a2a.types import AgentCard, AgentExtension
+from typing import Any
 
 
-def get_extension(agent_card: AgentCard, uri: str) -> AgentExtension | None:
+def get_extension(agent_card: dict[str, Any], uri: str) -> dict[str, Any] | None:
     try:
-        extensions = agent_card.capabilities.extensions or []
-        return next(ext for ext in extensions if ext.uri == uri)
+        capabilities = agent_card.get("capabilities", {})
+        extensions = capabilities.get("extensions", [])
+        return next(ext for ext in extensions if ext.get("uri") == uri)
     except StopIteration:
         return None

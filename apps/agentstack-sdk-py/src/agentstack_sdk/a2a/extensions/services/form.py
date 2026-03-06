@@ -31,7 +31,7 @@ class FormServiceExtensionParams(BaseModel):
     form_demands: FormDemands
 
 
-class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams]):
+class FormServiceExtensionSpec(BaseExtensionSpec[FormServiceExtensionParams, FormServiceExtensionMetadata]):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/form/v1"
 
     @classmethod

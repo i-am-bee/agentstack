@@ -29,6 +29,18 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "EmbeddingDemand",
+    "EmbeddingFulfillment",
+    "EmbeddingServiceExtensionClient",
+    "EmbeddingServiceExtensionMetadata",
+    "EmbeddingServiceExtensionParams",
+    "EmbeddingServiceExtensionServer",
+    "EmbeddingServiceExtensionSpec",
+]
+
+_DEFAULT_DEMAND_NAME = "default"
+
 
 class EmbeddingFulfillment(SecureBaseModel):
     identifier: str | None = None
@@ -78,23 +90,30 @@ class EmbeddingServiceExtensionParams(pydantic.BaseModel):
     """Model requests that the agent requires to be provided by the client."""
 
 
-class EmbeddingServiceExtensionSpec(BaseExtensionSpec[EmbeddingServiceExtensionParams]):
+class EmbeddingServiceExtensionMetadata(pydantic.BaseModel):
+    embedding_fulfillments: dict[str, EmbeddingFulfillment] = {}
+    """Provided models corresponding to the model requests."""
+
+
+class EmbeddingServiceExtensionSpec(
+    BaseExtensionSpec[EmbeddingServiceExtensionParams, EmbeddingServiceExtensionMetadata]
+):
     URI: str = "https://a2a-extensions.agentstack.beeai.dev/services/embedding/v1"
 
     @classmethod
     def single_demand(
-        cls, name: str | None = None, description: str | None = None, suggested: tuple[str, ...] = ()
+        cls,
+        name: str = _DEFAULT_DEMAND_NAME,
+        description: str | None = None,
+        suggested: tuple[str, ...] = (),
+        default: EmbeddingFulfillment | None = None,
     ) -> Self:
         return cls(
             params=EmbeddingServiceExtensionParams(
-                embedding_demands={name or "default": EmbeddingDemand(description=description, suggested=suggested)}
-            )
+                embedding_demands={name: EmbeddingDemand(description=description, suggested=suggested)}
+            ),
+            default=EmbeddingServiceExtensionMetadata(embedding_fulfillments={name: default}) if default else None,
         )
-
-
-class EmbeddingServiceExtensionMetadata(pydantic.BaseModel):
-    embedding_fulfillments: dict[str, EmbeddingFulfillment] = {}
-    """Provided models corresponding to the model requests."""
 
 
 class EmbeddingServiceExtensionServer(

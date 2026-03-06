@@ -79,6 +79,9 @@ class SqlAlchemyA2ARequestRepository(IA2ARequestRepository):
         # - Existing owned by OTHER user: ON CONFLICT WHERE clause prevents update, returns false
 
         now = utc_now()
+        task_id = task_id or None
+        context_id = context_id or None
+        trace_id = trace_id or None
 
         query = text("""
                      WITH task_insert AS (

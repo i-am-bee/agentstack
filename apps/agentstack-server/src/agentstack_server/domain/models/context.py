@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
-from a2a.types import Artifact, Message
 from pydantic import AwareDatetime, BaseModel, Field, computed_field
 
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.utils.utils import utc_now
 
-type ContextHistoryItemData = Artifact | Message
+ContextHistoryItemData = dict[str, Any]
 
 
 class ContextHistoryItem(BaseModel):
@@ -24,7 +23,7 @@ class ContextHistoryItem(BaseModel):
     @computed_field
     @property
     def kind(self) -> Literal["message", "artifact"]:
-        return getattr(self.data, "kind", "artifact")
+        return "artifact" if "artifact_id" in self.data else "message"
 
 
 class Context(BaseModel):

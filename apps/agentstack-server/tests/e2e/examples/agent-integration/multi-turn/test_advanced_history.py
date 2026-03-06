@@ -37,8 +37,8 @@ async def test_advanced_history_example(subtests, get_final_task_from_stream, a2
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
             # Verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-            assert any(sub in task.history[-1].parts[0].root.text.lower() for sub in ["hello", "hi"])
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, f"Fail: {task.status.message.parts[0].text}"
+            assert any(sub in task.history[-1].parts[0].text.lower() for sub in ["hello", "hi"])
 
         with subtests.test("agent remembers user name from history"):
             message = create_text_message_object(content="Can you remind me my name?")
@@ -47,5 +47,5 @@ async def test_advanced_history_example(subtests, get_final_task_from_stream, a2
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
             # Verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-            assert "john" in task.history[-1].parts[0].root.text.lower()
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, f"Fail: {task.status.message.parts[0].text}"
+            assert "john" in task.history[-1].parts[0].text.lower()

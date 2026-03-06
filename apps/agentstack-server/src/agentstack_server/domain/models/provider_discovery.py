@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any
 from uuid import UUID, uuid4
 
-from a2a.types import AgentCard
 from pydantic import AwareDatetime, BaseModel, Field
 
 from agentstack_server.utils.utils import utc_now
@@ -25,5 +25,5 @@ class ProviderDiscovery(BaseModel):
     status: DiscoveryState
     docker_image: str
     created_by: UUID
-    agent_card: AgentCard | None = None
+    agent_card: dict[str, Any] | None = None
     error_message: str | None = None

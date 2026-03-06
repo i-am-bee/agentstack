@@ -9,16 +9,18 @@ import time
 import uuid
 from textwrap import dedent
 from threading import Thread
-from typing import Any
 from unittest import mock
 
 import kr8s
 import pytest
 import uvicorn
-from a2a.client import A2AClientHTTPError
+from a2a.client import A2AClientError
 from a2a.client.helpers import create_text_message_object
+from a2a.server.agent_execution import AgentExecutor
 from a2a.server.apps import A2AStarletteApplication
-from a2a.types import AgentCapabilities, AgentCard, Role, Task, TaskState
+from a2a.server.request_handlers import DefaultRequestHandler
+from a2a.server.tasks import InMemoryTaskStore
+from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill, Role, Task, TaskState
 from agentstack_sdk.a2a.extensions import LLMFulfillment, LLMServiceExtensionClient, LLMServiceExtensionSpec
 from agentstack_sdk.platform import ModelProvider, Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
@@ -29,7 +31,7 @@ pytestmark = pytest.mark.e2e
 
 def extract_agent_text_from_stream(task: Task) -> str:
     assert task.history
-    return "".join(item.parts[0].root.text for item in task.history if item.role == Role.agent if item.parts)
+    return "".join(item.parts[0].text for item in task.history if item.role == Role.ROLE_AGENT if item.parts)
 
 
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
@@ -74,7 +76,7 @@ async def test_imported_agent(
             task = await get_final_task_from_stream(a2a_client.send_message(message))
 
             # Verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, f"Fail: {task.status.message.parts[0].text}"
             assert "ciao" in extract_agent_text_from_stream(task).lower()
 
             # Run 3 requests in parallel (test that each request waits)
@@ -83,12 +85,12 @@ async def test_imported_agent(
             )
 
             for task in run_results:
-                assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+                assert task.status.state == TaskState.TASK_STATE_COMPLETED, f"Fail: {task.status.message.parts[0].text}"
                 assert "ciao" in extract_agent_text_from_stream(task).lower()
 
         with subtests.test("run chat agent for the second time"):
             task = await get_final_task_from_stream(a2a_client.send_message(message))
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, f"Fail: {task.status.message.parts[0].text}"
             assert "ciao" in extract_agent_text_from_stream(task).lower()
 
     with subtests.test("the context token will not work with direct call to agent (server exchange is required)"):
@@ -110,10 +112,9 @@ async def test_imported_agent(
                                 "method": "message/send",
                                 "params": {{
                                     "message": {{
-                                        "role": "agent",
-                                        "parts": [{{"kind": "text", "text": "Hello"}}],
+                                        "role": "ROLE_AGENT",
+                                        "parts": [{{"text": "Hello"}}],
                                         "messageId": "1",
-                                        "kind": "message",
                                     }}
                                 }}
                             }})
@@ -142,22 +143,9 @@ async def test_imported_agent(
     async with a2a_client_factory(providers[0].agent_card, invalid_context_token) as a2a_client:
         with (
             subtests.test("run chat agent with invalid token"),
-            pytest.raises(A2AClientHTTPError, match="403 Forbidden"),
+            pytest.raises(A2AClientError, match="403 Forbidden"),
         ):
             await get_final_task_from_stream(a2a_client.send_message(message))
-
-
-UNMANAGED_AGENT_CARD: dict[str, Any] = {
-    "authentication": {"schemes": ["Bearer"]},
-    "capabilities": AgentCapabilities(streaming=True),
-    "defaultInputModes": ["text/plain"],
-    "defaultOutputModes": ["text/plain"],
-    "description": "Test unmanaged A2A agent",
-    "name": "UnmanagedTestAgent",
-    "skills": [{"id": "skill-1", "name": "Echo", "description": "Echoes back", "tags": ["test"]}],
-    "url": "http://example.com/agent",
-    "version": "1.0",
-}
 
 
 @pytest.fixture
@@ -165,15 +153,24 @@ def unmanaged_a2a_server(free_port, setup_platform_client, clean_up_fn):
     server_instance: uvicorn.Server | None = None
     thread: Thread | None = None
 
-    agent_card = AgentCard(**UNMANAGED_AGENT_CARD)
-    agent_card.url = f"http://host.docker.internal:{free_port}"
+    agent_card = AgentCard(
+        name="UnmanagedTestAgent",
+        description="Test unmanaged A2A agent",
+        version="1.0",
+        default_input_modes=["text/plain"],
+        default_output_modes=["text/plain"],
+        capabilities=AgentCapabilities(streaming=True),
+        skills=[AgentSkill(id="skill-1", name="Echo", description="Echoes back", tags=["test"])],
+        supported_interfaces=[AgentInterface(url=f"http://host.docker.internal:{free_port}")],
+    )
 
-    handler = mock.AsyncMock()
+    executor = mock.AsyncMock(spec=AgentExecutor)
+    http_handler = DefaultRequestHandler(agent_executor=executor, task_store=InMemoryTaskStore())
 
     def start_server():
         nonlocal server_instance, thread
 
-        app = A2AStarletteApplication(agent_card, handler)
+        app = A2AStarletteApplication(agent_card=agent_card, http_handler=http_handler)
         config = uvicorn.Config(app=app.build(), port=free_port, log_level="warning")
         server_instance = uvicorn.Server(config)
 

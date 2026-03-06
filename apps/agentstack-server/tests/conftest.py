@@ -10,7 +10,6 @@ from pathlib import Path
 from pprint import pprint
 from typing import Any
 
-import async_lru
 import kr8s
 import pytest
 from agentstack_sdk.platform import ModelProviderType
@@ -22,9 +21,6 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
 
-# Disable async_lru event loop check in tests
-async_lru._LRUCacheWrapper._check_loop = lambda self, loop: None
-
 
 class Configuration(BaseSettings):
     model_config = SettingsConfigDict(extra="ignore")
@@ -34,7 +30,7 @@ class Configuration(BaseSettings):
     embedding_model: str = "ollama:nomic-embed-text:latest"
     llm_api_key: Secret[str] = Secret("dummy")
     test_agent_image: str = "agentstack-registry-svc.default:5001/chat-test:latest"
-    test_agent_build_repo: str = "https://github.com/i-am-bee/agentstack-starter"
+    test_agent_build_repo: str = "https://github.com/i-am-bee/agentstack-starter@migrate-to-a2a-v1"
     server_url: str = "http://localhost:8333"
     db_url: str = "postgresql+asyncpg://agentstack-user:password@postgresql:5432/agentstack"
     keycloak_url: str = "http://localhost:8336"

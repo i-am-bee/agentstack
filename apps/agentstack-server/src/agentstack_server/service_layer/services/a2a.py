@@ -10,37 +10,41 @@ import uuid
 from collections.abc import AsyncGenerator, AsyncIterable, AsyncIterator, Awaitable, Callable, Coroutine, Iterator
 from contextlib import asynccontextmanager, contextmanager
 from datetime import timedelta
-from typing import Any, NamedTuple, cast, overload
+from typing import Any, NamedTuple, cast, overload, override
 from urllib.parse import urljoin, urlparse
 from uuid import UUID
 
 import httpx
 from a2a.client import ClientCallContext, ClientConfig, ClientFactory
 from a2a.client.base_client import BaseClient
-from a2a.client.errors import A2AClientJSONRPCError
 from a2a.client.transports.base import ClientTransport
 from a2a.server.context import ServerCallContext
 from a2a.server.events import Event
 from a2a.server.request_handlers.request_handler import RequestHandler
 from a2a.types import (
     AgentCard,
-    DeleteTaskPushNotificationConfigParams,
-    GetTaskPushNotificationConfigParams,
+    AgentInterface,
+    CancelTaskRequest,
+    CreateTaskPushNotificationConfigRequest,
+    DeleteTaskPushNotificationConfigRequest,
+    GetTaskPushNotificationConfigRequest,
+    GetTaskRequest,
     InternalError,
     InvalidRequestError,
-    ListTaskPushNotificationConfigParams,
+    ListTaskPushNotificationConfigsRequest,
+    ListTaskPushNotificationConfigsResponse,
+    ListTasksRequest,
+    ListTasksResponse,
     Message,
-    MessageSendParams,
+    SendMessageRequest,
+    StreamResponse,
+    SubscribeToTaskRequest,
     Task,
-    TaskArtifactUpdateEvent,
-    TaskIdParams,
     TaskNotFoundError,
     TaskPushNotificationConfig,
-    TaskQueryParams,
-    TaskStatusUpdateEvent,
-    TransportProtocol,
 )
-from a2a.utils.errors import ServerError
+from a2a.utils.errors import A2AError
+from google.protobuf.json_format import ParseDict
 from kink import inject
 from opentelemetry import trace
 from pydantic import HttpUrl
@@ -67,41 +71,32 @@ from agentstack_server.telemetry import INSTRUMENTATION_NAME
 
 logger = logging.getLogger(__name__)
 
-_SUPPORTED_TRANSPORTS = {TransportProtocol.http_json, TransportProtocol.jsonrpc}
+_SUPPORTED_TRANSPORTS = {"HTTP+JSON", "JSONRPC"}
 
 
 def _create_deploy_a2a_url(url: str, *, deployment_base: str) -> str:
     return urljoin(deployment_base, urlparse(url).path.lstrip("/"))
 
 
-def create_deployment_agent_card(agent_card: AgentCard, *, deployment_base: str) -> AgentCard:
-    proxy_interfaces = (
-        [
-            interface.model_copy(update={"url": _create_deploy_a2a_url(interface.url, deployment_base=deployment_base)})
-            for interface in agent_card.additional_interfaces
-            if interface.transport in _SUPPORTED_TRANSPORTS
-        ]
-        if agent_card.additional_interfaces is not None
-        else None
-    )
-    if agent_card.preferred_transport in _SUPPORTED_TRANSPORTS:
-        return agent_card.model_copy(
-            update={
-                "url": _create_deploy_a2a_url(agent_card.url, deployment_base=deployment_base),
-                "additional_interfaces": proxy_interfaces,
-            }
-        )
-    elif proxy_interfaces:
-        interface = proxy_interfaces[0]
-        return agent_card.model_copy(
-            update={
-                "url": interface.url,
-                "preferred_transport": interface.transport,
-                "additional_interfaces": proxy_interfaces,
-            }
-        )
-    else:
+def create_deployment_agent_card(agent_card: dict[str, Any], *, deployment_base: str) -> AgentCard:
+    card_copy = AgentCard()
+    ParseDict(agent_card, card_copy, ignore_unknown_fields=True)
+
+    new_interfaces = []
+    for interface in card_copy.supported_interfaces:
+        if interface.protocol_binding in _SUPPORTED_TRANSPORTS:
+            new_interface = AgentInterface()
+            new_interface.CopyFrom(interface)
+            new_interface.url = _create_deploy_a2a_url(interface.url, deployment_base=deployment_base)
+            new_interfaces.append(new_interface)
+
+    if not new_interfaces:
         raise RuntimeError("Provider doesn't have any transport supported by the proxy.")
+
+    del card_copy.supported_interfaces[:]
+    card_copy.supported_interfaces.extend(new_interfaces)
+
+    return card_copy
 
 
 class A2AServerResponse(NamedTuple):
@@ -129,16 +124,16 @@ def _handle_exception[**P, T](
             yield
         except EntityNotFoundError as e:
             if "task" in e.entity:
-                raise ServerError(error=TaskNotFoundError()) from e
+                raise TaskNotFoundError() from e
             raise
         except ForbiddenUpdateError as e:
-            raise ServerError(error=InvalidRequestError(message=str(e))) from e
-        except A2AClientJSONRPCError as e:
-            raise ServerError(error=e.error) from e
+            raise InvalidRequestError(message=str(e)) from e
+        except A2AError:
+            raise
         except InvalidProviderCallError as e:
-            raise ServerError(error=InvalidRequestError(message=f"Invalid request to agent: {e!r}")) from e
+            raise InvalidRequestError(message=f"Invalid request to agent: {e!r}") from e
         except Exception as e:
-            raise ServerError(error=InternalError(message=f"Internal error: {e!r}")) from e
+            raise InternalError(message=f"Internal error: {e!r}") from e
 
     if inspect.isasyncgenfunction(fn):
 
@@ -194,7 +189,7 @@ class ProxyRequestHandler(RequestHandler):
         if auth_header := headers.get("authorization"):
             _scheme, header_token = get_authorization_scheme_param(auth_header)
             try:
-                audience = create_resource_uri(URL(self._agent_card.url))
+                audience = create_resource_uri(URL(self._agent_card.supported_interfaces[0].url))
                 token, _ = exchange_internal_jwt(header_token, self._configuration, audience=[audience])
                 headers["authorization"] = f"Bearer {token}"
             except Exception:
@@ -244,21 +239,45 @@ class ProxyRequestHandler(RequestHandler):
     def _forward_context(self, context: ServerCallContext | None = None) -> ClientCallContext:
         return ClientCallContext(state={**(context.state if context else {}), "user_id": self._user.id})
 
+    def _response_to_event(self, response: StreamResponse) -> tuple[str, str, Event]:
+        if response.HasField("status_update"):
+            task_id = response.status_update.task_id
+            context_id = response.status_update.context_id
+            result_event = response.status_update
+        elif response.HasField("artifact_update"):
+            task_id = response.artifact_update.task_id
+            context_id = response.artifact_update.context_id
+            result_event = response.artifact_update
+        elif response.HasField("task"):
+            task_id = response.task.id
+            context_id = response.task.context_id
+            result_event = response.task
+        elif response.HasField("message"):
+            task_id = response.message.task_id
+            context_id = response.message.context_id
+            result_event = response.message
+        else:
+            raise ValueError("Unknown event type")
+        return task_id, context_id, result_event
+
     @_handle_exception
-    async def on_get_task(self, params: TaskQueryParams, context: ServerCallContext | None = None) -> Task | None:
+    @override
+    async def on_get_task(self, params: GetTaskRequest, context: ServerCallContext | None = None) -> Task | None:
         await self._check_task(params.id)
         async with self._client_transport(context) as transport:
             return await transport.get_task(params, context=self._forward_context(context))
 
     @_handle_exception
-    async def on_cancel_task(self, params: TaskIdParams, context: ServerCallContext | None = None) -> Task | None:
+    @override
+    async def on_cancel_task(self, params: CancelTaskRequest, context: ServerCallContext | None = None) -> Task | None:
         await self._check_task(params.id)
         async with self._client_transport(context) as transport:
             return await transport.cancel_task(params, context=self._forward_context(context))
 
     @_handle_exception
+    @override
     async def on_message_send(
-        self, params: MessageSendParams, context: ServerCallContext | None = None
+        self, params: SendMessageRequest, context: ServerCallContext | None = None
     ) -> Task | Message:
         # we set task_id and context_id if not configured
         with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send") as span:
@@ -268,17 +287,18 @@ class ProxyRequestHandler(RequestHandler):
 
             async with self._client_transport(context) as transport:
                 response = await transport.send_message(params, context=self._forward_context(context))
-                match response:
-                    case Task(id=task_id) | Message(task_id=task_id):
-                        if params.message.task_id is None and task_id:
-                            await self._check_and_record_request(
-                                task_id, params.message.context_id, allow_task_creation=True, trace_id=trace_id
-                            )
-                return response
+                if task_id := response.task.id or response.message.task_id:
+                    await self._check_and_record_request(
+                        task_id, params.message.context_id, allow_task_creation=True, trace_id=trace_id
+                    )
+                if response.HasField("task"):
+                    return response.task
+                return response.message
 
     @_handle_exception
+    @override
     async def on_message_send_stream(
-        self, params: MessageSendParams, context: ServerCallContext | None = None
+        self, params: SendMessageRequest, context: ServerCallContext | None = None
     ) -> AsyncGenerator[Event]:
         with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send_stream") as span:
             # we set task_id and context_id if not configured
@@ -290,70 +310,81 @@ class ProxyRequestHandler(RequestHandler):
 
             async with self._client_transport(context) as transport:
                 async for event in transport.send_message_streaming(params, context=self._forward_context(context)):
-                    match event:
-                        case (
-                            TaskStatusUpdateEvent(task_id=task_id, context_id=context_id)
-                            | TaskArtifactUpdateEvent(task_id=task_id, context_id=context_id)
-                            | Task(id=task_id, context_id=context_id)
-                            | Message(task_id=task_id, context_id=context_id)
-                        ):
-                            if context_id != params.message.context_id:
-                                raise RuntimeError(f"Unexpected context_id returned from the agent: {context_id}")
-                            if task_id and task_id not in seen_tasks:
-                                await self._check_and_record_request(
-                                    task_id=task_id,
-                                    context_id=context_id,
-                                    trace_id=trace_id,
-                                    allow_task_creation=True,
-                                )
-                                seen_tasks.add(task_id)
-                    yield event
+                    task_id, context_id, result_event = self._response_to_event(event)
+                    if context_id != params.message.context_id:
+                        raise RuntimeError(f"Unexpected context_id returned from the agent: {context_id}")
+                    if task_id and task_id not in seen_tasks:
+                        await self._check_and_record_request(
+                            task_id=task_id,
+                            trace_id=trace_id,
+                            context_id=context_id,
+                            allow_task_creation=True,
+                        )
+                        seen_tasks.add(task_id)
+                    yield result_event
 
     @_handle_exception
-    async def on_set_task_push_notification_config(
+    @override
+    async def on_create_task_push_notification_config(
         self,
-        params: TaskPushNotificationConfig,
+        params: CreateTaskPushNotificationConfigRequest,
         context: ServerCallContext | None = None,
     ) -> TaskPushNotificationConfig:
         await self._check_task(params.task_id)
         async with self._client_transport(context) as transport:
-            return await transport.set_task_callback(params)
+            return await transport.create_task_push_notification_config(params, context=self._forward_context(context))
 
     @_handle_exception
+    @override
     async def on_get_task_push_notification_config(
         self,
-        params: TaskIdParams | GetTaskPushNotificationConfigParams,
+        params: GetTaskPushNotificationConfigRequest,
         context: ServerCallContext | None = None,
     ) -> TaskPushNotificationConfig:
-        await self._check_task(params.id)
+        await self._check_task(params.task_id)
         async with self._client_transport(context) as transport:
-            if isinstance(params, TaskIdParams):
-                params = GetTaskPushNotificationConfigParams(id=params.id, metadata=params.metadata)
-            return await transport.get_task_callback(params, context=self._forward_context(context))
+            return await transport.get_task_push_notification_config(params, context=self._forward_context(context))
 
     @_handle_exception
-    async def on_resubscribe_to_task(
-        self, params: TaskIdParams, context: ServerCallContext | None = None
+    @override
+    async def on_subscribe_to_task(
+        self,
+        params: SubscribeToTaskRequest,
+        context: ServerCallContext | None = None,
     ) -> AsyncGenerator[Event]:
         await self._check_task(params.id)
         async with self._client_transport(context) as transport:
-            async for event in transport.resubscribe(params):
-                yield event
+            async for event in transport.subscribe(params):
+                _, _, result_event = self._response_to_event(event)
+                yield result_event
 
     @_handle_exception
-    async def on_list_task_push_notification_config(
+    @override
+    async def on_list_task_push_notification_configs(
         self,
-        params: ListTaskPushNotificationConfigParams,
+        params: ListTaskPushNotificationConfigsRequest,
         context: ServerCallContext | None = None,
-    ) -> list[TaskPushNotificationConfig]:
+    ) -> ListTaskPushNotificationConfigsResponse:
         raise NotImplementedError("This is not supported by the client transport yet")
 
     @_handle_exception
     async def on_delete_task_push_notification_config(
         self,
-        params: DeleteTaskPushNotificationConfigParams,
+        params: DeleteTaskPushNotificationConfigRequest,
         context: ServerCallContext | None = None,
     ) -> None:
+        raise NotImplementedError("This is not supported by the client transport yet")
+        # await self._check_task(params.task_id)
+        # async with self._client_transport(context) as transport:
+        #     await transport.delete_task_push_notification_config(params)
+
+    @_handle_exception
+    @override
+    async def on_list_tasks(
+        self,
+        params: ListTasksRequest,
+        context: ServerCallContext | None = None,
+    ) -> ListTasksResponse:
         raise NotImplementedError("This is not supported by the client transport yet")
 
 

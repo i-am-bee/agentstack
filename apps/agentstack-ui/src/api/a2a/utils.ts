@@ -9,6 +9,7 @@ import {
   citationExtension,
   errorExtension,
   extractUiExtensionData,
+  streamingExtension,
   trajectoryExtension,
   type TrajectoryMetadata,
 } from 'agentstack-sdk';
@@ -32,6 +33,7 @@ import { PLATFORM_FILE_CONTENT_URL_BASE } from './constants';
 export const extractCitation = extractUiExtensionData(citationExtension);
 export const extractTrajectory = extractUiExtensionData(trajectoryExtension);
 export const extractErrorExtension = extractUiExtensionData(errorExtension);
+export const extractStreamingMessage = extractUiExtensionData(streamingExtension);
 
 export function convertMessageParts(uiParts: UIMessagePart[]): Part[] {
   const parts: Part[] = uiParts

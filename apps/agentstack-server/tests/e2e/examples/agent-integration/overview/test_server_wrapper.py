@@ -22,5 +22,7 @@ async def test_server_wrapper_example(subtests, get_final_task_from_stream, a2a_
             message.context_id = running_example.context.id
             task = await get_final_task_from_stream(running_example.client.send_message(message))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "Hello from my agent!" in task.history[-1].parts[0].root.text
