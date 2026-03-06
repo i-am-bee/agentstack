@@ -120,6 +120,6 @@ runs:
         path: apps/microshift-vm/dist/${{ env.ARCH }}
         key: microshift-vm-dist-v1-${{ runner.os }}-${{ env.ARCH }}-${{ hashFiles('apps/microshift-vm/**') }}
 
-    - uses: jdx/mise-action@e79ddf65a11cec7b0e882bedced08d6e976efb2d
+    - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db
       with:
         cache: false
