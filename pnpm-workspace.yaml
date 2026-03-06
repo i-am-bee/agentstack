@@ -2,6 +2,9 @@ overrides:
   # Fix CVE-2024-45296 / GHSA-9wv6-86v2-598j: path-to-regexp ReDoS vulnerability
   # Transitive via mintlify -> @mintlify/previewing -> express@4.18.2
   "path-to-regexp@<0.1.10": "0.1.10"
+  # Fix CVE-2026-26960 / GHSA-83g3-92jg-28cx: Arbitrary File Read/Write via Hardlink Target Escape
+  # Transitive via mintlify -> @mintlify/previewing -> tar@6.1.15
+  "tar@<7.5.8": "7.5.8"
 
 packages:
   - apps/agentstack-ui
