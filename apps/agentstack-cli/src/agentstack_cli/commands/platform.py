@@ -241,7 +241,7 @@ async def start_cmd(
         str | None, typer.Option("--lima-image", help="Local path or URL to Lima .qcow2 image")
     ] = None,
     wsl_image: typing.Annotated[
-        str | None, typer.Option("--wsl-image", help="Local path or URL to WSL rootfs .tar.gz image")
+        str | None, typer.Option("--wsl-image", help="Local path or URL to WSL rootfs image (.tar.gz)")
     ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
@@ -371,11 +371,7 @@ async def start_cmd(
                         config.set("wsl2", "networkingMode", "nat")
                         f.seek(0)
                         f.truncate(0)
-                        import io
-
-                        with io.StringIO() as ss:
-                            config.write(ss)
-                            f.write(ss.getvalue())
+                        config.write(f)
                         if platform_module.system() == "Linux":
                             console.warning(
                                 "WSL networking mode updated. Please close WSL, run [green]wsl --shutdown[/green] from PowerShell, re-open WSL and run [green]agentstack platform start[/green] again."

@@ -47,6 +47,7 @@ apt-get purge --auto-remove -y --allow-remove-essential \
     man-db \
     manpages
 
+passwd -l root
 cloud-init clean --logs
 rm -rf \
     /etc/apt/sources.list.d/* \

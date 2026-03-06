@@ -1,2 +1,2 @@
 instance-id: packer-build
-local-hostname: microshift-builder
+local-hostname: microshift-vm

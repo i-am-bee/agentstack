@@ -64,6 +64,10 @@
       "name": "helm",
       "path": "helm",
     },
+    {
+      "name": "microshift-vm",
+      "path": "apps/microshift-vm",
+    },
   ],
   "settings": {
     "files.associations": {

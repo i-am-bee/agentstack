@@ -39,14 +39,15 @@ variable "accelerator" {
 }
 
 locals {
-  qemu_binary = var.arch == "x86_64" ? "qemu-system-x86_64" : "qemu-system-aarch64"
-  image_url   = var.arch == "x86_64" ? "https://cdimage.debian.org/cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2" : "https://cdimage.debian.org/cdimage/cloud/trixie/latest/debian-13-genericcloud-arm64.qcow2"
-  machine     = var.arch == "x86_64" ? "q35" : "virt"
+  qemu_binary     = var.arch == "x86_64" ? "qemu-system-x86_64" : "qemu-system-aarch64"
+  image_url       = var.arch == "x86_64" ? "https://cdimage.debian.org/cdimage/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2" : "https://cdimage.debian.org/cdimage/cloud/trixie/latest/debian-13-genericcloud-arm64.qcow2"
+  image_checksum  = "file:https://cdimage.debian.org/cdimage/cloud/trixie/latest/SHA512SUMS"
+  machine         = var.arch == "x86_64" ? "q35" : "virt"
 }
 
 source "qemu" "microshift" {
   iso_url      = local.image_url
-  iso_checksum = "none"
+  iso_checksum = local.image_checksum
   disk_image   = true
   disk_size    = "20G"
 
