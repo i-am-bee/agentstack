@@ -1,7 +1,7 @@
 overrides:
-  # Fix CVE-2024-45296 / GHSA-9wv6-86v2-598j: path-to-regexp ReDoS vulnerability
+  # Fix CVE-2024-45296 / GHSA-9wv6-86v2-598j and CVE-2024-52798 / GHSA-rhx6-c78j-4q9w: path-to-regexp ReDoS vulnerability
   # Transitive via mintlify -> @mintlify/previewing -> express@4.18.2
-  "path-to-regexp@<0.1.10": "0.1.10"
+  "path-to-regexp@<0.1.12": "0.1.12"
 
 packages:
   - apps/agentstack-ui
