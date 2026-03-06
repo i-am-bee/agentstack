@@ -56,6 +56,19 @@ runs:
     - if: inputs.save_cache == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
+        path: ~/.local/share/mise/installs
+        key: mise-installs-v1-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+        restore-keys: mise-installs-v1-${{ runner.os }}-
+    - if: inputs.save_cache != 'true'
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
+        path: ~/.local/share/mise/installs
+        key: mise-installs-v1-${{ runner.os }}-${{ hashFiles('mise.lock') }}
+        restore-keys: mise-installs-v1-${{ runner.os }}-
+
+    - if: inputs.save_cache == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
         path: /tmp/.uv-cache
         key: uv-cache-v1-${{ runner.os }}-${{ hashFiles('**/uv.lock') }}
         restore-keys: uv-cache-v1-${{ runner.os }}-
@@ -109,4 +122,4 @@ runs:
 
     - uses: jdx/mise-action@e79ddf65a11cec7b0e882bedced08d6e976efb2d
       with:
-        cache_save: ${{ inputs.save_cache == 'true' }}
+        cache: false
