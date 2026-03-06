@@ -433,10 +433,11 @@ def search_path_match_providers(search_path: str, providers: list[Provider]) -> 
 
 def select_provider(search_path: str, providers: list[Provider]):
     provider_candidates = search_path_match_providers(search_path, providers)
-    if len(provider_candidates) != 1:
-        provider_candidates = [f"  - {c}" for c in provider_candidates]
-        remove_providers_detail = ":\n" + "\n".join(provider_candidates) if provider_candidates else ""
-        raise ValueError(f"{len(provider_candidates)} matching agents{remove_providers_detail}")
+    if len(provider_candidates) == 0:
+        raise ValueError(f"No agents matched '{search_path}'")
+    if len(provider_candidates) > 1:
+        candidates_detail = "\n".join(f"  - {c}" for c in provider_candidates)
+        raise ValueError(f"Multiple agents matched '{search_path}':\n{candidates_detail}")
     [selected_provider] = provider_candidates.values()
     return selected_provider
 
@@ -520,10 +521,10 @@ async def stream_logs(
     ],
 ):
     """Stream agent provider logs. [Admin only]"""
-    announce_server_action(f"Streaming logs for '{search_path}' from")
     async with configuration.use_platform_client():
-        provider = select_provider(search_path, await Provider.list()).id
-        async for message in Provider.stream_logs(provider):
+        provider = select_provider(search_path, await Provider.list())
+        announce_server_action(f"Streaming logs for '{provider.agent_card.name}' from")
+        async for message in Provider.stream_logs(provider.id):
             print_log(message, ansi_mode=True)
 
 

@@ -265,7 +265,7 @@ class KubernetesProviderDeploymentManager(IProviderDeploymentManager):
                     except kr8s.NotFoundError:
                         ...
                     if not missing_logged:
-                        logs_container.add_stdout("Provider is not running, run a query to start it up...")
+                        logs_container.add_stdout("Agent is starting up...")
                     missing_logged = True
                     await asyncio.sleep(1)
 
