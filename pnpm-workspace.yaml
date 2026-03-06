@@ -2,6 +2,9 @@ overrides:
   # Fix CVE-2024-45296 / GHSA-9wv6-86v2-598j: path-to-regexp ReDoS vulnerability
   # Transitive via mintlify -> @mintlify/previewing -> express@4.18.2
   "path-to-regexp@<0.1.10": "0.1.10"
+  # Fix CVE-2024-45590 / GHSA-qwcr-r2fm-qrc7: body-parser DoS vulnerability
+  # Transitive via express@4.18.2
+  "body-parser@<1.20.3": "1.20.3"
 
 packages:
   - apps/agentstack-ui
