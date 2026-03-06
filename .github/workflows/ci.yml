@@ -14,7 +14,8 @@ on:
     branches: [main]
 
 jobs:
-  changes:
+  setup:
+    name: mise setup
     runs-on: ubuntu-latest
     outputs:
       agentstack-server: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.agentstack-server == 'true' }}
@@ -25,6 +26,9 @@ jobs:
       microshift-vm: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.microshift-vm == 'true' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: ./.github/actions/setup
+        with:
+          save_cache: 'true'
       - uses: dorny/paths-filter@668c092af3649c4b664c54e4b704aa46782f6f7c
         id: filter
         with:
@@ -38,6 +42,7 @@ jobs:
 
   check:
     name: mise check
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -48,6 +53,7 @@ jobs:
 
   test:
     name: mise test
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -58,8 +64,8 @@ jobs:
 
   microshift-vm-build:
     name: mise microshift-vm:build:qemu
-    needs: changes
-    if: needs.changes.outputs.microshift-vm == 'true'
+    needs: setup
+    if: needs.setup.outputs.microshift-vm == 'true'
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
@@ -81,12 +87,12 @@ jobs:
 
   agentstack-server-test-integration:
     name: mise agentstack-server:test:integration
-    needs: [changes, microshift-vm-build]
+    needs: [setup, microshift-vm-build]
     if: >-
       always() &&
       needs.microshift-vm-build.result != 'failure' &&
-      (needs.changes.outputs.agentstack-server == 'true' ||
-      needs.changes.outputs.agentstack-cli == 'true')
+      (needs.setup.outputs.agentstack-server == 'true' ||
+      needs.setup.outputs.agentstack-cli == 'true')
     timeout-minutes: 25
     runs-on: ubuntu-latest
     steps:
@@ -106,14 +112,14 @@ jobs:
 
   agentstack-server-test-e2e:
     name: mise agentstack-server:test:e2e
-    needs: [changes, microshift-vm-build]
+    needs: [setup, microshift-vm-build]
     if: >-
       always() &&
       needs.microshift-vm-build.result != 'failure' &&
-      (needs.changes.outputs.agentstack-server == 'true' ||
-      needs.changes.outputs.agentstack-cli == 'true' ||
-      needs.changes.outputs.agentstack-sdk-py == 'true' ||
-      needs.changes.outputs.helm == 'true')
+      (needs.setup.outputs.agentstack-server == 'true' ||
+      needs.setup.outputs.agentstack-cli == 'true' ||
+      needs.setup.outputs.agentstack-sdk-py == 'true' ||
+      needs.setup.outputs.helm == 'true')
     timeout-minutes: 25
     runs-on: ubuntu-latest
     env:
@@ -136,14 +142,14 @@ jobs:
 
   agentstack-server-test-e2e-examples:
     name: mise agentstack-server:test:e2e-examples
-    needs: [changes, microshift-vm-build]
+    needs: [setup, microshift-vm-build]
     if: >-
       always() &&
       needs.microshift-vm-build.result != 'failure' &&
-      (needs.changes.outputs.agentstack-server == 'true' ||
-      needs.changes.outputs.agentstack-sdk-py == 'true' ||
-      needs.changes.outputs.examples == 'true' ||
-      needs.changes.outputs.helm == 'true') &&
+      (needs.setup.outputs.agentstack-server == 'true' ||
+      needs.setup.outputs.agentstack-sdk-py == 'true' ||
+      needs.setup.outputs.examples == 'true' ||
+      needs.setup.outputs.helm == 'true') &&
       (github.event_name != 'pull_request' ||
       contains(github.event.pull_request.labels.*.name, 'e2e-examples'))
     timeout-minutes: 45
@@ -168,8 +174,8 @@ jobs:
 
   agentstack-sdk-py-test-all:
     name: "mise agentstack-sdk-py:test-all --python=${{ matrix.python }}"
-    needs: changes
-    if: needs.changes.outputs.agentstack-sdk-py == 'true'
+    needs: setup
+    if: needs.setup.outputs.agentstack-sdk-py == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

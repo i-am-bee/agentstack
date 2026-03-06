@@ -10,6 +10,10 @@ inputs:
     description: 'Maximize available disk space (removes .NET, reclaims swap)'
     required: false
     default: 'false'
+  save_cache:
+    description: 'Save cache after run (false = restore only)'
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -49,35 +53,58 @@ runs:
         echo "UV_CACHE_DIR=/tmp/.uv-cache" >> $GITHUB_ENV
         echo "ARCH=$(uname -m | sed -e 's/arm64/aarch64/;s/amd64/x86_64/')" >> $GITHUB_ENV
 
-    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
-      id: uv-cache
+    - if: inputs.save_cache == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
+        path: /tmp/.uv-cache
+        key: uv-cache-v1-${{ runner.os }}-${{ hashFiles('**/uv.lock') }}
+        restore-keys: uv-cache-v1-${{ runner.os }}-
+    - if: inputs.save_cache != 'true'
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: /tmp/.uv-cache
         key: uv-cache-v1-${{ runner.os }}-${{ hashFiles('**/uv.lock') }}
         restore-keys: uv-cache-v1-${{ runner.os }}-
 
-    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+    - if: inputs.save_cache == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
+        path: ~/.local/share/pnpm/store
+        key: pnpm-store-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: pnpm-store-v1-${{ runner.os }}-
+    - if: inputs.save_cache != 'true'
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ~/.local/share/pnpm/store
         key: pnpm-store-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-store-v1-${{ runner.os }}-
 
-    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+    - if: inputs.save_cache == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
-        path: ${{ github.workspace }}/**/.next/cache
+        path: "**/.next/cache"
+        key: nextjs-cache-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+        restore-keys: |
+          nextjs-cache-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+          nextjs-cache-v1-${{ runner.os }}-
+    - if: inputs.save_cache != 'true'
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
+        path: "**/.next/cache"
         key: nextjs-cache-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
         restore-keys: |
           nextjs-cache-v1-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
           nextjs-cache-v1-${{ runner.os }}-
 
-    - uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+    - if: inputs.save_cache == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
+      with:
+        path: apps/microshift-vm/dist/${{ env.ARCH }}
+        key: microshift-vm-dist-v1-${{ runner.os }}-${{ env.ARCH }}-${{ hashFiles('apps/microshift-vm/**') }}
+    - if: inputs.save_cache != 'true'
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: apps/microshift-vm/dist/${{ env.ARCH }}
         key: microshift-vm-dist-v1-${{ runner.os }}-${{ env.ARCH }}-${{ hashFiles('apps/microshift-vm/**') }}
 
     - uses: jdx/mise-action@e79ddf65a11cec7b0e882bedced08d6e976efb2d
-
-    - if: steps.uv-cache.outputs.cache-hit != 'true'
-      uses: gacts/run-and-post-run@4f9ae8f313ea7ec57ab5e6f82ae343c9a614bfbf # v1
-      with:
-        post: uv cache prune --ci
