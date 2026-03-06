@@ -15,6 +15,9 @@ catalogs:
     '@carbon/react':
       specifier: ^1.101.0
       version: 1.101.0
+    '@carbon/styles':
+      specifier: ^1.100.0
+      version: 1.101.0
     '@ibm/plex':
       specifier: ^6.4.1
       version: 6.4.1
@@ -180,7 +183,7 @@ importers:
         version: 11.48.0
       '@carbon/motion':
         specifier: ^11.41.0
-        version: 11.41.0
+        version: 11.42.0
       '@carbon/react':
         specifier: 'catalog:'
         version: 1.101.0(react-dom@19.2.4(react@19.2.4))(react-is@19.2.4)(react@19.2.4)(sass@1.97.3)
@@ -1334,9 +1337,6 @@ packages:
 
   '@carbon/layout@11.49.0':
     resolution: {integrity: sha512-eT/G2o7sF80r5r8NJSDuLTQmVMr1u7VjQEkANVeaLg366VF5q36tCKgbs6kzFgJPEZhifonajIp27cS+gfylvQ==}
-
-  '@carbon/motion@11.41.0':
-    resolution: {integrity: sha512-K8s4XchsUJKTd5giYhozMewkVzQT/1a2x3mdNVaiF/T7eI+xQVIS+TVdYOCwHGVParzXuNAXdxOEnh/BhcoKdA==}
 
   '@carbon/motion@11.42.0':
     resolution: {integrity: sha512-FYBBMnYanddsxGilGSM8/8u0HXLY1hpfbtgpdWCsjUXtxZLvBHYKPbStJWBkvmDuwfAxeweS1xEFCYNIYIzNGA==}
@@ -10147,10 +10147,6 @@ snapshots:
       '@ibm/telemetry-js': 1.11.0
 
   '@carbon/layout@11.49.0':
-    dependencies:
-      '@ibm/telemetry-js': 1.11.0
-
-  '@carbon/motion@11.41.0':
     dependencies:
       '@ibm/telemetry-js': 1.11.0
 
