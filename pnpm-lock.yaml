@@ -6,9 +6,9 @@ settings:
 
 catalogs:
   default:
-    '@carbon/layout':
-      specifier: ^11.48.0
-      version: 11.48.0
+    '@carbon/icons-react':
+      specifier: ^11.75.0
+      version: 11.76.0
     '@carbon/react':
       specifier: ^1.101.0
       version: 1.101.0
@@ -177,7 +177,7 @@ importers:
         version: 11.76.0(react@19.2.4)
       '@carbon/layout':
         specifier: 'catalog:'
-        version: 11.48.0
+        version: 11.49.0
       '@carbon/motion':
         specifier: ^11.41.0
         version: 11.42.0
@@ -506,7 +506,7 @@ importers:
         version: 11.76.0(react@18.3.1)
       '@carbon/layout':
         specifier: 'catalog:'
-        version: 11.48.0
+        version: 11.49.0
       '@carbon/react':
         specifier: 'catalog:'
         version: 1.101.0(react-dom@18.3.1(react@18.3.1))(react-is@19.2.4)(react@18.3.1)(sass@1.97.3)
@@ -1328,9 +1328,6 @@ packages:
     resolution: {integrity: sha512-FsRlufW8lcdEX/Vj0NpdloBDPmXGRCIaD6ENhYt0f42zJncs6OqNQ58plqNteHg/JMQAdA+pP8f5tSkopNhRRg==}
     peerDependencies:
       react: '>=16'
-
-  '@carbon/layout@11.48.0':
-    resolution: {integrity: sha512-c8VGSqHJ8cEqBqT2Au0cJK6vuhpimxoBCtHDK/bPRwgce2tjYcoBIGxY8QVMs2woKoQcgCKtluKyo/drEZWYww==}
 
   '@carbon/layout@11.49.0':
     resolution: {integrity: sha512-eT/G2o7sF80r5r8NJSDuLTQmVMr1u7VjQEkANVeaLg366VF5q36tCKgbs6kzFgJPEZhifonajIp27cS+gfylvQ==}
@@ -10139,10 +10136,6 @@ snapshots:
       prop-types: 15.8.1
       react: 19.2.4
 
-  '@carbon/layout@11.48.0':
-    dependencies:
-      '@ibm/telemetry-js': 1.11.0
-
   '@carbon/layout@11.49.0':
     dependencies:
       '@ibm/telemetry-js': 1.11.0
@@ -10156,7 +10149,7 @@ snapshots:
       '@babel/runtime': 7.28.6
       '@carbon/feature-flags': 1.0.0
       '@carbon/icons-react': 11.76.0(react@18.3.1)
-      '@carbon/layout': 11.48.0
+      '@carbon/layout': 11.49.0
       '@carbon/styles': 1.101.0(sass@1.97.3)
       '@carbon/utilities': 0.16.0
       '@floating-ui/react': 0.27.18(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -10180,7 +10173,7 @@ snapshots:
       '@babel/runtime': 7.28.6
       '@carbon/feature-flags': 1.0.0
       '@carbon/icons-react': 11.76.0(react@19.2.4)
-      '@carbon/layout': 11.48.0
+      '@carbon/layout': 11.49.0
       '@carbon/styles': 1.101.0(sass@1.97.3)
       '@carbon/utilities': 0.16.0
       '@floating-ui/react': 0.27.18(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
