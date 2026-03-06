@@ -108,3 +108,5 @@ runs:
         key: microshift-vm-dist-v1-${{ runner.os }}-${{ env.ARCH }}-${{ hashFiles('apps/microshift-vm/**') }}
 
     - uses: jdx/mise-action@e79ddf65a11cec7b0e882bedced08d6e976efb2d
+      with:
+        cache_save: ${{ inputs.save_cache == 'true' }}
