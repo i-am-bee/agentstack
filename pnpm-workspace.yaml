@@ -2,6 +2,9 @@ overrides:
   # Fix CVE-2024-45296 / GHSA-9wv6-86v2-598j: path-to-regexp ReDoS vulnerability
   # Transitive via mintlify -> @mintlify/previewing -> express@4.18.2
   "path-to-regexp@<0.1.10": "0.1.10"
+  # Fix CVE-2026-25639 / GHSA-43fc-jf86-j433: axios DoS via __proto__ in mergeConfig
+  # Transitive via mintlify -> @mintlify/models
+  "axios@>=1.0.0 <=1.13.4": "1.13.5"
 
 packages:
   - apps/agentstack-ui

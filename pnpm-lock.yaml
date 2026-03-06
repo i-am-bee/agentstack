@@ -14,7 +14,7 @@ catalogs:
       version: 11.49.0
     '@carbon/react':
       specifier: ^1.101.0
-      version: 1.101.0
+      version: 1.102.0
     '@carbon/styles':
       specifier: ^1.100.0
       version: 1.101.0
@@ -78,6 +78,7 @@ catalogs:
 
 overrides:
   path-to-regexp@<0.1.10: 0.1.10
+  axios@>=1.0.0 <=1.13.4: 1.13.5
 
 importers:
 
@@ -4421,11 +4422,8 @@ packages:
     resolution: {integrity: sha512-BASOg+YwO2C+346x3LZOeoovTIoTrRqEsqMa6fmfAV0P+U9mFr9NsyOEpiYvFjbc64NMrSswhV50WdXzdb/Z5A==}
     engines: {node: '>=4'}
 
-  axios@1.10.0:
-    resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
-
-  axios@1.13.2:
-    resolution: {integrity: sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==}
+  axios@1.13.5:
+    resolution: {integrity: sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==}
 
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
@@ -11207,14 +11205,14 @@ snapshots:
 
   '@mintlify/models@0.0.255':
     dependencies:
-      axios: 1.10.0
+      axios: 1.13.5
       openapi-types: 12.1.3
     transitivePeerDependencies:
       - debug
 
   '@mintlify/models@0.0.279':
     dependencies:
-      axios: 1.13.2
+      axios: 1.13.5
       openapi-types: 12.1.3
     transitivePeerDependencies:
       - debug
@@ -14041,15 +14039,7 @@ snapshots:
 
   axe-core@4.11.1: {}
 
-  axios@1.10.0:
-    dependencies:
-      follow-redirects: 1.15.11
-      form-data: 4.0.5
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
-  axios@1.13.2:
+  axios@1.13.5:
     dependencies:
       follow-redirects: 1.15.11
       form-data: 4.0.5
