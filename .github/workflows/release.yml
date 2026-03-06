@@ -106,7 +106,7 @@ jobs:
         with:
           files: |
             apps/microshift-vm/dist/${{ matrix.arch }}/microshift-vm-${{ matrix.arch }}.qcow2
-            ${{ matrix.arch == 'x86_64' && format('apps/microshift-vm/dist/{0}/microshift-vm-{0}.tar.gz', matrix.arch) || '' }}
+            ${{ matrix.arch == 'x86_64' && format('apps/microshift-vm/dist/{0}/microshift-vm-{0}.wsl', matrix.arch) || '' }}
 
   agentstack:
     needs: [agents, vm]

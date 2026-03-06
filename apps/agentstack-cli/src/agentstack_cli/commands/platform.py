@@ -238,10 +238,10 @@ async def start_cmd(
         pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
     ] = None,
     lima_image: typing.Annotated[
-        str | None, typer.Option("--lima-image", help="Local path or URL to Lima .qcow2 image")
+        str | None, typer.Option("--lima-image", help="Local path or URL to Lima image (.qcow2)")
     ] = None,
     wsl_image: typing.Annotated[
-        str | None, typer.Option("--wsl-image", help="Local path or URL to WSL rootfs image (.tar.gz)")
+        str | None, typer.Option("--wsl-image", help="Local path or URL to WSL distro image (.wsl)")
     ] = None,
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
@@ -391,7 +391,7 @@ async def start_cmd(
 
                     current_wsl_image = (
                         wsl_image
-                        or f"https://github.com/i-am-bee/agentstack/releases/download/v{version}/microshift-vm-{arch}.tar.gz"
+                        or f"https://github.com/i-am-bee/agentstack/releases/download/v{version}/microshift-vm-{arch}.wsl"
                     )
                     install_dir = Configuration().home / "wsl" / vm_name
                     install_dir.mkdir(parents=True, exist_ok=True)
