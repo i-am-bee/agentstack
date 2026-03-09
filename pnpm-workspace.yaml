@@ -1,4 +1,31 @@
 overrides:
+  # Fix CVE-2025-13465 / GHSA-xxjr-mmjv-4gpg: Lodash Prototype Pollution in _.unset and _.omit
+  # Transitive via @mintlify/common
+  "lodash@<4.17.23": "4.17.23"
+  # Fix CVE-2026-0540 / GHSA-v2wj-7wpq-c8vv: DOMPurify XSS via missing rawtext elements
+  "dompurify@<3.3.2": "3.3.2"
+  # Fix CVE-2024-29041 / GHSA-rv95-896h-c2vc: Express open redirect in malformed URLs
+  # Fix CVE-2024-43796 / GHSA-qw6h-vgh9-j6wx: Express XSS via response.redirect()
+  # Transitive via mintlify -> @mintlify/previewing
+  "express@>=4.0.0 <4.20.0": "4.21.2"
+  # Fix CVE-2023-4316 / GHSA-m95q-7qp3-xv42: Zod ReDoS in email validation
+  "zod@<=3.22.2": "3.22.3"
+  # Fix CVE-2025-64718 / GHSA-mh29-5h37-fv8m: js-yaml Prototype Pollution via merge
+  # Transitive via @mintlify/cli and @mintlify/common
+  "js-yaml@>=4.0.0 <4.1.1": "4.1.1"
+  # Fix CVE-2025-15284 / GHSA-6rw7-vpxm-498p: qs arrayLimit bypass in bracket notation
+  # Fix CVE-2026-2391 / GHSA-w7fw-mjwx-w883: qs arrayLimit bypass in comma parsing
+  # Transitive via express -> body-parser
+  "qs@<6.14.2": "6.14.2"
+  # Fix CVE-2024-43799 / GHSA-m6fv-jmcg-4jfg: send template injection leading to XSS
+  # Transitive via express -> serve-static
+  "send@>=0.0.0 <0.19.0": "0.19.0"
+  # Fix CVE-2024-43800 / GHSA-cm22-4g7w-348p: serve-static template injection leading to XSS
+  # Transitive via express
+  "serve-static@>=1.0.0 <1.16.0": "1.16.0"
+  # Fix CVE-2024-47764 / GHSA-pxg6-pf52-xh8x: cookie out of bounds characters in name/path/domain
+  # Transitive via express
+  "cookie@<0.7.0": "0.7.0"
   # Fix CVE-2024-45296 / GHSA-9wv6-86v2-598j and CVE-2024-52798 / GHSA-rhx6-c78j-4q9w: path-to-regexp ReDoS vulnerability
   # Transitive via mintlify -> @mintlify/previewing -> express@4.18.2
   "path-to-regexp@<0.1.12": "0.1.12"
