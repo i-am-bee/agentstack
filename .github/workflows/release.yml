@@ -101,7 +101,7 @@ jobs:
       - run: mise run microshift-vm:build:qemu --arch ${{ matrix.arch }}
       - if: matrix.arch == 'x86_64'
         run: mise run microshift-vm:build:wsl
-      - uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6dc5a # v2
+      - uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
         with:
           files: |
             apps/microshift-vm/dist/${{ matrix.arch }}/microshift-vm-${{ matrix.arch }}.qcow2

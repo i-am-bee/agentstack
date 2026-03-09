@@ -76,7 +76,18 @@ def get_unique_app_name() -> str:
 
 
 @app.command("login | change | select | default | switch")
-async def server_login(server: typing.Annotated[str | None, typer.Argument()] = None):
+async def server_login(
+    server: typing.Annotated[str | None, typer.Argument()] = None,
+    client_id: typing.Annotated[
+        str | None, typer.Option("--client-id", help="OAuth client ID (skips interactive prompt)")
+    ] = None,
+    client_secret: typing.Annotated[
+        str | None, typer.Option("--client-secret", help="OAuth client secret (skips interactive prompt)")
+    ] = None,
+    auth_server_url: typing.Annotated[
+        str | None, typer.Option("--auth-server", help="Authorization server URL (skips interactive selection)")
+    ] = None,
+):
     """Login to a server or switch between logged in servers."""
     server = server or (
         await inquirer.select(
@@ -149,19 +160,22 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
         elif len(auth_servers) == 1:
             auth_server = auth_servers[0]
         elif len(auth_servers) > 1:
-            auth_server = await inquirer.select(
-                message="Select an authorization server:",
-                choices=[
-                    Choice(
-                        name=f"{auth_server} {'(active)' if auth_server == config.auth_manager.active_auth_server else ''}",
-                        value=auth_server,
-                    )
-                    for auth_server in auth_servers
-                ],
-                default=config.auth_manager.active_auth_server
-                if config.auth_manager.active_auth_server in auth_servers
-                else 0,
-            ).execute_async()
+            if auth_server_url is not None:
+                auth_server = auth_server_url if auth_server_url in auth_servers else auth_servers[0]
+            else:
+                auth_server = await inquirer.select(
+                    message="Select an authorization server:",
+                    choices=[
+                        Choice(
+                            name=f"{auth_server} {'(active)' if auth_server == config.auth_manager.active_auth_server else ''}",
+                            value=auth_server,
+                        )
+                        for auth_server in auth_servers
+                    ],
+                    default=config.auth_manager.active_auth_server
+                    if config.auth_manager.active_auth_server in auth_servers
+                    else 0,
+                ).execute_async()
             if not auth_server:
                 console.info("Action cancelled.")
                 sys.exit(1)
@@ -208,13 +222,15 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
     auth_server = None
     token = None
 
-    client_id = config.client_id
-    client_secret = config.client_secret
+    client_id = client_id or config.client_id
+    client_secret = client_secret or config.client_secret
     registration_token = None
 
     if auth_servers:
         if len(auth_servers) == 1:
             auth_server = auth_servers[0]
+        elif auth_server_url is not None:
+            auth_server = auth_server_url if auth_server_url in auth_servers else auth_servers[0]
         else:
             auth_server = await inquirer.select(
                 message="Select an authorization server:",
@@ -266,7 +282,9 @@ async def server_login(server: typing.Annotated[str | None, typer.Argument()] = 
             )
             if not client_id:
                 raise RuntimeError("Client ID is mandatory. Action cancelled.")
-            client_secret = await inquirer.secret(message="Enter Client Secret (optional):").execute_async() or None
+            client_secret = client_secret or await inquirer.secret(
+                message="Enter Client Secret (optional):"
+            ).execute_async() or None
 
         code_verifier = generate_token(64)
 

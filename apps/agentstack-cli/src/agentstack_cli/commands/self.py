@@ -86,6 +86,7 @@ async def version(
 @app.command("install")
 async def install(
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts")] = False,
 ):
     """Install Agent Stack platform pre-requisites."""
     with verbosity(verbose=verbose):
@@ -124,9 +125,9 @@ async def install(
 
         already_started = False
         console.print()
-        if (
-            ready_to_start
-            and await inquirer.confirm(
+        if ready_to_start and (
+            yes
+            or await inquirer.confirm(
                 message="Do you want to start the Agent Stack platform now? Will run: agentstack platform start",
                 default=True,
             ).execute_async()
@@ -139,21 +140,21 @@ async def install(
                 console.warning("Platform start failed. You can retry with [green]agentstack platform start[/green].")
 
         already_configured = False
-        if (
-            already_started
-            and await inquirer.confirm(
+        if already_started and (
+            yes
+            or await inquirer.confirm(
                 message="Do you want to configure your LLM provider now? Will run: agentstack model setup", default=True
             ).execute_async()
         ):
             try:
-                await model_setup(verbose=verbose)
+                await model_setup(verbose=verbose, yes=yes)
                 already_configured = True
             except Exception:
                 console.warning("Model setup failed. You can retry with [green]agentstack model setup[/green].")
 
-        if (
-            already_configured
-            and await inquirer.confirm(
+        if already_configured and (
+            yes
+            or await inquirer.confirm(
                 message="Do you want to open the web UI now? Will run: agentstack ui", default=True
             ).execute_async()
         ):

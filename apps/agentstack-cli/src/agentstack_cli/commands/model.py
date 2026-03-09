@@ -179,71 +179,108 @@ EMBEDDING_PROVIDERS = [
 ]
 
 
-async def _add_provider(capability: ModelCapability, use_true_localhost: bool = False) -> ModelProvider:
+async def _add_provider(
+    capability: ModelCapability,
+    use_true_localhost: bool = False,
+    *,
+    provider_type_str: str | None = None,
+    api_key: str | None = None,
+    base_url_override: str | None = None,
+    watsonx_region: str | None = None,
+    watsonx_project_or_space: str | None = None,
+    watsonx_project_or_space_id: str | None = None,
+    auto_pull_models: bool | None = None,
+) -> ModelProvider:
     provider_type: str
     provider_name: str
     base_url: str
-    watsonx_project_id, watsonx_space_id = None, None
+    _watsonx_project_id, _watsonx_space_id = None, None
     choices = LLM_PROVIDERS if capability == ModelCapability.LLM else EMBEDDING_PROVIDERS
-    provider_type, provider_name, base_url = await inquirer.fuzzy(
-        message=f"Select {capability} provider (type to search):", choices=choices
-    ).execute_async() or sys.exit(1)
 
-    watsonx_project_or_space: str = ""
-    watsonx_project_or_space_id: str = ""
+    if provider_type_str is not None:
+        matched = [c.value for c in choices if c.value[0].lower() == provider_type_str.lower()]
+        if not matched:
+            raise ValueError(
+                f"Unknown provider type: '{provider_type_str}'. "
+                f"Available: {[c.value[0] for c in choices]}"
+            )
+        provider_type, provider_name, base_url = matched[0]
+    else:
+        provider_type, provider_name, base_url = await inquirer.fuzzy(
+            message=f"Select {capability} provider (type to search):", choices=choices
+        ).execute_async() or sys.exit(1)
+
+    _watsonx_project_or_space: str = ""
+    _watsonx_project_or_space_id: str = ""
 
     if provider_type == ModelProviderType.OTHER:
-        base_url: str = await inquirer.text(
-            message="Enter the base URL of your API (OpenAI-compatible):",
-            validate=lambda url: url.startswith(("http://", "https://")),
-            transformer=lambda url: url.rstrip("/"),
-        ).execute_async() or sys.exit(1)
+        if base_url_override is not None:
+            base_url = base_url_override.rstrip("/")
+        else:
+            base_url = await inquirer.text(
+                message="Enter the base URL of your API (OpenAI-compatible):",
+                validate=lambda url: url.startswith(("http://", "https://")),
+                transformer=lambda url: url.rstrip("/"),
+            ).execute_async() or sys.exit(1)
         if re.match(r"^https://[a-z0-9.-]+\.rits\.fmaas\.res\.ibm\.com/.*$", base_url):
             provider_type = ModelProviderType.RITS
             if not base_url.endswith("/v1"):
                 base_url = base_url.removesuffix("/") + "/v1"
 
     if provider_type == ModelProviderType.WATSONX:
-        region: str = await inquirer.select(
-            message="Select IBM Cloud region:",
-            choices=[
-                Choice(name="us-south", value="us-south"),
-                Choice(name="ca-tor", value="ca-tor"),
-                Choice(name="eu-gb", value="eu-gb"),
-                Choice(name="eu-de", value="eu-de"),
-                Choice(name="jp-tok", value="jp-tok"),
-                Choice(name="au-syd", value="au-syd"),
-            ],
-        ).execute_async() or sys.exit(1)
-        base_url: str = f"""https://{region}.ml.cloud.ibm.com"""
-        watsonx_project_or_space: str = await inquirer.select(
-            "Use a Project or a Space?", choices=["project", "space"]
-        ).execute_async() or sys.exit(1)
-        if (
-            not (watsonx_project_or_space_id := os.environ.get(f"WATSONX_{watsonx_project_or_space.upper()}_ID", ""))
+        if watsonx_region is not None:
+            region = watsonx_region
+        else:
+            region = await inquirer.select(
+                message="Select IBM Cloud region:",
+                choices=[
+                    Choice(name="us-south", value="us-south"),
+                    Choice(name="ca-tor", value="ca-tor"),
+                    Choice(name="eu-gb", value="eu-gb"),
+                    Choice(name="eu-de", value="eu-de"),
+                    Choice(name="jp-tok", value="jp-tok"),
+                    Choice(name="au-syd", value="au-syd"),
+                ],
+            ).execute_async() or sys.exit(1)
+        base_url = f"https://{region}.ml.cloud.ibm.com"
+
+        if watsonx_project_or_space is not None:
+            _watsonx_project_or_space = watsonx_project_or_space
+        else:
+            _watsonx_project_or_space = await inquirer.select(
+                "Use a Project or a Space?", choices=["project", "space"]
+            ).execute_async() or sys.exit(1)
+
+        if watsonx_project_or_space_id is not None:
+            _watsonx_project_or_space_id = watsonx_project_or_space_id
+        elif (
+            not (env_id := os.environ.get(f"WATSONX_{_watsonx_project_or_space.upper()}_ID", ""))
             or not await inquirer.confirm(
-                message=f"Use the {watsonx_project_or_space} id from environment variable 'WATSONX_{watsonx_project_or_space.upper()}_ID'?",
+                message=f"Use the {_watsonx_project_or_space} id from environment variable 'WATSONX_{_watsonx_project_or_space.upper()}_ID'?",
                 default=True,
             ).execute_async()
         ):
-            watsonx_project_or_space_id = await inquirer.text(
-                message=f"Enter the {watsonx_project_or_space} id:"
+            _watsonx_project_or_space_id = await inquirer.text(
+                message=f"Enter the {_watsonx_project_or_space} id:"
             ).execute_async() or sys.exit(1)
+        else:
+            _watsonx_project_or_space_id = env_id
 
-        watsonx_project_id = watsonx_project_or_space_id if watsonx_project_or_space == "project" else None
-        watsonx_space_id = watsonx_project_or_space_id if watsonx_project_or_space == "space" else None
+        _watsonx_project_id = _watsonx_project_or_space_id if _watsonx_project_or_space == "project" else None
+        _watsonx_space_id = _watsonx_project_or_space_id if _watsonx_project_or_space == "space" else None
 
-    api_key: str = (
-        "dummy"
-        if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}
-        else env_api_key
-        if (env_api_key := os.environ.get(f"{provider_type.upper()}_API_KEY"))
-        and await inquirer.confirm(
-            message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
-            default=True,
-        ).execute_async()
-        else await inquirer.secret(message="Enter API key:").execute_async() or ""
-    )
+    _api_key: str
+    if provider_type in {ModelProviderType.OLLAMA, ModelProviderType.JAN}:
+        _api_key = "dummy"
+    elif api_key is not None:
+        _api_key = api_key
+    elif (env_api_key := os.environ.get(f"{provider_type.upper()}_API_KEY")) and await inquirer.confirm(
+        message=f"Use the API key from environment variable '{provider_type.upper()}_API_KEY'?",
+        default=True,
+    ).execute_async():
+        _api_key = env_api_key
+    else:
+        _api_key = await inquirer.secret(message="Enter API key:").execute_async() or ""
 
     try:
         if provider_type == ModelProviderType.OLLAMA:
@@ -264,23 +301,32 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                 recommended_embedding_model = recommended_embedding_model.removeprefix(f"{ModelProviderType.OLLAMA}:")
 
                 if recommended_llm_model not in available_models:
-                    message = f"Do you want to pull the recommended LLM model '{recommended_llm_model}'?"
+                    pull_msg = f"Do you want to pull the recommended LLM model '{recommended_llm_model}'?"
                     if not available_models:
-                        message = f"There are no locally available models in Ollama. {message}"
-                    if await inquirer.confirm(message, default=True).execute_async():
+                        pull_msg = f"There are no locally available models in Ollama. {pull_msg}"
+                    pull = (
+                        auto_pull_models
+                        if auto_pull_models is not None
+                        else await inquirer.confirm(pull_msg, default=True).execute_async()
+                    )
+                    if pull:
                         await run_command(
                             [_ollama_exe(), "pull", recommended_llm_model], "Pulling the selected model", check=True
                         )
 
-                if recommended_embedding_model not in available_models and (
-                    await inquirer.confirm(
-                        message=f"Do you want to pull the recommended embedding model '{recommended_embedding_model}'?",
-                        default=True,
-                    ).execute_async()
-                ):
-                    await run_command(
-                        [_ollama_exe(), "pull", recommended_embedding_model], "Pulling the selected model", check=True
+                if recommended_embedding_model not in available_models:
+                    pull = (
+                        auto_pull_models
+                        if auto_pull_models is not None
+                        else await inquirer.confirm(
+                            message=f"Do you want to pull the recommended embedding model '{recommended_embedding_model}'?",
+                            default=True,
+                        ).execute_async()
                     )
+                    if pull:
+                        await run_command(
+                            [_ollama_exe(), "pull", recommended_embedding_model], "Pulling the selected model", check=True
+                        )
 
         if not use_true_localhost:
             base_url = re.sub(r"localhost|127\.0\.0\.1", "host.docker.internal", base_url)
@@ -290,9 +336,9 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
                 name=provider_name,
                 type=ModelProviderType(provider_type),
                 base_url=base_url,
-                api_key=api_key,
-                watsonx_space_id=watsonx_space_id,
-                watsonx_project_id=watsonx_project_id,
+                api_key=_api_key,
+                watsonx_space_id=_watsonx_space_id,
+                watsonx_project_id=_watsonx_project_id,
             )
 
     except httpx.HTTPError as e:
@@ -318,7 +364,12 @@ async def _add_provider(capability: ModelCapability, use_true_localhost: bool = 
         raise ModelProviderError(err) from e
 
 
-async def _select_default_model(capability: ModelCapability) -> str | None:
+async def _select_default_model(
+    capability: ModelCapability,
+    *,
+    model_id: str | None = None,
+    yes: bool = False,
+) -> str | None:
     async with openai_client() as client:
         models = (await client.models.list()).data
 
@@ -336,20 +387,31 @@ async def _select_default_model(capability: ModelCapability) -> str | None:
 
     console.print(f"\n[bold]Configure default model for {capability}[/bold]:")
 
-    selected_model = (
-        recommended_model
-        if recommended_model
-        and await inquirer.confirm(
-            message=f"Do you want to use the recommended model as default: '{recommended_model}'?",
-            default=True,
-        ).execute_async()
-        else (
-            await inquirer.fuzzy(
-                message="Select a model to be used as default (type to search):",
-                choices=sorted(available_models),
+    if model_id is not None:
+        if model_id not in available_models:
+            raise ModelProviderError(
+                f"Model '{model_id}' is not available. Available models: {sorted(available_models)}"
+            )
+        selected_model = model_id
+    elif yes and recommended_model:
+        selected_model = recommended_model
+    elif yes:
+        selected_model = sorted(available_models)[0]
+    else:
+        selected_model = (
+            recommended_model
+            if recommended_model
+            and await inquirer.confirm(
+                message=f"Do you want to use the recommended model as default: '{recommended_model}'?",
+                default=True,
             ).execute_async()
+            else (
+                await inquirer.fuzzy(
+                    message="Select a model to be used as default (type to search):",
+                    choices=sorted(available_models),
+                ).execute_async()
+            )
         )
-    )
     assert selected_model, "No model selected"
 
     try:
@@ -420,6 +482,56 @@ async def _reset_configuration(existing_providers: list[ModelProvider] | None = 
 async def setup(
     use_true_localhost: typing.Annotated[bool, typer.Option(hidden=True)] = False,
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+    llm_provider: typing.Annotated[
+        str | None, typer.Option("--llm-provider", help="LLM provider type (e.g. openai, anthropic, watsonx)")
+    ] = None,
+    llm_api_key: typing.Annotated[
+        str | None, typer.Option("--llm-api-key", help="LLM provider API key")
+    ] = None,
+    llm_base_url: typing.Annotated[
+        str | None, typer.Option("--llm-base-url", help="Base URL for 'other' LLM provider")
+    ] = None,
+    llm_watsonx_region: typing.Annotated[
+        str | None, typer.Option("--llm-watsonx-region", help="IBM watsonx region for LLM (e.g. us-south)")
+    ] = None,
+    llm_watsonx_project_or_space: typing.Annotated[
+        str | None, typer.Option("--llm-watsonx-project-or-space", help="IBM watsonx: 'project' or 'space'")
+    ] = None,
+    llm_watsonx_project_or_space_id: typing.Annotated[
+        str | None, typer.Option("--llm-watsonx-project-or-space-id", help="IBM watsonx project or space ID for LLM")
+    ] = None,
+    llm_model: typing.Annotated[
+        str | None, typer.Option("--llm-model", help="Default LLM model ID (e.g. openai:gpt-4o)")
+    ] = None,
+    embedding_provider: typing.Annotated[
+        str | None, typer.Option("--embedding-provider", help="Embedding provider type (e.g. openai, watsonx)")
+    ] = None,
+    embedding_api_key: typing.Annotated[
+        str | None, typer.Option("--embedding-api-key", help="Embedding provider API key")
+    ] = None,
+    embedding_base_url: typing.Annotated[
+        str | None, typer.Option("--embedding-base-url", help="Base URL for 'other' embedding provider")
+    ] = None,
+    embedding_watsonx_region: typing.Annotated[
+        str | None, typer.Option("--embedding-watsonx-region", help="IBM watsonx region for embedding")
+    ] = None,
+    embedding_watsonx_project_or_space: typing.Annotated[
+        str | None, typer.Option("--embedding-watsonx-project-or-space", help="IBM watsonx: 'project' or 'space'")
+    ] = None,
+    embedding_watsonx_project_or_space_id: typing.Annotated[
+        str | None,
+        typer.Option("--embedding-watsonx-project-or-space-id", help="IBM watsonx project or space ID for embedding"),
+    ] = None,
+    embedding_model: typing.Annotated[
+        str | None, typer.Option("--embedding-model", help="Default embedding model ID")
+    ] = None,
+    skip_embedding: typing.Annotated[
+        bool, typer.Option("--skip-embedding", help="Skip embedding provider setup")
+    ] = False,
+    yes: typing.Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Skip confirmation prompts and auto-select recommended models"),
+    ] = False,
 ):
     """Interactive setup for LLM and embedding provider environment variables"""
     announce_server_action("Configuring model providers for")
@@ -432,7 +544,7 @@ async def setup(
                 console.warning("The following providers are already configured:\n")
                 _list_providers(existing_providers)
                 console.print()
-                if await inquirer.confirm(
+                if yes or await inquirer.confirm(
                     message="Do you want to reset the configuration?", default=True
                 ).execute_async():
                     with console.status("Resetting configuration...", spinner="dots"):
@@ -443,28 +555,60 @@ async def setup(
 
             try:
                 console.print("[bold]Setting up LLM provider...[/bold]")
-                llm_provider = await _add_provider(ModelCapability.LLM, use_true_localhost=use_true_localhost)
-                default_llm_model = await _select_default_model(ModelCapability.LLM)
+                llm_provider_obj = await _add_provider(
+                    ModelCapability.LLM,
+                    use_true_localhost=use_true_localhost,
+                    provider_type_str=llm_provider,
+                    api_key=llm_api_key,
+                    base_url_override=llm_base_url,
+                    watsonx_region=llm_watsonx_region,
+                    watsonx_project_or_space=llm_watsonx_project_or_space,
+                    watsonx_project_or_space_id=llm_watsonx_project_or_space_id,
+                    auto_pull_models=yes,
+                )
+                default_llm_model = await _select_default_model(ModelCapability.LLM, model_id=llm_model, yes=yes)
 
                 default_embedding_model = None
-                if (
-                    ModelCapability.EMBEDDING in llm_provider.capabilities
-                    and llm_provider.type
+                if skip_embedding:
+                    console.hint(
+                        "Skipping embedding setup. You can add an embedding provider later with: [green]agentstack model add[/green]"
+                    )
+                elif embedding_provider is not None:
+                    console.print("[bold]Setting up embedding provider...[/bold]")
+                    await _add_provider(
+                        capability=ModelCapability.EMBEDDING,
+                        use_true_localhost=use_true_localhost,
+                        provider_type_str=embedding_provider,
+                        api_key=embedding_api_key,
+                        base_url_override=embedding_base_url,
+                        watsonx_region=embedding_watsonx_region,
+                        watsonx_project_or_space=embedding_watsonx_project_or_space,
+                        watsonx_project_or_space_id=embedding_watsonx_project_or_space_id,
+                    )
+                    default_embedding_model = await _select_default_model(
+                        ModelCapability.EMBEDDING, model_id=embedding_model, yes=yes
+                    )
+                elif (
+                    ModelCapability.EMBEDDING in llm_provider_obj.capabilities
+                    and llm_provider_obj.type
                     != ModelProviderType.RITS  # RITS does not support embeddings, but we treat it as OTHER
                     and (
-                        llm_provider.type != ModelProviderType.OTHER  # OTHER may not support embeddings, so we ask
+                        llm_provider_obj.type != ModelProviderType.OTHER  # OTHER may not support embeddings, so we ask
+                        or yes
                         or inquirer.confirm(
                             "Do you want to also set up an embedding model from the same provider?", default=True
                         )
                     )
                 ):
-                    default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
-                elif await inquirer.confirm(
+                    default_embedding_model = await _select_default_model(
+                        ModelCapability.EMBEDDING, model_id=embedding_model, yes=yes
+                    )
+                elif yes or await inquirer.confirm(
                     message="Do you want to configure an embedding provider? (recommended)", default=True
                 ).execute_async():
                     console.print("[bold]Setting up embedding provider...[/bold]")
                     await _add_provider(capability=ModelCapability.EMBEDDING, use_true_localhost=use_true_localhost)
-                    default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING)
+                    default_embedding_model = await _select_default_model(ModelCapability.EMBEDDING, yes=yes)
                 else:
                     console.hint("You can add an embedding provider later with: [green]agentstack model add[/green]")
 
@@ -505,7 +649,7 @@ async def select_default_model(
     capability_name = str(getattr(capability, "value", capability)).lower()
     await confirm_server_action(f"Proceed with updating the default {capability_name} model on", url=url, yes=yes)
     async with configuration.use_platform_client():
-        model = model_id if model_id else await _select_default_model(capability)
+        model = model_id if model_id else await _select_default_model(capability, yes=yes)
         conf = await SystemConfiguration.get()
         default_llm_model = model if capability == ModelCapability.LLM else conf.default_llm_model
         default_embedding_model = model if capability == ModelCapability.EMBEDDING else conf.default_embedding_model
@@ -550,6 +694,30 @@ async def add_provider(
     capability: typing.Annotated[
         ModelCapability | None, typer.Argument(help="Which default model to change (llm/embedding)")
     ] = None,
+    provider: typing.Annotated[
+        str | None, typer.Option("--provider", help="Provider type (e.g. openai, anthropic, watsonx)")
+    ] = None,
+    api_key: typing.Annotated[
+        str | None, typer.Option("--api-key", help="Provider API key")
+    ] = None,
+    base_url: typing.Annotated[
+        str | None, typer.Option("--base-url", help="Base URL for 'other' provider")
+    ] = None,
+    watsonx_region: typing.Annotated[
+        str | None, typer.Option("--watsonx-region", help="IBM watsonx region")
+    ] = None,
+    watsonx_project_or_space: typing.Annotated[
+        str | None, typer.Option("--watsonx-project-or-space", help="IBM watsonx: 'project' or 'space'")
+    ] = None,
+    watsonx_project_or_space_id: typing.Annotated[
+        str | None, typer.Option("--watsonx-project-or-space-id", help="IBM watsonx project or space ID")
+    ] = None,
+    model: typing.Annotated[
+        str | None, typer.Option("--model", help="Default model ID to use after adding the provider")
+    ] = None,
+    yes: typing.Annotated[
+        bool, typer.Option("--yes", "-y", help="Skip confirmation prompts and auto-select recommended model")
+    ] = False,
 ):
     """Add a new model provider. [Admin only]"""
     announce_server_action("Adding provider for")
@@ -564,12 +732,21 @@ async def add_provider(
 
     assert capability
     async with configuration.use_platform_client():
-        await _add_provider(capability)
+        await _add_provider(
+            capability,
+            provider_type_str=provider,
+            api_key=api_key,
+            base_url_override=base_url,
+            watsonx_region=watsonx_region,
+            watsonx_project_or_space=watsonx_project_or_space,
+            watsonx_project_or_space_id=watsonx_project_or_space_id,
+            auto_pull_models=yes,
+        )
 
         conf = await SystemConfiguration.get()
         default_model = conf.default_llm_model if capability == ModelCapability.LLM else conf.default_embedding_model
         if not default_model:
-            default_model = await _select_default_model(capability)
+            default_model = await _select_default_model(capability, model_id=model, yes=yes)
             default_llm = default_model if capability == ModelCapability.LLM else conf.default_llm_model
             default_embedding = (
                 default_model if capability == ModelCapability.EMBEDDING else conf.default_embedding_model
@@ -629,10 +806,10 @@ async def remove_provider(
         try:
             if (conf.default_llm_model or "").startswith(provider.type):
                 console.print("The provider was used as default llm model. Please select another one...")
-                default_llm = await _select_default_model(ModelCapability.LLM)
+                default_llm = await _select_default_model(ModelCapability.LLM, yes=yes)
             if (conf.default_embedding_model or "").startswith(provider.type):
                 console.print("The provider was used as default embedding model. Please select another one...")
-                default_embed = await _select_default_model(ModelCapability.EMBEDDING)
+                default_embed = await _select_default_model(ModelCapability.EMBEDDING, yes=yes)
         finally:
             await SystemConfiguration.update(default_llm_model=default_llm, default_embedding_model=default_embed)
 
