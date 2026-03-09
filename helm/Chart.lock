@@ -1,18 +1,18 @@
 dependencies:
 - name: common
   repository: oci://registry-1.docker.io/bitnamicharts
-  version: 2.31.4
+  version: 2.36.0
 - name: postgresql
   repository: oci://registry-1.docker.io/bitnamicharts
   version: 16.7.27
 - name: seaweedfs
   repository: https://seaweedfs.github.io/seaweedfs/helm
-  version: 4.0.407
+  version: 4.15.0
 - name: phoenix-helm
   repository: oci://registry-1.docker.io/arizephoenix
-  version: 4.0.32
+  version: 4.0.37
 - name: redis
   repository: oci://registry-1.docker.io/cloudpirates
-  version: 0.16.3
-digest: sha256:b6bec821abce3733fcfdd919404aa1c62ffb4daee4e046dd6eece4a19bae725f
-generated: "2026-01-26T14:26:19.122198+01:00"
+  version: 0.25.8
+digest: sha256:744ba9a5dc432d6474fa743932d4cdf7e0a98eac5fd64930c33bb66e830af79f
+generated: "2026-03-09T06:49:51.797489616Z"
