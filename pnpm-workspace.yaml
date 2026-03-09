@@ -9,7 +9,7 @@ overrides:
   # Transitive via mintlify -> @mintlify/previewing
   "express@>=4.0.0 <4.20.0": "4.21.2"
   # Fix CVE-2023-4316 / GHSA-m95q-7qp3-xv42: Zod ReDoS in email validation
-  "zod@<=3.22.2": "3.22.3"
+  "zod@<3.22.3": "3.22.3"
   # Fix CVE-2025-64718 / GHSA-mh29-5h37-fv8m: js-yaml Prototype Pollution via merge
   # Transitive via @mintlify/cli and @mintlify/common
   "js-yaml@>=4.0.0 <4.1.1": "4.1.1"
