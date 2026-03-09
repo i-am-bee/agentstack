@@ -18,6 +18,33 @@ depends = ["*:test"]
 hide = true
 depends = ["check"]
 
+["git-hooks:commit-msg"]
+hide = true
+dir = "{{config_root}}"
+usage = 'arg "<commit_msg_file>"'
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+COMMIT_MSG_FILE="{{arg(name="commit_msg_file")}}"
+TEMP_FILE=$(mktemp)
+trap 'rm -f "$TEMP_FILE"' EXIT
+
+HAS_AI_TRAILER=false
+if grep -qi -E '^Co-authored-by:.*(Claude|Cursor|anthropic|cursor)' "$COMMIT_MSG_FILE"; then
+  HAS_AI_TRAILER=true
+fi
+
+grep -viE -e '^Co-authored-by:.*(Claude|Cursor|anthropic|cursor)' -e '^Made-with:' "$COMMIT_MSG_FILE" > "$TEMP_FILE" || true
+
+awk '/^[[:space:]]*$/{buf=buf $0 ORS; next} {if(buf) printf "%s",buf; buf=""; print}' "$TEMP_FILE" > "$COMMIT_MSG_FILE"
+
+if [ "$HAS_AI_TRAILER" = true ]; then
+  echo "" >> "$COMMIT_MSG_FILE"
+  echo "Assisted-By: Claude (Anthropic AI) <noreply@anthropic.com>" >> "$COMMIT_MSG_FILE"
+fi
+'''
+
 # common tasks
 
 ## setup
@@ -38,7 +65,7 @@ HOOK
 chmod +x .git/hooks/pre-commit
 cat >.git/hooks/commit-msg <<'HOOK'
 #!/bin/sh
-bash scripts/commit-msg.sh "$1"
+{{ mise_bin }} run git-hooks:commit-msg -- "$1"
 HOOK
 chmod +x .git/hooks/commit-msg
 """
