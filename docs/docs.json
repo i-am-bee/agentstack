@@ -133,7 +133,13 @@
           },
           {
             "group": "Reference",
-            "pages": ["development/reference/cli-reference"]
+            "pages": [
+              "development/reference/cli-reference",
+              {
+                "group": "API Reference",
+                "openapi": "development/api-reference/openapi.json"
+              }
+            ]
           },
           {
             "group": "Deploy Agent Stack",

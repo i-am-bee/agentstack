@@ -36,6 +36,36 @@ dir = "{{config_root}}/apps/agentstack-server"
 extends = "docker:check:hadolint"
 dir = "{{config_root}}/apps/agentstack-server"
 
+["agentstack-server:check:docs"]
+description = "Check that docs/development/api-reference/openapi.json is in sync with server routes"
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = '''
+#!/bin/bash
+set -eu -o pipefail
+uv run python -c "
+import json, sys
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+from agentstack_server.application import mount_routes, get_version
+app = FastAPI(docs_url=None, openapi_url=None)
+mount_routes(app)
+spec = get_openapi(title='Agentstack server', version=get_version(), routes=app.routes)
+spec.pop('servers', None)
+print(json.dumps(spec, indent=2))
+" > /tmp/agentstack-openapi-generated.json
+jq --sort-keys 'del(.servers) | del(.. | .operationId?)' /tmp/agentstack-openapi-generated.json > /tmp/agentstack-openapi-generated-normalized.json
+jq --sort-keys 'del(.servers) | del(.. | .operationId?)' ../../docs/development/api-reference/openapi.json > /tmp/agentstack-openapi-committed-normalized.json
+if ! jq --null-input --exit-status \
+    --slurpfile generated /tmp/agentstack-openapi-generated-normalized.json \
+    --slurpfile committed /tmp/agentstack-openapi-committed-normalized.json \
+    '$generated[0] == $committed[0]' > /dev/null; then
+  echo "ERROR: docs/development/api-reference/openapi.json is out of sync with server routes."
+  echo "Run: mise run agentstack-server:fix:docs"
+  exit 1
+fi
+'''
+
 # fix
 
 ["agentstack-server:fix"]
@@ -50,6 +80,24 @@ dir = "{{config_root}}/apps/agentstack-server"
 extends = "python:fix:ruff-format"
 depends = ["agentstack-server:setup"]
 dir = "{{config_root}}/apps/agentstack-server"
+
+["agentstack-server:fix:docs"]
+description = "Regenerate docs/development/api-reference/openapi.json from server routes (no running server needed)"
+depends = ["agentstack-server:setup"]
+dir = "{{config_root}}/apps/agentstack-server"
+run = '''
+uv run python -c "
+import json, sys
+from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
+from agentstack_server.application import mount_routes, get_version
+app = FastAPI(docs_url=None, openapi_url=None)
+mount_routes(app)
+spec = get_openapi(title='Agentstack server', version=get_version(), routes=app.routes)
+spec.pop('servers', None)
+print(json.dumps(spec, indent=2))
+" > ../../docs/development/api-reference/openapi.json
+'''
 
 # run
 

@@ -122,9 +122,9 @@ def register_global_exception_handlers(app: FastAPI):
 
 def mount_routes(app: FastAPI):
     server_router = APIRouter()
-    server_router.include_router(user_router, prefix="/user")
-    server_router.include_router(users_router, prefix="/users")
-    server_router.include_router(a2a_router, prefix="/a2a")
+    server_router.include_router(user_router, prefix="/user", tags=["user"])
+    server_router.include_router(users_router, prefix="/users", tags=["users"])
+    server_router.include_router(a2a_router, prefix="/a2a", tags=["a2a"])
     server_router.include_router(provider_router, prefix="/providers", tags=["providers"])
     server_router.include_router(provider_discovery_router, prefix="/providers/discovery", tags=["provider_discovery"])
     server_router.include_router(provider_builds_router, prefix="/provider_builds", tags=["provider_builds"])
@@ -141,8 +141,8 @@ def mount_routes(app: FastAPI):
     well_known_router = APIRouter()
     well_known_router.include_router(auth_well_known_router, prefix="")
 
-    app.include_router(server_router, prefix="/api/v1", tags=["provider"])
-    app.include_router(well_known_router, prefix="/.well-known", tags=["well-known"])
+    app.include_router(server_router, prefix="/api/v1")
+    app.include_router(well_known_router, prefix="/.well-known", tags=["auth"])
 
     @app.get("/api/v1/openapi.json", include_in_schema=False)
     async def custom_openapi(request: Request):
@@ -166,7 +166,7 @@ def mount_routes(app: FastAPI):
             title="BeeAI Platform API Docs",
         )
 
-    @app.get("/healthcheck")
+    @app.get("/healthcheck", include_in_schema=False)
     async def healthcheck():
         return "OK"
 

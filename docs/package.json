@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "mintlify dev --port 3333",
-    "update-openapi": "wget localhost:8333/api/v1/openapi.json -O api-reference/openapi.json"
+    "dev": "mintlify dev --port 3333"
   },
   "keywords": [],
   "author": "IBM Corp.",

@@ -459,16 +459,25 @@ jq '
   (.navigation.versions[]
    | select(.version == "development")
    | .version = "stable"
-   | .groups[].pages |=
-       map(
-         if type == "string" then
-           sub("^development/"; "stable/")
-         elif type == "object" then
-           .pages |= map(sub("^development/"; "stable/"))
-         else
-           .
-         end
-       )
+   | .groups[] |= (
+       if has("pages") then
+         .pages |= map(
+           if type == "string" then
+             sub("^development/"; "stable/")
+           elif type == "object" then
+             if has("pages") then
+               .pages |= map(sub("^development/"; "stable/"))
+             else
+               . |= with_entries(if .value | type == "string" then .value |= sub("^development/"; "stable/") else . end)
+             end
+           else
+             .
+           end
+         )
+       else
+         . |= with_entries(if .value | type == "string" then .value |= sub("^development/"; "stable/") else . end)
+       end
+     )
   )
 ' > .new-stable.json
 jq --slurpfile new_stable .new-stable.json \
