@@ -164,6 +164,6 @@ GEN_TMP=$(mktemp)
 trap 'rm -f $HEAD_TMP $GEN_TMP' EXIT
 
 cat $CLI_REFERENCE | sed "/usage-generator/q" > $HEAD_TMP
-uv run typer $TYPER_SCRIPT utils docs --name agentstack | tail -n +2 > $GEN_TMP
+uv run -m typer $TYPER_SCRIPT utils docs --name agentstack | tail -n +2 > $GEN_TMP
 cat $HEAD_TMP $GEN_TMP > $CLI_REFERENCE
 '''

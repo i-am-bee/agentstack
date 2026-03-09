@@ -38,7 +38,6 @@ $ agentstack [OPTIONS] COMMAND [ARGS]...
 * `build`: Build agent from a GitHub repository in...
 * `server`: Manage Agent Stack servers and...
 * `self`: Manage Agent Stack installation.
-* `user`: Manage users.
 * `add`: Add a docker image or GitHub repository.
 * `update`: Upgrade agent to a newer docker image or...
 * `remove | uninstall | rm | delete`: Remove agent.
@@ -128,6 +127,28 @@ $ agentstack model setup [OPTIONS]
 **Options**:
 
 * `-v, --verbose`: Show verbose output
+* `--llm-provider TEXT`: LLM provider type (e.g. openai, anthropic, watsonx)
+* `--llm-api-key TEXT`: LLM provider API key
+* `--llm-base-url TEXT`: Base URL for &#x27;other&#x27; LLM provider
+* `--llm-watsonx-region TEXT`: IBM watsonx region for LLM (e.g. us-south)
+* `--llm-watsonx-project-or-space TEXT`: IBM watsonx: &#x27;project&#x27; or &#x27;space&#x27;
+* `--llm-watsonx-project-or-space-id TEXT`: IBM watsonx project or space ID for LLM
+* `--llm-model TEXT`: Default LLM model ID (e.g. openai:gpt-4o)
+* `--llm-bedrock-region TEXT`: AWS region for Bedrock LLM (e.g. us-east-1)
+* `--llm-bedrock-access-key TEXT`: AWS Access Key ID for Bedrock LLM
+* `--llm-bedrock-secret-key TEXT`: AWS Secret Access Key for Bedrock LLM
+* `--embedding-provider TEXT`: Embedding provider type (e.g. openai, watsonx)
+* `--embedding-api-key TEXT`: Embedding provider API key
+* `--embedding-base-url TEXT`: Base URL for &#x27;other&#x27; embedding provider
+* `--embedding-watsonx-region TEXT`: IBM watsonx region for embedding
+* `--embedding-watsonx-project-or-space TEXT`: IBM watsonx: &#x27;project&#x27; or &#x27;space&#x27;
+* `--embedding-watsonx-project-or-space-id TEXT`: IBM watsonx project or space ID for embedding
+* `--embedding-model TEXT`: Default embedding model ID
+* `--embedding-bedrock-region TEXT`: AWS region for Bedrock embedding (e.g. us-east-1)
+* `--embedding-bedrock-access-key TEXT`: AWS Access Key ID for Bedrock embedding
+* `--embedding-bedrock-secret-key TEXT`: AWS Secret Access Key for Bedrock embedding
+* `--skip-embedding`: Skip embedding provider setup
+* `-y, --yes`: Skip confirmation prompts and auto-select recommended models
 * `--help`: Show this message and exit.
 
 ### `agentstack model change | select | default`
@@ -166,6 +187,17 @@ $ agentstack model add [OPTIONS] [CAPABILITY]:[llm|embedding]
 
 **Options**:
 
+* `--provider TEXT`: Provider type (e.g. openai, anthropic, watsonx)
+* `--api-key TEXT`: Provider API key
+* `--base-url TEXT`: Base URL for &#x27;other&#x27; provider
+* `--watsonx-region TEXT`: IBM watsonx region
+* `--watsonx-project-or-space TEXT`: IBM watsonx: &#x27;project&#x27; or &#x27;space&#x27;
+* `--watsonx-project-or-space-id TEXT`: IBM watsonx project or space ID
+* `--bedrock-region TEXT`: AWS region for Bedrock (e.g. us-east-1)
+* `--bedrock-access-key TEXT`: AWS Access Key ID for Bedrock
+* `--bedrock-secret-key TEXT`: AWS Secret Access Key for Bedrock
+* `--model TEXT`: Default model ID to use after adding the provider
+* `-y, --yes`: Skip confirmation prompts and auto-select recommended model
 * `--help`: Show this message and exit.
 
 ### `agentstack model remove | rm | delete`
@@ -233,6 +265,17 @@ $ agentstack model provider add [OPTIONS] [CAPABILITY]:[llm|embedding]
 
 **Options**:
 
+* `--provider TEXT`: Provider type (e.g. openai, anthropic, watsonx)
+* `--api-key TEXT`: Provider API key
+* `--base-url TEXT`: Base URL for &#x27;other&#x27; provider
+* `--watsonx-region TEXT`: IBM watsonx region
+* `--watsonx-project-or-space TEXT`: IBM watsonx: &#x27;project&#x27; or &#x27;space&#x27;
+* `--watsonx-project-or-space-id TEXT`: IBM watsonx project or space ID
+* `--bedrock-region TEXT`: AWS region for Bedrock (e.g. us-east-1)
+* `--bedrock-access-key TEXT`: AWS Access Key ID for Bedrock
+* `--bedrock-secret-key TEXT`: AWS Secret Access Key for Bedrock
+* `--model TEXT`: Default model ID to use after adding the provider
+* `-y, --yes`: Skip confirmation prompts and auto-select recommended model
 * `--help`: Show this message and exit.
 
 #### `agentstack model provider remove | rm | delete`
@@ -724,12 +767,13 @@ $ agentstack platform start [OPTIONS]
 **Options**:
 
 * `--set TEXT`: Set Helm chart values using &lt;key&gt;=&lt;value&gt; syntax  [default: &lt;class &#x27;list&#x27;&gt;]
-* `--image-pull-mode <guest|host|hybrid>`:
-    * `guest`: Pull all images inside VM
-    * `host`: Pull unavailable images on host, then import all
-    * `hybrid`: Import available images from host, pull the rest in VM
-    * `skip`: Skip explicit pull step (Kubernetes will attempt to pull missing images)
+* `--image-pull-mode [guest|host|hybrid|skip]`: guest = pull all images inside VM 
+<span style="color: #000000; text-decoration-color: #000000">host = pull unavailable images on host, then import all</span>
+<span style="color: #000000; text-decoration-color: #000000">hybrid = import available images from host, pull the rest in VM</span>
+<span style="color: #000000; text-decoration-color: #000000">skip = skip explicit pull step (Kubernetes will attempt to pull missing images)  [default: guest]</span>
 * `-f PATH`: Set Helm chart values using yaml values file
+* `--lima-image TEXT`: Local path or URL to Lima image (.qcow2)
+* `--wsl-image TEXT`: Local path or URL to WSL distro image (.wsl)
 * `-v, --verbose`: Show verbose output
 * `--help`: Show this message and exit.
 
@@ -780,6 +824,7 @@ $ agentstack platform import [OPTIONS] TAG
 **Options**:
 
 * `-v, --verbose`: Show verbose output
+* `--mode [daemon|registry]`: [default: daemon]
 * `--help`: Show this message and exit.
 
 ### `agentstack platform exec`
@@ -822,6 +867,7 @@ $ agentstack client-side-build [OPTIONS] [CONTEXT]
 * `--multi-platform / --no-multi-platform`: [default: no-multi-platform]
 * `--push / --no-push`: Push the image to the target registry.  [default: no-push]
 * `--import / --no-import`: Import the image into Agent Stack platform  [default: import]
+* `--extract-agent-card / --no-extract-agent-card`: Extract agent card from running container  [default: extract-agent-card]
 * `-v, --verbose`: Show verbose output
 * `--help`: Show this message and exit.
 
@@ -883,6 +929,9 @@ $ agentstack server login | change | select | default | switch [OPTIONS] [SERVER
 
 **Options**:
 
+* `--client-id TEXT`: OAuth client ID (skips interactive prompt)
+* `--client-secret TEXT`: OAuth client secret (skips interactive prompt)
+* `--auth-server TEXT`: Authorization server URL (skips interactive selection)
 * `--help`: Show this message and exit.
 
 ### `agentstack server logout | remove | rm | delete`
@@ -971,6 +1020,7 @@ $ agentstack self install [OPTIONS]
 **Options**:
 
 * `-v, --verbose`: Show verbose output
+* `-y, --yes`: Skip confirmation prompts
 * `--help`: Show this message and exit.
 
 ### `agentstack self upgrade`
@@ -1001,62 +1051,6 @@ $ agentstack self uninstall [OPTIONS]
 **Options**:
 
 * `-v, --verbose`: Show verbose output
-* `--help`: Show this message and exit.
-
-## `agentstack user`
-
-Manage users. [Admin only]
-
-**Usage**:
-
-```console
-$ agentstack user [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `list`: List platform users [Admin only]
-* `set-role`: Change user role [Admin only]
-
-### `agentstack user list`
-
-List platform users [Admin only]
-
-**Usage**:
-
-```console
-$ agentstack user list [OPTIONS]
-```
-
-**Options**:
-
-* `--email TEXT`: Filter by email (case-insensitive partial match)
-* `--limit INTEGER`: Results per page (1-100)  [default: 40]
-* `--after TEXT`: Pagination cursor (page_token)
-* `--help`: Show this message and exit.
-
-### `agentstack user set-role`
-
-Change user role [Admin only]
-
-**Usage**:
-
-```console
-$ agentstack user set-role [OPTIONS] USER_ID ROLE:{admin|developer|user}
-```
-
-**Arguments**:
-
-* `USER_ID`: User UUID  [required]
-* `ROLE:{admin|developer|user}`: Target role (admin, developer, user)  [required]
-
-**Options**:
-
-* `-y, --yes`: Skip confirmation prompts.
 * `--help`: Show this message and exit.
 
 ## `agentstack add`
@@ -1317,3 +1311,4 @@ $ agentstack feedback list [OPTIONS] [SEARCH_PATH]
 * `--limit INTEGER`: Number of results per page   [default: 50]
 * `--after TEXT`: Cursor for pagination
 * `--help`: Show this message and exit.
+
