@@ -1073,7 +1073,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/f3/ff/c9baf0997266d398a
 
 [[package]]
 name = "ibm-watsonx-ai"
-version = "1.5.2"
+version = "1.5.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -1087,9 +1087,9 @@ dependencies = [
     { name = "tabulate" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/d7/5a4250bc0b4bde2aa9fb44289cd869c8b7df229759098d435ab169bc9eb9/ibm_watsonx_ai-1.5.2.tar.gz", hash = "sha256:c85ccf4eb79a03c8cc27ff891c24c3a9aebcc0da5887baa64bc9bb67d83aaf54", size = 710281, upload-time = "2026-02-12T08:20:37.855Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/50/a0/19e0bfefe4fe3409bb73821198a24eac931f12f8c2ea2eb05c98995dffaa/ibm_watsonx_ai-1.5.3.tar.gz", hash = "sha256:610c982416e18479e2029d16062e992d42a5454b6db5ed68541aa53b8f3bfa54", size = 710736, upload-time = "2026-02-26T09:18:03.628Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/18/06dd0320590189c77283315da5368a361cef6b9807f6e44b9a59773139e9/ibm_watsonx_ai-1.5.2-py3-none-any.whl", hash = "sha256:0b9e80128a726788412ca50d63461dcea22ac23caf2057b8a6e32a0c376da18d", size = 1079661, upload-time = "2026-02-12T08:20:36.223Z" },
+    { url = "https://files.pythonhosted.org/packages/99/89/f6a113d08bd8796c8ed82b151009479fe7e8a7b4792a12c98918b806c0e6/ibm_watsonx_ai-1.5.3-py3-none-any.whl", hash = "sha256:a7a1af3bebd8271e0fb7a04b17792131ad7f3e697cd4aea0aae0687695cb884f", size = 1080316, upload-time = "2026-02-26T09:18:01.778Z" },
 ]
 
 [[package]]
