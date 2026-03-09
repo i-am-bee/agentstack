@@ -76,7 +76,7 @@ RECOMMENDED_EMBEDDING_MODELS = [
 
 LLM_PROVIDERS = [
     Choice(
-        name="Amazon Bedrock".ljust(20),
+        name="Amazon Bedrock".ljust(20) + "🧪 experimental",
         value=(ModelProviderType.BEDROCK, "Amazon Bedrock", None),
     ),
     Choice(
