@@ -85,10 +85,12 @@ def apply_compatibility_monkey_patching():
     # Fix for Python 3.14 + Pydantic 2.12.x + prefer_fwd_module TypeError
     if sys.version_info >= (3, 14):
         import typing
+
         with suppress(ImportError, AttributeError):
             import pydantic._internal._typing_extra as typing_extra
 
             if hasattr(typing_extra, "_eval_type"):
+
                 def patched_eval_type(value, globalns=None, localns=None, type_params=None):
                     # Python 3.14 typing._eval_type doesn't support prefer_fwd_module
                     # but Pydantic 2.12.x incorrectly passes it.
@@ -110,12 +112,15 @@ def apply_compatibility_monkey_patching():
             try:
                 chat_module._ChatModelKwargsAdapter.validate_python({})
             except Exception:
+
                 class _ChatModelKwargsRebuilder(BaseModel):
                     kwargs: chat_module.ChatModelKwargs
 
                 _ChatModelKwargsRebuilder.model_rebuild()
                 # Re-create the adapter with explicit module to ensure forward references are resolved
-                chat_module._ChatModelKwargsAdapter = TypeAdapter(chat_module.ChatModelKwargs, module=chat_module.__name__)
+                chat_module._ChatModelKwargsAdapter = TypeAdapter(
+                    chat_module.ChatModelKwargs, module=chat_module.__name__
+                )
 
         # Fix EmbeddingModelKwargs
         with suppress(ImportError, AttributeError):
@@ -124,6 +129,7 @@ def apply_compatibility_monkey_patching():
             try:
                 embedding_module._EmbeddingModelKwargsAdapter.validate_python({})
             except Exception:
+
                 class _EmbeddingModelKwargsRebuilder(BaseModel):
                     kwargs: embedding_module.EmbeddingModelKwargs
 

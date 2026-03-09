@@ -345,7 +345,7 @@ There are two documentation folders: `docs/stable` and `docs/development`. Due t
 
 All PRs **must** either include corresponding documentation in `docs/development`, or include `[x] No Docs Needed` in the PR description. This is checked by GitHub Actions.
 
-Special care needs to be taken with the `docs/development/reference/cli-reference.mdx` file, which is automatically generated. Use `mise run agentstack-cli:docs` to regenerate this file when modifying the CLI interface.
+Special care needs to be taken with the `docs/development/reference/` folder, as its contents are automatically generated. Use `mise run agentstack-cli:docs` to regenerate the CLI reference when modifying the CLI interface. Use `mise run agentstack-sdk-py:docs` to regenerate the Python SDK reference when making any changes to it; Additionally, modify the corresponding SDK reference generating scripts in `apps/agentstack-sdk-py/docs` and the docs/docs.json file whenever you change the package import structure to reflect those changes.
 
 Try to follow this structure:
 

@@ -1,0 +1,39 @@
+---
+title: "{{ fn.name }}"
+description: "{{ fn.docstring | first_line }}"
+---
+
+{{ autogen_warning }}
+{%- if base_href and breadcrumb_ancestors %}
+
+[Python SDK Reference]({{ base_href }}/overview){% for title, filename in breadcrumb_ancestors %} / [{{ title }}]({{ base_href }}/{{ filename }}){% endfor %} / {{ fn.name }}
+{%- endif %}
+
+```py
+from {{ import_path }} import {{ fn.name }}
+```
+{%- if fn.labels %}
+
+Labels: {% for label in fn.labels %}`{{ label }}`{% if not loop.last %}, {% endif %}{% endfor %}
+{%- endif %}
+{%- if fn.docstring %}
+
+{{ fn.docstring }}
+{%- endif %}
+{%- if fn.params %}
+
+## Parameters
+
+| Name | Type | Default |
+|------|------|---------|
+{% for p in fn.params %}| `{{ p.name }}` | {% if p.type %}`{{ p.type | table_type }}`{% else %}—{% endif %} | {% if p.default %}`{{ p.default | truncate_val }}`{% else %}—{% endif %} |
+{% endfor %}
+
+{%- endif %}
+{%- if fn.returns %}
+
+## Returns
+
+`{{ fn.returns | shorten_type }}`
+
+{% endif %}

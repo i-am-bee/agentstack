@@ -49,7 +49,7 @@ class InMemoryContextStore(ContextStore):
 
         Args:
             max_contexts: Maximum number of contexts to keep in memory
-            ttl_seconds: Time-to-live for context instances in seconds (default: 1 hour)
+            context_ttl: Time-to-live for context instances (default: 1 hour)
         """
         self._instances: TTLCache[str, MemoryContextStoreInstance] = TTLCache(
             maxsize=max_contexts, ttl=context_ttl.total_seconds()

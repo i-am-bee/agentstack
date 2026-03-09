@@ -1,0 +1,93 @@
+---
+title: "{{ title }}"
+description: "{{ description }}"
+---
+
+{{ autogen_warning }}
+{%- if base_href and breadcrumb_ancestors %}
+
+[Python SDK Reference]({{ base_href }}/overview){% for anc_title, anc_filename in breadcrumb_ancestors %} / [{{ anc_title }}]({{ base_href }}/{{ anc_filename }}){% endfor %} / {{ title }}
+{%- endif %}
+{%- if import_example %}
+
+
+```py
+{{ import_example }}
+```
+{%- endif %}
+{%- if submodule_cards %}
+
+## Submodules
+
+<CardGroup cols={2}>
+{%- for card in submodule_cards %}
+
+  <Card title="{{ card.title }}" href="{{ base_href }}/{{ card.filename }}">
+    {{ card.description }}
+  </Card>
+{%- endfor %}
+
+</CardGroup>
+{%- endif %}
+{%- for group in groups %}
+{%- if group.title %}
+
+---
+
+## {{ group.title }}
+
+{%- endif %}
+{%- if group.classes %}
+{%- if not group.title %}
+
+---
+
+{%- endif %}
+
+### Classes
+
+<CardGroup cols={1}>
+{%- for cls in group.classes %}
+
+  <Card horizontal title="{{ cls.name }}" icon="cube" href="{{ symbol_base_href }}/{{ cls.name }}"{% if cls.docstring | first_line %} description="{{ cls.docstring | first_line }}"{% endif %}>
+  </Card>
+{%- endfor %}
+
+</CardGroup>
+
+{%- endif %}
+{%- if group.functions %}
+{%- if not group.title and not group.classes %}
+
+---
+
+{%- endif %}
+
+### Functions
+
+<CardGroup cols={1}>
+{%- for fn in group.functions %}
+
+  <Card horizontal title="{{ fn.name }}({{ fn.params | sig_params }})" icon="function" href="{{ symbol_base_href }}/{{ fn.name }}"{% if fn.docstring | first_line %} description="{{ fn.docstring | first_line }}"{% endif %}>
+  </Card>
+{%- endfor %}
+
+</CardGroup>
+
+{%- endif %}
+{%- if group.constants %}
+{%- if not group.title and not group.classes and not group.functions %}
+
+---
+
+{%- endif %}
+
+### Constants & Variables
+
+| {% raw %}<span style={{minWidth: "200px", display: "inline-block"}}>Name</span>{% endraw %} | Kind | Type / Definition |
+|------|------|------|
+{% for attr in group.constants %}| `{{ attr.name }}` | *{{ attr.kind }}* | {% if attr.annotation %}`{{ attr.annotation | shorten_type | replace('|', '\|') }}`{% elif attr.definition %}`{{ attr.definition | shorten_type | replace('|', '\|') }}`{% else %}—{% endif %} |
+{% endfor %}
+
+{%- endif %}
+{%- endfor %}

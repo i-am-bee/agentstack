@@ -54,6 +54,74 @@ run = """
 uv run --python="${usage_python?}" pytest
 """
 
+# docs
+
+["agentstack-sdk-py:docs"]
+description = "Generate Python SDK reference docs for Mintlify"
+depends = ["agentstack-sdk-py:setup"]
+dir = "{{config_root}}/apps/agentstack-sdk-py"
+run = """
+#!/bin/bash
+set -euo pipefail
+
+DOCS_ROOT="$(cd "../../docs" && pwd)"
+SDK_DOCS_DIR="${DOCS_ROOT}/development/reference/python-sdk"
+
+# Temp locations created by mktemp (macOS-compatible)
+TEMP_OLD_DOCS="$(mktemp -d)"
+TEMP_JSON="$(mktemp)"
+
+cleanup_on_failure() {
+  local exit_code=$?
+  # Always attempt to remove the temp JSON manifest
+  rm -f "${TEMP_JSON}" || true
+
+  if [ "${exit_code}" -ne 0 ]; then
+    echo "⚠  Doc generation failed (exit ${exit_code}) — restoring previous state..."
+    # Remove any partially generated output
+    rm -rf "${SDK_DOCS_DIR}" || true
+    # Restore the backed-up docs when the backup is non-empty
+    if [ -d "${TEMP_OLD_DOCS}" ] && [ "$(ls -A "${TEMP_OLD_DOCS}" 2>/dev/null)" ]; then
+      mkdir -p "${SDK_DOCS_DIR}"
+      mv "${TEMP_OLD_DOCS}/." "${SDK_DOCS_DIR}/" || true
+    fi
+  fi
+
+  rm -rf "${TEMP_OLD_DOCS}" || true
+}
+trap cleanup_on_failure EXIT
+
+# Step 1: back up existing docs
+if [ -d "${SDK_DOCS_DIR}" ]; then
+  echo "Backing up current docs → ${TEMP_OLD_DOCS}"
+  cp -r "${SDK_DOCS_DIR}/." "${TEMP_OLD_DOCS}/"
+fi
+
+# Step 2: introspect exports → temp JSON
+echo "Running introspect_exports.py..."
+uv run python docs/introspect_exports.py \\
+  --src-root src/agentstack_sdk \\
+  --output "${TEMP_JSON}"
+
+# Step 3: generate MDX docs from temp JSON
+echo "Running generate_docs.py..."
+uv run python docs/generate_docs.py \\
+  --json-file "${TEMP_JSON}" \\
+  --docs-dir "${SDK_DOCS_DIR}" \\
+  --templates-dir "docs/templates"
+
+# Step 4: delete the introspect JSON
+rm -f "${TEMP_JSON}"
+
+# Step 5: delete the old-docs backup
+rm -rf "${TEMP_OLD_DOCS}"
+
+# All good — disarm the failure-cleanup trap
+trap - EXIT
+
+echo "✓ Docs generated successfully"
+"""
+
 # build
 
 ["agentstack-sdk-py:build"]

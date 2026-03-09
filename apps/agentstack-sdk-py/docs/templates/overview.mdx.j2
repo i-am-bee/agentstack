@@ -1,0 +1,25 @@
+---
+title: "Python SDK Reference"
+description: "Complete reference for the Agent Stack Python SDK (agentstack-sdk)"
+---
+
+{{ autogen_warning }}
+
+The Agent Stack Python SDK (`agentstack-sdk`) provides the tools to build, run, and integrate
+A2A-compatible agents with the Agent Stack platform.
+
+Install with:
+
+```bash
+pip install agentstack-sdk
+```
+
+## Modules
+
+<CardGroup cols={2}>
+{%- for mod in top_modules %}
+  <Card title="{{ mod.title }}" href="{{ base_href }}/{{ mod.filename }}">
+    {{ mod.description }}
+  </Card>
+{%- endfor %}
+</CardGroup>

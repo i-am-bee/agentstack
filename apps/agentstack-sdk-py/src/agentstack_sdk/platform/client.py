@@ -101,6 +101,8 @@ class PlatformClient(httpx.AsyncClient):
                 await super().__aexit__(exc_type, exc_value, traceback)
 
 
+get_platform_client: typing.Callable[[], PlatformClient]
+set_platform_client: typing.Callable[..., contextlib.AbstractContextManager[PlatformClient]]
 get_platform_client, set_platform_client = resource_context(factory=PlatformClient, default_factory=PlatformClient)
 
 P = typing.ParamSpec("P")
@@ -119,6 +121,7 @@ def wrap_context(
     return use_async_resource
 
 
+use_platform_client: typing.Callable[..., contextlib.AbstractAsyncContextManager[PlatformClient]]
 use_platform_client = wrap_context(set_platform_client)
 
 

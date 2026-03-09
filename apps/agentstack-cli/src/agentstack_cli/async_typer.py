@@ -37,6 +37,9 @@ class _LeftAlignedHeading(Heading):
 
 Markdown.elements["heading_open"] = _LeftAlignedHeading
 
+class test:
+    pass
+
 
 @contextmanager
 def create_table(*args, no_wrap: bool = True, **kwargs) -> Iterator[Table]:

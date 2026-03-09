@@ -7,6 +7,9 @@
 
 
 ## Documentation
-- [ ] No Docs Needed:
+- [ ] **No Docs Needed (skips all doc checks below)**
+- [ ] No CLI Docs Needed (skip check for `docs/development/reference/cli-reference.mdx`)
+- [ ] No Python SDK Docs Needed (skip check for `docs/development/reference/python-sdk/`)
+- [ ] No General Docs Needed (skip check for general docs changes)
 
-If this PR adds new feature or changes existing. Make sure documentation is adjusted accordingly. If the docs is not needed, please explain why.
+If this PR adds a new feature or changes existing behavior, make sure the relevant documentation is updated. If docs are not needed for a specific area, check the corresponding box above and explain why.

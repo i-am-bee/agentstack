@@ -57,7 +57,9 @@
           },
           {
             "group": "Reference",
-            "pages": ["stable/reference/cli-reference"]
+            "pages": [
+              "stable/reference/cli-reference"
+            ]
           },
           {
             "group": "Deploy Agent Stack",
@@ -134,7 +136,39 @@
           },
           {
             "group": "Reference",
-            "pages": ["development/reference/cli-reference"]
+            "pages": [
+              "development/reference/cli-reference",
+              {
+                "group": "Python SDK",
+                "pages": [
+                  "development/reference/python-sdk/overview",
+                  "development/reference/python-sdk/server",
+                  {
+                    "group": "A2A Extensions",
+                    "pages": [
+                      "development/reference/python-sdk/a2a",
+                      "development/reference/python-sdk/a2a-common",
+                      "development/reference/python-sdk/a2a-interactions",
+                      "development/reference/python-sdk/a2a-services",
+                      "development/reference/python-sdk/a2a-tools",
+                      "development/reference/python-sdk/a2a-ui",
+                      {
+                        "group": "Auth",
+                        "pages": [
+                          "development/reference/python-sdk/a2a-auth",
+                          "development/reference/python-sdk/a2a-auth-oauth",
+                          "development/reference/python-sdk/a2a-auth-oauth-storage",
+                          "development/reference/python-sdk/a2a-auth-secrets"
+                        ]
+                      }
+                    ]
+                  },
+                  "development/reference/python-sdk/platform",
+                  "development/reference/python-sdk/types",
+                  "development/reference/python-sdk/util"
+                ]
+              }
+            ]
           },
           {
             "group": "Deploy Agent Stack",

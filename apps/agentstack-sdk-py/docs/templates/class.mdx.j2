@@ -1,0 +1,99 @@
+---
+title: "{{ cls.name }}"
+description: "{{ cls.docstring | first_line }}"
+---
+
+{{ autogen_warning }}
+{%- if base_href and breadcrumb_ancestors %}
+
+[Python SDK Reference]({{ base_href }}/overview){% for title, filename in breadcrumb_ancestors %} / [{{ title }}]({{ base_href }}/{{ filename }}){% endfor %} / {{ cls.name }}
+{%- endif %}
+
+```py
+from {{ import_path }} import {{ cls.name }}
+```
+{%- if cls.bases %}
+
+**Bases:** `{{ cls.bases | join(' , ') | shorten_type }}`
+{%- endif %}
+{%- if cls.docstring and cls.docstring | extra_lines %}
+
+{{ cls.docstring | extra_lines }}
+{%- endif %}
+{%- if cls.class_attributes %}
+
+## Class Attributes
+
+| Attribute | Type | Default |
+|-------|------|---------|
+{% for attr in cls.class_attributes %}| `{{ attr.name }}` | {% if attr.type %}`{{ attr.type | table_type }}`{% else %}—{% endif %} | {% if attr.default %}`{{ attr.default | truncate_val }}`{% else %}—{% endif %} |
+{% endfor %}
+{%- endif %}
+{%- if cls.attributes %}
+
+## Attributes
+
+| Attribute | Type | Default |
+|-------|------|---------|
+{% for attr in cls.attributes %}| `{{ attr.name }}` | {% if attr.type %}`{{ attr.type | table_type }}`{% else %}—{% endif %} | {% if attr.default %}`{{ attr.default | truncate_val }}`{% else %}—{% endif %} |
+{% endfor %}
+{%- endif %}
+{%- if cls.methods %}
+
+## Methods
+
+<AccordionGroup>
+{% for method in cls.methods %}
+{%- if method.kind == 'constructor'%}
+
+<Accordion title="Constructor · {{ method.name }}" icon="wrench"{% if method.docstring | first_line %} description="{{ method.docstring | first_line }}"{% endif %}>
+{%- if method.docstring %}
+
+{{ method.docstring | mdx_escape }}
+{%- endif %}
+{%- if method.params %}
+
+**Parameters**
+
+| Name | Type | Default |
+|------|------|---------|
+{% for p in method.params %}| `{{ p.name }}` | {% if p.type %}`{{ p.type | table_type }}`{% else %}—{% endif %} | {% if p.default %}`{{ p.default | truncate_val }}`{% else %}—{% endif %} |
+{% endfor %}
+{%- endif %}
+{%- if method.returns %}
+
+**Returns:** `{{ method.returns | shorten_type }}`
+
+{% endif %}
+</Accordion>
+{%- endif %}
+{% endfor %}
+
+
+{% for method in cls.methods %}
+{%- if method.kind != 'constructor'%}
+
+<Accordion title="{% for label in method.labels %}{{ label }} {% endfor %} {{ method.name }}" icon="function"{% if method.docstring | first_line %} description="{{ method.docstring | first_line }}"{% endif %}>
+{%- if method.docstring %}
+
+{{ method.docstring | mdx_escape }}
+{%- endif %}
+{%- if method.params %}
+
+**Parameters**
+
+| Name | Type | Default |
+|------|------|---------|
+{% for p in method.params %}| `{{ p.name }}` | {% if p.type %}`{{ p.type | table_type }}`{% else %}—{% endif %} | {% if p.default %}`{{ p.default | truncate_val }}`{% else %}—{% endif %} |
+{% endfor %}
+{%- endif %}
+{%- if method.returns %}
+
+**Returns:** `{{ method.returns | shorten_type }}`
+
+{% endif %}
+</Accordion>
+{%- endif %}
+{% endfor %}
+</AccordionGroup>
+{%- endif %}

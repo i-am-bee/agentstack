@@ -15,29 +15,72 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: |
-            if (/\[x\].*no docs needed/i.test(context.payload.pull_request.body || '')) {
+            const body = context.payload.pull_request.body || '';
+
+            if (/\[x\].*no docs needed/i.test(body)) {
               core.info('🟡 "No Docs Needed" checked — skipping docs enforcement.');
               return;
             }
-            
+
             if (context.payload.pull_request.user.login === 'renovate[bot]') {
               core.info('🤖 Renovate PR detected — skipping docs enforcement.');
               return;
             }
-            
+
+            const noCliDocs     = /\[x\].*no cli docs needed/i.test(body);
+            const noSdkDocs     = /\[x\].*no python sdk docs needed/i.test(body);
+            const noGeneralDocs = /\[x\].*no general docs needed/i.test(body);
+
             const filenames = (await github.rest.pulls.listFiles({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.payload.pull_request.number
             })).data.map(f => f.filename);
-            
+
             if (filenames.some(f => f.startsWith('docs/stable/'))) {
               core.setFailed('❌ Changes to "stable" documentation are not allowed. Please make changes in the "development" directory instead.');
               return;
             }
-            
-            if (filenames.some(f => /\.mdx?$/.test(f))) {
-              core.info('✅ Docs updated.');
-            } else {
-              core.setFailed('❌ No docs changes found and "No Docs Needed" not checked.');
+
+            const errors = [];
+
+            // 1. CLI changes require CLI reference doc update
+            if (filenames.some(f => f.startsWith('apps/agentstack-cli/'))) {
+              if (noCliDocs) {
+                core.info('🟡 "No CLI Docs Needed" checked — skipping CLI docs check.');
+              } else if (!filenames.some(f => f === 'docs/development/reference/cli-reference.mdx')) {
+                errors.push('❌ Changes in apps/agentstack-cli require an update to docs/development/reference/cli-reference.mdx.');
+              } else {
+                core.info('✅ CLI reference docs updated.');
+              }
+            }
+
+            // 2. Python SDK changes require Python SDK reference docs update
+            if (filenames.some(f => f.startsWith('apps/agentstack-sdk-py/'))) {
+              if (noSdkDocs) {
+                core.info('🟡 "No Python SDK Docs Needed" checked — skipping Python SDK docs check.');
+              } else if (!filenames.some(f => f.startsWith('docs/development/reference/python-sdk/'))) {
+                errors.push('❌ Changes in apps/agentstack-sdk-py require updates in docs/development/reference/python-sdk/.');
+              } else {
+                core.info('✅ Python SDK reference docs updated.');
+              }
+            }
+
+            // 3. Other apps/ changes require general docs update (outside reference/)
+            if (filenames.some(f =>
+              f.startsWith('apps/') &&
+              !f.startsWith('apps/agentstack-cli/') &&
+              !f.startsWith('apps/agentstack-sdk-py/')
+            )) {
+              if (noGeneralDocs) {
+                core.info('🟡 "No General Docs Needed" checked — skipping general docs check.');
+              } else if (!filenames.some(f => f.startsWith('docs/development') && !f.startsWith('docs/development/reference/'))) {
+                errors.push('❌ Changes in apps/ require docs updates outside of the reference subfolder.');
+              } else {
+                core.info('✅ Docs updated for other apps changes.');
+              }
+            }
+
+            if (errors.length > 0) {
+              core.setFailed(errors.join('\n'));
             }
