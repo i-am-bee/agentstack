@@ -1,6 +1,6 @@
 [project]
 name = "agentstack-sdk"
-version = "0.6.3"
+version = "0.6.1"
 description = "Agent Stack SDK"
 readme = "README.md"
 authors = [{ name = "IBM Corp." }]
@@ -25,15 +25,13 @@ dependencies = [
     "authlib>=1.3.0",
     "async-lru>=2.0.4",
     "cachetools>=6.2.3",
-    "typing-extensions>=4.15.0",
-    "opentelemetry-instrumentation-httpx>=0.60b1",
-    "opentelemetry-instrumentation-openai>=0.52.3",
+    "fsspec>=2024.9.0",
 ]
 
 [dependency-groups]
 dev = [
     "beeai-framework[duckduckgo,wikipedia]>=0.1.76",
-    "pyrefly>=0.52.0",
+    "pyright>=1.1.403",
     "pytest>=8.4.1",
     "pytest-asyncio>=1.1.0",
     "pytest-httpx>=0.35.0",
@@ -67,7 +65,7 @@ lint.select = [
 lint.ignore = [
     "E501", # line lenght (annyoing)
     "N999", # invalid module name agentstack-server (yeah, we use a dash, deal with it)
-    "F403", # redundant with type checking
+    "F403", # redundant with Pyright
 ]
 force-exclude = true
 
@@ -77,8 +75,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "-v"
 
-[tool.pyrefly]
-project-includes = [
-    "**/*.py*",
-    "**/*.ipynb",
-]
+[tool.pyright]
+ignore = ["tests/**", "examples/cli.py"]
+venvPath = "."
+venv = ".venv"

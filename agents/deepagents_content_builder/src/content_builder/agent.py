@@ -55,6 +55,21 @@ server = Server()
 CURRENT_DIRECTORY = Path(__file__).parent
 
 
+@server.agent(name="My Agent")
+async def my_agent(
+    message: Message,
+    context: RunContext,
+    llm: Annotated[
+        LLMServiceExtensionServer,
+        LLMServiceExtensionSpec(),
+    ],
+    file_system: Annotated[FileSystemExtensionServer, FileSystemExtensionSpec()],
+):
+    with file_system.open("/remote/data/myfile.csv") as f:
+        df = pd.read_csv(f, sep="|", header=None)
+        yield df.text()
+
+
 @server.agent(
     name="Content Creator Agent (Deepagents)",
     documentation_url=f"https://github.com/i-am-bee/agentstack/blob/{os.getenv('RELEASE_VERSION', 'main')}/agents/deepagents_content_builder",

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from .embedding import *
+from .filesystem import *
 from .form import *
 from .llm import *
 from .mcp import *
