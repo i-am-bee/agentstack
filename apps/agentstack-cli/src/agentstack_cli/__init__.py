@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 import logging
 import re
 import typing
@@ -59,6 +60,7 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Options ──────────────────────────────────────────────────────────────────╮
+│ --version             Show CLI version and exit                            │
 │ --help                Show this help message                               │
 │ --show-completion     Show tab completion script                           │
 │ --install-completion  Enable tab completion for commands                   │
@@ -73,7 +75,11 @@ app = AsyncTyper()
 def main(
     ctx: typer.Context,
     help: bool = typer.Option(False, "--help", help="Show this message and exit."),
+    version: bool = typer.Option(False, "--version", help="Show CLI version and exit."),
 ):
+    if version:
+        typer.echo(importlib.metadata.version("agentstack-cli"))
+        raise typer.Exit()
     if help or ctx.invoked_subcommand is None:
         typer.echo(HELP_TEXT)
         raise typer.Exit()
