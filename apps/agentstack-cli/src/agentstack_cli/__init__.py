@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-import importlib.metadata
+import asyncio
 import logging
 import re
 import typing
@@ -78,7 +78,7 @@ def main(
     version: bool = typer.Option(False, "--version", help="Show CLI version and exit."),
 ):
     if version:
-        typer.echo(importlib.metadata.version("agentstack-cli"))
+        asyncio.run(agentstack_cli.commands.self.version())
         raise typer.Exit()
     if help or ctx.invoked_subcommand is None:
         typer.echo(HELP_TEXT)
