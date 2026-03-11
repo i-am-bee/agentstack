@@ -92,7 +92,7 @@
   "devDependencies": {
     "@i-am-bee/lint-config": "workspace:*",
     "@types/express": "5.0.6",
-    "eslint": "9.39.3",
+    "eslint": "9.39.4",
     "prettier": "3.8.1",
     "tsup": "8.5.1",
     "tsx": "4.21.0",
