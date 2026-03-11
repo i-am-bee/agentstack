@@ -24,3 +24,4 @@ See the [chat agent](https://github.com/i-am-bee/agentstack/blob/main/agents/cha
 - Do not skip the docs/examples and improvise imports or extension usage.
 - Do not read model/API key/base URL from env vars when LLM extension is available.
 - Do not rewrite `api_base` heuristically unless the official docs explicitly require it.
+- Do not use a generic model as `suggested` — use the same model identifier as the original agent.

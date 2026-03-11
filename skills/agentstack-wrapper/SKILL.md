@@ -111,6 +111,7 @@ Task Progress:
 - [ ] Step 3: Add and Install Dependencies
 - [ ] Step 4: Create the Server Wrapper & Entrypoint
 - [ ] Step 5: Wire LLM / Services via Extensions (requires reading docs)
+- [ ] Step 5a: Set suggested model to match the model used in the original agent
 - [ ] Step 6: Implement Error Handling (requires reading docs)
 - [ ] Step 7: Map Forms (if applicable) (requires reading docs)
 - [ ] Step 7b: Adapt File Inputs (if applicable) (requires reading docs)
@@ -178,6 +179,8 @@ This classification determines:
 ## Step 5 – Wire LLM / Services via Extensions
 
 **Read [references/llm-services.md](reference/llm-services.md) and follow it completely for Step 5.**
+
+Set the `suggested` model in `LLMServiceExtensionSpec.single_demand()` to the same model used in the original agent.
 
 ---
 
