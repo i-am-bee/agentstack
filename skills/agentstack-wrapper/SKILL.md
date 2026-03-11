@@ -166,19 +166,19 @@ This classification determines:
 
 ## Step 3 – Add and Install Dependencies
 
-**Read [references/dependencies.md](reference/dependencies.md) and follow it completely for Step 3.**
+**Read [references/dependencies.md](references/dependencies.md) and follow it completely for Step 3.**
 
 ---
 
 ## Step 4 – Create the Server Wrapper & Entrypoint
 
-**Read [references/wrapper-entrypoint.md](reference/wrapper-entrypoint.md) and follow it completely for Step 4.**
+**Read [references/wrapper-entrypoint.md](references/wrapper-entrypoint.md) and follow it completely for Step 4.**
 
 ---
 
 ## Step 5 – Wire LLM / Services via Extensions
 
-**Read [references/llm-services.md](reference/llm-services.md) and follow it completely for Step 5.**
+**Read [references/llm-services.md](references/llm-services.md) and follow it completely for Step 5.**
 
 Set the `suggested` model in `LLMServiceExtensionSpec.single_demand()` to the same model used in the original agent.
 
@@ -205,7 +205,7 @@ See the [official error guide](https://agentstack.beeai.dev/stable/agent-integra
 
 If the original agent accepts **named parameters** (not just free text), map them to an `initial_form` using the Forms extension. For free-text agents, the plain message input is sufficient — skip this step.
 
-**Read [references/forms.md](reference/forms.md) for the full implementation guide** (field types, Pydantic model, mid-conversation input).
+**Read [references/forms.md](references/forms.md) for the full implementation guide** (field types, Pydantic model, mid-conversation input).
 
 ---
 
@@ -213,13 +213,13 @@ If the original agent accepts **named parameters** (not just free text), map the
 
 If the original agent reads files from the local filesystem or accepts file paths as CLI/function arguments, those inputs must be replaced with platform file uploads. Local filesystem access is not available at runtime. Even if the file contains plain text, still use a `FileField` upload — do not flatten file inputs into message text.
 
-**Read [references/files.md](reference/files.md) for detection patterns, replacement steps, text extraction, and mid-conversation uploads.**
+**Read [references/files.md](references/files.md) for detection patterns, replacement steps, text extraction, and mid-conversation uploads.**
 
 ---
 
 ## Step 8 – Configuration Variables & Secrets
 
-**Read [references/configuration-variables.md](reference/configuration-variables.md) and follow it completely for configuration mapping, secret handling, and anti-patterns.**
+**Read [references/configuration-variables.md](references/configuration-variables.md) and follow it completely for configuration mapping, secret handling, and anti-patterns.**
 
 ---
 
@@ -227,7 +227,7 @@ If the original agent reads files from the local filesystem or accepts file path
 
 ### Trajectory Output Rule and Implementation
 
-**Read [references/trajectory.md](reference/trajectory.md) and follow it completely for trajectory decision rules and implementation.**
+**Read [references/trajectory.md](references/trajectory.md) and follow it completely for trajectory decision rules and implementation.**
 
 ### Final Output Rule
 
@@ -249,7 +249,7 @@ Use the platform's API to construct an `AgentArtifact` pointing to the generated
 
 Enhance the agent with platform-level capabilities by injecting extensions via `Annotated` function parameters.
 
-**Read [references/platform-extensions.md](reference/platform-extensions.md) for extension selection and documentation links.**
+**Read [references/platform-extensions.md](references/platform-extensions.md) for extension selection and documentation links.**
 
 Treat this reference as required input for Step 10 decisions and implementation.
 
