@@ -36,8 +36,8 @@
   scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: $layer-03 transparent;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow-inline: hidden;
+  overflow-block: auto;
 
   @if $use-stable-gutter {
     scrollbar-gutter: stable;

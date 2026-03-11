@@ -44,7 +44,7 @@
 
 .logs {
   max-block-size: rem(256px);
-  overflow-y: auto;
+  overflow-block: auto;
 }
 
 @include breakpoint(md) {

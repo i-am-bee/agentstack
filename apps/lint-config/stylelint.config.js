@@ -21,7 +21,7 @@ const config = {
     'scss/operator-no-newline-after': null,
     'no-descending-specificity': null,
     'nesting-selector-no-missing-scoping-root': null,
-    'logical-css/require-logical-units': false,
+    'logical-css/require-logical-units': null,
   },
 };
 

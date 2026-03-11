@@ -42,5 +42,5 @@
 
 .code {
   max-block-size: (2 * $spacing-05 + 5 * rem(16px)); // 5 lines + padding
-  overflow-y: auto;
+  overflow-block: auto;
 }

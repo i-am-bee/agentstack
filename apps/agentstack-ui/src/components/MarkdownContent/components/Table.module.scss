@@ -6,7 +6,7 @@
 @use 'styles/common' as *;
 
 .root {
-  overflow-x: auto;
+  overflow-inline: auto;
 }
 
 .table {

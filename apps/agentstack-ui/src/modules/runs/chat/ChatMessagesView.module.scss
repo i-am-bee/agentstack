@@ -68,7 +68,7 @@ $zindex-buttons: 2;
 }
 
 .bottomHolder {
-  overflow-y: auto;
+  overflow-block: auto;
   scrollbar-gutter: stable;
   padding-block-end: $spacing-07;
   margin-block-end: -$spacing-07;
