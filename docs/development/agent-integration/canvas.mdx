@@ -34,8 +34,9 @@ from typing import Annotated
 
 from a2a.types import Message, TextPart
 
-from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
-from agentstack_sdk.a2a.extensions.ui.canvas import (
+from agentstack_sdk.a2a.extensions import (
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
     CanvasExtensionServer,
     CanvasExtensionSpec,
 )
@@ -124,7 +125,7 @@ if __name__ == "__main__":
 
 <Steps>
 <Step title="Import the canvas extension">
-Import `CanvasExtensionServer` and `CanvasExtensionSpec` from `agentstack_sdk.a2a.extensions.ui.canvas`.
+Import `CanvasExtensionServer` and `CanvasExtensionSpec` from `agentstack_sdk.a2a.extensions`.
 </Step>
 
 <Step title='Inject the extension'>

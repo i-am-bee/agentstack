@@ -9,10 +9,8 @@ from io import BytesIO
 
 import httpx
 import pytest
-from agentstack_sdk.platform import use_platform_client
-from agentstack_sdk.platform.client import PlatformClient
+from agentstack_sdk.platform import use_platform_client, PlatformClient, File
 from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
-from agentstack_sdk.platform.file import File
 from httpx import AsyncClient
 from tenacity import AsyncRetrying, stop_after_delay, wait_fixed
 

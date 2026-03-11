@@ -16,8 +16,7 @@ import httpx
 import pytest
 import uvicorn
 from a2a.types import Message, Part, Role, TaskState, TextPart
-from agentstack_sdk.a2a.extensions import OAuthExtensionClient, OAuthFulfillment
-from agentstack_sdk.a2a.extensions.auth.oauth import OAuthExtensionSpec
+from agentstack_sdk.a2a.extensions import OAuthExtensionClient, OAuthFulfillment, OAuthExtensionSpec
 from mcp.server.auth.provider import (
     AccessToken,
     AuthorizationCode,

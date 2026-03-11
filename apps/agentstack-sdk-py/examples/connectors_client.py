@@ -12,8 +12,8 @@ import httpx
 from pydantic import HttpUrl
 
 import agentstack_sdk.a2a.extensions
-from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionClient
-from agentstack_sdk.platform.client import use_platform_client
+from agentstack_sdk.a2a.extensions import PlatformApiExtensionClient
+from agentstack_sdk.platform import use_platform_client
 from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
 
 

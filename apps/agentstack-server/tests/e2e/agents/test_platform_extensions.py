@@ -11,7 +11,7 @@ from uuid import uuid4
 import pytest
 from a2a.client import Client, create_text_message_object
 from a2a.types import FilePart, Message, Role, TaskState
-from agentstack_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.a2a.extensions import (
     PlatformApiExtensionClient,
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,

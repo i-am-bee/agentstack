@@ -13,8 +13,7 @@ import json
 import logging
 
 import pytest
-from agentstack_sdk.platform.client import PlatformClient
-from agentstack_sdk.platform.connector import Connector, ConnectorState
+from agentstack_sdk.platform import PlatformClient, Connector, ConnectorState
 from httpx import HTTPStatusError
 
 from tests.conftest import Configuration

@@ -9,8 +9,12 @@ from typing import Annotated
 from a2a.types import Message
 from mcp import ClientSession
 
-from agentstack_sdk.a2a.extensions.services.mcp import MCPServiceExtensionServer, MCPServiceExtensionSpec
-from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    MCPServiceExtensionServer,
+    MCPServiceExtensionSpec,
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
+)
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext

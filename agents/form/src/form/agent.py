@@ -9,7 +9,7 @@ from typing import Annotated
 import a2a.types
 import agentstack_sdk.a2a.extensions
 from a2a.types import Message
-from agentstack_sdk.a2a.extensions.common.form import (
+from agentstack_sdk.a2a.extensions import (
     CheckboxField,
     DateField,
     FileField,
@@ -18,8 +18,6 @@ from agentstack_sdk.a2a.extensions.common.form import (
     MultiSelectField,
     OptionItem,
     TextField,
-)
-from agentstack_sdk.a2a.extensions.services.form import (
     FormServiceExtensionServer,
     FormServiceExtensionSpec,
 )

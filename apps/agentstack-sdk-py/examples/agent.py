@@ -25,7 +25,7 @@ import beeai_framework.tools.weather.openmeteo
 import uvicorn
 
 import agentstack_sdk.a2a.extensions
-from agentstack_sdk.a2a.extensions.services.llm import LLMServiceExtensionServer
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer
 
 agent_detail_extension_spec = agentstack_sdk.a2a.extensions.AgentDetailExtensionSpec(
     params=agentstack_sdk.a2a.extensions.AgentDetail(

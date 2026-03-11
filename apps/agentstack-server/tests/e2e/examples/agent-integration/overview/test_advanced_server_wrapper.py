@@ -8,8 +8,12 @@ from uuid import uuid4
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import Message, Role, TaskState
-from agentstack_sdk.a2a.extensions.common.form import FormResponse, TextFieldValue
-from agentstack_sdk.a2a.extensions.ui.form_request import FormRequestExtensionClient, FormRequestExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    FormResponse,
+    TextFieldValue,
+    FormRequestExtensionClient,
+    FormRequestExtensionSpec,
+)
 
 from tests.e2e.examples.conftest import run_example
 

@@ -5,8 +5,9 @@ import os
 from typing import Annotated
 
 from a2a.types import Message
-from agentstack_sdk.a2a.extensions.common.form import FormRender, TextField
-from agentstack_sdk.a2a.extensions.ui.form_request import (
+from agentstack_sdk.a2a.extensions import (
+    FormRender,
+    TextField,
     FormRequestExtensionServer,
     FormRequestExtensionSpec,
 )

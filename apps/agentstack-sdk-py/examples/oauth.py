@@ -11,21 +11,19 @@ from a2a.types import Message, Role
 from a2a.utils.message import get_message_text
 from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.requirements.conditional import (
-    ConditionalRequirement,
-)
+from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.backend.types import ChatModelParameters
 from beeai_framework.tools.mcp import MCPTool
 from beeai_framework.tools.think import ThinkTool
 from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client  # pyrefly: ignore [deprecated] -- TODO: upgrade
+from mcp.client.streamable_http import (
+    streamablehttp_client  # pyrefly: ignore [deprecated] -- TODO: upgrade,
+)
 
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
-)
-from agentstack_sdk.a2a.extensions.auth.oauth import (
     OAuthExtensionServer,
     OAuthExtensionSpec,
 )

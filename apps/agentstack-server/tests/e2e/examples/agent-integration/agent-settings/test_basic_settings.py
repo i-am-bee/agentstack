@@ -6,8 +6,13 @@ from __future__ import annotations
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import TaskState
-from agentstack_sdk.a2a.extensions import FormServiceExtensionMetadata, FormServiceExtensionSpec, SettingsFormResponse
-from agentstack_sdk.a2a.extensions.common.form import CheckboxGroupFieldValue, SingleSelectFieldValue
+from agentstack_sdk.a2a.extensions import (
+    FormServiceExtensionMetadata,
+    FormServiceExtensionSpec,
+    SettingsFormResponse,
+    CheckboxGroupFieldValue,
+    SingleSelectFieldValue,
+)
 
 from tests.e2e.examples.conftest import run_example
 

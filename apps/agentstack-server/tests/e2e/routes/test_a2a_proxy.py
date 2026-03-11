@@ -17,10 +17,7 @@ from unittest import mock
 
 import pytest
 import uvicorn
-from a2a.server.apps import (
-    A2AFastAPIApplication,
-    A2AStarletteApplication,
-)
+from a2a.server.apps import A2AFastAPIApplication, A2AStarletteApplication
 from a2a.types import (
     AgentCapabilities,
     AgentCard,
@@ -52,12 +49,7 @@ from fastapi import FastAPI
 from httpx import Client
 from sqlalchemy import text
 from starlette.applications import Starlette
-from starlette.authentication import (
-    AuthCredentials,
-    AuthenticationBackend,
-    BaseUser,
-    SimpleUser,
-)
+from starlette.authentication import AuthCredentials, AuthenticationBackend, BaseUser, SimpleUser
 from starlette.middleware import Middleware
 from starlette.middleware.authentication import AuthenticationMiddleware
 from starlette.requests import HTTPConnection

@@ -11,17 +11,13 @@ from a2a.types import Message, Role, TextPart
 from a2a.utils.message import get_message_text
 from beeai_framework.adapters.agentstack.backend.chat import AgentStackChatModel
 from beeai_framework.agents.requirement import RequirementAgent
-from beeai_framework.agents.requirement.requirements.conditional import (
-    ConditionalRequirement,
-)
+from beeai_framework.agents.requirement.requirements.conditional import ConditionalRequirement
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.tools.think import ThinkTool
 
 from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionServer,
     LLMServiceExtensionSpec,
-)
-from agentstack_sdk.a2a.extensions.ui.canvas import (
     CanvasEditRequest,
     CanvasExtensionServer,
     CanvasExtensionSpec,

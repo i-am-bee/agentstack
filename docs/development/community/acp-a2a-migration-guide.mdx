@@ -45,12 +45,17 @@ from a2a.types import AgentSkill, Message
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 from agentstack_sdk.a2a.extensions import (
-    AgentDetail, AgentDetailTool, 
-    CitationExtensionServer, CitationExtensionSpec, 
-    TrajectoryExtensionServer, TrajectoryExtensionSpec,
-    LLMServiceExtensionServer, LLMServiceExtensionSpec
+    AgentDetail,
+    AgentDetailTool,
+    CitationExtensionServer,
+    CitationExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
 )
-from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage, AgentArtifact
 from agentstack_sdk.util.file import load_file
 ```
@@ -158,10 +163,7 @@ user_msg = input[-1].parts[0].content if input else "Hello"
 Use `PlatformApiExtensionServer` in your agent to get access to files.
 
 ```py
-from agentstack_sdk.a2a.extensions.services.platform import (
-    PlatformApiExtensionServer,
-    PlatformApiExtensionSpec,
-)
+from agentstack_sdk.a2a.extensions import PlatformApiExtensionServer, PlatformApiExtensionSpec
 
 async def example_agent(
     input: Message,

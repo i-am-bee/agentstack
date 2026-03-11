@@ -6,7 +6,11 @@ from __future__ import annotations
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import TaskState
-from agentstack_sdk.a2a.extensions import LLMFulfillment, LLMServiceExtensionClient, LLMServiceExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    LLMFulfillment,
+    LLMServiceExtensionClient,
+    LLMServiceExtensionSpec,
+)
 from agentstack_sdk.platform import ModelProvider
 
 from tests.e2e.examples.conftest import run_example

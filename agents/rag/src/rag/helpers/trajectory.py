@@ -7,7 +7,7 @@ import uuid
 from typing import Any, Literal
 from beeai_framework.errors import FrameworkError
 from beeai_framework.tools import ToolOutput
-from agentstack_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionServer
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer
 from pydantic import BaseModel, Field, InstanceOf, field_serializer
 
 

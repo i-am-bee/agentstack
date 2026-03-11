@@ -8,9 +8,7 @@ import logging
 
 import pytest
 from a2a.client.helpers import create_text_message_object
-from a2a.types import (
-    TaskState,
-)
+from a2a.types import TaskState
 from agentstack_sdk.platform import AddProvider, BuildState, Provider, ProviderBuild
 from agentstack_sdk.platform.context import Context
 

@@ -15,7 +15,7 @@ from aiohttp import web
 from pydantic import AnyUrl
 
 import agentstack_sdk.a2a.extensions
-from agentstack_sdk.a2a.extensions.tools.call import ToolCallResponse
+from agentstack_sdk.a2a.extensions import ToolCallResponse
 
 
 class OAuthHandler:

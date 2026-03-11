@@ -8,8 +8,11 @@ from uuid import uuid4
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import Message, Role, TaskState
-from agentstack_sdk.a2a.extensions import ApprovalExtensionClient, ApprovalExtensionSpec
-from agentstack_sdk.a2a.extensions.interactions.approval import ApprovalResponse
+from agentstack_sdk.a2a.extensions import (
+    ApprovalExtensionClient,
+    ApprovalExtensionSpec,
+    ApprovalResponse,
+)
 
 from tests.e2e.examples.conftest import run_example
 

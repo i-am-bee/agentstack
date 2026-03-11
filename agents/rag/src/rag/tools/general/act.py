@@ -6,15 +6,10 @@ from __future__ import annotations
 import typing
 from typing import Literal
 
-from beeai_framework.agents.requirement import (
-    RequirementAgent,
-    RequirementAgentRunState,
-)
+from beeai_framework.agents.requirement import RequirementAgent, RequirementAgentRunState
 from beeai_framework.agents.requirement.events import RequirementAgentStartEvent
 from beeai_framework.agents.requirement.requirements import Requirement, Rule
-from beeai_framework.agents.requirement.requirements.requirement import (
-    run_with_context,
-)
+from beeai_framework.agents.requirement.requirements.requirement import run_with_context
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter, EventMeta
 from beeai_framework.tools import (

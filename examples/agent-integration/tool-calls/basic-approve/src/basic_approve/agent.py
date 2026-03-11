@@ -3,11 +3,8 @@
 import os
 from typing import Annotated, Any
 
-from a2a.types import (
-    Message,
-    TextPart,
-)
-from agentstack_sdk.a2a.extensions.interactions.approval import (
+from a2a.types import Message, TextPart
+from agentstack_sdk.a2a.extensions import (
     ApprovalExtensionParams,
     ApprovalExtensionServer,
     ApprovalExtensionSpec,

@@ -18,10 +18,7 @@ import os
 from typing import Annotated
 
 from a2a.types import FilePart, Message
-from agentstack_sdk.a2a.extensions.services.platform import (
-    PlatformApiExtensionServer,
-    PlatformApiExtensionSpec,
-)
+from agentstack_sdk.a2a.extensions import PlatformApiExtensionServer, PlatformApiExtensionSpec
 from agentstack_sdk.platform import File
 from agentstack_sdk.server import Server
 from agentstack_sdk.util.file import load_file

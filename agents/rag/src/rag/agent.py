@@ -21,8 +21,9 @@ from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionSpec,
     TrajectoryExtensionServer,
     TrajectoryExtensionSpec,
+    PlatformApiExtensionServer,
+    PlatformApiExtensionSpec,
 )
-from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionServer, PlatformApiExtensionSpec
 from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
@@ -41,7 +42,12 @@ from openinference.instrumentation.beeai import BeeAIInstrumentor
 from rag.helpers.citations import extract_citations
 from rag.helpers.event_binder import EventBinder
 from rag.helpers.trajectory import ToolCallTrajectoryEvent
-from rag.helpers.vectore_store import CreateVectorStoreEvent, EmbeddingFunction, create_vector_store, embed_all_files
+from rag.helpers.vectore_store import (
+    CreateVectorStoreEvent,
+    EmbeddingFunction,
+    create_vector_store,
+    embed_all_files,
+)
 from rag.tools.files.file_creator import FileCreatorTool, FileCreatorToolOutput
 from rag.tools.files.file_reader import create_file_reader_tool_class
 from rag.tools.files.utils import extract_files, to_framework_message

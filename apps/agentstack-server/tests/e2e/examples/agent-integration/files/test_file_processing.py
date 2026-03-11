@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 from a2a.types import Message, Role, TaskState
-from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionClient, PlatformApiExtensionSpec
+from agentstack_sdk.a2a.extensions import PlatformApiExtensionClient, PlatformApiExtensionSpec
 from agentstack_sdk.platform import File
 from agentstack_sdk.platform.context import ContextPermissions, Permissions
 from agentstack_sdk.util.file import load_file

@@ -4,8 +4,7 @@
 import os
 
 from a2a.types import Message
-from agentstack_sdk.a2a.extensions import AgentDetail
-from agentstack_sdk.a2a.extensions.ui.agent_detail import EnvVar
+from agentstack_sdk.a2a.extensions import AgentDetail, EnvVar
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext
 

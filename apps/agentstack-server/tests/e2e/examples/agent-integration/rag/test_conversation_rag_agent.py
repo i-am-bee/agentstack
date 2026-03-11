@@ -12,8 +12,9 @@ from agentstack_sdk.a2a.extensions import (
     EmbeddingFulfillment,
     EmbeddingServiceExtensionClient,
     EmbeddingServiceExtensionSpec,
+    PlatformApiExtensionClient,
+    PlatformApiExtensionSpec,
 )
-from agentstack_sdk.a2a.extensions.services.platform import PlatformApiExtensionClient, PlatformApiExtensionSpec
 from agentstack_sdk.platform import File, ModelCapability, ModelProvider
 from agentstack_sdk.platform.context import ContextPermissions, Permissions
 

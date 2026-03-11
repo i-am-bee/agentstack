@@ -212,7 +212,7 @@ The AgentStack Python SDK provides a convenient wrapper around the connectors AP
 
 ### Getting Started
 ```python
-from agentstack_sdk.platform.connector import Connector, ConnectorState
+from agentstack_sdk.platform import Connector, ConnectorState
 ```
 
 ### Core Operations
@@ -309,7 +309,7 @@ response_text = b"".join(response_chunks).decode()
 ### Complete Workflow Example
 ```python
 import asyncio
-from agentstack_sdk.platform.connector import Connector, ConnectorState
+from agentstack_sdk.platform import Connector, ConnectorState
 
 async def main():
     # Create connector

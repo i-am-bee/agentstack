@@ -11,7 +11,7 @@ from typing import Annotated
 
 from a2a.types import Message, TextPart
 
-from agentstack_sdk.a2a.extensions.ui.canvas import CanvasExtensionServer, CanvasExtensionSpec
+from agentstack_sdk.a2a.extensions import CanvasExtensionServer, CanvasExtensionSpec
 from agentstack_sdk.a2a.types import AgentArtifact, AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext

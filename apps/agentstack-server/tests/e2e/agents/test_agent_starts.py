@@ -19,7 +19,11 @@ from a2a.client import A2AClientHTTPError
 from a2a.client.helpers import create_text_message_object
 from a2a.server.apps import A2AStarletteApplication
 from a2a.types import AgentCapabilities, AgentCard, Role, Task, TaskState
-from agentstack_sdk.a2a.extensions import LLMFulfillment, LLMServiceExtensionClient, LLMServiceExtensionSpec
+from agentstack_sdk.a2a.extensions import (
+    LLMFulfillment,
+    LLMServiceExtensionClient,
+    LLMServiceExtensionSpec,
+)
 from agentstack_sdk.platform import ModelProvider, Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
 from kr8s.asyncio.objects import Deployment

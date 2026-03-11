@@ -8,11 +8,7 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from agentstack_sdk.a2a.extensions import (
-    Citation,
-    CitationExtensionServer,
-    CitationExtensionSpec,
-)
+from agentstack_sdk.a2a.extensions import Citation, CitationExtensionServer, CitationExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext

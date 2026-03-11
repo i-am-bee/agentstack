@@ -14,10 +14,7 @@ from beeai_framework.agents.requirement.requirements.conditional import Conditio
 from beeai_framework.backend import AssistantMessage, UserMessage
 from beeai_framework.tools.think import ThinkTool
 
-from agentstack_sdk.a2a.extensions import (
-    LLMServiceExtensionServer,
-    LLMServiceExtensionSpec,
-)
+from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext

@@ -8,7 +8,7 @@ from typing import Annotated
 from a2a.types import Message
 from pydantic import BaseModel
 
-from agentstack_sdk.a2a.extensions.common.form import (
+from agentstack_sdk.a2a.extensions import (
     CheckboxField,
     DateField,
     FileField,
@@ -18,8 +18,9 @@ from agentstack_sdk.a2a.extensions.common.form import (
     OptionItem,
     SingleSelectField,
     TextField,
+    FormRequestExtensionServer,
+    FormRequestExtensionSpec,
 )
-from agentstack_sdk.a2a.extensions.ui.form_request import FormRequestExtensionServer, FormRequestExtensionSpec
 from agentstack_sdk.server import Server
 
 server = Server()

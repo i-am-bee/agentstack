@@ -6,14 +6,12 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from a2a.types import Message
-from agentstack_sdk.a2a.extensions.common.form import (
+from agentstack_sdk.a2a.extensions import (
     CheckboxField,
     CheckboxGroupField,
     OptionItem,
     SettingsFormRender,
     SingleSelectField,
-)
-from agentstack_sdk.a2a.extensions.services.form import (
     FormServiceExtensionServer,
     FormServiceExtensionSpec,
 )

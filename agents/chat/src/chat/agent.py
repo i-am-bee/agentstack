@@ -7,10 +7,7 @@ import os
 from textwrap import dedent
 from typing import Annotated
 
-from a2a.types import (
-    AgentSkill,
-    Message,
-)
+from a2a.types import AgentSkill, Message
 from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
@@ -24,8 +21,6 @@ from agentstack_sdk.a2a.extensions import (
     LLMServiceExtensionSpec,
     TrajectoryExtensionServer,
     TrajectoryExtensionSpec,
-)
-from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
 )

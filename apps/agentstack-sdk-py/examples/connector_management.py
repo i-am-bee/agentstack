@@ -16,7 +16,7 @@ This example shows how to:
 import asyncio
 import logging
 
-from agentstack_sdk.platform.connector import Connector, ConnectorState
+from agentstack_sdk.platform import Connector, ConnectorState
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

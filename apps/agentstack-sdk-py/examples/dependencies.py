@@ -8,12 +8,14 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from agentstack_sdk.a2a.extensions import LLMServiceExtensionServer, LLMServiceExtensionSpec
-from agentstack_sdk.a2a.extensions.services.platform import (
+from agentstack_sdk.a2a.extensions import (
+    LLMServiceExtensionServer,
+    LLMServiceExtensionSpec,
     PlatformApiExtensionServer,
     PlatformApiExtensionSpec,
+    TrajectoryExtensionServer,
+    TrajectoryExtensionSpec,
 )
-from agentstack_sdk.a2a.extensions.ui.trajectory import TrajectoryExtensionServer, TrajectoryExtensionSpec
 from agentstack_sdk.a2a.types import AuthRequired, RunYield
 from agentstack_sdk.platform import File
 from agentstack_sdk.server import Server

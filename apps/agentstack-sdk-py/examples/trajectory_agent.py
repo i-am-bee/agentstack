@@ -9,10 +9,7 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from agentstack_sdk.a2a.extensions import (
-    TrajectoryExtensionServer,
-    TrajectoryExtensionSpec,
-)
+from agentstack_sdk.a2a.extensions import TrajectoryExtensionServer, TrajectoryExtensionSpec
 from agentstack_sdk.a2a.types import AgentMessage
 from agentstack_sdk.server import Server
 from agentstack_sdk.server.context import RunContext

@@ -12,7 +12,7 @@ import httpx
 from a2a.types import Task
 
 import agentstack_sdk.a2a.extensions
-from agentstack_sdk.a2a.extensions.interactions.approval import ApprovalResponse
+from agentstack_sdk.a2a.extensions import ApprovalResponse
 
 
 async def run(base_url: str = "http://127.0.0.1:10000"):

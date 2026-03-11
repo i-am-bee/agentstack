@@ -3,20 +3,12 @@
 
 from __future__ import annotations
 
-from beeai_framework.agents.requirement import (
-    RequirementAgent,
-    RequirementAgentRunState,
-)
+from beeai_framework.agents.requirement import RequirementAgent, RequirementAgentRunState
 from beeai_framework.agents.requirement.events import RequirementAgentStartEvent
 from beeai_framework.backend import AssistantMessage
 from beeai_framework.context import RunContext
 from beeai_framework.emitter import Emitter, EventMeta
-from beeai_framework.tools import (
-    StringToolOutput,
-    Tool,
-    ToolInputValidationError,
-    ToolRunOptions,
-)
+from beeai_framework.tools import StringToolOutput, Tool, ToolInputValidationError, ToolRunOptions
 from pydantic import BaseModel, Field
 
 

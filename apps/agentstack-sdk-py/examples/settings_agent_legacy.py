@@ -9,7 +9,7 @@ from typing import Annotated
 
 from a2a.types import Message
 
-from agentstack_sdk.a2a.extensions.ui.settings import (
+from agentstack_sdk.a2a.extensions import (
     CheckboxField,
     CheckboxGroupField,
     OptionItem,

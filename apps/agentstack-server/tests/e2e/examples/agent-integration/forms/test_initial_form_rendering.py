@@ -6,8 +6,12 @@ from __future__ import annotations
 import pytest
 from a2a.client.helpers import create_text_message_object
 from a2a.types import TaskState
-from agentstack_sdk.a2a.extensions import FormResponse, FormServiceExtensionMetadata, FormServiceExtensionSpec
-from agentstack_sdk.a2a.extensions.common.form import TextFieldValue
+from agentstack_sdk.a2a.extensions import (
+    FormResponse,
+    FormServiceExtensionMetadata,
+    FormServiceExtensionSpec,
+    TextFieldValue,
+)
 
 from tests.e2e.examples.conftest import run_example
 

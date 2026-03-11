@@ -7,11 +7,7 @@ from typing import List, Literal
 
 from agentstack_sdk.platform import File
 from beeai_framework.emitter import Emitter
-from beeai_framework.tools import (
-    JSONToolOutput,
-    Tool,
-    ToolRunOptions,
-)
+from beeai_framework.tools import JSONToolOutput, Tool, ToolRunOptions
 from pydantic import BaseModel, Field, create_model
 
 from rag.tools.files.utils import format_size

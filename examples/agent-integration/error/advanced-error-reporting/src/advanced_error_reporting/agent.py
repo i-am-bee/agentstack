@@ -5,7 +5,7 @@ import os
 from typing import Annotated
 
 from a2a.types import Message
-from agentstack_sdk.a2a.extensions.ui.error import (
+from agentstack_sdk.a2a.extensions import (
     ErrorExtensionParams,
     ErrorExtensionServer,
     ErrorExtensionSpec,

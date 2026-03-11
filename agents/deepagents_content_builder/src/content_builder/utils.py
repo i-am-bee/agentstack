@@ -11,8 +11,7 @@ from deepagents import SubAgent
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
-from a2a.types import Role
-from a2a.types import Message as A2AMessage
+from a2a.types import Role, Message as A2AMessage
 from langchain.messages import AIMessage, HumanMessage
 from agentstack_sdk.a2a.extensions import LLMFulfillment
 

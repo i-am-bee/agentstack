@@ -11,8 +11,6 @@ from a2a.types import Message
 from agentstack_sdk.a2a.extensions import (
     AgentDetail,
     AgentDetailContributor,
-)
-from agentstack_sdk.a2a.extensions.auth.secrets import (
     SecretDemand,
     SecretsExtensionServer,
     SecretsExtensionSpec,
