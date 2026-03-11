@@ -178,8 +178,9 @@ async def discover_issuer(provider: OidcProvider) -> AuthorizationServerMetadata
                 response.raise_for_status()
                 metadata = AuthorizationServerMetadata(response.json())
                 metadata.validate_issuer()
-                metadata.validate_jwks_uri()
-                metadata.validate_introspection_endpoint()
+                if provider.issuer.scheme == "https":
+                    metadata.validate_jwks_uri()
+                    metadata.validate_introspection_endpoint()
             except Exception as e:
                 # Fallback to OIDC 1.0
                 try:
@@ -188,8 +189,9 @@ async def discover_issuer(provider: OidcProvider) -> AuthorizationServerMetadata
                     response.raise_for_status()
                     metadata = OpenIDProviderMetadata(response.json())
                     metadata.validate_issuer()
-                    metadata.validate_jwks_uri()
-                    metadata.validate_introspection_endpoint()
+                    if provider.issuer.scheme == "https":
+                        metadata.validate_jwks_uri()
+                        metadata.validate_introspection_endpoint()
                 except Exception as fallback_e:
                     logger.warning(f"Issuer discovery fallback failed for provider {provider.issuer}: {fallback_e}")
                     raise fallback_e from e

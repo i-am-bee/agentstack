@@ -131,8 +131,8 @@ class OidcConfiguration(BaseModel):
     @model_validator(mode="after")
     def validate_auth(self):
         if self.insecure_transport:
-            if self.issuer.scheme != "http" or self.issuer.host != "keycloak":
-                raise ValueError("Insecure transport is only allowed for internal keycloak!")
+            if self.issuer.scheme != "http":
+                raise ValueError("Insecure transport is only allowed when the issuer URL uses http:// scheme!")
 
             os.environ["AUTHLIB_INSECURE_TRANSPORT"] = "1"
             logger.warning(
