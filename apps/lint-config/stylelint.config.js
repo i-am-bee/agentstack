@@ -3,22 +3,25 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
 /** @type {import('stylelint').Config} */
 const config = {
-  extends: ['stylelint-config-recommended-scss', 'stylelint-config-css-modules'],
-  plugins: ['stylelint-plugin-logical-css'],
+  extends: [
+    'stylelint-config-recommended-scss',
+    'stylelint-config-css-modules',
+    'stylelint-plugin-logical-css/configs/recommended',
+  ],
+  // Resolve plugin from this shared config package, not the consumer cwd.
+  plugins: [require.resolve('stylelint-plugin-logical-css')],
   rules: {
     'scss/function-no-unknown': null,
     'scss/operator-no-newline-after': null,
     'no-descending-specificity': null,
-    'plugin/use-logical-properties-and-values': [
-      true,
-      {
-        severity: 'warning',
-        ignore: ['overflow-y', 'overflow-x', '-webkit-box-orient'],
-      },
-    ],
     'nesting-selector-no-missing-scoping-root': null,
+    'logical-css/require-logical-units': false,
   },
 };
 

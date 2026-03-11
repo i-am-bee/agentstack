@@ -54,7 +54,7 @@ export function ChatMessagesView() {
       >
         <div className={classes.holder}>
           <div className={classes.scrollable} ref={scrollElementRef}>
-            <Container size="sm" className={classes.container}>
+            <Container size="md" className={classes.container}>
               <header className={classes.header}>
                 <NewSessionButton
                   onClick={() => {
@@ -115,7 +115,7 @@ export function ChatMessagesView() {
             )}
 
             <div className={classes.bottomHolder}>
-              <Container size="sm" className={classes.bottomContainer}>
+              <Container size="md" className={classes.bottomContainer}>
                 {isPending && (isNotInstalled || isStarting) ? (
                   <RunStatusBar isPending>{AGENT_STARTING_MESSAGE}</RunStatusBar>
                 ) : (
