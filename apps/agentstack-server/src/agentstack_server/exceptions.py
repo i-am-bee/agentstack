@@ -11,7 +11,6 @@ from fastapi import status
 from tenacity import retry_base, retry_if_exception
 
 __all__ = [
-    "BuildAlreadyFinishedError",
     "DuplicateEntityError",
     "EntityNotFoundError",
     "ForbiddenUpdateError",
@@ -21,7 +20,6 @@ __all__ = [
     "InvalidVectorDimensionError",
     "ManifestLoadError",
     "MissingAgentCardLabelError",
-    "MissingConfigurationError",
     "ModelLoadFailedError",
     "PlatformError",
     "RateLimitExceededError",
@@ -33,8 +31,7 @@ __all__ = [
 
 if TYPE_CHECKING:
     from agentstack_server.domain.models.model_provider import ModelProvider
-    from agentstack_server.domain.models.provider import EnvVar, ProviderLocation
-    from agentstack_server.domain.models.provider_build import BuildState
+    from agentstack_server.domain.models.provider import ProviderLocation
 
 
 class PlatformError(Exception):
@@ -126,12 +123,6 @@ class ModelLoadFailedError(PlatformError):
         )
 
 
-class MissingConfigurationError(Exception):
-    def __init__(self, missing_env: list[EnvVar], status_code: int = status.HTTP_400_BAD_REQUEST):
-        self.missing_env = missing_env
-        self.status_code = status_code
-
-
 class RateLimitExceededError(PlatformError):
     def __init__(
         self,
@@ -174,14 +165,6 @@ class DuplicateEntityError(PlatformError):
         if value:
             message = f"{message}: {field}='{value}' already exists"
         super().__init__(message, status_code)
-
-
-class BuildAlreadyFinishedError(PlatformError):
-    def __init__(self, platform_build_id: UUID, state: BuildState, status_code: int = status.HTTP_409_CONFLICT):
-        super().__init__(
-            message=f"Build with ID {platform_build_id} already finished in state: {state}",
-            status_code=status_code,
-        )
 
 
 def retry_if_exception_grp_type(*exception_types: type[BaseException]) -> retry_base:

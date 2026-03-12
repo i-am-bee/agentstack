@@ -26,7 +26,6 @@ async def run_workers(app: procrastinate.App):
                 str(Queues.CRON_CONNECTOR),
                 str(Queues.CRON_CLEANUP),
                 str(Queues.TOOLKIT_DELETION),
-                str(Queues.PROVIDER_DISCOVERY),
             ],
             concurrency=10,
         ),
@@ -36,7 +35,6 @@ async def run_workers(app: procrastinate.App):
             concurrency=10,
         ),
         WorkerOptions(name="text_extraction_worker", queues=[str(Queues.TEXT_EXTRACTION)], concurrency=5),
-        WorkerOptions(name="build_provider_worker", queues=[str(Queues.BUILD_PROVIDER)], concurrency=5),
     ]
 
     worker_tasks = []

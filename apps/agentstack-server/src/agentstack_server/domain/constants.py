@@ -3,11 +3,8 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
 from enum import Enum
 from typing import Final, Literal, TypeAlias
-
-DOCKER_MANIFEST_LABEL_NAME: Final[str] = "beeai.dev.agent.json"
 
 
 class _Undefined(Enum):
@@ -16,8 +13,6 @@ class _Undefined(Enum):
 
 undefined = _Undefined.undefined
 Undefined: TypeAlias = Literal[_Undefined.undefined]  # noqa: UP040
-
-DEFAULT_AUTO_STOP_TIMEOUT: Final[timedelta] = timedelta(minutes=20)
 
 # A2A platform constants
 AGENT_DETAIL_EXTENSION_URI: Final[str] = "https://a2a-extensions.agentstack.beeai.dev/ui/agent-detail/v1"

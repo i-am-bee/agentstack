@@ -10,7 +10,6 @@ from fastapi import HTTPException, status
 from fastapi.params import Depends, Query
 from fastapi.requests import Request
 from pydantic import TypeAdapter
-from starlette.responses import StreamingResponse
 
 from agentstack_server.api.dependencies import (
     ConfigurationDependency,
@@ -19,12 +18,10 @@ from agentstack_server.api.dependencies import (
 )
 from agentstack_server.api.routes.a2a import create_proxy_agent_card
 from agentstack_server.api.schema.common import EntityModel
-from agentstack_server.api.schema.env import ListVariablesSchema, UpdateVariablesRequest
-from agentstack_server.api.schema.provider import CreateProviderRequest, PatchProviderRequest
+from agentstack_server.api.schema.provider import CreateProviderRequest
 from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.permissions import AuthorizedUser
-from agentstack_server.domain.models.provider import ProviderLocation, ProviderWithState
-from agentstack_server.utils.fastapi import streaming_response
+from agentstack_server.domain.models.provider import Provider, ProviderLocation
 
 router = fastapi.APIRouter()
 
@@ -35,32 +32,12 @@ async def create_provider(
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
-) -> ProviderWithState:
+) -> Provider:
     return await provider_service.create_provider(
         user=user.user,
-        auto_stop_timeout=request.auto_stop_timeout,
         location=request.location,
         origin=request.origin,
         agent_card=request.agent_card,
-        variables=request.variables,
-    )
-
-
-@router.patch("/{id}")
-async def patch_provider(
-    id: UUID,
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
-    request: PatchProviderRequest,
-    provider_service: ProviderServiceDependency,
-) -> ProviderWithState:
-    return await provider_service.patch_provider(
-        provider_id=id,
-        user=user.user,
-        auto_stop_timeout=request.auto_stop_timeout,
-        location=request.location,
-        origin=request.origin,
-        agent_card=request.agent_card,
-        variables=request.variables,
     )
 
 
@@ -69,7 +46,7 @@ async def preview_provider(
     request: CreateProviderRequest,
     provider_service: ProviderServiceDependency,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
-) -> ProviderWithState:
+) -> Provider:
     return await provider_service.preview_provider(location=request.location, agent_card=request.agent_card)
 
 
@@ -81,7 +58,7 @@ async def list_providers(
     user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}), use_cache=False)],
     user_owned: Annotated[bool | None, Query()] = None,
     origin: Annotated[str | None, Query()] = None,
-) -> PaginatedResult[EntityModel[ProviderWithState]]:
+) -> PaginatedResult[EntityModel[Provider]]:
     providers = []
     for provider in await provider_service.list_providers(user=user.user, user_owned=user_owned, origin=origin):
         new_provider = provider.model_copy(
@@ -106,7 +83,7 @@ async def get_provider(
     configuration: ConfigurationDependency,
     request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
-) -> EntityModel[ProviderWithState]:
+) -> EntityModel[Provider]:
     provider = await provider_service.get_provider(provider_id=id)
     return EntityModel(  # pyrefly: ignore [bad-return] -- TODO: fix the EntityModel hack so that both Pyrefly and FastAPI understand it
         provider.model_copy(
@@ -126,7 +103,7 @@ async def get_provider_by_location(
     configuration: ConfigurationDependency,
     request: Request,
     _: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"read"}))],
-) -> EntityModel[ProviderWithState]:
+) -> EntityModel[Provider]:
     try:
         parsed_location: ProviderLocation = TypeAdapter(ProviderLocation).validate_python(location)
     except ValueError as e:
@@ -153,33 +130,3 @@ async def delete_provider(
     await provider_service.delete_provider(provider_id=id, user=user.user)
 
 
-@router.get("/{id}/logs")
-async def stream_logs(
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(providers={"write"}))],
-    id: UUID,
-    provider_service: ProviderServiceDependency,
-) -> StreamingResponse:
-    # admin can see logs from all providers, other users only logs of their provider
-    logs_iterator = await provider_service.stream_logs(provider_id=id, user=user.user)
-    return streaming_response(logs_iterator())
-
-
-@router.put("/{id}/variables", status_code=fastapi.status.HTTP_201_CREATED)
-async def update_provider_variables(
-    id: UUID,
-    request: UpdateVariablesRequest,
-    provider_service: ProviderServiceDependency,
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_variables={"write"}))],
-) -> None:
-    # admin can update all variables, other users only variables of their provider
-    await provider_service.update_provider_env(provider_id=id, env=request.variables, user=user.user)
-
-
-@router.get("/{id}/variables")
-async def list_provider_variables(
-    id: UUID,
-    provider_service: ProviderServiceDependency,
-    user: Annotated[AuthorizedUser, Depends(RequiresPermissions(provider_variables={"read"}))],
-) -> ListVariablesSchema:
-    # admin can see all variables, other users only variables of their provider
-    return ListVariablesSchema(variables=await provider_service.list_provider_env(provider_id=id, user=user.user))

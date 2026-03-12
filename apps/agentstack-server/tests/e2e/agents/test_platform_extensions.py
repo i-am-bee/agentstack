@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 from __future__ import annotations
 
-import os
 from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Annotated
 from uuid import uuid4
 
 import pytest
-from a2a.client import Client, create_text_message_object
+from a2a.client import Client
 from a2a.types import FilePart, Message, Role, TaskState
 from agentstack_sdk.a2a.extensions.services.platform import (
     PlatformApiExtensionClient,
@@ -104,13 +103,10 @@ async def test_platform_api_extension(file_reader_writer_factory, permissions, s
                 assert file.text == context.id
 
 
-SELF_REGISTRATION_TEST_VAR_NAME = "_SELF_REGISTRATION_TEST_VAR"
-
-
 @pytest.fixture
 async def self_registration_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server, Client]]:
     async def self_registration_agent() -> AsyncIterator[RunYield]:
-        yield os.environ.get(SELF_REGISTRATION_TEST_VAR_NAME, "empty")
+        yield "hello"
 
     context = await Context.create()
     token = await context.generate_token(grant_global_permissions=Permissions(a2a_proxy={"*"}))
@@ -119,13 +115,8 @@ async def self_registration_agent(create_server_with_agent) -> AsyncGenerator[tu
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_self_registration_with_variables(
-    self_registration_agent, get_final_task_from_stream, subtests, test_configuration
-):
-    os.environ.pop(SELF_REGISTRATION_TEST_VAR_NAME, None)
+async def test_self_registration(self_registration_agent, subtests):
     _, client = self_registration_agent
-    task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
-    assert task.history[-1].parts[0].root.text == "empty"
 
     with subtests.test("register provider"):
         async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
@@ -137,18 +128,3 @@ async def test_self_registration_with_variables(
         assert provider.state == "online"
         assert "self_registration_agent" in provider.source
 
-    with subtests.test("update provider variables"):
-        await provider.update_variables(variables={SELF_REGISTRATION_TEST_VAR_NAME: "test"})
-
-        async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
-            with attempt:
-                task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
-                assert task.history[-1].parts[0].root.text == "test"
-
-    with subtests.test("remove provider variable"):
-        await provider.update_variables(variables={SELF_REGISTRATION_TEST_VAR_NAME: None})
-
-        async for attempt in AsyncRetrying(stop=stop_after_delay(6), wait=wait_fixed(0.5), reraise=True):
-            with attempt:
-                task = await get_final_task_from_stream(client.send_message(create_text_message_object(content="hi")))
-                assert task.history[-1].parts[0].root.text == "empty"

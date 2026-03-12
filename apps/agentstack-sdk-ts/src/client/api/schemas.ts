@@ -9,7 +9,6 @@ export * from './connectors/schemas';
 export * from './contexts/schemas';
 export * from './files/schemas';
 export * from './model-providers/schemas';
-export * from './provider-builds/schemas';
 export * from './providers/schemas';
 export * from './user-feedback/schemas';
 export * from './users/schemas';

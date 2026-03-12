@@ -155,8 +155,10 @@ async def a2a_client(agent_card: AgentCard, context_token: ContextToken) -> Asyn
 @asynccontextmanager
 async def openai_client() -> AsyncIterator[openai.AsyncOpenAI]:
     async with Configuration().use_platform_client() as platform_client:
+        headers = platform_client.headers.copy()
+        headers.pop("Authorization", None)
         yield openai.AsyncOpenAI(
             api_key=platform_client.headers.get("Authorization", "").removeprefix("Bearer ") or "dummy",
             base_url=urllib.parse.urljoin(str(platform_client.base_url), urllib.parse.urljoin(API_BASE_URL, "openai")),
-            default_headers=platform_client.headers,
+            default_headers=headers,
         )

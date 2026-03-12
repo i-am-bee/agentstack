@@ -9,7 +9,6 @@ export * from './connectors/types';
 export * from './contexts/types';
 export * from './files/types';
 export * from './model-providers/types';
-export * from './provider-builds/types';
 export * from './providers/types';
 export * from './user-feedback/types';
 export * from './users/types';

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import importlib.metadata
 import pathlib
@@ -15,7 +16,7 @@ from contextlib import asynccontextmanager
 import pydantic
 import pydantic_settings
 from agentstack_sdk.platform import PlatformClient, use_platform_client
-from pydantic import HttpUrl, SecretStr
+from pydantic import SecretStr
 
 from agentstack_cli.auth_manager import AuthManager
 from agentstack_cli.console import console
@@ -34,12 +35,11 @@ class Configuration(pydantic_settings.BaseSettings):
     )
     debug: bool = False
     home: pathlib.Path = pydantic.Field(default_factory=lambda: pathlib.Path.home() / ".agentstack")
-    agent_registry: pydantic.AnyUrl = HttpUrl(
-        f"https://github.com/i-am-bee/agentstack@v{version()}#path=agent-registry.yaml"
-    )
     username: str = "admin"
     password: SecretStr | None = None
     server_metadata_ttl: int = 86400
+
+    kagenti_url: str = "http://kagenti-api.localtest.me:8080"
 
     oidc_enabled: bool = False
     client_id: str | None = None
@@ -67,14 +67,22 @@ class Configuration(pydantic_settings.BaseSettings):
             )
             sys.exit(1)
 
+        auth_token = None
         try:
             auth_token = await self.auth_manager.load_auth_token()
         except Exception as e:
-            console.error(f"Failed to load authentication: {e}")
-            console.hint(
-                f"Run [green]agentstack server login {self.auth_manager.active_server}[/green] to re-authenticate."
-            )
-            sys.exit(1)
+            # Auto-recover for local dev by re-authenticating with admin:admin
+            if self.auth_manager.active_server and "agentstack-api.localtest.me" in self.auth_manager.active_server:
+                with contextlib.suppress(Exception):
+                    auth_token = await self.auth_manager.login_with_password(
+                        self.auth_manager.active_server, username="admin", password="admin"
+                    )
+            if not auth_token:
+                console.error(f"Failed to load authentication: {e}")
+                console.hint(
+                    f"Run [green]agentstack server login {self.auth_manager.active_server}[/green] to re-authenticate."
+                )
+                sys.exit(1)
 
         async with use_platform_client(
             auth=(self.username, self.password.get_secret_value()) if self.password else None,

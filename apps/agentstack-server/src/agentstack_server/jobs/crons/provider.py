@@ -16,12 +16,15 @@ from procrastinate import Blueprint
 from agentstack_server import get_configuration
 from agentstack_server.configuration import Configuration
 from agentstack_server.domain.constants import SELF_REGISTRATION_EXTENSION_URI
-from agentstack_server.domain.models.provider import NetworkProviderLocation, Provider, ProviderType, UnmanagedState
-from agentstack_server.domain.models.registry import ProviderRegistryRecord, RegistryLocation
+from agentstack_server.domain.models.provider import (
+    NetworkProviderLocation,
+    Provider,
+    ProviderState,
+    SourceType,
+)
 from agentstack_server.jobs.queues import Queues
 from agentstack_server.service_layer.services.providers import ProviderService
 from agentstack_server.service_layer.services.users import UserService
-from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.utils.a2a import get_extension
 from agentstack_server.utils.utils import extract_messages
 
@@ -30,115 +33,110 @@ logger = logging.getLogger(__name__)
 blueprint = Blueprint()
 
 
-@blueprint.periodic(cron="*/1 * * * *")  # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
-@blueprint.task(queueing_lock="scale_down_providers", queue=str(Queues.CRON_PROVIDER))
-@inject
-async def scale_down_providers(timestamp: int, service: ProviderService, configuration: Configuration):
-    if configuration.provider.disable_downscaling:
-        return
-    await service.scale_down_providers()
-
-
 # TODO: Can't use DI here because it's not initialized yet
 # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
-@blueprint.periodic(cron=get_configuration().agent_registry.sync_period_cron)
-@blueprint.task(queueing_lock="check_registry", queue=str(Queues.CRON_PROVIDER))
+@blueprint.periodic(cron=get_configuration().kagenti.sync_period_cron)
+@blueprint.task(queueing_lock="sync_kagenti_agents", queue=str(Queues.CRON_PROVIDER))
 @inject
-async def check_registry(
+async def sync_kagenti_agents(
     timestamp: int,
     configuration: Configuration,
     provider_service: ProviderService,
     user_service: UserService,
 ):
-    if not configuration.agent_registry.locations:
+    if not configuration.kagenti.enabled:
         return
 
-    user = await user_service.get_user_by_email("admin@beeai.dev")
+    from agentstack_server.infrastructure.kagenti.client import KagentiClient
 
-    registry_by_provider_origin: dict[str, RegistryLocation] = {}
-    desired_providers: dict[str, ProviderRegistryRecord] = {}
-    errors = []
+    user = await user_service.get_user_by_email("admin@beeai.dev")
+    client = KagentiClient(configuration.kagenti)
 
     try:
-        await provider_service.remove_orphaned_providers()
+        kagenti_agents = await client.list_agents()
     except Exception as ex:
-        errors.extend(ex.exceptions if isinstance(ex, ExceptionGroup) else [ex])
+        logger.error(f"Failed to fetch agents from kagenti: {ex}")
+        return
 
-    for registry in configuration.agent_registry.locations.values():
-        for provider_record in await registry.load():
+    # Build desired state from kagenti agents (keyed by origin = agent URL)
+    desired: dict[str, dict] = {}
+    for agent in kagenti_agents:
+        if not agent.get("url"):
+            continue
+        url = agent["url"]
+        desired[url] = agent
+
+    # Get existing kagenti-sourced providers
+    existing_providers = await provider_service.list_providers()
+    existing_kagenti = {p.origin: p for p in existing_providers if p.source_type == SourceType.KAGENTI}
+
+    errors = []
+
+    # Remove providers for agents no longer in kagenti
+    for origin, provider in existing_kagenti.items():
+        if origin not in desired:
             try:
-                desired_providers[provider_record.origin] = provider_record
-                registry_by_provider_origin[provider_record.origin] = registry
-            except ValueError as e:
-                errors.append(e)
+                await provider_service.delete_provider(provider_id=provider.id, user=user)
+                logger.info(f"Removed kagenti provider {provider.id} ({origin})")
+            except Exception as ex:
+                errors.append(ex)
 
-    # TODO: two providers with the same origin managed under registry are not supported
-    managed_providers = {
-        provider.origin: provider for provider in await provider_service.list_providers() if provider.registry
-    }
+    # Create new providers for new kagenti agents
+    for url, agent in desired.items():
+        if url not in existing_kagenti:
+            try:
+                from agentstack_server.domain.models.provider import NetworkProviderLocation
 
-    new_providers = desired_providers.keys() - managed_providers.keys()
-    old_providers = managed_providers.keys() - desired_providers.keys()
-    existing_providers = managed_providers.keys() & desired_providers.keys()
+                location = NetworkProviderLocation(root=url)
+                await provider_service.create_provider(
+                    user=user,
+                    location=location,
+                    origin=url,
+                    source_type=SourceType.KAGENTI,
+                )
+                logger.info(f"Added kagenti provider from {url}")
+            except Exception as ex:
+                errors.append(RuntimeError(f"Failed to add kagenti provider {url}: {ex}"))
 
-    # Remove old providers - to prevent agent name collisions
-    for provider_origin in old_providers:
-        provider = managed_providers[provider_origin]
-        try:
-            await provider_service.delete_provider(provider_id=provider.id, user=user)
-            logger.info(f"Removed provider {provider.source}")
-        except Exception as ex:
-            errors.append(RuntimeError(f"[{provider.source}]: Failed to remove provider: {ex}"))
+    # Update existing providers (refresh agent card)
+    for url, agent in desired.items():
+        if url in existing_kagenti:
+            provider = existing_kagenti[url]
+            try:
+                from agentstack_server.domain.models.provider import NetworkProviderLocation
 
-    for provider_origin in new_providers:
-        provider_record = desired_providers[provider_origin]
-        try:
-            await provider_service.create_provider(
-                user=user,
-                location=provider_record.location,
-                origin=provider_record.origin,
-                registry=registry_by_provider_origin[provider_origin],
-                auto_stop_timeout=provider_record.auto_stop_timeout,
-                variables=provider_record.variables,
-            )
-            logger.info(f"Added provider {provider_record}")
-        except Exception as ex:
-            errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
-
-    for provider_origin in existing_providers:
-        provider_record = desired_providers[provider_origin]
-        provider = managed_providers[provider_origin]
-        try:
-            result = await provider_service.patch_provider(
-                provider_id=provider.id,
-                user=user,
-                location=provider_record.location,
-                origin=provider_record.origin,
-                auto_stop_timeout=provider_record.auto_stop_timeout,
-                variables=provider_record.variables,
-                allow_registry_update=True,
-            )
-            if managed_providers[provider_origin].source.root != result.source.root:
-                logger.info(f"Updated provider {provider_record}")
-        except Exception as ex:
-            errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
+                location = NetworkProviderLocation(root=url)
+                agent_card = await location.load_agent_card()
+                if agent_card != provider.agent_card:
+                    await provider_service.patch_provider(
+                        provider_id=provider.id,
+                        user=user,
+                        agent_card=agent_card,
+                    )
+                    logger.info(f"Updated kagenti provider {provider.id} agent card")
+            except Exception as ex:
+                # Agent might not be ready yet, skip
+                logger.debug(f"Failed to update kagenti provider {url}: {ex}")
 
     if errors:
-        raise ExceptionGroup("Exceptions occurred when reloading providers", errors)
+        raise ExceptionGroup("Exceptions occurred when syncing kagenti agents", errors)
 
 
 @blueprint.periodic(cron="* * * * * */5")  # pyrefly: ignore [bad-argument-type] -- bad typing in blueprint library
-@blueprint.task(queueing_lock="check_unmanaged_providers", queue=str(Queues.CRON_PROVIDER))
+@blueprint.task(queueing_lock="refresh_provider_state", queue=str(Queues.CRON_PROVIDER))
 @inject
-async def refresh_unmanaged_provider_state(
-    timestamp: int, uow_f: IUnitOfWorkFactory, provider_service: ProviderService, user_service: UserService
+async def refresh_provider_state(
+    timestamp: int,
+    provider_service: ProviderService,
+    user_service: UserService,
 ):
+    """Periodically check all providers' health by fetching their agent card endpoint."""
     timeout_sec = timedelta(seconds=20).total_seconds()
 
     async def _check_provider(provider: Provider):
-        state = UnmanagedState.OFFLINE
+        state = ProviderState.OFFLINE
         resp_card = None
-        should_update_provider = True
+        should_update = True
 
         user = await user_service.get_user_by_email("admin@beeai.dev")
 
@@ -149,47 +147,43 @@ async def refresh_unmanaged_provider_state(
                     (await client.get(AGENT_CARD_WELL_KNOWN_PATH)).raise_for_status().json()
                 )
 
-                # For self-registered provider we need to check their self-registration ID, because their URL
-                # might overlap (more agents on the same URL, only one can be online)
+                # For self-registered providers, verify their self-registration ID matches
                 provider_self_reg_ext = get_extension(provider.agent_card, SELF_REGISTRATION_EXTENSION_URI)
                 resp_self_reg_ext = get_extension(resp_card, SELF_REGISTRATION_EXTENSION_URI)
                 if provider_self_reg_ext is not None and resp_self_reg_ext is not None:
                     if provider_self_reg_ext.params == resp_self_reg_ext.params:
-                        state = UnmanagedState.ONLINE
+                        state = ProviderState.ONLINE
                     else:
-                        # Different agent responding at the same URL, don't update this provider
-                        should_update_provider = False
+                        should_update = False
                 else:
-                    state = UnmanagedState.ONLINE
+                    state = ProviderState.ONLINE
 
         except HTTPError as ex:
             logger.warning(
-                f"Provider {provider.id} failed to respond to ping in {int(timeout_sec)} seconds: {extract_messages(ex)}"
+                f"Provider {provider.id} failed to respond to ping in {int(timeout_sec)} seconds: "
+                f"{extract_messages(ex)}"
             )
-            state = UnmanagedState.OFFLINE
+        except Exception as ex:
+            logger.debug(f"Provider {provider.id} health check failed: {ex}")
         finally:
-            # Unified update: patch both agent card (if changed) and state (if changed) in a single call
-            # Only detect card changes if we got a response (resp_card is not None)
-            card_changes = resp_card is not None and provider.agent_card != resp_card
-            state_changed = state != provider.unmanaged_state
+            card_changed = resp_card is not None and provider.agent_card != resp_card
+            state_changed = state != provider.state
 
-            if should_update_provider and (card_changes or state_changed):
+            if should_update and (card_changed or state_changed):
                 try:
                     await provider_service.patch_provider(
                         provider_id=provider.id,
                         user=user,
-                        agent_card=resp_card if card_changes else None,
-                        unmanaged_state=state if state_changed else None,
-                        allow_registry_update=True,
+                        agent_card=resp_card if card_changed else None,
+                        state=state if state_changed else None,
                     )
                 except Exception as ex:
                     if isinstance(ex, asyncio.CancelledError):
                         raise
                     logger.error(f"Failed to update provider {provider.id}: {extract_messages(ex)}")
 
-    async with uow_f() as uow:
-        unmanaged_providers = [provider async for provider in uow.providers.list(type=ProviderType.UNMANAGED)]
+    providers = await provider_service.list_providers()
 
     async with asyncio.TaskGroup() as tg:
-        for provider in unmanaged_providers:
+        for provider in providers:
             tg.create_task(_check_provider(provider))

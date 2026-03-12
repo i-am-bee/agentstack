@@ -36,23 +36,21 @@ async def provider_id(db_transaction: AsyncConnection, normal_user: UUID) -> UUI
     await db_transaction.execute(
         text(
             """
-            INSERT INTO providers (id, type, source, origin, version_info, auto_stop_timeout_sec, created_at, updated_at, last_active_at, agent_card, created_by, unmanaged_state)
-            VALUES (:id, :type, :source, :origin, :version_info, :timeout, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :unmanaged_state)
+            INSERT INTO providers (id, source, source_type, origin, created_at, updated_at, last_active_at, agent_card, created_by, state)
+            VALUES (:id, :source, :source_type, :origin, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :state)
             """
         ),
         {
             "id": provider_id,
-            "type": "unmanaged",
             "source": "test://provider",
+            "source_type": "api",
             "origin": "test",
-            "version_info": "{}",
-            "timeout": 3600,
             "created_at": utc_now(),
             "updated_at": utc_now(),
             "last_active_at": utc_now(),
             "agent_card": "{}",
             "created_by": normal_user,
-            "unmanaged_state": None,
+            "state": None,
         },
     )
     return provider_id
@@ -331,23 +329,21 @@ async def test_get_all_multiple_entities(
         await db_transaction.execute(
             text(
                 """
-                INSERT INTO providers (id, type, source, origin, version_info, auto_stop_timeout_sec, created_at, updated_at, last_active_at, agent_card, created_by, unmanaged_state)
-                VALUES (:id, :type, :source, :origin, :version_info, :timeout, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :unmanaged_state)
+                INSERT INTO providers (id, source, source_type, origin, created_at, updated_at, last_active_at, agent_card, created_by, state)
+                VALUES (:id, :source, :source_type, :origin, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :state)
                 """
             ),
             {
                 "id": provider_id,
-                "type": "unmanaged",
                 "source": f"test://provider{i}",
+                "source_type": "api",
                 "origin": "test",
-                "version_info": "{}",
-                "timeout": 3600,
                 "created_at": utc_now(),
                 "updated_at": utc_now(),
                 "last_active_at": utc_now(),
                 "agent_card": "{}",
                 "created_by": normal_user,
-                "unmanaged_state": None,
+                "state": None,
             },
         )
 
@@ -436,23 +432,21 @@ async def test_variable_isolation_between_entity_types(
     await db_transaction.execute(
         text(
             """
-            INSERT INTO providers (id, type, source, origin, version_info, auto_stop_timeout_sec, created_at, updated_at, last_active_at, agent_card, created_by, unmanaged_state)
-            VALUES (:id, :type, :source, :origin, :version_info, :timeout, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :unmanaged_state)
+            INSERT INTO providers (id, source, source_type, origin, created_at, updated_at, last_active_at, agent_card, created_by, state)
+            VALUES (:id, :source, :source_type, :origin, :created_at, :updated_at, :last_active_at, :agent_card, :created_by, :state)
             """
         ),
         {
             "id": entity_id,
-            "type": "unmanaged",
             "source": "test://provider",
+            "source_type": "api",
             "origin": "test",
-            "version_info": "{}",
-            "timeout": 3600,
             "created_at": utc_now(),
             "updated_at": utc_now(),
             "last_active_at": utc_now(),
             "agent_card": "{}",
             "created_by": normal_user,
-            "unmanaged_state": None,
+            "state": None,
         },
     )
 

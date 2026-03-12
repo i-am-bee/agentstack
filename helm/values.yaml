@@ -90,18 +90,6 @@ contextTokenPermissions:
     context_data: ["*"]
 
 
-# -------- AGENTS ----------
-providers: []
-# Example:
-# - location: ghcr.io/i-am-bee/agentstack/agent-1-example:0.1.0
-#   auto_stop_timeout_sec: 0 # disable agent downscaling
-#   variables:
-#     # Variables should be strings (or they will be converted)
-#     MY_API_KEY: "sk-..."
-#     MY_CONFIG_VAR: "42"
-# - location: ghcr.io/i-am-bee/agentstack/agent-2-example:0.1.0
-#   auto_stop_timeout_sec: 600 # downscale after 10 minutes
-
 defaultLLMModel: ""
 defaultEmbeddingModel: ""
 modelProviders: []
@@ -111,19 +99,12 @@ modelProviders: []
 #   base_url: "https://api.openai.com/v1"
 #   api_key: "sk-..."
 
-# DEPRECATED: Unmanaged providers
-unmanagedProviders: [] # DEPRECATED: use providers instead
-variables: {} # DEPRECATED: use server API to manage variables instead
-
-disableProviderDownscaling: false
-
-# External registries in the format: [name: githubURL]
-# for example
-# github: "https://github.com/i-am-bee/agentstack@v0.2.14#path=agent-registry.yaml"
-externalRegistries: {}
-
-# Cron schedule for syncing external registries
-agentRegistrySyncPeriodCron: "*/30 * * * * *"
+# Kagenti integration - sync agents from kagenti API as providers
+kagenti:
+  enabled: true
+  apiUrl: "http://kagenti-backend.kagenti-system.svc.cluster.local:8000"
+  namespaces:
+    - team1
 
 # ------- SECURITY ---------
 
@@ -142,9 +123,12 @@ auth:
   nextauthSecret: "" # If empty, a random string will be generated
 
   # These are important for audience validation, make sure to change them to your public URLs
-  nextauthUrl: "http://localhost:8334"
+  nextauthUrl: "http://agentstack.localtest.me:8080"
   nextauthDevUrl: ""
-  apiUrl: "http://localhost:8333"
+  apiUrl: "http://agentstack-api.localtest.me:8080"
+
+  # Set to false to skip the Keycloak provisioning job (e.g. when using a non-Keycloak OIDC provider)
+  provisionKeycloak: true
 
 # In agentstack-server this is used to determine the request origin and dynamically create agent card.
 # For example https://agentstack.example.com/api/v1/providers/{provider_id} will return an agent cart with URL for
@@ -247,6 +231,7 @@ keycloak:
 ##
 externalOidcProvider:
   issuerUrl: ""
+  publicIssuerUrl: "" # If empty, defaults to issuerUrl. Set when internal and public URLs differ (e.g., external Keycloak).
   name: "OIDC"
   id: "oidc"
   rolesPath: "realm_access.roles" # JSON path to roles in JWT claims (can be an array or a semicolon separated string)
@@ -293,28 +278,6 @@ github:
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 
-providerBuilds:
-  enabled: false
-  buildBackend: "kaniko" # Options: "buildkit" or "kaniko"
-  buildRegistry:
-    registryPrefix: "agentstack-registry-svc.default:5001" # This must include a dot
-    imageFormat: "{registry_prefix}/{org}/{repo}/{path}{dockerfile_path}:{commit_hash}"
-    secretName: "agentstack-registry-secret"
-    insecure: true
-  kaniko:
-    useSecurityContextCapabilities: false
-  externalClusterExecutor:
-    serviceAccountName: ""
-    namespace: "" # Kubernetes namespace for provider builds (defaults to current namespace if empty)
-    kubeconfig: "" # Kubeconfig YAML content for external cluster (optional)
-    # Example:
-    # kubeconfig: |
-    #   apiVersion: v1
-    #   kind: Config
-    #   clusters:
-    #   - cluster:
-    #       server: https://kubernetes.example.com
-    #   ...
 
 # -------- SERVER ----------
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
@@ -498,96 +461,9 @@ ui:
   livenessProbe: {}
   readinessProbe: {}
 
-# --------- AGENT ----------
-agent:
-  podAnnotations: {}
-  deploymentStrategy: RollingUpdate
-  deploymentAnnotations: {}
-  imagePullPolicy: IfNotPresent
-  podLabels: {}
-  resources: {}
-  securityContext: {}
-  podSecurityContext: {}
-  service:
-    type: ClusterIP
-    port: 8000
-  startupProbe:
-    httpGet:
-      path: /.well-known/agent-card.json
-      port: 8000
-    initialDelaySeconds: 1
-    periodSeconds: 3
-    timeoutSeconds: 2
-    failureThreshold: 20
-  livenessProbe:
-    httpGet:
-      path: /.well-known/agent-card.json
-      port: 8000
-    periodSeconds: 10
-    timeoutSeconds: 2
-    failureThreshold: 2
-  volumes: []
-  volumeMounts: []
-  nodeSelector: {}
-  tolerations: []
-  affinity: {}
-
 # ----- INFRASTRUCTURE ------
 
-# INSECURE: Only use with local deployments
-localDockerRegistry:
-  enabled: false
-  service:
-    type: NodePort
-    port: 5001
-    nodePort: 30501
 
-phoenix:
-  # **Important License Notice**: Phoenix is disabled by default in Agent Stack. When you enable Phoenix,
-  # be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2), which has specific terms regarding
-  # commercial use and distribution.By enabling Phoenix, you acknowledge that you are responsible for ensuring
-  # compliance with the ELv2 license terms for your specific use case. Please review the
-  # [Phoenix license](https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling this feature in
-  # production environments.
-  enabled: false
-  fullnameOverride: "phoenix"
-  ingress:
-    enabled: false
-  image:
-    registry: "ghcr.io"
-    repository: "i-am-bee/arizephoenix/phoenix"
-  securityContext:
-    container:
-      enabled: true
-      readOnlyRootFilesystem: true
-  server:
-    workingDir: /tmp/working_dir
-    grpcPort: 8335
-  database:
-    url: "sqlite:////home/phoenix/phoenix.db"
-    defaultRetentionPolicyDays: 7
-  persistence:
-    enabled: true
-    size: 8Gi
-  postgresql:
-    enabled: false
-  auth:
-    enableAuth: false
-
-externalPhoenix:
-  url: ""
-  apiKey: ""
-
-collector:
-  image: ghcr.io/i-am-bee/otel/opentelemetry-collector-contrib:0.122.1@sha256:0076e6c250bef16968e29e8f94177b87b5a851c79ce14b270e657f5f655b9e04
-  livenessProbe: {}
-  readinessProbe: {}
-  resources: {}
-  exporters: {}
-  processors: {}
-  pipelines: {}
-  service:
-    type: ClusterIP
 
 ## PostgreSQL chart configuration
 ## ref: https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
@@ -619,7 +495,7 @@ postgresql:
     # TODO: bug - broken update password script: https://github.com/bitnami/charts/pull/34527
     usePasswordFiles: false
   passwordUpdateJob:
-    enabled: true
+    enabled: false
   architecture: standalone
   primary:
     ## PostgreSQL Primary resource requests and limits

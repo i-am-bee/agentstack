@@ -21,7 +21,7 @@ from pydantic_core.core_schema import ValidationInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from agentstack_server.domain.models.registry import ModelProviderRegistryLocation, RegistryLocation
+from agentstack_server.domain.models.registry import ModelProviderRegistryLocation
 
 logger = logging.getLogger(__name__)
 
@@ -84,9 +84,19 @@ class ModelProviderConfiguration(BaseModel):
     default_embedding_model: str | None = None
 
 
-class AgentRegistryConfiguration(BaseModel):
-    locations: dict[str, RegistryLocation] = Field(default_factory=dict)
-    sync_period_cron: str = Field(default="*/5 * * * *")  # every 10 minutes
+class KagentiConfiguration(BaseModel):
+    enabled: bool = True
+    api_url: str = "http://kagenti-api.localtest.me:8080"
+    sync_period_cron: str = "* * * * * */5"  # every 5 seconds
+    # Kubernetes namespaces to scan for kagenti agents.
+    # The kagenti API requires an explicit namespace per request (no wildcard).
+    namespaces: list[str] = ["team1"]
+    # OAuth2 client credentials for authenticating to kagenti API.
+    # Defaults to reusing the agentstack-server OIDC client (same realm).
+    # The agentstack-server service account needs kagenti-viewer role assigned in Keycloak.
+    auth_token_url: str = "http://keycloak-service.keycloak:8080/realms/agentstack/protocol/openid-connect/token"
+    client_id: str = "agentstack-server"
+    client_secret: Secret[str] = Secret("agentstack-server-secret")
 
 
 class OidcProvider(BaseModel):
@@ -108,8 +118,8 @@ class OidcConfiguration(BaseModel):
     # Flattened configuration allows setting a single provider via environment variables
     # e.g., AGENTSTACK__AUTH__OIDC__NAME="Keycloak"
     name: str = "Keycloak"
-    issuer: AnyUrl = HttpUrl("http://keycloak:8336/realms/agentstack")
-    external_issuer: AnyUrl = HttpUrl("http://localhost:8336/realms/agentstack")
+    issuer: AnyUrl = HttpUrl("http://keycloak-service.keycloak:8080/realms/agentstack")
+    external_issuer: AnyUrl = HttpUrl("http://keycloak.localtest.me:8080/realms/agentstack")
     client_id: str = "agentstack-server"
     client_secret: Secret[str] = Secret("agentstack-server-secret")
     insecure_transport: bool = False
@@ -240,7 +250,7 @@ class VectorStoresConfiguration(BaseModel):
 
 
 class TelemetryConfiguration(BaseModel):
-    collector_url: AnyUrl = AnyUrl("http://otel-collector-svc:4318")
+    collector_url: AnyUrl = AnyUrl("http://otel-collector.kagenti-system:4318")
 
     phoenix_url: AnyUrl | None = None
     phoenix_api_key: Secret[str] | None = None
@@ -274,8 +284,6 @@ class DockerConfigJson(BaseModel):
 
 
 class ManagedProviderConfiguration(BaseModel):
-    disable_downscaling: bool = False
-    manifest_template_dir: Path | None = None
     self_registration_use_local_network: bool = Field(
         default=False,
         description="Which network to use for self-registered providers - should be False when running in cluster",
@@ -326,16 +334,6 @@ class ContextConfiguration(BaseModel):
 class A2AProxyConfiguration(BaseModel):
     # Expires a2a_request_tasks and a2a_request_contexts (WARNING: has security implications!)
     requests_expire_after_days: int = 14
-
-
-class ProviderBuildConfiguration(BaseModel):
-    enabled: bool = True
-    oci_build_registry_prefix: str | None = None
-    image_format: str = "{registry_prefix}/{org}/{repo}/{path}{dockerfile_path}:{commit_hash}"
-    job_timeout_sec: int = int(timedelta(minutes=20).total_seconds())
-    manifest_template_dir: Path | None = None
-    k8s_namespace: str | None = None
-    k8s_kubeconfig: Path | None = None
 
 
 class GenerateConversationTitleConfiguration(BaseModel):
@@ -470,8 +468,7 @@ class Configuration(BaseSettings):
     generate_conversation_title: GenerateConversationTitleConfiguration = Field(
         default_factory=GenerateConversationTitleConfiguration
     )
-    provider_build: ProviderBuildConfiguration = Field(default_factory=ProviderBuildConfiguration)
-    agent_registry: AgentRegistryConfiguration = Field(default_factory=AgentRegistryConfiguration)
+    kagenti: KagentiConfiguration = Field(default_factory=KagentiConfiguration)
     model_provider_registry: ModelProviderRegistryConfiguration = Field(
         default_factory=ModelProviderRegistryConfiguration
     )
@@ -527,8 +524,6 @@ class Configuration(BaseSettings):
                         self.oci_registry[alias].insecure = conf.insecure
             except ValueError as e:
                 logger.error(f"Failed to parse .dockerconfigjson: {e}. Some agent images might not work correctly.")
-        if not self.provider_build.oci_build_registry_prefix and len(self.oci_registry):
-            self.provider_build.oci_build_registry_prefix = next(iter(self.oci_registry.keys()))
         return self
 
     @model_validator(mode="after")
@@ -540,14 +535,6 @@ class Configuration(BaseSettings):
             logger.error(f"Failed to parse .githubconfigjson: {e}. GitHub access might not work correctly.")
         return self
 
-    @model_validator(mode="after")
-    def _set_default_provider_build_values(self):
-        self.provider_build.k8s_namespace = self.provider_build.k8s_namespace or self.k8s_namespace
-        self.provider_build.k8s_kubeconfig = self.provider_build.k8s_kubeconfig or self.k8s_kubeconfig
-        self.provider_build.manifest_template_dir = (
-            self.provider_build.manifest_template_dir or self.provider.manifest_template_dir
-        )
-        return self
 
 
 @cache

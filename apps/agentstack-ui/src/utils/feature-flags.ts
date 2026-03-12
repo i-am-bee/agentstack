@@ -8,7 +8,6 @@ import z from 'zod';
 export const featureFlagsSchema = z.strictObject({
   Connectors: z.boolean().optional(),
   LocalSetup: z.boolean().optional(),
-  ProviderBuilds: z.boolean().optional(),
   Providers: z.boolean().optional(),
   Variables: z.boolean().optional(),
 });
@@ -19,7 +18,6 @@ export type FeatureName = keyof FeatureFlags;
 export const featureFlagsDefaults: Required<FeatureFlags> = {
   Connectors: false,
   LocalSetup: false,
-  ProviderBuilds: false,
   Providers: false,
   Variables: false,
 };

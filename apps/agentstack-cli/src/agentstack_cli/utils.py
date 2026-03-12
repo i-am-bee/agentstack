@@ -53,7 +53,6 @@ __all__ = [
     "merge",
     "parse_env_var",
     "print_httpx_response_error_details",
-    "print_log",
     "prompt_user",
     "remove_nullable",
     "run_command",
@@ -302,28 +301,6 @@ def verbosity(verbose: bool, show_success_status: bool = True):
         IN_VERBOSITY_CONTEXT.set(False)
         SHOW_SUCCESS_STATUS.reset(token_command_status)
 
-
-def print_log(line, ansi_mode=False, out_console: Console | None = None):
-    if "error" in line:
-
-        class CustomError(Exception): ...
-
-        CustomError.__name__ = line["error"]["type"]
-
-        raise CustomError(line["error"]["detail"])
-
-    def decode(text: str):
-        return Text.from_ansi(text) if ansi_mode else text
-
-    match line:
-        case {"stream": "stderr"}:
-            (out_console or err_console).print(decode(line["message"]))
-        case {"stream": "stdout"}:
-            (out_console or console).print(decode(line["message"]))
-        case {"event": "[DONE]"}:
-            return
-        case _:
-            (out_console or console).print(line)
 
 
 # ! This pattern is taken from agentstack_server.utils.github.GithubUrl, make sure to keep it in sync

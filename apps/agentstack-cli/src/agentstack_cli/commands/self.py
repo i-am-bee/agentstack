@@ -160,7 +160,7 @@ async def install(
         ):
             import webbrowser
 
-            webbrowser.open("http://localhost:8334")
+            webbrowser.open("http://agentstack.localtest.me:8080")
 
         console.print()
         console.success("Installation complete!")

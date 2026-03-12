@@ -21,16 +21,12 @@ from agentstack_server.domain.repositories.file import IObjectStorageRepository,
 from agentstack_server.domain.repositories.openai_proxy import IOpenAIProxy
 from agentstack_server.infrastructure.cache.memory_cache import MemoryCacheFactory
 from agentstack_server.infrastructure.cache.redis_cache import RedisCacheFactory
-from agentstack_server.infrastructure.kubernetes.provider_build_manager import KubernetesProviderBuildManager
-from agentstack_server.infrastructure.kubernetes.provider_deployment_manager import KubernetesProviderDeploymentManager
 from agentstack_server.infrastructure.object_storage.repository import S3ObjectStorageRepository
 from agentstack_server.infrastructure.openai_proxy.openai_proxy import CustomOpenAIProxy
 from agentstack_server.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWorkFactory
 from agentstack_server.infrastructure.text_extraction.docling import DoclingTextExtractionBackend
 from agentstack_server.jobs.procrastinate import create_app
-from agentstack_server.service_layer.build_manager import IProviderBuildManager
 from agentstack_server.service_layer.cache import ICacheFactory
-from agentstack_server.service_layer.deployment_manager import IProviderDeploymentManager
 from agentstack_server.service_layer.services.managed_mcp_service import ManagedMcpService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.utils.utils import async_to_sync_isolated
@@ -95,28 +91,10 @@ async def bootstrap_dependencies(dependency_overrides: Container | None = None):
         di[Configuration].k8s_kubeconfig,
     )
     _set_di(
-        IProviderDeploymentManager,
-        KubernetesProviderDeploymentManager(
-            api_factory=kr8s_api_factory,
-            manifest_template_dir=di[Configuration].provider.manifest_template_dir,
-        ),
-    )
-    _set_di(
         ManagedMcpService,
         ManagedMcpService(
             configuration=di[Configuration],
             api_factory=kr8s_api_factory,
-        ),
-    )
-    _set_di(
-        IProviderBuildManager,
-        KubernetesProviderBuildManager(
-            configuration=di[Configuration],
-            api_factory=await setup_kubernetes_client(
-                di[Configuration].provider_build.k8s_namespace,
-                di[Configuration].provider_build.k8s_kubeconfig,
-            ),
-            manifest_template_dir=di[Configuration].provider.manifest_template_dir,
         ),
     )
     _set_di(

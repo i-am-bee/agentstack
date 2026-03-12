@@ -71,45 +71,6 @@ checksum = "sha256:fe4f4a54daa4a750ffa7d1b0da471d077ac24f09d04d7c1f307e7b7950969
 url = "https://github.com/google/addlicense/releases/download/v1.2.0/addlicense_v1.2.0_Windows_x86_64.zip"
 url_api = "https://api.github.com/repos/google/addlicense/releases/assets/282300418"
 
-[[tools."github:telepresenceio/telepresence"]]
-version = "2.25.2"
-backend = "github:telepresenceio/telepresence"
-
-[tools."github:telepresenceio/telepresence"."platforms.linux-arm64"]
-checksum = "sha256:d8f4b3cf7683d5794e9b02b4bfd30583e15c8d46f45d5c3309ab6b60f8e387b2"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-linux-arm64"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205819"
-
-[tools."github:telepresenceio/telepresence"."platforms.linux-arm64-musl"]
-checksum = "sha256:d8f4b3cf7683d5794e9b02b4bfd30583e15c8d46f45d5c3309ab6b60f8e387b2"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-linux-arm64"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205819"
-
-[tools."github:telepresenceio/telepresence"."platforms.linux-x64"]
-checksum = "sha256:1ce2f30c203beb5bb92035dd8e29212080101bfb8956f4856dd52745aa7c0130"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-linux-amd64"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205838"
-
-[tools."github:telepresenceio/telepresence"."platforms.linux-x64-musl"]
-checksum = "sha256:1ce2f30c203beb5bb92035dd8e29212080101bfb8956f4856dd52745aa7c0130"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-linux-amd64"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205838"
-
-[tools."github:telepresenceio/telepresence"."platforms.macos-arm64"]
-checksum = "sha256:79aa444eb9ef05ff64c0e6c04e97bef1460f3ae4800c191798996bdad71c8ec9"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-darwin-arm64"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205851"
-
-[tools."github:telepresenceio/telepresence"."platforms.macos-x64"]
-checksum = "sha256:131d28a44b3c4fb2a2b04339ac7400314da530e5663e7f0e841d12e76f9ba616"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-darwin-amd64"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205861"
-
-[tools."github:telepresenceio/telepresence"."platforms.windows-x64"]
-checksum = "sha256:66d9987fd310492d1fd5451ef945d8f080fe1ec25a049b5e1584f26e45db0d31"
-url = "https://github.com/telepresenceio/telepresence/releases/download/v2.25.2/telepresence-windows-amd64.zip"
-url_api = "https://api.github.com/repos/telepresenceio/telepresence/releases/assets/333205798"
-
 [[tools.gum]]
 version = "0.17.0"
 backend = "aqua:charmbracelet/gum"
@@ -277,6 +238,7 @@ url = "https://github.com/lima-vm/lima/releases/download/v2.0.3/lima-2.0.3-Linux
 [tools.lima."platforms.macos-arm64"]
 checksum = "sha256:22aee997df59e4fd448041b2d1214e48bd8eaf705d2d48a4307d65c1b179dc97"
 url = "https://github.com/lima-vm/lima/releases/download/v2.0.3/lima-2.0.3-Darwin-arm64.tar.gz"
+provenance = "github-attestations"
 
 [tools.lima."platforms.macos-x64"]
 checksum = "sha256:0806bcb83a08411e9d878b43b2c4203f1556fe14f9f8ba1e5f0d5d9a3c2c0bd8"
@@ -422,6 +384,38 @@ url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-linux-x64"
 checksum = "sha256:b64bd9e75d92934251bd0b890d3d4d1073e85d71bf39227ff6a6408d27c3106d"
 url = "https://github.com/pnpm/pnpm/releases/download/v10.15.1/pnpm-macos-arm64"
 
+[[tools.telepresence]]
+version = "2.27.1"
+backend = "aqua:telepresenceio/telepresence"
+
+[tools.telepresence."platforms.linux-arm64"]
+checksum = "sha256:2d02fc876dcebc09128762169ac924ab5a48bcd9dd51da3148cab6b8dbe19fe3"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-linux-arm64"
+
+[tools.telepresence."platforms.linux-arm64-musl"]
+checksum = "sha256:2d02fc876dcebc09128762169ac924ab5a48bcd9dd51da3148cab6b8dbe19fe3"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-linux-arm64"
+
+[tools.telepresence."platforms.linux-x64"]
+checksum = "sha256:80dc881cd9618f6916407785cb3e61afc3d88901239cf4377d200d175db052e3"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-linux-amd64"
+
+[tools.telepresence."platforms.linux-x64-musl"]
+checksum = "sha256:80dc881cd9618f6916407785cb3e61afc3d88901239cf4377d200d175db052e3"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-linux-amd64"
+
+[tools.telepresence."platforms.macos-arm64"]
+checksum = "sha256:99299c7335df403204d6944f6ae4fa9066945aa4e7a3882c07c4545e8cc8e71d"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-darwin-arm64"
+
+[tools.telepresence."platforms.macos-x64"]
+checksum = "sha256:6f85060fa7979ed354495981251325b90fd6579cf93868dc25d8afb522fcd511"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-darwin-amd64"
+
+[tools.telepresence."platforms.windows-x64"]
+checksum = "sha256:aa56500985d3ac77e0e782a3fb427d03eb191590b9f361c89d9d6015321eaf70"
+url = "https://github.com/telepresenceio/telepresence/releases/download/v2.27.1/telepresence-windows-amd64.zip"
+
 [[tools.uv]]
 version = "0.10.4"
 backend = "aqua:astral-sh/uv"
@@ -445,6 +439,7 @@ url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-x86_64-unknow
 [tools.uv."platforms.macos-arm64"]
 checksum = "sha256:a6852e4dc565c8fedcf5adcdf09fca7caf5347739bed512bd95b15dada36db51"
 url = "https://github.com/astral-sh/uv/releases/download/0.10.4/uv-aarch64-apple-darwin.tar.gz"
+provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64"]
 checksum = "sha256:df6dd1c3ebeab4369a098c516c15c233c62bf789a40a4864b30dad1d38d7604e"

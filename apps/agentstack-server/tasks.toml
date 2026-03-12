@@ -195,7 +195,6 @@ eval "cli_args=(${usage_cli_args})"
 export SKIP_PULL
 {{ mise_bin }} agentstack:start --vm-name="$VM_NAME" \
     --no-wait-for-platform \
-    --set externalRegistries=null \
     "${cli_args[@]}"
 {{ mise_bin }} run agentstack-server:dev:connect --vm-name="$VM_NAME"
 """
@@ -236,7 +235,7 @@ dir = "{{config_root}}/apps/agentstack-server"
 usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
 #!/bin/bash
-NAMESPACE=default
+NAMESPACE=agentstack
 VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
@@ -245,6 +244,10 @@ kubectl create namespace ambassador --dry-run=client -o yaml | kubectl apply -f 
 kubectl label namespace ambassador pod-security.kubernetes.io/enforce=privileged --overwrite
 kubectl label namespace ambassador pod-security.kubernetes.io/warn=privileged --overwrite
 kubectl label namespace ambassador pod-security.kubernetes.io/audit=privileged --overwrite
+# Grant privileged SCC to the deployment SA so Telepresence traffic-agent sidecar can be injected
+SA=$(kubectl get deploy agentstack-server -n "$NAMESPACE" -o jsonpath='{.spec.template.spec.serviceAccountName}')
+echo "Granting privileged SCC to SA: system:serviceaccount:${NAMESPACE}:${SA}"
+kubectl patch scc privileged --type=json -p "[{\"op\":\"add\",\"path\":\"/users/-\",\"value\":\"system:serviceaccount:${NAMESPACE}:${SA}\"}]" 2>&1 || echo "SCC patch skipped (may already exist)"
 
 # Create telepresence values file to handle MicroShift restricted SCC
 TP_VALUES=$(mktemp)
@@ -272,7 +275,7 @@ dir = "{{config_root}}/apps/agentstack-server"
 usage = 'flag "--vm-name <vm_name>" default="agentstack-local-dev"'
 run = """
 #!/bin/bash
-NAMESPACE=default
+NAMESPACE=agentstack
 VM_NAME="${usage_vm_name?}"
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
@@ -317,45 +320,34 @@ NO_CLEAN="${usage_no_clean:-false}"
 if [ "$NO_CLEAN" != "true" ]; then
     {{ mise_bin }} run agentstack:stop-all
     {{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME} || true
-    curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
+    curl http://agentstack-api.localtest.me:8080 >/dev/null 2>&1 && echo "Another instance at agentstack-api.localtest.me:8080 is already running" && exit 2
 fi
 
 CONFIG_FILE="/tmp/config_e2e_test_$(date +%s).yaml"
 
 echo '
-externalRegistries: null
-ui:
-  enabled: false
-auth:
-  enabled: true
-docling:
-  enabled: true
-connector:
-  presets:
-    - url: mcp+stdio://test
-      stdio:
-        image: mcp/aws-documentation
-      metadata:
-        name: Test MCP Server
-keycloak:
-  auth:
-    seedAgentstackUsers:
-      - username: admin
-        password: admin
-        firstName: Admin
-        lastName: User
-        email: admin@beeai.dev
-        roles: ["agentstack-admin"]
+agentstack:
+  ui:
+    enabled: false
+  docling:
+    enabled: true
+  connector:
+    presets:
+      - url: mcp+stdio://test
+        stdio:
+          image: mcp/aws-documentation
+        metadata:
+          name: Test MCP Server
 ' > "$CONFIG_FILE"
 
-{{ mise_bin }} run agentstack:start -v --vm-name=${VM_NAME} --skip-login -f "$CONFIG_FILE" --set ui.enabled=false
+{{ mise_bin }} run agentstack:start -v --vm-name=${VM_NAME} --skip-login -f "$CONFIG_FILE" --set agentstack:ui.enabled=false
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 
 if [ -z "${TEST_AGENT_IMAGE:-}" ]; then
     echo "Building test agent..."
-    TEST_AGENT_IMAGE=agentstack-registry-svc.default:5001/chat-test:latest
-    {{ mise_bin }} run agentstack-cli:run -- client-side-build -v "${PWD}/../.." --vm-name=${VM_NAME} --dockerfile "${PWD}/../../agents/chat/Dockerfile" --tag ${TEST_AGENT_IMAGE}
+    TEST_AGENT_IMAGE=registry.cr-system.svc.cluster.local:5000/chat-test:latest
+    {{ mise_bin }} run agentstack-cli:run -- build -v "${PWD}/../.." --dockerfile "${PWD}/../../agents/chat/Dockerfile" --tag ${TEST_AGENT_IMAGE} --vm-name=${VM_NAME}
 fi
 export TEST_AGENT_IMAGE
 
@@ -408,38 +400,27 @@ NO_CLEAN="${usage_no_clean:-false}"
 if [ "$NO_CLEAN" != "true" ]; then
     {{ mise_bin }} run agentstack:stop-all
     {{ mise_bin }} run agentstack:delete --vm-name=${VM_NAME}
-    curl http://localhost:8333 >/dev/null 2>&1 && echo "Another instance at localhost:8333 is already running" && exit 2
+    curl http://agentstack-api.localtest.me:8080 >/dev/null 2>&1 && echo "Another instance at agentstack-api.localtest.me:8080 is already running" && exit 2
 fi
 
 CONFIG_FILE="/tmp/config_e2e_test_$(date +%s).yaml"
 
 echo '
-externalRegistries: null
-ui:
-  enabled: false
-auth:
-  enabled: true
-docling:
-  enabled: true
-connector:
-  presets:
-    - url: mcp+stdio://test
-      stdio:
-        image: mcp/aws-documentation
-      metadata:
-        name: Test MCP Server
-keycloak:
-  auth:
-    seedAgentstackUsers:
-      - username: admin
-        password: admin
-        firstName: Admin
-        lastName: User
-        email: admin@beeai.dev
-        roles: ["agentstack-admin"]
+agentstack:
+  ui:
+    enabled: false
+  docling:
+    enabled: true
+  connector:
+    presets:
+      - url: mcp+stdio://test
+        stdio:
+          image: mcp/aws-documentation
+        metadata:
+          name: Test MCP Server
 ' > "$CONFIG_FILE"
 
-{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} --skip-login -f "$CONFIG_FILE" --set ui.enabled=false
+{{ mise_bin }} run agentstack:start --vm-name=${VM_NAME} --skip-login -f "$CONFIG_FILE" --set agentstack:ui.enabled=false
 
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
@@ -489,9 +470,8 @@ VM_NAME=integration-test-run
 
 {{ mise_bin }} run agentstack:start \
     --vm-name="$VM_NAME" \
-    --set externalRegistries=null \
-    --set redis.enabled=true \
-    --set ui.enabled=false
+    --set agentstack:redis.enabled=true \
+    --set agentstack:ui.enabled=false
 
 eval "$( {{ mise_bin }} run agentstack:shell --vm-name="$VM_NAME" )"
 

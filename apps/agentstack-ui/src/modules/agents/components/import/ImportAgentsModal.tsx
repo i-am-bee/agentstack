@@ -3,31 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  Button,
-  InlineLoading,
-  InlineNotification,
-  ModalBody,
-  ModalFooter,
-  ModalHeader,
-  RadioButton,
-  RadioButtonGroup,
-  Select,
-  SelectItem,
-  TextInput,
-} from '@carbon/react';
+import { Button, InlineLoading, InlineNotification, ModalBody, ModalFooter, ModalHeader, TextInput } from '@carbon/react';
 import clsx from 'clsx';
-import { useEffect, useId } from 'react';
-import { useController, useForm } from 'react-hook-form';
+import { useId } from 'react';
+import { useForm } from 'react-hook-form';
 
-import { CodeSnippet } from '#components/CodeSnippet/CodeSnippet.tsx';
 import { Modal } from '#components/Modal/Modal.tsx';
 import { useApp } from '#contexts/App/index.ts';
 import type { ModalProps } from '#contexts/Modal/modal-context.ts';
 import { useImportAgent } from '#modules/agents/hooks/useImportAgent.ts';
 import type { ImportAgentFormValues } from '#modules/agents/types.ts';
 import { ProviderSource } from '#modules/providers/types.ts';
-import { isValidUrl } from '#utils/url.ts';
 
 import classes from './ImportAgentsModal.module.scss';
 
@@ -35,39 +21,25 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
   const id = useId();
 
   const {
-    config: { appName, featureFlags },
+    config: { appName },
   } = useApp();
 
-  const { agent, logs, actionRequired, providersToUpdate, isPending, error, importAgent } = useImportAgent();
+  const { agent, isPending, error, importAgent } = useImportAgent();
 
   const {
     register,
     handleSubmit,
-    resetField,
     formState: { isValid, errors },
-    control,
   } = useForm<ImportAgentFormValues>({
     mode: 'onTouched',
     defaultValues: {
-      source: featureFlags.ProviderBuilds ? ProviderSource.GitHub : ProviderSource.Docker,
+      source: ProviderSource.Docker,
     },
   });
 
-  const { field: sourceField } = useController<ImportAgentFormValues, 'source'>({ name: 'source', control });
-  const { field: actionField } = useController<ImportAgentFormValues, 'action'>({ name: 'action', control });
-
-  const showLogs = isPending && logs.length > 0;
-
   const onSubmit = async (values: ImportAgentFormValues) => {
     await importAgent(values);
-
-    resetField('action');
-    resetField('providerId');
   };
-
-  useEffect(() => {
-    resetField('location');
-  }, [sourceField.value, resetField]);
 
   return (
     <Modal {...modalProps} className={classes.root}>
@@ -76,66 +48,16 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
       </ModalHeader>
 
       <ModalBody>
-        <form onSubmit={handleSubmit(onSubmit)} className={clsx(classes.form, { [classes.showLogs]: showLogs })}>
+        <form onSubmit={handleSubmit(onSubmit)} className={classes.form}>
           {agent ? (
             <p>
               <strong>{agent.name}</strong> agent added successfully.
             </p>
           ) : isPending ? (
-            <>
-              <InlineLoading className={classes.loading} description="Adding an agent&hellip;" />
-
-              {showLogs && (
-                <CodeSnippet className={classes.logs} forceExpand withBorder autoScroll>
-                  {logs.join('\n')}
-                </CodeSnippet>
-              )}
-            </>
-          ) : actionRequired ? (
-            <div className={classes.stack}>
-              <h3 className={classes.subheading}>Existing agents detected. What would you like to do?</h3>
-
-              <RadioButtonGroup
-                name={actionField.name}
-                legendText="Action"
-                valueSelected={actionField.value}
-                onChange={actionField.onChange}
-                disabled={isPending}
-                orientation="vertical"
-              >
-                <RadioButton labelText="Add new agent" value="add_provider" />
-                <RadioButton labelText="Update existing agent" value="update_provider" />
-              </RadioButtonGroup>
-
-              {actionField.value === 'update_provider' && providersToUpdate && (
-                <Select
-                  id={`${id}:provider`}
-                  size="lg"
-                  labelText="Select agent to update"
-                  {...register('providerId', { required: true, disabled: isPending })}
-                >
-                  {providersToUpdate.map(({ id, source }) => (
-                    <SelectItem key={id} text={source} value={id} />
-                  ))}
-                </Select>
-              )}
-            </div>
+            <InlineLoading className={classes.loading} description="Adding an agent&hellip;" />
           ) : (
             <div className={classes.stack}>
               <p>Once your agent is published, it will be visible to everyone with access to {appName}.</p>
-
-              <RadioButtonGroup
-                name={sourceField.name}
-                valueSelected={sourceField.value}
-                onChange={sourceField.onChange}
-                disabled={isPending}
-              >
-                {featureFlags.ProviderBuilds && (
-                  <RadioButton labelText="Github respository URL" value={ProviderSource.GitHub} />
-                )}
-
-                <RadioButton labelText="Container image URL" value={ProviderSource.Docker} />
-              </RadioButtonGroup>
 
               <TextInput
                 id={`${id}:location`}
@@ -143,26 +65,12 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
                 hideLabel
                 invalid={Boolean(errors.location)}
                 invalidText={errors.location?.message}
-                {...(sourceField.value === ProviderSource.GitHub
-                  ? {
-                      labelText: 'GitHub repository URL',
-                      placeholder: 'Enter your agent’s GitHub repository URL',
-                    }
-                  : {
-                      labelText: 'Container image URL',
-                      placeholder: 'Enter your agent’s container image URL',
-                    })}
+                labelText="Container image URL"
+                placeholder="Enter your agent's container image URL"
                 {...register('location', {
-                  required: 'Enter your agent’s location.',
+                  required: "Enter your agent's location.",
                   disabled: isPending,
                   setValueAs: (value: string) => value.trim(),
-                  validate: (value: string) => {
-                    if (sourceField.value === ProviderSource.GitHub) {
-                      return isValidUrl(value) || 'Enter a valid GitHub repository URL.';
-                    }
-
-                    return true;
-                  },
                 })}
               />
             </div>
@@ -176,12 +84,7 @@ export function ImportAgentsModal({ onRequestClose, ...modalProps }: ModalProps)
 
       {!agent && (
         <ModalFooter>
-          <Button
-            type="submit"
-            size="sm"
-            onClick={handleSubmit(onSubmit)}
-            disabled={isPending || !isValid || (actionRequired && !actionField.value)}
-          >
+          <Button type="submit" size="sm" onClick={handleSubmit(onSubmit)} disabled={isPending || !isValid}>
             {isPending ? <InlineLoading description="Adding&hellip;" /> : 'Add new agent'}
           </Button>
         </ModalFooter>

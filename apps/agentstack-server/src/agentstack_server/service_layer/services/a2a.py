@@ -53,14 +53,10 @@ from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.provider import (
     NetworkProviderLocation,
     Provider,
-    ProviderDeploymentState,
-    UnmanagedState,
+    ProviderState,
 )
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError, ForbiddenUpdateError, InvalidProviderCallError
-from agentstack_server.service_layer.deployment_manager import (
-    IProviderDeploymentManager,
-)
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.telemetry import INSTRUMENTATION_NAME
@@ -262,7 +258,7 @@ class ProxyRequestHandler(RequestHandler):
     ) -> Task | Message:
         # we set task_id and context_id if not configured
         with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send") as span:
-            trace_id = hex(span.get_span_context().trace_id)[2:]
+            trace_id = f"{span.get_span_context().trace_id:032x}"
             params.message.context_id = params.message.context_id or str(uuid.uuid4())
             await self._check_and_record_request(params.message.task_id, params.message.context_id, trace_id=trace_id)
 
@@ -282,7 +278,7 @@ class ProxyRequestHandler(RequestHandler):
     ) -> AsyncGenerator[Event]:
         with trace.get_tracer(INSTRUMENTATION_NAME).start_as_current_span("on_message_send_stream") as span:
             # we set task_id and context_id if not configured
-            trace_id = hex(span.get_span_context().trace_id)[2:]
+            trace_id = f"{span.get_span_context().trace_id:032x}"
             params.message.context_id = params.message.context_id or str(uuid.uuid4())
             await self._check_and_record_request(params.message.task_id, params.message.context_id, trace_id=trace_id)
 
@@ -359,16 +355,12 @@ class ProxyRequestHandler(RequestHandler):
 
 @inject
 class A2AProxyService:
-    STARTUP_TIMEOUT = timedelta(minutes=5)
-
     def __init__(
         self,
-        provider_deployment_manager: IProviderDeploymentManager,
         uow: IUnitOfWorkFactory,
         user_service: UserService,
         configuration: Configuration,
     ):
-        self._deploy_manager = provider_deployment_manager
         self._uow = uow
         self._user_service = user_service
         self._config = configuration
@@ -406,46 +398,12 @@ class A2AProxyService:
                 await uow.providers.update_last_accessed(provider_id=provider_id)
                 await uow.commit()
 
-            if not provider.managed:
-                if provider.unmanaged_state is UnmanagedState.OFFLINE:
-                    raise InvalidProviderCallError(
-                        f"Cannot send message to provider {provider_id}: provider is offline"
-                    )
+            if provider.state is ProviderState.OFFLINE:
+                raise InvalidProviderCallError(
+                    f"Cannot send message to provider {provider_id}: provider is offline"
+                )
 
-                assert isinstance(provider.source, NetworkProviderLocation)
-                return provider.source.a2a_url
-
-            provider_url = await self._deploy_manager.get_provider_url(provider_id=provider.id)
-            [state] = await self._deploy_manager.state(provider_ids=[provider.id])
-            should_wait = False
-            match state:
-                case ProviderDeploymentState.ERROR:
-                    raise InvalidProviderCallError(
-                        f"Cannot send message to provider {provider_id}: provider is in an error state"
-                    )
-                case (
-                    ProviderDeploymentState.MISSING
-                    | ProviderDeploymentState.RUNNING
-                    | ProviderDeploymentState.STARTING
-                    | ProviderDeploymentState.READY
-                ):
-                    async with self._uow() as uow:
-                        from agentstack_server.domain.repositories.env import (
-                            EnvStoreEntity,
-                        )
-
-                        env = await uow.env.get_all(
-                            parent_entity=EnvStoreEntity.PROVIDER,
-                            parent_entity_ids=[provider.id],
-                        )
-                    modified = await self._deploy_manager.create_or_replace(provider=provider, env=env[provider.id])
-                    should_wait = modified or state != ProviderDeploymentState.RUNNING
-                case _:
-                    raise ValueError(f"Unknown provider state: {state}")
-            if should_wait:
-                logger.info("Waiting for provider to start up...")
-                await self._deploy_manager.wait_for_startup(provider_id=provider.id, timeout=self.STARTUP_TIMEOUT)
-                logger.info("Provider is ready...")
-            return provider_url
+            assert isinstance(provider.source, NetworkProviderLocation)
+            return provider.source.a2a_url
         finally:
             unbind_contextvars("provider")

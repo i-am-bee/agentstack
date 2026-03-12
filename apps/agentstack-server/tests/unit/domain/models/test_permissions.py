@@ -61,7 +61,6 @@ pytestmark = pytest.mark.unit
                 embeddings={"*"},
                 a2a_proxy={"*"},
                 providers={"read", "write"},
-                provider_variables={"read", "write"},
                 contexts={"read", "write"},
             ),
             Permissions(
@@ -69,7 +68,6 @@ pytestmark = pytest.mark.unit
                 feedback={"write"},
                 vector_stores={"write"},
                 providers={"read"},
-                provider_variables={"write"},
                 contexts={"read"},
             ),
             True,
@@ -107,7 +105,6 @@ def test_admin_all_permissions_check():
         vector_stores={"read", "write"},
         feedback={"write"},
         providers={"read", "write"},
-        provider_variables={"read", "write"},
         contexts={"read", "write"},
         a2a_proxy={"*"},
     )
@@ -139,12 +136,11 @@ def test_admin_all_permissions_empty_required():
         (Permissions(llm={"*"}), Permissions(llm={"*"}, embeddings={"*"}), {"llm": {"*"}, "embeddings": {"*"}}),
         # Multiple permission types
         (
-            Permissions(files={"read"}, provider_variables={"read"}, contexts={"write"}),
-            Permissions(files={"write"}, provider_variables={"write"}, providers={"read"}),
+            Permissions(files={"read"}, contexts={"write"}),
+            Permissions(files={"write"}, providers={"read"}),
             {
                 "files": {"read", "write"},
                 "providers": {"read"},
-                "provider_variables": {"read", "write"},
                 "contexts": {"write"},
             },
         ),

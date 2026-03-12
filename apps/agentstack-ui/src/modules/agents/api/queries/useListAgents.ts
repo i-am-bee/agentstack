@@ -4,12 +4,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import {
-  type ListProvidersRequest,
-  type ListProvidersResponse,
-  ProviderStatus,
-  ProviderUnmanagedStatus,
-} from 'agentstack-sdk';
+import { type ListProvidersRequest, type ListProvidersResponse, ProviderState } from 'agentstack-sdk';
 
 import { buildAgent, isAgentUiSupported, sortAgentsByName, sortProvidersBy } from '#modules/agents/utils.ts';
 import { listProviders } from '#modules/providers/api/index.ts';
@@ -37,7 +32,7 @@ export function useListAgents({ includeUnsupportedUi, includeOffline, orderBy, i
 
       if (!includeOffline) {
         items = items.filter(
-          ({ state }) => state !== ProviderUnmanagedStatus.Offline && state !== ProviderStatus.Error,
+          ({ state }) => state !== ProviderState.Offline,
         );
       }
 

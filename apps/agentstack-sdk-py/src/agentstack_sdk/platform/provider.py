@@ -8,7 +8,6 @@ import builtins
 import typing
 import urllib.parse
 from contextlib import asynccontextmanager
-from datetime import timedelta
 from uuid import UUID
 
 import pydantic
@@ -16,41 +15,25 @@ from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
-from agentstack_sdk.platform.common import ResolvedDockerImageID, ResolvedGithubUrl
-from agentstack_sdk.util.utils import filter_dict, parse_stream
+from agentstack_sdk.util.utils import filter_dict
 
 
 class ProviderErrorMessage(pydantic.BaseModel):
     message: str
 
 
-class EnvVar(pydantic.BaseModel):
-    name: str
-    description: str | None = None
-    required: bool = False
-
-
-class VersionInfo(pydantic.BaseModel):
-    docker: ResolvedDockerImageID | None = None
-    github: ResolvedGithubUrl | None = None
-
-
 class Provider(pydantic.BaseModel):
     id: str
-    auto_stop_timeout: timedelta
     source: str
     origin: str
-    version_info: VersionInfo = pydantic.Field(default_factory=VersionInfo)
-    registry: str | None = None
+    source_type: typing.Literal["kagenti", "api"] = "api"
     created_at: pydantic.AwareDatetime
     updated_at: pydantic.AwareDatetime
     last_active_at: pydantic.AwareDatetime
     agent_card: AgentCard
-    state: typing.Literal["missing", "starting", "ready", "running", "error", "online", "offline"] = "missing"
-    managed: bool
+    state: typing.Literal["online", "offline"] = "online"
     last_error: ProviderErrorMessage | None = None
     created_by: UUID
-    missing_configuration: builtins.list[EnvVar] = pydantic.Field(default_factory=list)
 
     @staticmethod
     async def create(
@@ -58,12 +41,8 @@ class Provider(pydantic.BaseModel):
         location: str,
         agent_card: AgentCard | None = None,
         origin: str | None = None,
-        auto_stop_timeout: timedelta | None = None,
-        variables: dict[str, str] | None = None,
         client: PlatformClient | None = None,
     ) -> "Provider":
-        auto_stop_timeout_sec = auto_stop_timeout.total_seconds() if auto_stop_timeout is not None else None
-
         async with client or get_platform_client() as client:
             return pydantic.TypeAdapter(Provider).validate_python(
                 (
@@ -74,8 +53,6 @@ class Provider(pydantic.BaseModel):
                                 "location": location,
                                 "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
                                 "origin": origin,
-                                "variables": variables,
-                                "auto_stop_timeout_sec": auto_stop_timeout_sec,
                             }
                         ),
                     )
@@ -90,8 +67,6 @@ class Provider(pydantic.BaseModel):
         location: str | None = None,
         agent_card: AgentCard | None = None,
         origin: str | None = None,
-        auto_stop_timeout: timedelta | None = None,
-        variables: dict[str, str] | None = None,
         client: PlatformClient | None = None,
     ) -> "Provider":
         # `self` has a weird type so that you can call both `instance.patch()` to update an instance, or `Provider.patch("123", ...)` to update a provider
@@ -101,8 +76,6 @@ class Provider(pydantic.BaseModel):
             {
                 "location": location,
                 "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
-                "variables": variables,
-                "auto_stop_timeout_sec": None if auto_stop_timeout is None else auto_stop_timeout.total_seconds(),
                 "origin": origin,
             }
         )
@@ -167,42 +140,6 @@ class Provider(pydantic.BaseModel):
         provider_id = self if isinstance(self, str) else self.id
         async with client or get_platform_client() as client:
             _ = (await client.delete(f"/api/v1/providers/{provider_id}")).raise_for_status()
-
-    async def update_variables(
-        self: "Provider" | str,
-        *,
-        variables: dict[str, str | None] | dict[str, str],
-        client: PlatformClient | None = None,
-    ) -> None:
-        # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
-        provider_id = self if isinstance(self, str) else self.id
-        async with client or get_platform_client() as client:
-            _ = (
-                await client.put(f"/api/v1/providers/{provider_id}/variables", json={"variables": variables})
-            ).raise_for_status()
-
-    async def stream_logs(
-        self: "Provider" | str, *, client: PlatformClient | None = None
-    ) -> typing.AsyncIterator[dict[str, typing.Any]]:
-        # `self` has a weird type so that you can call both `instance.stream_logs()` or `ProviderBuild.stream_logs("123")`
-        provider_id = self if isinstance(self, str) else self.id
-        async with (
-            client or get_platform_client() as client,
-            client.stream(
-                "GET",
-                url=f"/api/v1/providers/{provider_id}/logs",
-                timeout=timedelta(hours=1).total_seconds(),
-            ) as response,
-        ):
-            async for line in parse_stream(response):
-                yield line
-
-    async def list_variables(self: "Provider" | str, *, client: PlatformClient | None = None) -> dict[str, str]:
-        # `self` has a weird type so that you can call both `instance.delete()` or `Provider.delete("123")`
-        provider_id = self if isinstance(self, str) else self.id
-        async with client or get_platform_client() as client:
-            result = await client.get(f"/api/v1/providers/{provider_id}/variables")
-            return result.raise_for_status().json()["variables"]
 
     @staticmethod
     async def list(

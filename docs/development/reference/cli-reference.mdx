@@ -34,8 +34,7 @@ $ agentstack [OPTIONS] COMMAND [ARGS]...
 * `agent`: Manage agents.
 * `connector`: Manage connectors to external services.
 * `platform`: Manage Agent Stack platform.
-* `client-side-build`: Build agent locally using Docker.
-* `build`: Build agent from a GitHub repository in...
+* `build`: Build an agent image locally and push to platform registry.
 * `server`: Manage Agent Stack servers and...
 * `self`: Manage Agent Stack installation.
 * `add`: Add a docker image or GitHub repository.
@@ -846,50 +845,25 @@ $ agentstack platform exec [OPTIONS] [COMMAND]...
 * `-v, --verbose`: Show verbose output
 * `--help`: Show this message and exit.
 
-## `agentstack client-side-build`
-
-Build agent locally using Docker. [Local only]
-
-**Usage**:
-
-```console
-$ agentstack client-side-build [OPTIONS] [CONTEXT]
-```
-
-**Arguments**:
-
-* `[CONTEXT]`: Docker context for the agent  [default: .]
-
-**Options**:
-
-* `--dockerfile TEXT`: Use custom dockerfile path
-* `--tag TEXT`: Docker tag for the agent
-* `--multi-platform / --no-multi-platform`: [default: no-multi-platform]
-* `--push / --no-push`: Push the image to the target registry.  [default: no-push]
-* `--import / --no-import`: Import the image into Agent Stack platform  [default: import]
-* `--extract-agent-card / --no-extract-agent-card`: Extract agent card from running container  [default: extract-agent-card]
-* `-v, --verbose`: Show verbose output
-* `--help`: Show this message and exit.
-
 ## `agentstack build`
 
-Build agent from a GitHub repository in the platform. [Admin only]
+Build an agent image locally and push it to the platform registry. [Local only]
 
 **Usage**:
 
 ```console
-$ agentstack build [OPTIONS] GITHUB_URL
+$ agentstack build [OPTIONS] [CONTEXT]
 ```
 
 **Arguments**:
 
-* `GITHUB_URL`: Github repository URL (public or private if supported by the platform instance)  [required]
+* `[CONTEXT]`: Docker build context (path or URL)  [default: .]
 
 **Options**:
 
-* `--dockerfile TEXT`: Use custom dockerfile path, relative to github url sub-path
+* `-f, --dockerfile TEXT`: Dockerfile path
+* `-t, --tag TEXT`: Image tag (default: auto-generated)
 * `-v, --verbose`: Show verbose output
-* `-y, --yes`: Skip confirmation prompts.
 * `--help`: Show this message and exit.
 
 ## `agentstack server`

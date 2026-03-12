@@ -5,7 +5,7 @@
 
 import { InlineLoading } from '@carbon/react';
 import { useMergeRefs } from '@floating-ui/react';
-import { InteractionMode, ProviderUnmanagedStatus } from 'agentstack-sdk';
+import { InteractionMode, ProviderState } from 'agentstack-sdk';
 import clsx from 'clsx';
 import { useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -70,7 +70,7 @@ export function RunInput({ promptExamples, onMessageSent }: Props) {
 
   const inputProps = register('input', { required: true });
   const inputValue = watch('input');
-  const isProviderOffline = provider.state === ProviderUnmanagedStatus.Offline;
+  const isProviderOffline = provider.state === ProviderState.Offline;
   const isLoadingModelProviders = llmProviders.isLoading || embeddingProviders.isLoading;
   const isSubmitDisabled =
     !isReady || isFileUploadPending || !inputValue || isLoadingModelProviders || isProviderOffline;

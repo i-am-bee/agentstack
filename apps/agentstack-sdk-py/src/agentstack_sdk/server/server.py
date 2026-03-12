@@ -20,7 +20,6 @@ import uvicorn.config as uvicorn_config
 from a2a.server.agent_execution import RequestContextBuilder
 from a2a.server.events import QueueManager
 from a2a.server.tasks import PushNotificationConfigStore, PushNotificationSender, TaskStore
-from a2a.types import AgentExtension
 from fastapi import FastAPI
 from fastapi.applications import AppType
 from fastapi.responses import PlainTextResponse
@@ -55,7 +54,6 @@ class Server:
         self._self_registration_client: PlatformClient | None = None
         self._self_registration_id: str | None = None
         self._provider_id: str | None = None
-        self._all_configured_variables: set[str] = set()
 
     @functools.wraps(agent_decorator)
     def agent(self, *args, **kwargs) -> Callable:
@@ -145,9 +143,19 @@ class Server:
         card_url = url and url.strip()
         self._agent.card.url = card_url.rstrip("/") if card_url else f"http://{host}:{port}"
 
-        self._self_registration_client = (
-            self_registration_client_factory() if self_registration_client_factory else None
-        )
+        if self_registration_client_factory:
+            self._self_registration_client = self_registration_client_factory()
+        elif not self._production_mode:
+            # Use basic auth (admin:admin) for local dev self-registration
+            self._self_registration_client = PlatformClient(
+                base_url=self._platform_url,
+                auth=(
+                    os.getenv("PLATFORM_USERNAME", "admin"),
+                    os.getenv("PLATFORM_PASSWORD", "admin"),
+                ),
+            )
+        else:
+            self._self_registration_client = None
         self._self_registration_id = urllib.parse.quote(self_registration_id or self._agent.card.name)
 
         if headers is None:
@@ -165,7 +173,6 @@ class Server:
         async def _lifespan_fn(app: FastAPI) -> AsyncGenerator[None, None]:
             async with self._self_registration_client or nullcontext():
                 register_task = asyncio.create_task(self._register_agent()) if self_registration else None
-                reload_task = asyncio.create_task(self._reload_variables_periodically()) if self_registration else None
 
                 try:
                     # pyrefly: ignore [bad-argument-type] -- probably bug in Pyrefly
@@ -175,9 +182,6 @@ class Server:
                     if register_task:
                         with suppress(Exception):
                             await cancel_task(register_task)
-                    if reload_task:
-                        with suppress(Exception):
-                            await cancel_task(reload_task)
 
         card_url = AnyUrl(self._agent.card.url)
         if card_url.host == "invalid":
@@ -293,47 +297,11 @@ class Server:
 
     @property
     def _platform_url(self) -> str:
-        return os.getenv("PLATFORM_URL", "http://127.0.0.1:8333")
+        return os.getenv("PLATFORM_URL", "http://agentstack-api.localtest.me:8080")
 
     @property
     def _production_mode(self) -> bool:
         return os.getenv("PRODUCTION_MODE", "").lower() in ["true", "1"]
-
-    async def _reload_variables_periodically(self):
-        while True:
-            await asyncio.sleep(5)
-            await self._load_variables()
-
-    async def _load_variables(self, first_run: bool = False) -> None:
-        from agentstack_sdk.a2a.extensions import AgentDetail, AgentDetailExtensionSpec
-
-        assert self.server and self._agent
-        if not self._provider_id:
-            return
-
-        variables = await Provider.list_variables(self._provider_id, client=self._self_registration_client)
-        old_variables = self._all_configured_variables.copy()
-
-        for variable in list(self._all_configured_variables - variables.keys()):  # reset removed variables
-            os.environ.pop(variable, None)
-            self._all_configured_variables.remove(variable)
-
-        os.environ.update(variables)
-        self._all_configured_variables.update(variables.keys())
-
-        if dirty := old_variables != self._all_configured_variables:
-            logger.info(f"Environment variables reloaded dynamically: {self._all_configured_variables}")
-
-        if first_run or dirty:
-            for extension in self._agent.card.capabilities.extensions or []:
-                match extension:
-                    case AgentExtension(uri=AgentDetailExtensionSpec.URI, params=params):
-                        variables = AgentDetail.model_validate(params).variables or []
-                        if missing_keys := [env for env in variables if env.required and os.getenv(env.name) is None]:
-                            logger.warning(
-                                f"Missing required env variables: {missing_keys}, "
-                                f"add them using `agentstack env add <agent> key=value`"
-                            )
 
     async def _register_agent(self) -> None:
         """If not in PRODUCTION mode, register agent to the agentstack platform and provide missing env variables"""
@@ -369,8 +337,6 @@ class Server:
                         )
                     self._provider_id = provider.id
                     logger.debug("Agent registered to the agentstack server.")
-                    await self._load_variables()
-                    logger.debug("Environment variables loaded dynamically.")
             logger.info("Agent registered successfully")
         except HTTPStatusError as e:
             with suppress(Exception):

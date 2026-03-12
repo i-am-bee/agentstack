@@ -218,10 +218,31 @@ class ImagePullMode(StrEnum):
     skip = "skip"
 
 
+CHART_PREFIXES = ("kagenti-deps:", "kagenti:", "agentstack:")
+
+
+def parse_scoped_set_values(set_values_list: list[str]) -> dict[str, list[str]]:
+    """Split --set values by chart prefix. Unprefixed defaults to 'agentstack'."""
+    result: dict[str, list[str]] = {"agentstack": [], "kagenti": [], "kagenti-deps": []}
+    for value in set_values_list:
+        for prefix in CHART_PREFIXES:
+            if value.startswith(prefix):
+                result[prefix.rstrip(":")].append(value[len(prefix) :])
+                break
+        else:
+            result["agentstack"].append(value)
+    return result
+
+
 @app.command("start", help="Start Agent Stack platform. [Local only]")
 async def start_cmd(
     set_values_list: typing.Annotated[
-        list[str], typer.Option("--set", help="Set Helm chart values using <key>=<value> syntax", default_factory=list)
+        list[str],
+        typer.Option(
+            "--set",
+            help="Set Helm chart values. Prefix with chart name: --set kagenti:key=val, --set kagenti-deps:key=val. Unprefixed applies to agentstack.",
+            default_factory=list,
+        ),
     ],
     image_pull_mode: typing.Annotated[
         ImagePullMode,
@@ -238,7 +259,11 @@ async def start_cmd(
         ),
     ] = ImagePullMode.guest,
     values_file: typing.Annotated[
-        pathlib.Path | None, typer.Option("-f", help="Set Helm chart values using yaml values file")
+        pathlib.Path | None,
+        typer.Option(
+            "-f",
+            help="YAML values file with chart-scoped sections: agentstack:, kagenti:, kagenti-deps:",
+        ),
     ] = None,
     lima_image: typing.Annotated[
         str | None, typer.Option("--lima-image", help="Local path or URL to Lima image (.qcow2)")
@@ -255,6 +280,13 @@ async def start_cmd(
 
     if values_file and not await anyio.Path(values_file).is_file():
         raise FileNotFoundError(f"Values file {values_file} not found.")
+
+    # Parse chart-scoped values from -f file and --set flags
+    user_values = yaml.safe_load(pathlib.Path(values_file).read_text()) if values_file else {}  # noqa: ASYNC240
+    user_agentstack_values = user_values.get("agentstack", {}) if isinstance(user_values, dict) else {}
+    user_kagenti_values = user_values.get("kagenti", {}) if isinstance(user_values, dict) else {}
+    user_kagenti_deps_values = user_values.get("kagenti-deps", {}) if isinstance(user_values, dict) else {}
+    scoped_sets = parse_scoped_set_values(set_values_list)
 
     with verbosity(verbose):
         version = importlib.metadata.version("agentstack-cli").replace("rc", "-rc")
@@ -428,34 +460,113 @@ async def start_cmd(
                     "Setting up internal networking",
                 )
 
-        platform = typing.cast(
-            typing.Literal["k3s", "microshift"],
-            (
+        detected_platform: typing.Literal["k3s", "microshift"] | None = None
+        try:
+            detected_platform = typing.cast(
+                typing.Literal["k3s", "microshift"],
                 (
-                    await run_in_vm(
-                        vm_name,
-                        ["bash", "-c", "command -v k3s || command -v microshift"],
-                        "Detecting Kubernetes platform",
+                    (
+                        await run_in_vm(
+                            vm_name,
+                            ["bash", "-c", "command -v k3s || command -v microshift"],
+                            "Detecting Kubernetes platform",
+                        )
                     )
-                )
-                .stdout.decode()
-                .strip()
-                .splitlines()[0]
-                .split("/")[-1]
-            ),
-        )
-
-        if platform == "k3s":
-            await run_in_vm(
-                vm_name,
-                [
-                    "bash",
-                    "-c",
-                    "ln -sf /etc/rancher/k3s/k3s.yaml /kubeconfig && chmod 644 /etc/rancher/k3s/k3s.yaml /kubeconfig",
-                ],
-                "Setting up kubeconfig symlink",
+                    .stdout.decode()
+                    .strip()
+                    .splitlines()[0]
+                    .split("/")[-1]
+                ),
             )
+        except Exception:
+            pass
 
+        match detected_platform:
+            case None:
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "bash",
+                        "-c",
+                        textwrap.dedent("""\
+                            sysctl -w net.ipv4.ip_forward=1
+                            mkdir -p /tmp/microshift-install
+                            curl -fsSL "https://github.com/microshift-io/microshift/releases/download/4.21.0_g29f429c21_4.21.0_okd_scos.ec.15/microshift-debs-$(uname -m).tgz" | tar -xz -C /tmp/microshift-install &
+                            eatmydata apt-get update -y -q
+                            eatmydata apt-get install -y -q --no-install-recommends skopeo cri-o cri-tools containernetworking-plugins kubectl
+                            mkdir -p -m 777 /postgresql-data /seaweedfs-data /registry-data /redis-data
+                            systemctl enable --now crio
+                            wait
+                            eatmydata dpkg -i /tmp/microshift-install/microshift_*.deb /tmp/microshift-install/microshift-kindnet_*.deb
+                            rm -rf /tmp/microshift-install
+                            systemctl enable --now microshift
+                        """),
+                    ],
+                    "Installing MicroShift",
+                )
+            case "k3s":
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "bash",
+                        "-c",
+                        "apt-get install -y -q skopeo; systemctl is-active --quiet k3s || systemctl enable --now k3s",
+                    ],
+                    "Refreshing existing k3s VM",
+                )
+            case "microshift":
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "bash",
+                        "-c",
+                        "systemctl is-active --quiet crio && systemctl is-active --quiet microshift || systemctl enable --now crio && systemctl enable --now microshift",
+                    ],
+                    "Refreshing existing MicroShift VM",
+                )
+
+        platform: typing.Literal["k3s", "microshift"] = detected_platform or "microshift"
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                f"ln -sf {'/etc/rancher/k3s/k3s.yaml' if platform == 'k3s' else '/var/lib/microshift/resources/kubeadmin/kubeconfig'} /kubeconfig && chmod 644 /kubeconfig",
+            ],
+            "Setting up kubeconfig symlink",
+        )
+        kubeconfig_local = anyio.Path(Configuration().lima_home) / vm_name / "copied-from-guest" / "kubeconfig.yaml"
+        await kubeconfig_local.parent.mkdir(parents=True, exist_ok=True)
+        await kubeconfig_local.write_text(
+            (
+                await run_in_vm(
+                    vm_name,
+                    [
+                        "timeout",
+                        "5m",
+                        "bash",
+                        "-c",
+                        'until grep -q "current-context:" /kubeconfig 2>/dev/null; do sleep 5; done && cat /kubeconfig',
+                    ],
+                    "Copying kubeconfig from Agent Stack platform",
+                )
+            ).stdout.decode()
+        )
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                textwrap.dedent("""\
+                    command -v helm && exit 0
+                    case $(uname -m) in x86_64) ARCH="amd64" ;; aarch64) ARCH="arm64" ;; esac
+                    curl -fsSL "https://get.helm.sh/helm-v4.1.1-linux-${ARCH}.tar.gz" | tar -xzf - --strip-components=1 -C /usr/local/bin "linux-${ARCH}/helm"
+                    chmod +x /usr/local/bin/helm
+                """),
+            ],
+            "Installing Helm",
+        )
+        # --- Prepare agentstack chart and import images before any deployments ---
         await run_in_vm(
             vm_name,
             ["bash", "-c", "cat >/tmp/agentstack-chart.tgz"],
@@ -469,29 +580,142 @@ async def start_cmd(
             input=yaml.dump(
                 merge(
                     {
-                        "externalRegistries": {"public_github": str(Configuration().agent_registry)},
                         "encryptionKey": "Ovx8qImylfooq4-HNwOzKKDcXLZCB3c_m0JlB9eJBxc=",
                         "trustProxyHeaders": True,
                         "localStorage": platform == "microshift",  # k3s uses local path provisioner instead
                         "keycloak": {
+                            "enabled": False,
+                            "auth": {
+                                "adminUser": "admin",
+                                "adminPassword": "admin",
+                                "seedAgentstackUsers": [
+                                    {
+                                        "username": "admin",
+                                        "password": "admin",
+                                        "firstName": "Admin",
+                                        "lastName": "User",
+                                        "email": "admin@beeai.dev",
+                                        "roles": ["agentstack-admin", "kagenti-admin"],
+                                        "enabled": True,
+                                    }
+                                ],
+                            },
+                        },
+                        "externalOidcProvider": {
+                            "issuerUrl": "http://keycloak-service.keycloak:8080/realms/agentstack",
+                            "publicIssuerUrl": "http://keycloak.localtest.me:8080/realms/agentstack",
+                            "name": "Keycloak",
+                            "id": "keycloak",
+                            "rolesPath": "realm_access.roles",
+                            "uiClientId": "agentstack-ui",
                             "uiClientSecret": "agentstack-ui-secret",
+                            "serverClientId": "agentstack-server",
                             "serverClientSecret": "agentstack-server-secret",
-                            "auth": {"adminPassword": "admin"},
+                        },
+                        "auth": {
+                            "enabled": True,
+                            "provisionKeycloak": True,
+                            "validateAudience": False,
+                            "nextauthUrl": "http://agentstack.localtest.me:8080",
+                            "apiUrl": "http://agentstack-api.localtest.me:8080",
                         },
                         "features": {"uiLocalSetup": True},
                         "providerBuilds": {"enabled": True},
-                        "localDockerRegistry": {"enabled": True},
-                        "auth": {"enabled": False},
+                        "disableProviderDownscaling": True,
                         "cors": {
                             "enabled": True,
-                            "allowOriginRegex": r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+                            "allowOriginRegex": r"https?://(localhost|127\.0\.0\.1|[a-z0-9.-]*\.?localtest\.me)(:\d+)?",
                             "allowCredentials": True,
                         },
                     },
-                    yaml.safe_load(await anyio.Path(values_file).read_text()) if values_file else {},
+                    user_agentstack_values,
                 )
             ).encode("utf-8"),
         )
+        # --- Prepare kagenti chart values and version before image listing ---
+        kagenti_chart_version = "0.5.1"
+        kagenti_deps_values = yaml.dump(
+            merge(
+                {
+                    "openshift": False,
+                    "components": {
+                        "keycloak": {"enabled": True},
+                        "istio": {"enabled": False},
+                        "kiali": {"enabled": False},
+                        "mcpInspector": {"enabled": False},
+                        "otel": {"enabled": False},
+                        "mlflow": {"enabled": False},
+                        "containerRegistry": {"enabled": True},
+                        "spire": {"enabled": False},
+                        "tekton": {"enabled": False},
+                        "shipwright": {"enabled": False},
+                        "certManager": {"enabled": False},
+                        "gatewayApi": {"enabled": False},
+                        "metricsServer": {"enabled": False},
+                        "ingressGateway": {"enabled": True},
+                    },
+                    "keycloak": {
+                        "namespace": "keycloak",
+                        "auth": {"adminUser": "admin", "adminPassword": "admin"},
+                        "url": "http://keycloak-service.keycloak:8080",
+                        "publicUrl": "http://keycloak.localtest.me:8080",
+                    },
+                },
+                user_kagenti_deps_values,
+            )
+        )
+        kagenti_values = yaml.dump(
+            merge(
+                {
+                    "openshift": False,
+                    "components": {
+                        "agentOperator": {"enabled": False},
+                        "platformWebhook": {"enabled": False},
+                        "agentNamespaces": {"enabled": True},
+                        "ui": {"enabled": True},
+                        "mcpGateway": {"enabled": False},
+                        "istio": {"enabled": False},
+                    },
+                    "agentNamespaces": ["team1"],
+                    "keycloak": {
+                        "enabled": True,
+                        "namespace": "keycloak",
+                        "url": "http://keycloak-service.keycloak:8080",
+                        "publicUrl": "http://keycloak.localtest.me:8080",
+                        "realm": "agentstack",
+                        "autoBootstrapRealm": False,
+                        "adminSecretName": "keycloak-initial-admin",
+                        "adminUsernameKey": "username",
+                        "adminPasswordKey": "password",
+                    },
+                    "ui": {
+                        "auth": {"enabled": True},
+                        "namespace": "kagenti-system",
+                        "domainName": "localtest.me",
+                        "hostname": "kagenti-ui.localtest.me",
+                        "url": "http://kagenti-ui.localtest.me:8080",
+                        "api": {"hostname": "kagenti-api.localtest.me"},
+                    },
+                    "apiOAuthSecret": {"enabled": True},
+                    "spire": {"enabled": False},
+                },
+                user_kagenti_values,
+            )
+        )
+        await run_in_vm(
+            vm_name,
+            ["bash", "-c", "cat >/tmp/kagenti-deps-values.yaml"],
+            "Preparing kagenti-deps values",
+            input=kagenti_deps_values.encode("utf-8"),
+        )
+        await run_in_vm(
+            vm_name,
+            ["bash", "-c", "cat >/tmp/kagenti-values.yaml"],
+            "Preparing kagenti values",
+            input=kagenti_values.encode("utf-8"),
+        )
+        # List images from all charts (agentstack + kagenti + kagenti-deps)
+        image_sed = r"sed -n '/^\s*image:/{ /{{/!{ s/.*image:\s*//p } }'"
         loaded_images = {
             canonify_image_tag(typing.cast(str, yaml.safe_load(line)))
             for line in (
@@ -500,9 +724,16 @@ async def start_cmd(
                     [
                         "/bin/bash",
                         "-c",
-                        "helm template agentstack /tmp/agentstack-chart.tgz --values=/tmp/agentstack-values.yaml "
-                        + " ".join(shlex.quote(f"--set={value}") for value in set_values_list)
-                        + " | sed -n '/^\\s*image:/{ /{{/!{ s/.*image:\\s*//p } }'",
+                        "{ "
+                        + "helm template agentstack /tmp/agentstack-chart.tgz --values=/tmp/agentstack-values.yaml "
+                        + " ".join(shlex.quote(f"--set={v}") for v in scoped_sets["agentstack"])
+                        + "; "
+                        + f"helm template kagenti-deps oci://ghcr.io/kagenti/kagenti/kagenti-deps --version={kagenti_chart_version} --values=/tmp/kagenti-deps-values.yaml "
+                        + " ".join(shlex.quote(f"--set={v}") for v in scoped_sets["kagenti-deps"])
+                        + "; "
+                        + f"helm template kagenti oci://ghcr.io/kagenti/kagenti/kagenti --version={kagenti_chart_version} --values=/tmp/kagenti-values.yaml "
+                        + " ".join(shlex.quote(f"--set={v}") for v in scoped_sets["kagenti"])
+                        + "; } | " + image_sed,
                     ],
                     "Listing necessary images",
                 )
@@ -510,6 +741,27 @@ async def start_cmd(
             .stdout.decode()
             .splitlines()
         }
+        # The post-renderer strips the x86-only Fedora postgres image and its reference
+        # won't appear in helm template output, so no extra image additions needed.
+        # Add the keycloak-themed image: the agentstack chart has keycloak disabled
+        # (kagenti-deps deploys it), but we patch kagenti's keycloak to use our themed image.
+        keycloak_image = (
+            await run_in_vm(
+                vm_name,
+                [
+                    "bash", "-c",
+                    "helm template agentstack /tmp/agentstack-chart.tgz"
+                    " --values=/tmp/agentstack-values.yaml"
+                    " --set keycloak.enabled=true --set auth.enabled=true"
+                    " --show-only templates/keycloak/statefulset.yaml "
+                    + " ".join(shlex.quote(f"--set={v}") for v in scoped_sets.get("agentstack", []))
+                    + " | grep -m1 'image:.*keycloak' | sed 's/.*image: *//;s/\"//g' | tr -d ' '",
+                ],
+                "Resolving keycloak image from agentstack chart",
+            )
+        ).stdout.decode().strip()
+        if keycloak_image:
+            loaded_images.add(keycloak_image)
         images_to_import_from_host, shas_guest_before = set[str](), {}
         if image_pull_mode in {ImagePullMode.host, ImagePullMode.hybrid}:
             if platform == "microshift":
@@ -559,30 +811,235 @@ async def start_cmd(
                     else [
                         "skopeo",
                         "copy",
-                        *(["--src-username", "x-access-token", "--src-password", github_token] if github_token else []),
+                        *(["--src-username", "x-access-token", "--src-password", github_token] if github_token and image.startswith("ghcr.io/") else []),
                         f"docker://{image}",
                         f"containers-storage:{image}",
                     ],
                     f"Pulling image {image}",
-                    env={"GITHUB_TOKEN": github_token} if github_token else None,
+                    env={"GITHUB_TOKEN": github_token} if github_token and image.startswith("ghcr.io/") else None,
                 )
-        kubeconfig_local = anyio.Path(Configuration().lima_home) / vm_name / "copied-from-guest" / "kubeconfig.yaml"
-        await kubeconfig_local.parent.mkdir(parents=True, exist_ok=True)
-        await kubeconfig_local.write_text(
-            (
+
+        # --- Kagenti platform installation ---
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                textwrap.dedent("""\
+                    kubectl --kubeconfig=/kubeconfig apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.0/standard-install.yaml
+                """),
+            ],
+            "Installing kagenti prerequisites (Gateway API CRDs)",
+        )
+        # Install Istio as Gateway API controller (same charts/version as kagenti ansible installer)
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                textwrap.dedent("""\
+                    ISTIO_VERSION=1.28.0
+                    ISTIO_REPO=https://istio-release.storage.googleapis.com/charts/
+                    helm repo add istio "$ISTIO_REPO" 2>/dev/null || true
+                    helm repo update istio
+                    kubectl --kubeconfig=/kubeconfig create namespace istio-system --dry-run=client -o yaml | kubectl --kubeconfig=/kubeconfig apply -f -
+                    helm upgrade --install istio-base istio/base --version=$ISTIO_VERSION --namespace=istio-system --kubeconfig=/kubeconfig --wait --force-conflicts
+                    helm upgrade --install istiod istio/istiod --version=$ISTIO_VERSION --namespace=istio-system --kubeconfig=/kubeconfig --wait --force-conflicts \
+                        --set pilot.resources.requests.cpu=50m \
+                        --set pilot.resources.requests.memory=256Mi
+                """),
+            ],
+            "Installing Istio (Gateway API controller)",
+        )
+        # Create hostPath PVs (MicroShift has no dynamic storage provisioner)
+        k8s_data = importlib.resources.files("agentstack_cli") / "data" / "k8s"
+        if platform == "microshift":
+            keycloak_pv_yaml = (k8s_data / "keycloak-postgres-pv.yaml").read_text()
+            await run_in_vm(
+                vm_name,
+                ["bash", "-c", "mkdir -p /kagenti-keycloak-postgres-data && chmod 777 /kagenti-keycloak-postgres-data && kubectl --kubeconfig=/kubeconfig apply -f -"],
+                "Creating PV for kagenti Keycloak Postgres",
+                input=keycloak_pv_yaml.encode("utf-8"),
+            )
+            if any("components.otel.enabled=true" in v.lower() for v in scoped_sets.get("kagenti-deps", [])):
+                phoenix_pv_yaml = (k8s_data / "phoenix-data-pv.yaml").read_text()
                 await run_in_vm(
                     vm_name,
-                    [
-                        "timeout",
-                        "5m",
-                        "bash",
-                        "-c",
-                        'until grep -q "current-context:" /kubeconfig 2>/dev/null; do sleep 5; done && cat /kubeconfig',
-                    ],
-                    "Copying kubeconfig from Agent Stack platform",
+                    ["bash", "-c", "mkdir -p /phoenix-data && chmod 777 /phoenix-data && kubectl --kubeconfig=/kubeconfig apply -f -"],
+                    "Creating PV for Phoenix data",
+                    input=phoenix_pv_yaml.encode("utf-8"),
                 )
-            ).stdout.decode()
+        # Install a Helm 4 post-renderer plugin that strips the postgres-otel
+        # StatefulSet from kagenti-deps (x86-only Fedora image) and patches Phoenix
+        # to use SQLite instead of PostgreSQL for local dev.
+        otel_enabled = any("components.otel.enabled=true" in v.lower() for v in scoped_sets.get("kagenti-deps", []))
+        kagenti_deps_post_renderer: list[str] = []
+        if otel_enabled:
+            patch_script = (importlib.resources.files("agentstack_cli") / "data" / "k8s" / "patch_kagenti_otel.py").read_text()
+            await run_in_vm(
+                vm_name,
+                [
+                    "bash", "-c",
+                    textwrap.dedent("""\
+                        PLUGIN_DIR=/tmp/helm-plugin-patch-postgres
+                        mkdir -p "$PLUGIN_DIR"
+                        cat > "$PLUGIN_DIR/plugin.yaml" << 'YAML'
+                        apiVersion: v1
+                        type: postrenderer/v1
+                        name: patch-postgres
+                        version: 0.1.0
+                        runtime: subprocess
+                        runtimeConfig:
+                          platformCommand:
+                            - command: ${HELM_PLUGIN_DIR}/run.sh
+                        YAML
+                        cat > "$PLUGIN_DIR/patch.py"
+                    """),
+                ],
+                "Preparing post-renderer patch script",
+                input=patch_script.encode("utf-8"),
+            )
+            # Write run.sh separately to avoid shebang escaping issues with bash -c
+            await run_in_vm(
+                vm_name,
+                [
+                    "python3", "-c",
+                    "import os; "
+                    "p='/tmp/helm-plugin-patch-postgres/run.sh'; "
+                    f"open(p,'wb').write(b'\\x23\\x21/bin/bash\\nset -e\\nexport AGENTSTACK_KEYCLOAK_IMAGE={shlex.quote(keycloak_image)}\\nexec python3 /tmp/helm-plugin-patch-postgres/patch.py\\n'); "
+                    "os.chmod(p, 0o755)",
+                ],
+                "Writing post-renderer entrypoint",
+            )
+            await run_in_vm(
+                vm_name,
+                ["helm", "plugin", "install", "/tmp/helm-plugin-patch-postgres"],
+                "Installing post-renderer plugin",
+                check=False,  # already installed on subsequent runs
+            )
+            kagenti_deps_post_renderer = ["--post-renderer=patch-postgres"]
+        await run_in_vm(
+            vm_name,
+            [
+                "helm",
+                "upgrade",
+                "--install",
+                "kagenti-deps",
+                "oci://ghcr.io/kagenti/kagenti/kagenti-deps",
+                f"--version={kagenti_chart_version}",
+                "--namespace=kagenti-system",
+                "--create-namespace",
+                "--values=/tmp/kagenti-deps-values.yaml",
+                "--timeout=10m",
+                "--kubeconfig=/kubeconfig",
+                "--force-conflicts",
+                *kagenti_deps_post_renderer,
+                *(f"--set={v}" for v in scoped_sets["kagenti-deps"]),
+            ],
+            "Installing kagenti dependencies (Keycloak)",
         )
+        # Enable dynamic backchannel hostname so Keycloak returns the internal service URL
+        # (not KC_HOSTNAME) for backend-to-backend OIDC discovery requests
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                textwrap.dedent("""\
+                    kubectl --kubeconfig=/kubeconfig -n keycloak set env statefulset/keycloak KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true
+                    kubectl --kubeconfig=/kubeconfig -n keycloak rollout status statefulset/keycloak --timeout=300s
+                """),
+            ],
+            "Enabling Keycloak backchannel dynamic hostname",
+        )
+        await run_in_vm(
+            vm_name,
+            [
+                "helm",
+                "upgrade",
+                "--install",
+                "kagenti",
+                "oci://ghcr.io/kagenti/kagenti/kagenti",
+                f"--version={kagenti_chart_version}",
+                "--namespace=kagenti-system",
+                "--create-namespace",
+                "--values=/tmp/kagenti-values.yaml",
+                "--timeout=10m",
+                "--kubeconfig=/kubeconfig",
+                *(f"--set={v}" for v in scoped_sets["kagenti"]),
+            ],
+            "Installing kagenti platform (operator + backend)",
+        )
+        # Label namespaces for shared gateway access and create agentstack HTTPRoutes
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                textwrap.dedent("""\
+                    KC=/kubeconfig
+                    # Ensure the agentstack namespace exists before creating HTTPRoutes
+                    kubectl --kubeconfig=$KC create namespace agentstack --dry-run=client -o yaml | kubectl --kubeconfig=$KC apply -f -
+                    # Label namespaces so the Gateway allows HTTPRoutes from them
+                    for ns in agentstack keycloak kagenti-system istio-system; do
+                        kubectl --kubeconfig=$KC label namespace $ns shared-gateway-access=true --overwrite
+                    done
+                    # Create HTTPRoutes for agentstack services through the shared gateway
+                    cat <<'EOF' | kubectl --kubeconfig=$KC apply -f -
+                    apiVersion: gateway.networking.k8s.io/v1
+                    kind: HTTPRoute
+                    metadata:
+                      name: agentstack-ui
+                      namespace: agentstack
+                    spec:
+                      parentRefs:
+                        - name: http
+                          namespace: kagenti-system
+                      hostnames:
+                        - "agentstack.localtest.me"
+                      rules:
+                        - backendRefs:
+                            - name: agentstack-ui-svc
+                              port: 8334
+                    ---
+                    apiVersion: gateway.networking.k8s.io/v1
+                    kind: HTTPRoute
+                    metadata:
+                      name: agentstack-api
+                      namespace: agentstack
+                    spec:
+                      parentRefs:
+                        - name: http
+                          namespace: kagenti-system
+                      hostnames:
+                        - "agentstack-api.localtest.me"
+                      rules:
+                        - backendRefs:
+                            - name: agentstack-server-svc
+                              port: 8333
+                    ---
+                    apiVersion: gateway.networking.k8s.io/v1
+                    kind: HTTPRoute
+                    metadata:
+                      name: otel-collector
+                      namespace: kagenti-system
+                    spec:
+                      parentRefs:
+                        - name: http
+                          namespace: kagenti-system
+                      hostnames:
+                        - "otel-collector.localtest.me"
+                      rules:
+                        - backendRefs:
+                            - name: otel-collector
+                              port: 8335
+                    EOF
+                """),
+            ],
+            "Configuring gateway routes for agentstack services",
+        )
+
+        # --- Agentstack helm install ---
         await run_in_vm(
             vm_name,
             [
@@ -601,13 +1058,13 @@ async def start_cmd(
                 "--install",
                 "agentstack",
                 "/tmp/agentstack-chart.tgz",
-                "--namespace=default",
+                "--namespace=agentstack",
                 "--create-namespace",
                 "--values=/tmp/agentstack-values.yaml",
                 "--timeout=20m",
                 "--wait",
                 "--kubeconfig=/kubeconfig",
-                *(f"--set={value}" for value in set_values_list),
+                *(f"--set={v}" for v in scoped_sets["agentstack"]),
             ],
             "Deploying Agent Stack platform with Helm",
         )
@@ -668,13 +1125,11 @@ async def start_cmd(
             input=textwrap.dedent("""\
                     set -euxo pipefail
                     systemctl daemon-reload
-                    kubectl --kubeconfig=/kubeconfig get svc -n default -o 'jsonpath={range .items[*]}{.metadata.name}{":"}{.spec.ports[*].port}{"\\n"}{end}' | while IFS=: read svc ports; do
-                        for port in $ports; do
-                            if [[ ( "$port" -ge 8333 && "$port" -le 8399 ) || "$port" -eq 4318 ]]; then
-                                systemctl start "kubectl-port-forward@${svc}:${port}"
-                            fi
-                        done
-                    done
+                    # Forward the Istio gateway on port 8080 — all services route through it via hostnames
+                    # (keycloak.localtest.me, agentstack.localtest.me, kagenti-ui.localtest.me, etc.)
+                    systemctl start "kubectl-port-forward@kagenti-system:http-istio:8080:80" &
+                    # Forward OTel collector directly (kagenti-system namespace, not routed through gateway)
+                    systemctl start "kubectl-port-forward@kagenti-system:otel-collector:4318" &
                 """)
             .strip()
             .encode(),
@@ -691,29 +1146,38 @@ async def start_cmd(
                             reraise=True,
                         ):
                             with attempt:
-                                (await client.get("http://localhost:8333/healthcheck")).raise_for_status()
+                                (await client.get("http://agentstack-api.localtest.me:8080/healthcheck")).raise_for_status()
                     except Exception as ex:
                         raise ConnectionError(
                             "Server did not start in 20 minutes. Please check your internet connection."
                         ) from ex
 
+        await run_in_vm(
+            vm_name,
+            [
+                "bash",
+                "-c",
+                "kubectl --kubeconfig=/kubeconfig wait --for=condition=Complete job/keycloak-provision -n agentstack --timeout=300s",
+            ],
+            "Waiting for Keycloak provisioning to complete",
+        )
         console.success("Agent Stack platform started successfully!")
-        if any("phoenix.enabled=true" in value.lower() for value in set_values_list):
+        phoenix_enabled = any("components.otel.enabled=true" in v.lower() for v in scoped_sets.get("kagenti-deps", []))
+        if phoenix_enabled:
             console.print(
                 textwrap.dedent("""\
 
                 License Notice:
-                When you enable Phoenix, be aware that Arize Phoenix is licensed under the Elastic License v2 (ELv2),
-                which has specific terms regarding commercial use and distribution. By enabling Phoenix, you acknowledge
-                that you are responsible for ensuring compliance with the ELv2 license terms for your specific use case.
-                Please review the Phoenix license (https://github.com/Arize-ai/phoenix/blob/main/LICENSE) before enabling
-                this feature in production environments.
+                Phoenix (provided by kagenti) is licensed under the Elastic License v2 (ELv2),
+                which has specific terms regarding commercial use and distribution. By using this platform,
+                you acknowledge compliance with the ELv2 license terms.
+                See: https://github.com/Arize-ai/phoenix/blob/main/LICENSE
                 """),
                 style="dim",
             )
 
         if not skip_login:
-            await agentstack_cli.commands.server.server_login("http://localhost:8333")
+            await agentstack_cli.commands.server.server_login("http://agentstack-api.localtest.me:8080")
 
 
 #     ######  ########  #######  ########
@@ -783,17 +1247,11 @@ async def delete_cmd(
 #    #### ##     ## ##         #######  ##     ##    ##
 
 
-class ImageImportMode(StrEnum):
-    daemon = "daemon"
-    registry = "registry"
-
-
 @app.command("import", help="Import a local docker image into the Agent Stack platform. [Local only]")
 async def import_cmd(
     tag: typing.Annotated[str, typer.Argument(help="Docker image tag to import")],
     vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
-    mode: typing.Annotated[ImageImportMode, typer.Option("--mode")] = ImageImportMode.daemon,
 ):
     with verbosity(verbose):
         if (await detect_vm_status(vm_name)) != "running":
@@ -819,18 +1277,10 @@ async def import_cmd(
             await run_command(["docker", "image", "save", "-o", host_path, tag], f"Exporting image {tag} from Docker")
             await run_in_vm(
                 vm_name,
-                [
-                    "skopeo",
-                    "copy",
-                    f"docker-archive:{guest_path}",
-                    f"docker://localhost:30501/{tag.split('/')[-1]}",
-                    "--dest-tls-verify=false",
-                ]
-                if mode == ImageImportMode.registry
-                else ["k3s", "ctr", "images", "import", guest_path]
+                ["k3s", "ctr", "images", "import", guest_path]
                 if platform == "k3s"
                 else ["skopeo", "copy", f"docker-archive:{guest_path}:{tag}", f"containers-storage:{tag}"],
-                f"Importing image {tag} into Agent Stack platform {mode}",
+                f"Importing image {tag} into Agent Stack platform",
             )
         finally:
             await anyio.Path(host_path).unlink(missing_ok=True)

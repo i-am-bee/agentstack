@@ -75,7 +75,11 @@ run = "docker build -t ghcr.io/i-am-bee/agentstack/agentstack-ui:local -f ./apps
 depends = ["common:setup:pnpm", "agentstack-sdk-ts:build"]
 dir = "{{config_root}}/apps/agentstack-ui"
 env.NODE_OPTIONS = "--no-experimental-global-navigator"
-run = "pnpm next build --webpack"
+run = """
+pnpm next build --webpack
+# Remove broken symlinks in standalone output — they cause mise's task_source_checker to panic on stat()
+find .next/standalone -type l ! -exec test -e {} \\; -delete 2>/dev/null || true
+"""
 sources = [
     "package.json",
     "next.config.ts",
@@ -89,4 +93,4 @@ outputs = [".next/standalone/**/*"]
 
 ["agentstack-ui:schema:generate"]
 dir = "{{config_root}}/apps/agentstack-ui"
-run = "./scripts/generate-schema.sh http://localhost:8333/api/v1/openapi.json ./src/api/schema.d.ts"
+run = "./scripts/generate-schema.sh http://agentstack-api.localtest.me:8080/api/v1/openapi.json ./src/api/schema.d.ts"

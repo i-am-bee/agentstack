@@ -6,7 +6,7 @@
 import z from 'zod';
 
 export const configSchema = z.object({
-  platformUrl: z.string().default('http://127.0.0.1:8333'),
+  platformUrl: z.string().default('http://agentstack-api.localtest.me:8080'),
   productionMode: z
     .string()
     .optional()

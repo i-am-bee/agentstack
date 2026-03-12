@@ -57,8 +57,6 @@ ROLE_PERMISSIONS: dict[UserRole, Permissions] = {
 ROLE_PERMISSIONS[UserRole.DEVELOPER] = ROLE_PERMISSIONS[UserRole.USER] | Permissions(
     providers={"read", "write"},
     feedback={"read", "write"},
-    provider_builds={"read", "write"},
-    provider_variables={"read", "write"},
 )
 
 """
@@ -79,10 +77,6 @@ semi-private entities:
         - any user list and show detail about any provider
         - developers can create/delete and manage only their own providers
         - admins can create/delete and manage any provider
-    - provider_builds
-        - any user list and show detail about any build
-        - developers can create/delete and manage only their own builds
-        - admins can create/delete and manage any build
 """
 
 
@@ -237,6 +231,7 @@ def extract_oauth_token(
 @alru_cache(ttl=timedelta(seconds=5).seconds)
 async def validate_jwt(token: str, *, provider: OidcProvider, aud: Iterable[str]) -> JWTClaims | Exception:
     keyset = await discover_jwks(provider)
+    claims = None
     try:
         claims = jwt.decode(
             token,
@@ -251,6 +246,8 @@ async def validate_jwt(token: str, *, provider: OidcProvider, aud: Iterable[str]
         claims.validate()
         return claims
     except Exception as e:
+        token_aud = claims.get("aud") if claims is not None else "<undecoded>"
+        logger.warning(f"JWT validation failed: {e} | expected_aud={set(aud)} | token_aud={token_aud}")
         return e  # Cache exception response
 
 

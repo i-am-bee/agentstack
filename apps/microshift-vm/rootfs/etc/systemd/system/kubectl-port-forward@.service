@@ -1,4 +1,4 @@
 [Service]
-ExecStart=/bin/bash -c 'IFS=":" read svc port <<< "%i" && kubectl wait --kubeconfig=/kubeconfig --for=jsonpath={.subsets[*].addresses[0].ip} ep/$svc --timeout=300s && exec kubectl port-forward --kubeconfig=/kubeconfig --address=127.0.0.1 svc/$svc $port:$port'
+ExecStart=/bin/bash -c 'IFS=":" read -ra p <<< "%i"; if [ $${#p[@]} -ge 3 ]; then ns=$${p[0]} svc=$${p[1]} hp=$${p[2]} tp=$${p[3]:-$${p[2]}}; else ns=default svc=$${p[0]} hp=$${p[1]} tp=$${p[1]}; fi; kubectl wait --kubeconfig=/kubeconfig -n $$ns --for=jsonpath={.subsets[*].addresses[0].ip} ep/$$svc --timeout=300s && exec kubectl port-forward --kubeconfig=/kubeconfig -n $$ns --address=127.0.0.1 svc/$$svc $$hp:$$tp'
 Restart=on-failure
 User=root

@@ -52,7 +52,7 @@ class PlatformClient(httpx.AsyncClient):
         default_encoding: str | typing.Callable[[bytes], str] = "utf-8",
     ) -> None:
         if not base_url:
-            base_url = os.environ.get("PLATFORM_URL", "http://127.0.0.1:8333")
+            base_url = os.environ.get("PLATFORM_URL", "http://agentstack-api.localtest.me:8080")
         super().__init__(
             auth=auth,
             params=params,

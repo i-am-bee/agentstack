@@ -6,24 +6,11 @@
 import z from 'zod';
 
 import { agentCardSchema } from '../../a2a/protocol/schemas';
-import {
-  dockerImageProviderLocationSchema,
-  fileSystemRegistryLocationSchema,
-  gitHubRegistryLocationSchema,
-  networkProviderLocationSchema,
-  networkRegistryLocationSchema,
-  readableStreamSchema,
-  resolvedDockerImageIdSchema,
-  resolvedGitHubUrlSchema,
-} from '../common/schemas';
+import { networkProviderLocationSchema, readableStreamSchema } from '../common/schemas';
 import { paginatedResponseSchema } from '../core/schemas';
-import { ProviderStatus, ProviderType, ProviderUnmanagedStatus } from './types';
+import { ProviderState } from './types';
 
-export const providerTypeSchema = z.enum(ProviderType);
-
-export const providerStatusSchema = z.enum(ProviderStatus);
-
-export const providerUnmanagedStatusSchema = z.enum(ProviderUnmanagedStatus);
+export const providerStateSchema = z.enum(ProviderState);
 
 export const providerErrorSchema = z.object({
   message: z.string(),
@@ -35,31 +22,19 @@ export const providerEnvVarSchema = z.object({
   description: z.string().nullish(),
 });
 
-export const providerVersionInfoSchema = z.object({
-  docker: resolvedDockerImageIdSchema.nullish(),
-  github: resolvedGitHubUrlSchema.nullish(),
-});
-
 export const providerSchema = z.object({
   id: z.string(),
-  source: z.union([dockerImageProviderLocationSchema, networkProviderLocationSchema]),
+  source: networkProviderLocationSchema,
+  source_type: z.string().optional(),
   agent_card: agentCardSchema,
-  state: z.union([providerStatusSchema, providerUnmanagedStatusSchema]),
+  state: providerStateSchema,
   origin: z.string(),
   created_at: z.string(),
   created_by: z.string(),
   updated_at: z.string(),
   last_active_at: z.string(),
-  auto_stop_timeout: z.string(),
-  managed: z.boolean(),
-  type: providerTypeSchema,
-  env: z.array(providerEnvVarSchema),
-  registry: z
-    .union([gitHubRegistryLocationSchema, networkRegistryLocationSchema, fileSystemRegistryLocationSchema])
-    .nullish(),
   last_error: providerErrorSchema.nullish(),
   missing_configuration: z.array(providerEnvVarSchema).optional(),
-  version_info: providerVersionInfoSchema.optional(),
 });
 
 export const listProvidersRequestSchema = z.object({
@@ -76,9 +51,8 @@ export const listProvidersResponseSchema = paginatedResponseSchema.extend({
 });
 
 export const createProviderRequestSchema = z.object({
-  location: z.union([dockerImageProviderLocationSchema, networkProviderLocationSchema]),
+  location: networkProviderLocationSchema,
   agent_card: agentCardSchema.nullish(),
-  auto_stop_timeout_sec: z.number().nullish(),
   origin: z.string().nullish(),
   variables: z.record(z.string(), z.string()).nullish(),
 });
@@ -99,9 +73,8 @@ export const deleteProviderResponseSchema = z.null();
 
 export const patchProviderRequestSchema = z.object({
   id: z.string(),
-  location: z.union([dockerImageProviderLocationSchema, networkProviderLocationSchema]).nullish(),
+  location: networkProviderLocationSchema.nullish(),
   agent_card: agentCardSchema.nullish(),
-  auto_stop_timeout_sec: z.number().nullish(),
   origin: z.string().nullish(),
   variables: z.record(z.string(), z.string()).nullish(),
 });

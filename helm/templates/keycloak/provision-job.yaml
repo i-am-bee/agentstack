@@ -1,4 +1,4 @@
-{{- if and .Values.auth.enabled .Values.keycloak.enabled }}
+{{- if and .Values.auth.enabled .Values.auth.provisionKeycloak }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -29,7 +29,7 @@ spec:
             - |
               # Wait for Keycloak to be ready by attempting login
               echo "Waiting for Keycloak to be ready..."
-              until /opt/keycloak/bin/kcadm.sh config credentials --server {{ regexReplaceAll "/realms/.*" .Values.keycloak.internalIssuerUrl "" | quote }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD {{ if not .Values.keycloak.httpEnabled }}--no-config --truststore /opt/keycloak/conf/server.crt.pem{{ end }}; do
+              until /opt/keycloak/bin/kcadm.sh config credentials --server {{ regexReplaceAll "/realms/.*" (include "agentstack.oidc.internalIssuerUrl" .) "" | quote }} --realm master --user $KC_ADMIN_USER --password $KC_ADMIN_PASSWORD {{ if and .Values.keycloak.enabled (not .Values.keycloak.httpEnabled) }}--no-config --truststore /opt/keycloak/conf/server.crt.pem{{ end }}; do
                 echo "Keycloak not ready or login failed... retrying in 5s"
                 sleep 5
               done
@@ -57,14 +57,27 @@ spec:
                 /opt/keycloak/bin/kcadm.sh create roles -r agentstack -s name=agentstack-developer
               fi
               
+              # Create kagenti RBAC roles (idempotent — needed for single-realm setup)
+              echo "Creating kagenti RBAC roles..."
+              for KAGENTI_ROLE in kagenti-viewer kagenti-operator kagenti-admin; do
+                if ! /opt/keycloak/bin/kcadm.sh get roles/$KAGENTI_ROLE -r agentstack > /dev/null 2>&1; then
+                  /opt/keycloak/bin/kcadm.sh create roles -r agentstack -s name=$KAGENTI_ROLE -s "description=Kagenti RBAC role: $KAGENTI_ROLE"
+                fi
+              done
+
               # Create/Update Server Client
               echo "Configuring Server Client..."
               CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=agentstack-server --fields id --format csv --noquotes)
               if [ -z "$CID" ]; then
                 /opt/keycloak/bin/kcadm.sh create clients -r agentstack -s clientId=agentstack-server -s enabled=true -s clientAuthenticatorType=client-secret -s secret=$SERVER_CLIENT_SECRET -s serviceAccountsEnabled=true -s directAccessGrantsEnabled=true -s standardFlowEnabled=false
+                CID=$(/opt/keycloak/bin/kcadm.sh get clients -r agentstack -q clientId=agentstack-server --fields id --format csv --noquotes)
               else
                 /opt/keycloak/bin/kcadm.sh update clients/$CID -r agentstack -s secret=$SERVER_CLIENT_SECRET -s enabled=true
               fi
+
+              # Assign kagenti-viewer role to agentstack-server service account
+              echo "Assigning kagenti-viewer to agentstack-server service account..."
+              /opt/keycloak/bin/kcadm.sh add-roles -r agentstack --uusername service-account-agentstack-server --rolename kagenti-viewer
 
               # Create/Update UI Client
               {{- if and .Values.ui.enabled }}
@@ -85,7 +98,7 @@ spec:
               if [ -z "$CID" ]; then
                 /opt/keycloak/bin/kcadm.sh create clients -r agentstack -s clientId=agentstack-cli -s enabled=true -s publicClient=true -s standardFlowEnabled=true -s directAccessGrantsEnabled=true -s "redirectUris=[\"http://localhost:9001/callback\"]" -s "webOrigins=[\"+\"]"
               else
-                /opt/keycloak/bin/kcadm.sh update clients/$CID -r agentstack -s enabled=true -s publicClient=true -s "redirectUris=[\"http://localhost:9001/callback\"]"
+                /opt/keycloak/bin/kcadm.sh update clients/$CID -r agentstack -s enabled=true -s publicClient=true -s directAccessGrantsEnabled=true -s "redirectUris=[\"http://localhost:9001/callback\"]"
               fi
 
               declare -a AUDIENCES=(

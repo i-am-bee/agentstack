@@ -35,9 +35,7 @@ class Permissions(BaseModel):
     a2a_proxy: SerializeAsAny[set[Literal["*"] | UUID]] = set()
 
     # agent providers
-    providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission
-    provider_variables: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
-    provider_builds: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # write includes "show logs" permission
+    providers: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
 
     contexts: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()
     context_data: SerializeAsAny[set[Literal["read", "write", "*"]]] = set()  # covers history (TODO: variables)

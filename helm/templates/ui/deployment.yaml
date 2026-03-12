@@ -65,7 +65,6 @@ spec:
                 {
                   "LocalSetup": {{ .Values.features.uiLocalSetup }},
                   "Connectors": {{ .Values.features.uiConnectors }},
-                  "ProviderBuilds": {{ .Values.providerBuilds.enabled }},
                   "Providers": {{ .Values.features.uiProviders }},
                   "Variables": {{ .Values.features.uiVariables }}
                 }

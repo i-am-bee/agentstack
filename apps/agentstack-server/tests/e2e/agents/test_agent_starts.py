@@ -7,12 +7,10 @@ import asyncio
 import contextlib
 import time
 import uuid
-from textwrap import dedent
 from threading import Thread
 from typing import Any
 from unittest import mock
 
-import kr8s
 import pytest
 import uvicorn
 from a2a.client import A2AClientHTTPError
@@ -22,7 +20,6 @@ from a2a.types import AgentCapabilities, AgentCard, Role, Task, TaskState
 from agentstack_sdk.a2a.extensions import LLMFulfillment, LLMServiceExtensionClient, LLMServiceExtensionSpec
 from agentstack_sdk.platform import ModelProvider, Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, Permissions
-from kr8s.asyncio.objects import Deployment
 
 pytestmark = pytest.mark.e2e
 
@@ -32,9 +29,10 @@ def extract_agent_text_from_stream(task: Task) -> str:
     return "".join(item.parts[0].root.text for item in task.history if item.role == Role.agent if item.parts)
 
 
+@pytest.mark.skip(reason="Agent import from container image is now handled by kagenti operator")
 @pytest.mark.usefixtures("clean_up", "setup_real_llm", "setup_platform_client")
 async def test_imported_agent(
-    subtests, a2a_client_factory, get_final_task_from_stream, test_configuration, kr8s_client: kr8s.Api
+    subtests, a2a_client_factory, get_final_task_from_stream, test_configuration
 ):
     agent_image = test_configuration.test_agent_image
     with subtests.test("add chat agent"):
@@ -91,49 +89,6 @@ async def test_imported_agent(
             assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
             assert "ciao" in extract_agent_text_from_stream(task).lower()
 
-    with subtests.test("the context token will not work with direct call to agent (server exchange is required)"):
-        deployment = await Deployment.get("agentstack-server", api=kr8s_client)
-        script = dedent(
-            f"""\
-            import asyncio
-            import sys
-            import httpx
-
-            async def main():
-                url = "http://agentstack-provider-{providers[0].id}-svc:8000/jsonrpc/"
-                print(f"Connecting to {{url}}...")
-                try:
-                    async with httpx.AsyncClient(timeout=None, headers={{"Authorization": "Bearer {context_token.token.get_secret_value()}"}}) as httpx_client:
-                        response = await httpx_client.post(url, json={{
-                                "jsonrpc": "2.0",
-                                "id": "1",
-                                "method": "message/send",
-                                "params": {{
-                                    "message": {{
-                                        "role": "agent",
-                                        "parts": [{{"kind": "text", "text": "Hello"}}],
-                                        "messageId": "1",
-                                        "kind": "message",
-                                    }}
-                                }}
-                            }})
-                        response.raise_for_status()
-                except Exception as e:
-                    if "401" in str(e):
-                        print("Success: Request failed as expected with 401")
-                        sys.exit(0)
-                    print(f"Error: {{e}}")
-                    sys.exit(1)
-
-                print("Error: Request succeeded unexpectedly")
-                sys.exit(1)
-
-            asyncio.run(main())
-            """
-        )
-        resp = await deployment.exec(["python", "-c", script], check=False)
-        assert resp.returncode == 0, resp.stdout.decode("utf-8") + "\n" + resp.stderr.decode("utf-8")
-
     invalid_context_token = await context.generate_token(
         providers=[str(uuid.uuid4())],  # different target provider
         grant_global_permissions=Permissions(llm={"*"}),
@@ -147,13 +102,13 @@ async def test_imported_agent(
             await get_final_task_from_stream(a2a_client.send_message(message))
 
 
-UNMANAGED_AGENT_CARD: dict[str, Any] = {
+EXTERNAL_AGENT_CARD: dict[str, Any] = {
     "authentication": {"schemes": ["Bearer"]},
     "capabilities": AgentCapabilities(streaming=True),
     "defaultInputModes": ["text/plain"],
     "defaultOutputModes": ["text/plain"],
-    "description": "Test unmanaged A2A agent",
-    "name": "UnmanagedTestAgent",
+    "description": "Test external A2A agent",
+    "name": "ExternalTestAgent",
     "skills": [{"id": "skill-1", "name": "Echo", "description": "Echoes back", "tags": ["test"]}],
     "url": "http://example.com/agent",
     "version": "1.0",
@@ -161,11 +116,11 @@ UNMANAGED_AGENT_CARD: dict[str, Any] = {
 
 
 @pytest.fixture
-def unmanaged_a2a_server(free_port, setup_platform_client, clean_up_fn):
+def external_a2a_server(free_port, setup_platform_client, clean_up_fn):
     server_instance: uvicorn.Server | None = None
     thread: Thread | None = None
 
-    agent_card = AgentCard(**UNMANAGED_AGENT_CARD)
+    agent_card = AgentCard(**EXTERNAL_AGENT_CARD)
     agent_card.url = f"http://host.docker.internal:{free_port}"
 
     handler = mock.AsyncMock()
@@ -181,7 +136,7 @@ def unmanaged_a2a_server(free_port, setup_platform_client, clean_up_fn):
             with contextlib.suppress(KeyboardInterrupt):
                 server_instance.run()
 
-        thread = Thread(target=run_server, name="unmanaged-a2a-server")
+        thread = Thread(target=run_server, name="external-a2a-server")
         thread.start()
         while not server_instance.started:
             time.sleep(0.1)
@@ -197,16 +152,16 @@ def unmanaged_a2a_server(free_port, setup_platform_client, clean_up_fn):
 
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_unmanaged_a2a_agent(unmanaged_a2a_server):
-    port, start_server = unmanaged_a2a_server
+async def test_external_a2a_agent(external_a2a_server):
+    port, start_server = external_a2a_server
     start_server()
 
     provider = await Provider.create(location=f"http://host.docker.internal:{port}")
 
-    assert provider.managed is False
+    assert provider.source_type == "api"
     assert provider.agent_card is not None
-    assert provider.agent_card.name == "UnmanagedTestAgent"
-    assert provider.agent_card.description == "Test unmanaged A2A agent"
+    assert provider.agent_card.name == "ExternalTestAgent"
+    assert provider.agent_card.description == "Test external A2A agent"
     assert provider.agent_card.skills is not None
     assert len(provider.agent_card.skills) == 1
 

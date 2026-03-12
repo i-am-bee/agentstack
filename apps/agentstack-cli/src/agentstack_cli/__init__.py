@@ -39,13 +39,10 @@ Usage: agentstack [OPTIONS] COMMAND [ARGS]...
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Agent Management [Admin only] ────────────────────────────────────────────╮
-│ add                               Install an agent (Docker, GitHub)        │
+│ add                               Install an agent                         │
 │ remove                            Uninstall an agent                       │
 │ update                            Update an agent                          │
-│ logs                              Stream agent execution logs              │
-│ env                               Manage agent environment variables       │
-│ build                             Build an agent remotely                  │
-│ client-side-build                 Build an agent container image locally   │
+│ build                             Build an agent image locally              │
 ╰────────────────────────────────────────────────────────────────────────────╯
 
 ╭─ Platform & Configuration ─────────────────────────────────────────────────╮
@@ -105,7 +102,6 @@ app.add_typer(
     no_args_is_help=True,
     help="Manage Agent Stack platform. [Local only]",
 )
-app.add_typer(agentstack_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 app.add_typer(
     agentstack_cli.commands.server.app,
     name="server",
@@ -127,6 +123,8 @@ app.add_typer(
 #     help="Manage users. [Admin only]",
 # )
 
+
+app.add_typer(agentstack_cli.commands.build.app, name="", no_args_is_help=True, help="Build agent images.")
 
 agent_alias = deepcopy(agentstack_cli.commands.agent.app)
 for cmd in agent_alias.registered_commands:
@@ -158,12 +156,14 @@ async def ui():
     active_server = config.auth_manager.active_server
 
     if active_server:
-        if re.search(r"(localhost|127\.0\.0\.1):8333", active_server):
+        if "agentstack-api.localtest.me" in active_server:
+            ui_url = active_server.replace("agentstack-api.localtest.me", "agentstack.localtest.me")
+        elif re.search(r"(localhost|127\.0\.0\.1):8333", active_server):
             ui_url = re.sub(r":8333", ":8334", active_server)
         else:
             ui_url = active_server
     else:
-        ui_url = "http://localhost:8334"
+        ui_url = "http://agentstack.localtest.me:8080"
 
     webbrowser.open(ui_url)
 

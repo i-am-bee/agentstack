@@ -155,6 +155,51 @@ class AuthManager:
             self._auth.servers[server]  # touch
         self._save()
 
+    async def login_with_password(
+        self,
+        server: str,
+        username: str,
+        password: str,
+        client_id: str = "agentstack-cli",
+    ) -> AuthToken:
+        """Authenticate using resource owner password grant (direct access)."""
+        oauth_metadata = await self.fetch_oauth_protected_resource_metadata(server)
+        auth_servers = oauth_metadata.get("authorization_servers", [])
+        if not auth_servers:
+            raise RuntimeError(f"No authorization servers found for {server}")
+
+        auth_server_url = auth_servers[0]
+        oidc = await self.get_oidc_metadata(auth_server_url)
+        token_endpoint = oidc["token_endpoint"]
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                token_endpoint,
+                data={
+                    "grant_type": "password",
+                    "client_id": client_id,
+                    "username": username,
+                    "password": password,
+                    "scope": " ".join(oauth_metadata.get("scopes_supported", ["openid", "email", "profile"])),
+                },
+            )
+            resp.raise_for_status()
+            token_data = resp.json()
+
+        auth_token = AuthToken(**token_data)
+
+        self.save_auth_info(
+            server=server,
+            auth_server=auth_server_url,
+            client_id=client_id,
+            token=token_data,
+        )
+        self._auth.active_server = server
+        self._auth.active_auth_server = auth_server_url
+        self._save()
+
+        return auth_token
+
     async def _exchange_refresh_token(self, auth_server: str, token: AuthToken) -> AuthToken:
         if not self._auth.active_server:
             raise ValueError("No active server configured")

@@ -17,7 +17,6 @@ from agentstack_server.domain.repositories.env import IEnvVariableRepository
 from agentstack_server.domain.repositories.file import IFileRepository
 from agentstack_server.domain.repositories.model_provider import IModelProviderRepository
 from agentstack_server.domain.repositories.provider import IProviderRepository
-from agentstack_server.domain.repositories.provider_discovery import IProviderDiscoveryRepository
 from agentstack_server.domain.repositories.user import IUserRepository
 from agentstack_server.domain.repositories.user_feedback import IUserFeedbackRepository
 from agentstack_server.domain.repositories.vector_store import IVectorDatabaseRepository, IVectorStoreRepository
@@ -28,10 +27,6 @@ from agentstack_server.infrastructure.persistence.repositories.env import SqlAlc
 from agentstack_server.infrastructure.persistence.repositories.file import SqlAlchemyFileRepository
 from agentstack_server.infrastructure.persistence.repositories.model_provider import SqlAlchemyModelProviderRepository
 from agentstack_server.infrastructure.persistence.repositories.provider import SqlAlchemyProviderRepository
-from agentstack_server.infrastructure.persistence.repositories.provider_build import SqlAlchemyProviderBuildRepository
-from agentstack_server.infrastructure.persistence.repositories.provider_discovery import (
-    SqlAlchemyProviderDiscoveryRepository,
-)
 from agentstack_server.infrastructure.persistence.repositories.requests import SqlAlchemyA2ARequestRepository
 from agentstack_server.infrastructure.persistence.repositories.user import SqlAlchemyUserRepository
 from agentstack_server.infrastructure.persistence.repositories.user_feedback import SqlAlchemyUserFeedbackRepository
@@ -58,7 +53,6 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
     vector_database: IVectorDatabaseRepository
     user_feedback: IUserFeedbackRepository
     connectors: IConnectorRepository
-    provider_discoveries: IProviderDiscoveryRepository
 
     def __init__(self, engine: AsyncEngine, config: Configuration) -> None:
         self._engine: AsyncEngine = engine
@@ -77,7 +71,6 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             self.a2a_requests = SqlAlchemyA2ARequestRepository(self._connection)
             self.providers = SqlAlchemyProviderRepository(self._connection)
             self.model_providers = SqlAlchemyModelProviderRepository(self._connection)
-            self.provider_builds = SqlAlchemyProviderBuildRepository(self._connection)
             self.contexts = SqlAlchemyContextRepository(self._connection)
             self.env = SqlAlchemyEnvVariableRepository(self._connection, configuration=self._config)
             self.files = SqlAlchemyFileRepository(self._connection)
@@ -89,7 +82,6 @@ class SQLAlchemyUnitOfWork(IUnitOfWork):
             )
             self.user_feedback = SqlAlchemyUserFeedbackRepository(self._connection)
             self.connectors = SqlAlchemyConnectorRepository(self._connection)
-            self.provider_discoveries = SqlAlchemyProviderDiscoveryRepository(self._connection)
 
         except Exception as e:
             await self._exit_stack.aclose()

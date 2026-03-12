@@ -146,15 +146,9 @@ run = """
 #!/bin/bash
 set -euxo pipefail
 
-if [[ "$*" != *"--set externalRegistry="* ]]; then
-  latest_tag=$(git ls-remote --tags $(git remote get-url origin) 'v*' | grep -o 'refs/tags/v[0-9]*\\.[0-9]*\\.[0-9]*$' | sed 's|refs/tags/||' | sort -V | tail -n 1)
-  export AGENTSTACK__AGENT_REGISTRY="https://github.com/i-am-bee/agentstack@$latest_tag#path=agent-registry.yaml"
-  echo "Using agents from: $AGENTSTACK__AGENT_REGISTRY\n  use --set externalRegistry=<null|github-url> to override this."
-fi
-
 if [[ ! "$*" =~ 'ui.enabled=false' ]]; then
     {{ mise_bin }} run agentstack-ui:build
-    UI_TAG="--set ui.image.tag=local"
+    UI_TAG="--set agentstack:ui.image.tag=local"
 fi
 
 if [[ -n "${CI-}" ]]; then
@@ -169,10 +163,10 @@ ARCH=$(uname -m | sed -e 's/arm64/aarch64/' -e 's/amd64/x86_64/')
 {{ mise_bin }} run agentstack-cli:run -- platform start -v \
     --lima-image={{config_root}}/apps/microshift-vm/dist/$ARCH/microshift-vm-$ARCH.qcow2 \
     --image-pull-mode="$PULL_MODE" \
-    --set auth.nextauthDevUrl="http://localhost:3000" \
-    --set image.tag=local \
-    --set keycloak.image.tag=local \
-    ${UI_TAG-} "$@"
+    --set agentstack:auth.nextauthDevUrl="http://localhost:3000" \
+    --set agentstack:image.tag=local \
+    --set agentstack:keycloak.image.tag=local \
+    $UI_TAG "$@"
 """
 
 ["agentstack:delete"]
@@ -493,6 +487,110 @@ echo -e "✅ Published \x1b[36mstable\x1b[0m docs for \x1b[36mv$publish_version\
 echo "💡 Check the pipeline progress and result on: https://github.com/i-am-bee/agentstack/actions/workflows/release.yml"
 '''
 
+# misc tasks
+
+["sync-images-to-ghcr"]
+dir = "{{config_root}}"
+depends = ["helm:build:dependencies"]
+usage = "flag --dryrun"
+run = '''
+#!/bin/bash
+
+set -euo pipefail
+DRY_RUN="${usage_dryrun:-false}"
+
+{% raw %}
+echo "Extracting images from helm chart..."
+
+# Extract images from helm chart
+images=$(helm template \
+  --set phoenix.enabled=true \
+  --set encryptionKey=dummy \
+  --set auth.enabled=false \
+  --set providerBuilds.enabled=true \
+  --set redis.enabled=true \
+  ./helm 2>/dev/null | \
+    sed -n '/^[[:space:]]*image:/{ /{{/d; s/.*image:[[:space:]]*//p; }' | \
+    sed 's/"\([^"]*\)"/\1/' | grep -v 'agentstack')
+
+echo "Found images:"
+echo "$images"
+
+# Process each image
+echo "$images" | while IFS= read -r ghcr_image; do
+  if [[ -z "$ghcr_image" ]]; then
+    continue
+  fi
+
+  echo "Processing image: $ghcr_image"
+
+  # Check for tag+digest format (e.g. image:tag@digest)
+  ghcr_tag_image=""
+  if [[ "$ghcr_image" == *":"*"@"* ]]; then
+    # Extract the tag version (image:tag)
+    ghcr_tag_image=$(echo "$ghcr_image" | sed 's/@.*//')
+
+    # Strip tag from main variable (image@digest)
+    ghcr_image=$(echo "$ghcr_image" | sed 's/:[^:/]*@/@/')
+  fi
+
+  # Remove ghcr.io/i-am-bee/ prefix to get Docker Hub image
+  if [[ $ghcr_image =~ ^ghcr\.io/i-am-bee/(.+)$ ]]; then
+    dockerhub_image="${BASH_REMATCH[1]}"
+
+    echo "GHCR image: $ghcr_image"
+    echo "Docker Hub image: $dockerhub_image"
+
+    # Check if image exists in GHCR
+    if docker manifest inspect "$ghcr_image" >/dev/null 2>&1; then
+      echo "✅ Image $ghcr_image already exists in GHCR"
+      continue
+    fi
+
+    echo "❌ Image $ghcr_image not found in GHCR"
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "🔍 DRY RUN: Would sync $dockerhub_image -> $ghcr_image"
+      continue
+    fi
+
+    # Check if source image exists in Docker Hub
+    if ! docker manifest inspect "$dockerhub_image" >/dev/null 2>&1; then
+      echo "❌ Source image $dockerhub_image not found in Docker Hub"
+      continue
+    fi
+
+    echo "🔄 Syncing $dockerhub_image -> $ghcr_image"
+
+    # Copy image with all architectures using skopeo
+    skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_image"
+
+    echo "✅ Successfully synced $ghcr_image"
+
+    # Sync the tag version if it exists
+    if [[ -n "$ghcr_tag_image" ]]; then
+      echo "🏷️  Also syncing tag: $ghcr_tag_image"
+
+      if docker manifest inspect "$ghcr_tag_image" >/dev/null 2>&1; then
+        echo "✅ Tag $ghcr_tag_image already exists in GHCR"
+      else
+        if [[ "$DRY_RUN" == "true" ]]; then
+          echo "🔍 DRY RUN: Would sync $dockerhub_image -> $ghcr_tag_image"
+        else
+          skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_tag_image"
+          echo "✅ Successfully synced tag $ghcr_tag_image"
+        fi
+      fi
+    fi
+  else
+    echo "⚠️  Skipping image with unexpected format: $ghcr_image"
+  fi
+done
+
+echo "Image sync completed!"
+{% endraw %}
+'''
+
 ["release:checkout"]
 description = "Checkout the latest release branch"
 dir = "{{config_root}}"
@@ -623,111 +721,6 @@ mv "$HOME/.ssh/config.tmp" "$HOME/.ssh/config"
 git remote remove "$VM_NAME" 2>/dev/null || true
 limactl delete -f "$VM_NAME"
 """
-
-# misc tasks
-
-["sync-images-to-ghcr"]
-dir = "{{config_root}}"
-depends = ["helm:build:dependencies"]
-usage = "flag --dryrun"
-run = '''
-#!/bin/bash
-
-set -euo pipefail
-DRY_RUN="${usage_dryrun:-false}"
-
-{% raw %}
-echo "Extracting images from helm chart..."
-
-# Extract images from helm chart
-images=$(helm template \
-  --set phoenix.enabled=true \
-  --set encryptionKey=dummy \
-  --set auth.enabled=false \
-  --set providerBuilds.enabled=true \
-  --set localDockerRegistry.enabled=true \
-  --set redis.enabled=true \
-  ./helm 2>/dev/null | \
-    sed -n '/^[[:space:]]*image:/{ /{{/d; s/.*image:[[:space:]]*//p; }' | \
-    sed 's/"\([^"]*\)"/\1/' | grep -v 'agentstack')
-
-echo "Found images:"
-echo "$images"
-
-# Process each image
-echo "$images" | while IFS= read -r ghcr_image; do
-  if [[ -z "$ghcr_image" ]]; then
-    continue
-  fi
-
-  echo "Processing image: $ghcr_image"
-
-  # Check for tag+digest format (e.g. image:tag@digest)
-  ghcr_tag_image=""
-  if [[ "$ghcr_image" == *":"*"@"* ]]; then
-    # Extract the tag version (image:tag)
-    ghcr_tag_image=$(echo "$ghcr_image" | sed 's/@.*//')
-    
-    # Strip tag from main variable (image@digest)
-    ghcr_image=$(echo "$ghcr_image" | sed 's/:[^:/]*@/@/')
-  fi
-
-  # Remove ghcr.io/i-am-bee/ prefix to get Docker Hub image
-  if [[ $ghcr_image =~ ^ghcr\.io/i-am-bee/(.+)$ ]]; then
-    dockerhub_image="${BASH_REMATCH[1]}"
-
-    echo "GHCR image: $ghcr_image"
-    echo "Docker Hub image: $dockerhub_image"
-
-    # Check if image exists in GHCR
-    if docker manifest inspect "$ghcr_image" >/dev/null 2>&1; then
-      echo "✅ Image $ghcr_image already exists in GHCR"
-      continue
-    fi
-
-    echo "❌ Image $ghcr_image not found in GHCR"
-
-    if [[ "$DRY_RUN" == "true" ]]; then
-      echo "🔍 DRY RUN: Would sync $dockerhub_image -> $ghcr_image"
-      continue
-    fi
-
-    # Check if source image exists in Docker Hub
-    if ! docker manifest inspect "$dockerhub_image" >/dev/null 2>&1; then
-      echo "❌ Source image $dockerhub_image not found in Docker Hub"
-      continue
-    fi
-
-    echo "🔄 Syncing $dockerhub_image -> $ghcr_image"
-
-    # Copy image with all architectures using skopeo
-    skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_image"
-
-    echo "✅ Successfully synced $ghcr_image"
-
-    # Sync the tag version if it exists
-    if [[ -n "$ghcr_tag_image" ]]; then
-      echo "🏷️  Also syncing tag: $ghcr_tag_image"
-      
-      if docker manifest inspect "$ghcr_tag_image" >/dev/null 2>&1; then
-        echo "✅ Tag $ghcr_tag_image already exists in GHCR"
-      else
-        if [[ "$DRY_RUN" == "true" ]]; then
-          echo "🔍 DRY RUN: Would sync $dockerhub_image -> $ghcr_tag_image"
-        else
-          skopeo copy --multi-arch all docker://"$dockerhub_image" docker://"$ghcr_tag_image"
-          echo "✅ Successfully synced tag $ghcr_tag_image"
-        fi
-      fi
-    fi
-  else
-    echo "⚠️  Skipping image with unexpected format: $ghcr_image"
-  fi
-done
-
-echo "Image sync completed!"
-{% endraw %}
-'''
 
 # security
 

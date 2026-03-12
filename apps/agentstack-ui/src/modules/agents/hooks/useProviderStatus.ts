@@ -4,7 +4,7 @@
  */
 
 import type { Provider } from 'agentstack-sdk';
-import { ProviderStatus } from 'agentstack-sdk';
+import { ProviderState } from 'agentstack-sdk';
 
 import { useProvider } from '#modules/providers/api/queries/useProvider.ts';
 
@@ -14,10 +14,10 @@ interface Props {
 
 function getStatusHelpers(data?: Provider) {
   const status = data?.state;
-  const isNotInstalled = status === ProviderStatus.Missing;
-  const isStarting = status === ProviderStatus.Starting;
-  const isError = status === ProviderStatus.Error;
-  const isReady = status === ProviderStatus.Ready || status === ProviderStatus.Running;
+  const isNotInstalled = false;
+  const isStarting = false;
+  const isError = status === ProviderState.Offline;
+  const isReady = status === ProviderState.Online;
 
   return {
     status,

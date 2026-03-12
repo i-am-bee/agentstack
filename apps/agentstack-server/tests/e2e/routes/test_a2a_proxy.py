@@ -1235,7 +1235,7 @@ async def test_invalid_request_raises_a2a_error(client: Client, handler: mock.As
     # set provider as offline
     provider_id = str(client.base_url).rstrip("/").split("/")[-1]
     await db_transaction.execute(
-        text("UPDATE providers SET unmanaged_state = 'offline' WHERE id = :provider_id"),
+        text("UPDATE providers SET state = 'offline' WHERE id = :provider_id"),
         {"provider_id": provider_id},
     )
     await db_transaction.commit()

@@ -21,7 +21,6 @@ import type {
   providerEnvVarSchema,
   providerErrorSchema,
   providerSchema,
-  providerVersionInfoSchema,
   readProviderByLocationRequestSchema,
   readProviderByLocationResponseSchema,
   readProviderLogsRequestSchema,
@@ -32,27 +31,13 @@ import type {
   updateProviderVariablesResponseSchema,
 } from './schemas';
 
-export enum ProviderType {
-  Managed = 'managed',
-  Unmanaged = 'unmanaged',
-}
-
-export enum ProviderStatus {
-  Missing = 'missing',
-  Starting = 'starting',
-  Ready = 'ready',
-  Running = 'running',
-  Error = 'error',
-}
-
-export enum ProviderUnmanagedStatus {
+export enum ProviderState {
   Online = 'online',
   Offline = 'offline',
 }
 
 export type ProviderError = z.infer<typeof providerErrorSchema>;
 export type ProviderEnvVar = z.infer<typeof providerEnvVarSchema>;
-export type ProviderVersionInfo = z.infer<typeof providerVersionInfoSchema>;
 
 export type Provider = z.infer<typeof providerSchema>;
 

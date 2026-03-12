@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 from fastapi import FastAPI
 from opentelemetry import metrics, trace
@@ -29,8 +30,15 @@ from agentstack_sdk import __version__
 root_logger = logging.getLogger()
 
 
+_DEFAULT_OTEL_ENDPOINT = "http://otel-collector.localtest.me:8080"
+
+
 def configure_telemetry(app: FastAPI) -> None:
     """Utility that configures opentelemetry with OTLP exporter and FastAPI instrumentation"""
+
+    # Set a sensible default OTLP endpoint for local agentstack deployments
+    if not os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+        os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = _DEFAULT_OTEL_ENDPOINT
 
     FastAPIInstrumentor.instrument_app(app)
 

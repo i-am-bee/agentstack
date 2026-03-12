@@ -11,7 +11,7 @@ export const APP_FAVICON_SVG = process.env.NEXT_PUBLIC_APP_FAVICON_SVG ?? '/favi
 
 export const APP_FAVICON_SVG_DARK = process.env.NEXT_PUBLIC_APP_FAVICON_SVG_DARK ?? '/favicon-dark.svg';
 
-export const API_URL = process.env.API_URL ?? 'http://127.0.0.1:8333';
+export const API_URL = process.env.API_URL ?? 'http://agentstack-api.localtest.me:8080';
 
 export const PROD_MODE = process.env.NODE_ENV === 'production';
 

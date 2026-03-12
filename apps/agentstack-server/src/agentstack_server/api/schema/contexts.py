@@ -55,10 +55,7 @@ class GlobalPermissionGrant(BaseModel):
     a2a_proxy: list[Literal["*"]] | list[UUID] = Field(default_factory=list)
 
     # agent providers
-    providers: list[Literal["read", "write", "*"]] = Field(
-        default_factory=list
-    )  # write includes "show logs" permission
-    provider_variables: list[Literal["read", "write", "*"]] = Field(default_factory=list)
+    providers: list[Literal["read", "write", "*"]] = Field(default_factory=list)
 
     contexts: list[Literal["read", "write", "*"]] = Field(default_factory=list)
     context_data: list[Literal["read", "write", "*"]] = Field(default_factory=list)

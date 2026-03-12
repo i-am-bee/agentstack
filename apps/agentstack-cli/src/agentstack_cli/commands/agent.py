@@ -92,7 +92,7 @@ from agentstack_sdk.a2a.extensions.ui.settings import (
 from agentstack_sdk.a2a.extensions.ui.settings import (
     SingleSelectFieldValue as SettingsSingleSelectFieldValue,
 )
-from agentstack_sdk.platform import BuildState, File, ModelProvider, Provider, UserFeedback
+from agentstack_sdk.platform import File, ModelProvider, Provider, UserFeedback
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
 from agentstack_sdk.platform.model_provider import ModelCapability
 from InquirerPy import inquirer
@@ -104,7 +104,6 @@ from rich.console import ConsoleRenderable, Group, NewLine
 from rich.panel import Panel
 from rich.text import Text
 
-from agentstack_cli.commands.build import _server_side_build
 from agentstack_cli.commands.model import ensure_llm_provider
 from agentstack_cli.configuration import Configuration
 
@@ -132,11 +131,6 @@ from agentstack_cli.async_typer import AsyncTyper, console, create_table, err_co
 from agentstack_cli.server_utils import announce_server_action, confirm_server_action
 from agentstack_cli.utils import (
     generate_schema_example,
-    get_github_repo_tags,
-    github_url_verbose_pattern,
-    is_github_url,
-    parse_env_var,
-    print_log,
     prompt_user,
     remove_nullable,
     status,
@@ -199,132 +193,209 @@ processing_messages = [
 
 configuration = Configuration()
 
-DISCOVERY_TIMEOUT_SEC = 180
-DISCOVERY_POLL_INTERVAL_SEC = 2
 
+async def _discover_agent_card(location: str) -> AgentCard:
+    """Fetch agent card from a network URL's well-known endpoint."""
+    from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
 
-async def _discover_agent_card(docker_image: str) -> AgentCard:
-    from agentstack_sdk.platform.provider_discovery import DiscoveryState, ProviderDiscovery
-
-    console.info("Image missing agent card label, starting discovery...")
-
-    async with configuration.use_platform_client():
-        with status("Creating discovery task"):
-            discovery = await ProviderDiscovery.create(docker_image=docker_image)
-
-        start = asyncio.get_event_loop().time()
-        with status("Discovering agent card (this may take a while)"):
-            while discovery.status in (DiscoveryState.PENDING, DiscoveryState.IN_PROGRESS):
-                if asyncio.get_event_loop().time() - start > DISCOVERY_TIMEOUT_SEC:
-                    raise RuntimeError("Discovery timed out after 3 minutes")
-                await asyncio.sleep(DISCOVERY_POLL_INTERVAL_SEC)
-                await discovery.get()
-
-        if discovery.status == DiscoveryState.FAILED:
-            raise RuntimeError(f"Discovery failed: {discovery.error_message}")
-
-        card = discovery.agent_card
-        if not card:
-            raise RuntimeError("Discovery completed but no agent card was returned")
-
-        return card
+    url = location.rstrip("/") + AGENT_CARD_WELL_KNOWN_PATH
+    console.info(f"Fetching agent card from {url}...")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, timeout=30)
+        resp.raise_for_status()
+        return AgentCard.model_validate(resp.json())
 
 
 @app.command("add")
 async def add_agent(
     location: typing.Annotated[
-        str | None, typer.Argument(help="Agent location (public docker image or github url)")
+        str | None, typer.Argument(help="Agent image or network URL")
     ] = None,
-    dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
-    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
+    name: typing.Annotated[str | None, typer.Option("--name", "-n", help="Agent name (default: derived from image)")] = None,
+    namespace: typing.Annotated[str, typer.Option(help="Target Kubernetes namespace")] = "team1",
+    port: typing.Annotated[int, typer.Option(help="Agent service port")] = 8080,
+    env: typing.Annotated[list[str] | None, typer.Option("--env", "-e", help="Environment variable in KEY=VALUE format (repeatable)")] = None,
+    env_file: typing.Annotated[str | None, typer.Option("--env-file", help="Path to env file (KEY=VALUE per line)")] = None,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Add a docker image or GitHub repository. [Admin only]
-
-    This command supports a variety of GitHub URL formats for deploying agents:
-
-    - **Basic URL**: `https://github.com/myorg/myrepo`
-    - **Git Protocol URL**: `git+https://github.com/myorg/myrepo`
-    - **URL with .git suffix**: `https://github.com/myorg/myrepo.git`
-    - **URL with Version Tag**: `https://github.com/myorg/myrepo@v1.0.0`
-    - **URL with Branch Name**: `https://github.com/myorg/myrepo@my-branch`
-    - **URL with Subfolder Path**: `https://github.com/myorg/myrepo#path=/path/to/agent`
-    - **Combined Formats**: `https://github.com/myorg/myrepo.git@v1.0.0#path=/path/to/agent`
-    - **Enterprise GitHub**: `https://github.mycompany.com/myorg/myrepo`
-    - **With a custom Dockerfile location**: `agentstack add --dockerfile /my-agent/path/to/Dockerfile "https://github.com/my-org/my-awesome-agents@main#path=/my-agent"`
-    """
-    repo_input = location
+    """Add an agent by container image or network URL. [Admin only]"""
     if location is None:
-        repo_input = (
+        location = (
             await inquirer.text(
-                message="Enter GitHub repository (owner/repo or full URL):",
+                message="Enter agent image or URL:",
             ).execute_async()
             or ""
         )
 
-    if not repo_input:
+    if not location:
         console.error("No location provided. Exiting.")
         sys.exit(1)
 
-    if match := re.match(github_url_verbose_pattern, repo_input, re.VERBOSE):
-        owner, repo, version, path = (
-            match.group("org"),
-            match.group("repo").removesuffix(".git"),
-            match.group("version"),
-            match.group("path"),
-        )
-
-        if version is None and path is None:
-            host = match.group("host")
-            tags = await get_github_repo_tags(host, owner, repo)
-
-            if tags:
-                selected_tag = await inquirer.fuzzy(
-                    message="Select a tag to use:",
-                    choices=tags,
-                ).execute_async()
-            else:
-                selected_tag = (
-                    await inquirer.text(
-                        message="Enter tag to use:",
-                    ).execute_async()
-                    or "main"
-                )
-
-            location = f"https://github.com/{owner}/{repo}@{selected_tag}"
-        else:
-            location = repo_input
-    else:
-        location = repo_input
-
     url = announce_server_action(f"Installing agent '{location}' for")
     await confirm_server_action("Proceed with installing this agent on", url=url, yes=yes)
-    with verbosity(verbose):
-        if is_github_url(location):
-            console.info(f"Assuming GitHub repository, attempting to build agent from [bold]{location}[/bold]")
-            with status("Building agent"):
-                build = await _server_side_build(location, dockerfile, add=True, verbose=verbose)
-            if build.status != BuildState.COMPLETED:
-                error = build.error_message or "see logs above for details"
-                raise RuntimeError(f"Agent build failed: {error}")
-        else:
-            if dockerfile:
-                raise ValueError("Dockerfile can be specified only if location is a GitHub url")
-            console.info(f"Assuming public docker image or network address, attempting to add {location}")
-            try:
-                with status("Registering agent to platform"):
+
+    # Detect if location is a container image (contains registry address or no protocol)
+    is_image = not location.startswith("http://") and not location.startswith("https://")
+
+    if is_image:
+        await _add_agent_via_kagenti(location, name=name, namespace=namespace, port=port, env=env, env_file=env_file)
+    else:
+        # Legacy path: register network URL directly with agentstack
+        try:
+            with status("Registering agent to platform"):
+                async with configuration.use_platform_client():
+                    await Provider.create(location=location)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 422:
+                agent_card = await _discover_agent_card(location)
+                with status("Registering agent with discovered card"):
                     async with configuration.use_platform_client():
-                        await Provider.create(location=location)
-            except httpx.HTTPStatusError as e:
-                if e.response.status_code == 422:
-                    agent_card = await _discover_agent_card(location)
-                    with status("Registering agent with discovered card"):
-                        async with configuration.use_platform_client():
-                            await Provider.create(location=location, agent_card=agent_card)
-                else:
-                    raise
+                        await Provider.create(location=location, agent_card=agent_card)
+            else:
+                raise
         console.success(f"Agent [bold]{location}[/bold] added to platform")
-        await list_agents()
+    await list_agents()
+
+
+async def _add_agent_via_kagenti(
+    image: str,
+    *,
+    name: str | None,
+    namespace: str,
+    port: int,
+    env: list[str] | None = None,
+    env_file: str | None = None,
+) -> None:
+    """Deploy a pre-built image via kagenti and wait for it to become healthy."""
+    import asyncio
+    import contextlib
+    import re
+
+    from agentstack_cli.kagenti_client import KagentiClient
+
+    # Derive name from image if not provided
+    if not name:
+        # Extract last path component, strip tag/digest
+        raw = image.rsplit("/", 1)[-1].split(":")[0].split("@")[0]
+        name = re.sub(r"[^a-z0-9-]", "-", raw.lower()).strip("-")[:63] or "agent"
+
+    # Get auth token
+    auth_token = None
+    try:
+        auth_token = await configuration.auth_manager.load_auth_token()
+    except Exception:
+        if configuration.auth_manager.active_server and "agentstack-api.localtest.me" in configuration.auth_manager.active_server:
+            with contextlib.suppress(Exception):
+                auth_token = await configuration.auth_manager.login_with_password(
+                    configuration.auth_manager.active_server, username="admin", password="admin"
+                )
+
+    if not auth_token:
+        console.error("Not authenticated. Run [green]agentstack server login[/green] first.")
+        sys.exit(1)
+
+    client = KagentiClient(configuration.kagenti_url, auth_token.access_token)
+
+    # Build env vars: start with defaults, then merge user-provided ones
+    env_vars: dict[str, str] = {
+        "PORT": "8000",
+        "HOST": "0.0.0.0",
+        "PLATFORM_URL": "http://agentstack-server-svc.agentstack:8333",
+        "PLATFORM_AUTH__SKIP_AUDIENCE_VALIDATION": "true",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://otel-collector.kagenti-system:8335",
+    }
+
+    # Parse --env-file (KEY=VALUE per line, ignoring comments and blank lines)
+    if env_file:
+        try:
+            with open(env_file) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    key, _, value = line.partition("=")
+                    if key:
+                        env_vars[key.strip()] = value.strip()
+        except FileNotFoundError:
+            console.error(f"Env file not found: {env_file}")
+            sys.exit(1)
+
+    # Parse --env KEY=VALUE flags (override env-file and defaults)
+    if env:
+        for entry in env:
+            key, _, value = entry.partition("=")
+            if not key or not _:
+                console.error(f"Invalid env format '{entry}', expected KEY=VALUE")
+                sys.exit(1)
+            env_vars[key] = value
+
+    # Create agent in kagenti
+    request = {
+        "name": name,
+        "namespace": namespace,
+        "deploymentMethod": "image",
+        "containerImage": image,
+        "workloadType": "deployment",
+        "servicePorts": [{"port": port, "protocol": "TCP"}],
+        "envVars": [{"name": k, "value": v} for k, v in env_vars.items()],
+    }
+
+    try:
+        with status(f"Deploying agent '{name}' via kagenti"):
+            await client.create_agent(request)
+    except httpx.ConnectError:
+        console.error(f"Cannot connect to kagenti at [cyan]{configuration.kagenti_url}[/cyan]")
+        sys.exit(1)
+    except httpx.HTTPStatusError as e:
+        detail = ""
+        with contextlib.suppress(Exception):
+            detail = e.response.json().get("detail", "")
+        console.error(f"Failed to create agent: {e.response.status_code} {detail or e.response.text}")
+        sys.exit(1)
+
+    console.success(f"Agent [bold]{name}[/bold] submitted to kagenti")
+
+    # Poll kagenti for agent health (60s timeout)
+    console.info("Waiting for agent to become healthy in kagenti...")
+    healthy = False
+    for _ in range(60):
+        await asyncio.sleep(1)
+        try:
+            agent = await client.get_agent(namespace, name)
+            ready_status = agent.get("readyStatus", "")
+            if ready_status.lower() in ("running", "ready", "healthy"):
+                healthy = True
+                break
+        except Exception:
+            pass
+
+    if not healthy:
+        console.warning(
+            f"Agent [bold]{name}[/bold] did not become healthy within 60s. "
+            f"Check kagenti UI or [green]kubectl get pods -n {namespace}[/green] for details."
+        )
+    else:
+        console.success(f"Agent [bold]{name}[/bold] is healthy in kagenti")
+
+    # Wait for agent to appear in agentstack (30s timeout)
+    console.info("Waiting for agent to appear in agentstack...")
+    appeared = False
+    for _ in range(30):
+        await asyncio.sleep(1)
+        try:
+            async with configuration.use_platform_client():
+                providers = await Provider.list()
+                if any(name in (p.agent_card.name or "") or name in (p.origin or "") for p in providers):
+                    appeared = True
+                    break
+        except Exception:
+            pass
+
+    if not appeared:
+        console.warning(
+            f"Agent [bold]{name}[/bold] has not appeared in agentstack within 30s. "
+            "It may take longer for kagenti to sync the agent."
+        )
 
 
 @app.command("update")
@@ -333,89 +404,53 @@ async def update_agent(
         str | None, typer.Argument(help="Short ID, agent name or part of the provider location of agent to replace")
     ] = None,
     location: typing.Annotated[
-        str | None, typer.Argument(help="Agent location (public docker image or github url)")
+        str | None, typer.Argument(help="New agent location (network URL)")
     ] = None,
-    dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
-    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
     yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
 ) -> None:
-    """Upgrade agent to a newer docker image or build from GitHub repository. [Admin only]"""
-    with verbosity(verbose):
-        async with configuration.use_platform_client():
-            providers = await Provider.list()
+    """Update an agent's location. [Admin only]"""
+    async with configuration.use_platform_client():
+        providers = await Provider.list()
 
-        if search_path is None:
-            if not providers:
-                console.error("No agents found. Add an agent first using 'agentstack agent add'.")
-                sys.exit(1)
-
-            provider_choices = [
-                Choice(value=p, name=f"{p.agent_card.name} ({ProviderUtils.short_location(p)})") for p in providers
-            ]
-            provider = await inquirer.fuzzy(
-                message="Select an agent to update:",
-                choices=provider_choices,
-            ).execute_async()
-            if not provider:
-                console.error("No agent selected. Exiting.")
-                sys.exit(1)
-        else:
-            provider = select_provider(search_path, providers=providers)
-
-        if location is None and is_github_url(provider.origin):
-            match = re.match(github_url_verbose_pattern, provider.origin, re.VERBOSE)
-
-            if match:
-                host, owner, repo = (
-                    match.group("host"),
-                    match.group("owner"),
-                    match.group("repo").removesuffix(".git"),
-                )
-
-                tags = await get_github_repo_tags(host, owner, repo)
-
-                if tags:
-                    selected_tag = await inquirer.fuzzy(
-                        message="Select a new tag to use:",
-                        choices=tags,
-                    ).execute_async()
-                    if selected_tag:
-                        location = f"https://github.com/{owner}/{repo}@{selected_tag}"
-
-        if location is None:
-            location = (
-                await inquirer.text(
-                    message="Enter new agent location (public docker image or github url):",
-                    default=provider.origin.lstrip("git+"),
-                ).execute_async()
-                or ""
-            )
-
-        if not location:
-            console.error("No location provided. Exiting.")
+    if search_path is None:
+        if not providers:
+            console.error("No agents found. Add an agent first using 'agentstack agent add'.")
             sys.exit(1)
 
-        url = announce_server_action(f"Upgrading agent from '{provider.origin}' to {location}")
-        await confirm_server_action("Proceed with upgrading agent on", url=url, yes=yes)
+        provider_choices = [
+            Choice(value=p, name=f"{p.agent_card.name} ({ProviderUtils.short_location(p)})") for p in providers
+        ]
+        provider = await inquirer.fuzzy(
+            message="Select an agent to update:",
+            choices=provider_choices,
+        ).execute_async()
+        if not provider:
+            console.error("No agent selected. Exiting.")
+            sys.exit(1)
+    else:
+        provider = select_provider(search_path, providers=providers)
 
-        if is_github_url(location):
-            console.info(f"Assuming GitHub repository, attempting to build agent from [bold]{location}[/bold]")
-            with status("Building agent"):
-                build = await _server_side_build(
-                    github_url=location, dockerfile=dockerfile, replace=provider.id, verbose=verbose
-                )
-            if build.status != BuildState.COMPLETED:
-                error = build.error_message or "see logs above for details"
-                raise RuntimeError(f"Agent build failed: {error}")
-        else:
-            if dockerfile:
-                raise ValueError("Dockerfile can be specified only if location is a GitHub url")
-            console.info(f"Assuming public docker image or network address, attempting to add {location}")
-            with status("Upgrading agent in the platform"):
-                async with configuration.use_platform_client():
-                    await provider.patch(location=location)
-        console.success(f"Agent [bold]{location}[/bold] added to platform")
-        await list_agents()
+    if location is None:
+        location = (
+            await inquirer.text(
+                message="Enter new agent location (URL):",
+                default=provider.origin,
+            ).execute_async()
+            or ""
+        )
+
+    if not location:
+        console.error("No location provided. Exiting.")
+        sys.exit(1)
+
+    url = announce_server_action(f"Upgrading agent from '{provider.origin}' to {location}")
+    await confirm_server_action("Proceed with upgrading agent on", url=url, yes=yes)
+
+    with status("Upgrading agent in the platform"):
+        async with configuration.use_platform_client():
+            await provider.patch(location=location)
+    console.success(f"Agent [bold]{location}[/bold] updated on platform")
+    await list_agents()
 
 
 def search_path_match_providers(search_path: str, providers: list[Provider]) -> dict[str, Provider]:
@@ -455,7 +490,10 @@ async def select_providers_multi(search_path: str, providers: list[Provider]) ->
     choices = [Choice(value=p.id, name=f"{p.agent_card.name} - {p.id}") for p in provider_candidates.values()]
 
     selected_ids = await inquirer.checkbox(
-        message="Select agents to remove (use ↑/↓ to navigate, Space to select):", choices=choices
+        message="Select agents to remove (use ↑/↓ to navigate, Space to select):",
+        choices=choices,
+        validate=lambda result: len(result) > 0,
+        invalid_message="Please select at least one agent using Space before pressing Enter.",
     ).execute_async()
 
     return [provider_candidates[pid] for pid in (selected_ids or [])]
@@ -511,21 +549,41 @@ async def uninstall_agent(
                 err_console.print(f"Failed to delete {provider.agent_card.name}: {result}")
             # else: deletion succeeded
 
+        # Also delete kagenti-sourced agents from kagenti
+        kagenti_providers = [p for p in selected_providers if p.source_type == "kagenti" and p.origin]
+        if kagenti_providers:
+            import contextlib
+            from urllib.parse import urlparse
+
+            from agentstack_cli.kagenti_client import KagentiClient
+
+            auth_token = None
+            try:
+                auth_token = await configuration.auth_manager.load_auth_token()
+            except Exception:
+                if configuration.auth_manager.active_server and "agentstack-api.localtest.me" in configuration.auth_manager.active_server:
+                    with contextlib.suppress(Exception):
+                        auth_token = await configuration.auth_manager.login_with_password(
+                            configuration.auth_manager.active_server, username="admin", password="admin"
+                        )
+
+            if auth_token:
+                client = KagentiClient(configuration.kagenti_url, auth_token.access_token)
+                for provider in kagenti_providers:
+                    # Parse name and namespace from origin URL: http://{name}.{namespace}.svc.cluster.local:8080
+                    parsed = urlparse(provider.origin)
+                    host_parts = (parsed.hostname or "").split(".")
+                    if len(host_parts) >= 2:
+                        agent_name, namespace = host_parts[0], host_parts[1]
+                        try:
+                            await client.delete_agent(namespace, agent_name)
+                            console.success(f"Deleted [bold]{agent_name}[/bold] from kagenti")
+                        except Exception as ex:
+                            err_console.print(f"Failed to delete {agent_name} from kagenti: {ex}")
+            else:
+                err_console.print("Could not authenticate to kagenti — agents may reappear via sync.")
+
     await list_agents()
-
-
-@app.command("logs")
-async def stream_logs(
-    search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
-    ],
-):
-    """Stream agent provider logs. [Admin only]"""
-    async with configuration.use_platform_client():
-        provider = select_provider(search_path, await Provider.list())
-        announce_server_action(f"Streaming logs for '{provider.agent_card.name}' from")
-        async for message in Provider.stream_logs(provider.id):
-            print_log(message, ansi_mode=True)
 
 
 async def _ask_form_questions(form_render: FormRender) -> FormResponse:
@@ -1311,12 +1369,7 @@ async def list_agents():
     max_provider_len = max(len(ProviderUtils.short_location(p)) for p in providers) if providers else 0
 
     def _sort_fn(provider: Provider):
-        state = {"missing": "1"}
-        return (
-            str(state.get(provider.state, 0)) + f"_{provider.agent_card.name}"
-            if provider.registry
-            else provider.agent_card.name
-        )
+        return provider.agent_card.name
 
     with create_table(
         Column("Short ID", style="yellow"),
@@ -1343,9 +1396,7 @@ async def list_agents():
                 (
                     f"Error: {error}"
                     if provider.state == "error" and (error := ProviderUtils.last_error(provider))
-                    else f"Missing ENV: {{{', '.join(missing_env)}}}"
-                    if (missing_env := [var.name for var in provider.missing_configuration])
-                    else "<none>"
+                    else ""
                 ),
             )
     console.print(table)
@@ -1416,71 +1467,10 @@ async def agent_detail(
     console.print(table)
 
     with create_table(Column("Key", ratio=1), Column("Value", ratio=5), title="Provider") as table:
-        for key, value in provider.model_dump(exclude={"image_id", "manifest", "source", "registry"}).items():
+        for key, value in provider.model_dump(exclude={"source"}).items():
             table.add_row(key, str(value))
     console.print()
     console.print(table)
-
-
-env_app = AsyncTyper()
-app.add_typer(env_app, name="env")
-
-
-async def _list_env(provider: Provider):
-    async with configuration.use_platform_client():
-        variables = await provider.list_variables()
-    with create_table(Column("name", style="yellow"), Column("value", ratio=1)) as table:
-        for name, value in sorted(variables.items()):
-            table.add_row(name, value)
-    console.print(table)
-
-
-@env_app.command("add")
-async def add_env(
-    search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
-    ],
-    env: typing.Annotated[list[str], typer.Argument(help="Environment variables to pass to agent")],
-    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
-) -> None:
-    """Store environment variables. [Admin only]"""
-    url = announce_server_action(f"Adding environment variables for '{search_path}' on")
-    await confirm_server_action("Apply these environment variable changes on", url=url, yes=yes)
-    env_vars = dict(parse_env_var(var) for var in env)
-    async with configuration.use_platform_client():
-        provider = select_provider(search_path, await Provider.list())
-        await provider.update_variables(variables=env_vars)
-    await _list_env(provider)
-
-
-@env_app.command("list")
-async def list_env(
-    search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
-    ],
-):
-    """List stored environment variables. [Admin only]"""
-    announce_server_action(f"Listing environment variables for '{search_path}' on")
-    async with configuration.use_platform_client():
-        provider = select_provider(search_path, await Provider.list())
-    await _list_env(provider)
-
-
-@env_app.command("remove")
-async def remove_env(
-    search_path: typing.Annotated[
-        str, typer.Argument(..., help="Short ID, agent name or part of the provider location")
-    ],
-    env: typing.Annotated[list[str], typer.Argument(help="Environment variable(s) to remove")],
-    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
-):
-    """Remove environment variable(s). [Admin only]"""
-    url = announce_server_action(f"Removing environment variables from '{search_path}' on")
-    await confirm_server_action("Remove the selected environment variables on", url=url, yes=yes)
-    async with configuration.use_platform_client():
-        provider = select_provider(search_path, await Provider.list())
-        await provider.update_variables(variables=dict.fromkeys(env))
-    await _list_env(provider)
 
 
 feedback_app = AsyncTyper()

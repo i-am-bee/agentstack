@@ -117,6 +117,15 @@ async def server_login(
 
     server = server.rstrip("/")
 
+    # Local dev shortcut: use resource owner password grant with admin:admin
+    if "agentstack-api.localtest.me" in server:
+        try:
+            await config.auth_manager.login_with_password(server, username="admin", password="admin")
+            console.success(f"Logged in to [cyan]{server}[/cyan] (local dev).")
+            return
+        except Exception as e:
+            console.warning(f"Auto-login failed: {e!s}. Falling back to interactive login.")
+
     check_token = True
     log_in_message = "No authentication tokens found for this server. Proceeding to log in."
 

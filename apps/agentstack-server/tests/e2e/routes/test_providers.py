@@ -13,38 +13,27 @@ pytestmark = pytest.mark.e2e
 
 logger = logging.getLogger(__name__)
 
+TEST_AGENT_CARD = AgentCard(
+    name="TestAgent",
+    description="A test agent",
+    url="http://test-agent.example.com:8000/",
+    version="1.0.0",
+    default_input_modes=["text"],
+    default_output_modes=["text"],
+    capabilities=AgentCapabilities(),
+    skills=[],
+)
+
 
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
-async def test_provider_crud(subtests, test_configuration):
+async def test_provider_crud(subtests):
     with subtests.test("add provider"):
-        variables = {"test": "var"}
-        provider = await Provider.create(location=test_configuration.test_agent_image, variables=variables)
-        assert await provider.list_variables() == variables
-
-    with subtests.test("patch provider"):
-        new_source = test_configuration.test_agent_image
-        new_agent_card = AgentCard(
-            name="test",
-            description="test",
-            url="http://localhost:8000/",
-            version="1.0.0",
-            default_input_modes=["text"],
-            default_output_modes=["text"],
-            capabilities=AgentCapabilities(),
-            skills=[],
+        provider = await Provider.create(
+            location="http://test-agent.example.com:8000",
+            agent_card=TEST_AGENT_CARD,
         )
-        provider = await provider.patch(location=new_source, agent_card=new_agent_card)
-        assert provider.agent_card.name == new_agent_card.name
-        assert provider.source == new_source
-        assert await provider.list_variables() == variables  # variables haven't changed
-
-    with subtests.test("change provider variables"):
-        new_variables = {"other": "var"}
-        provider = await provider.patch(variables=new_variables)
-        assert await provider.list_variables() == new_variables
-
-        provider = await provider.patch(variables={})
-        assert await provider.list_variables() == {}
+        assert provider.agent_card.name == "TestAgent"
+        assert provider.source_type == "api"
 
     with subtests.test("test user_owned filtering"):
         # Test user_owned=True (should see exactly 1 provider - admin's)

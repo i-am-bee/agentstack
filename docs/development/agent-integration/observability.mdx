@@ -118,17 +118,20 @@ Telemetry details include:
 <Steps>
    <Step title="Install and Enable">
 
-Install and start Phoenix using the `agentstack platform start` command:
+Phoenix is included by default as part of the kagenti observability stack (OTel collector + Phoenix). Simply start the platform:
 ```sh
-agentstack platform start --set phoenix.enabled=true
+agentstack platform start
 ```
 
-You can run this even if your platform is already running; it will update the configuration without losing existing data.
+To disable Phoenix and the OTel collector, pass:
+```sh
+agentstack platform start --set kagenti-deps:components.otel.enabled=false
+```
 
   </Step>
-  
+
   <Step title="Verify Initialization">
-Spinning up the Phoenix container can take a moment, even after the CLI reports success. Go to [http://localhost:6006](http://localhost:6006) and check if it's running. If not, please wait a few moments.
+Spinning up the Phoenix container can take a moment, even after the CLI reports success. Go to [http://phoenix.localtest.me:8080](http://phoenix.localtest.me:8080) and check if it's running. If not, please wait a few moments.
 
    </Step>
    

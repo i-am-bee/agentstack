@@ -10,7 +10,6 @@ import { createConnectorsApi } from '../connectors/api';
 import { createContextsApi } from '../contexts/api';
 import { createFilesApi } from '../files/api';
 import { createModelProvidersApi } from '../model-providers/api';
-import { createProviderBuildsApi } from '../provider-builds/api';
 import { createProvidersApi } from '../providers/api';
 import { createUserFeedbackApi } from '../user-feedback/api';
 import { createUsersApi } from '../users/api';
@@ -122,7 +121,6 @@ export const buildApiClient = (
   const contextsApi = createContextsApi(callApi);
   const filesApi = createFilesApi(callApi);
   const modelProvidersApi = createModelProvidersApi(callApi);
-  const providerBuildsApi = createProviderBuildsApi(callApi);
   const providersApi = createProvidersApi(callApi);
   const userFeedbackApi = createUserFeedbackApi(callApi);
   const usersApi = createUsersApi(callApi);
@@ -134,7 +132,6 @@ export const buildApiClient = (
     ...contextsApi,
     ...filesApi,
     ...modelProvidersApi,
-    ...providerBuildsApi,
     ...providersApi,
     ...userFeedbackApi,
     ...usersApi,

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kagenti-keycloak-postgres-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  hostPath:
+    path: /kagenti-keycloak-postgres-data
+    type: Directory
+  claimRef:
+    namespace: keycloak
+    name: postgres-data-postgres-0

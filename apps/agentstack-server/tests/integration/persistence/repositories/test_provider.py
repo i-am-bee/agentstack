@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import timedelta
 
 import pytest
 from a2a.types import AgentCapabilities, AgentCard
@@ -35,7 +34,6 @@ async def test_provider(set_di_configuration, normal_user: UUID) -> Provider:
     return Provider(
         source=source,
         origin=source.origin,
-        registry=None,
         agent_card=AgentCard(
             name="Hello World Agent",
             description="Just a hello world agent",
@@ -46,7 +44,6 @@ async def test_provider(set_di_configuration, normal_user: UUID) -> Provider:
             capabilities=AgentCapabilities(),
             skills=[],
         ),
-        auto_stop_timeout=timedelta(minutes=5),
         created_by=normal_user,
     )
 
@@ -64,9 +61,7 @@ async def test_create_provider(db_transaction: AsyncConnection, test_provider: P
     assert row is not None
     assert str(row.id) == str(test_provider.id)
     assert row.source == str(test_provider.source.root)
-    assert row.registry == (str(test_provider.registry.root) if test_provider.registry else None)
-    assert row.auto_stop_timeout_sec == int(test_provider.auto_stop_timeout.total_seconds())
-    assert row.type == test_provider.type
+    assert row.source_type == test_provider.source_type
 
 
 @pytest.mark.usefixtures("set_di_configuration")
@@ -78,7 +73,7 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, norm
     provider_data = {
         "id": source.provider_id,
         "source": str(source.root),
-        "registry": None,
+        "source_type": "api",
         "created_at": utc_now(),
         "last_active_at": utc_now(),
         "agent_card": {
@@ -92,24 +87,20 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, norm
             "url": "http://localhost:8000/",
             "version": "1.0.0",
         },
-        "auto_stop_timeout_sec": 300,  # 5 minutes
-        "type": "unmanaged",
-        "version_info": {"docker": None, "github": None},
-        "unmanaged_state": None,
+        "state": None,
         "created_by": normal_user,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, type, source, origin, version_info, registry, auto_stop_timeout_sec, agent_card, created_at, updated_at, last_active_at, created_by, unmanaged_state) "
-            "VALUES (:id, :type, :source, :origin, :version_info, :registry, :auto_stop_timeout_sec, :agent_card, :created_at, :updated_at, :last_active_at, :created_by, :unmanaged_state)"
+            "INSERT INTO providers (id, source, source_type, origin, agent_card, created_at, updated_at, last_active_at, created_by, state) "
+            "VALUES (:id, :source, :source_type, :origin, :agent_card, :created_at, :updated_at, :last_active_at, :created_by, :state)"
         ),
         {
             **provider_data,
             "origin": source.origin,
             "updated_at": utc_now(),
             "agent_card": json.dumps(provider_data["agent_card"]),
-            "version_info": json.dumps(provider_data["version_info"]),
         },
     )
     # Get provider
@@ -118,9 +109,8 @@ async def test_get_provider(db_transaction: AsyncConnection, test_provider, norm
     # Verify provider
     assert provider.id == provider_data["id"]
     assert str(provider.source.root) == provider_data["source"]
-    assert provider.registry is None
-    assert provider.auto_stop_timeout == timedelta(seconds=provider_data["auto_stop_timeout_sec"])
-    assert provider.type == provider_data["type"]
+    assert provider.source_type == provider_data["source_type"]
+    assert provider.state is None
 
 
 async def test_get_provider_not_found(db_transaction: AsyncConnection):
@@ -162,7 +152,7 @@ async def test_list_providers(db_transaction: AsyncConnection, normal_user: UUID
     first_provider = {
         "id": source.provider_id,
         "source": str(source.root),
-        "registry": None,
+        "source_type": "api",
         "created_at": utc_now(),
         "last_active_at": utc_now(),
         "agent_card": {
@@ -176,16 +166,13 @@ async def test_list_providers(db_transaction: AsyncConnection, normal_user: UUID
             "url": "http://localhost:8001/",
             "version": "1.0.0",
         },
-        "auto_stop_timeout_sec": 300,
-        "type": "unmanaged",
-        "version_info": {"docker": None, "github": None},
-        "unmanaged_state": None,
+        "state": None,
         "created_by": normal_user,
     }
     second_provider = {
         "id": source2.provider_id,
         "source": str(source2.root),
-        "registry": None,
+        "source_type": "api",
         "created_at": utc_now(),
         "last_active_at": utc_now(),
         "agent_card": {
@@ -199,17 +186,14 @@ async def test_list_providers(db_transaction: AsyncConnection, normal_user: UUID
             "url": "http://localhost:8002/",
             "version": "1.0.0",
         },
-        "auto_stop_timeout_sec": 600,
-        "type": "unmanaged",
-        "version_info": {"docker": None, "github": None},
-        "unmanaged_state": None,
+        "state": None,
         "created_by": normal_user,
     }
 
     await db_transaction.execute(
         text(
-            "INSERT INTO providers (id, type, source, origin, version_info, registry, agent_card, created_at, updated_at, last_active_at, auto_stop_timeout_sec, created_by, unmanaged_state) "
-            "VALUES (:id, :type, :source, :origin, :version_info, :registry, :agent_card, :created_at, :updated_at, :last_active_at, :auto_stop_timeout_sec, :created_by, :unmanaged_state)"
+            "INSERT INTO providers (id, source, source_type, origin, agent_card, created_at, updated_at, last_active_at, created_by, state) "
+            "VALUES (:id, :source, :source_type, :origin, :agent_card, :created_at, :updated_at, :last_active_at, :created_by, :state)"
         ),
         [
             {
@@ -217,14 +201,12 @@ async def test_list_providers(db_transaction: AsyncConnection, normal_user: UUID
                 "origin": source.origin,
                 "updated_at": utc_now(),
                 "agent_card": json.dumps(first_provider["agent_card"]),
-                "version_info": json.dumps(first_provider["version_info"]),
             },
             {
                 **second_provider,
                 "origin": source2.origin,
                 "updated_at": utc_now(),
                 "agent_card": json.dumps(second_provider["agent_card"]),
-                "version_info": json.dumps(second_provider["version_info"]),
             },
         ],
     )
@@ -235,16 +217,10 @@ async def test_list_providers(db_transaction: AsyncConnection, normal_user: UUID
     # Verify providers
     assert len(providers) == 2
     assert str(providers[first_provider["id"]].source.root) == first_provider["source"]
-    assert providers[first_provider["id"]].auto_stop_timeout == timedelta(
-        seconds=first_provider["auto_stop_timeout_sec"]
-    )
-    assert providers[first_provider["id"]].type == first_provider["type"]
+    assert providers[first_provider["id"]].source_type == first_provider["source_type"]
 
     assert str(providers[second_provider["id"]].source.root) == second_provider["source"]
-    assert providers[second_provider["id"]].auto_stop_timeout == timedelta(
-        seconds=second_provider["auto_stop_timeout_sec"]
-    )
-    assert providers[second_provider["id"]].type == second_provider["type"]
+    assert providers[second_provider["id"]].source_type == second_provider["source_type"]
 
 
 async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_provider: Provider, normal_user: UUID):
@@ -259,9 +235,7 @@ async def test_create_duplicate_provider(db_transaction: AsyncConnection, test_p
     duplicate_provider = Provider(
         source=duplicate_source,
         origin=duplicate_source.origin,
-        registry=None,
         agent_card=test_provider.agent_card.model_copy(update={"name": "NEW_AGENT"}),
-        auto_stop_timeout=timedelta(minutes=10),  # Different timeout
         created_by=normal_user,
     )
 

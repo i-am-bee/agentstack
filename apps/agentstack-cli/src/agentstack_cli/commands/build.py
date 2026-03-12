@@ -3,233 +3,89 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
-import json
 import re
 import typing
-import uuid
-from asyncio import CancelledError
-from contextlib import suppress
-from datetime import timedelta
-from pathlib import Path
 
 import anyio
-import anyio.abc
 import typer
-from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
-from agentstack_sdk.platform import AddProvider, BuildConfiguration, Provider, UpdateProvider
-from agentstack_sdk.platform.provider_build import ProviderBuild
-from anyio import open_process
-from httpx import AsyncClient, HTTPError
-from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from agentstack_cli.async_typer import AsyncTyper
-from agentstack_cli.console import console, err_console
-from agentstack_cli.server_utils import announce_server_action, confirm_server_action
-from agentstack_cli.utils import (
-    capture_output,
-    extract_messages,
-    print_log,
-    run_command,
-    status,
-    verbosity,
-)
-
-
-async def find_free_port():
-    """Get a random free port assigned by the OS."""
-    listener = await anyio.create_tcp_listener()
-    port = listener.extra(anyio.abc.SocketAttribute.local_address)[1]
-    await listener.aclose()
-    return port
-
+from agentstack_cli.console import console
+from agentstack_cli.utils import run_command, verbosity
 
 app = AsyncTyper()
 
-
-@app.command("client-side-build")
-async def client_side_build(
-    context: typing.Annotated[str, typer.Argument(help="Docker context for the agent")] = ".",
-    dockerfile: typing.Annotated[str | None, typer.Option(help="Use custom dockerfile path")] = None,
-    tag: typing.Annotated[str | None, typer.Option(help="Docker tag for the agent")] = None,
-    multi_platform: bool | None = False,
-    push: typing.Annotated[bool, typer.Option(help="Push the image to the target registry.")] = False,
-    import_image: typing.Annotated[
-        bool, typer.Option("--import/--no-import", is_flag=True, help="Import the image into Agent Stack platform")
-    ] = True,
-    extract_agent_card: typing.Annotated[
-        bool,
-        typer.Option(
-            "--extract-agent-card/--no-extract-agent-card",
-            is_flag=True,
-            help="Extract agent card from running container",
-        ),
-    ] = True,
-    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
-    verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
-):
-    """Build agent locally using Docker. [Local only]"""
-    with verbosity(verbose):
-        image_id = "agentstack-agent-build-tmp:latest"
-        port = await find_free_port()
-        dockerfile_args = ("-f", dockerfile) if dockerfile else ()
-
-        await run_command(
-            ["docker", "build", context, *dockerfile_args, "-t", image_id],
-            "Building agent image",
-        )
-
-        agent_card = None
-
-        if extract_agent_card:
-            container_id = str(uuid.uuid4())
-
-            try:
-                with status("Extracting agent metadata"):
-                    async with (
-                        await open_process(
-                            [
-                                "docker",
-                                "run",
-                                "--name",
-                                container_id,
-                                "-p",
-                                f"{port}:8000",
-                                "-e",
-                                "HOST=0.0.0.0",
-                                "-e",
-                                "PORT=8000",
-                                image_id,
-                            ],
-                        ) as process,
-                    ):
-                        async with capture_output(process) as task_group:
-                            try:
-                                async for attempt in AsyncRetrying(
-                                    stop=stop_after_delay(timedelta(seconds=30)),
-                                    wait=wait_fixed(timedelta(seconds=0.5)),
-                                    retry=retry_if_exception_type(HTTPError),
-                                    reraise=True,
-                                ):
-                                    with attempt:
-                                        async with AsyncClient() as client:
-                                            resp = await client.get(
-                                                f"http://localhost:{port}{AGENT_CARD_WELL_KNOWN_PATH}", timeout=1
-                                            )
-                                            resp.raise_for_status()
-                                            agent_card = resp.json()
-                            except BaseException as ex:
-                                raise RuntimeError(f"Failed to build agent: {extract_messages(ex)}") from ex
-                            finally:
-                                task_group.cancel_scope.cancel()
-                        # Kill the docker run process so open_process.__aexit__ can proceed
-                        process.kill()
-            finally:
-                with suppress(BaseException):
-                    await run_command(["docker", "rm", "-f", container_id], "Removing container", check=False)
-
-        context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
-        context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
-        context_shorter = re.sub(r"[^a-zA-Z0-9_-]+", "-", context_shorter)[:32].lstrip("-") or "provider"
-        tag = (tag or f"agentstack-registry-svc.default:5001/{context_shorter}-{context_hash}:latest").lower()
-        await run_command(
-            command=[
-                *(
-                    ["docker", "buildx", "build", "--platform=linux/amd64,linux/arm64"]
-                    if multi_platform
-                    else ["docker", "build"]
-                ),
-                "--push" if push else "--load",
-                context,
-                *dockerfile_args,
-                "-t",
-                tag,
-                f"--label=beeai.dev.agent.json={base64.b64encode(json.dumps(agent_card).encode()).decode()}",
-            ],
-            message="Adding agent labels to container",
-            check=True,
-        )
-        console.success(f"Successfully built agent: {tag}")
-        if import_image:
-            from agentstack_cli.commands.platform import ImageImportMode, import_cmd
-
-            if "agentstack-registry-svc.default" not in tag:
-                source_tag = tag
-                tag = re.sub("^[^/]*/", "agentstack-registry-svc.default:5001/", tag)
-                await run_command(["docker", "tag", source_tag, tag], "Tagging image")
-
-            await import_cmd(tag, vm_name, mode=ImageImportMode.registry)
-            console.success(
-                "Agent was imported to the agent stack internal registry.\n"
-                + f"You can add it using [blue]agentstack add {tag}[/blue]"
-            )
-
-        return tag, agent_card
-
-
-async def _server_side_build(
-    github_url: str,
-    dockerfile: str | None = None,
-    replace: str | None = None,
-    add: bool = False,
-    verbose: bool = False,
-) -> ProviderBuild:
-    build = None
-    from agentstack_cli.commands.agent import select_provider
-    from agentstack_cli.configuration import Configuration
-
-    try:
-        if replace and add:
-            raise ValueError("Cannot specify both replace and add options.")
-
-        build_configuration = None
-        if dockerfile:
-            build_configuration = BuildConfiguration(dockerfile_path=Path(dockerfile))
-
-        async with Configuration().use_platform_client():
-            on_complete = None
-            if replace:
-                provider = select_provider(replace, await Provider.list())
-                on_complete = UpdateProvider(provider_id=uuid.UUID(provider.id))
-            elif add:
-                on_complete = AddProvider()
-
-            build = await ProviderBuild.create(
-                location=github_url,
-                on_complete=on_complete,
-                build_configuration=build_configuration,
-            )
-            with verbosity(verbose):
-                async for message in build.stream_logs():
-                    print_log(message, ansi_mode=True, out_console=err_console)
-            return await build.get()
-    except KeyboardInterrupt, CancelledError:
-        async with Configuration().use_platform_client():
-            if build:
-                await build.delete()
-        console.error("Build aborted.")
-        raise
+# The in-cluster registry DNS name (used in pod image references)
+REGISTRY_INTERNAL = "registry.cr-system.svc.cluster.local:5000"
+# NodePort exposed by the post-renderer (matches registries.conf mirror)
+REGISTRY_NODEPORT = 30500
 
 
 @app.command("build")
-async def server_side_build(
-    github_url: typing.Annotated[
-        str, typer.Argument(..., help="Github repository URL (public or private if supported by the platform instance)")
-    ],
-    dockerfile: typing.Annotated[
-        str | None, typer.Option(help="Use custom dockerfile path, relative to github url sub-path")
-    ] = None,
+async def build_agent(
+    context: typing.Annotated[str, typer.Argument(help="Docker build context (path or URL)")] = ".",
+    dockerfile: typing.Annotated[str | None, typer.Option("-f", "--dockerfile", help="Dockerfile path")] = None,
+    tag: typing.Annotated[str | None, typer.Option("-t", "--tag", help="Image tag (default: auto-generated)")] = None,
+    vm_name: typing.Annotated[str, typer.Option(hidden=True)] = "agentstack",
     verbose: typing.Annotated[bool, typer.Option("-v", "--verbose", help="Show verbose output")] = False,
-    yes: typing.Annotated[bool, typer.Option("--yes", "-y", help="Skip confirmation prompts.")] = False,
-):
-    """Build agent from a GitHub repository in the platform. [Admin only]"""
+) -> None:
+    """Build an agent image locally and push it to the platform registry. [Local only]"""
+    with verbosity(verbose):
+        dockerfile_args = ("-f", dockerfile) if dockerfile else ()
 
-    url = announce_server_action(f"Starting build for '{github_url}' on")
-    await confirm_server_action("Proceed with building this agent on", url=url, yes=yes)
+        # Derive a short image name if tag not provided
+        if not tag:
+            context_hash = hashlib.sha256((context + (dockerfile or "")).encode()).hexdigest()[:6]
+            context_shorter = re.sub(r"https?://", "", context).replace(r".git", "")
+            context_shorter = re.sub(r"[^a-zA-Z0-9_-]+", "-", context_shorter)[:32].lstrip("-") or "agent"
+            image_name = f"{context_shorter}-{context_hash}:latest"
+        else:
+            # Strip any registry prefix — we always push to the platform registry
+            image_name = tag.split("/")[-1]
+            if ":" not in image_name:
+                image_name += ":latest"
+        image_name = image_name.lower()
 
-    build = await _server_side_build(github_url=github_url, dockerfile=dockerfile, verbose=verbose)
+        # Full image ref for cluster-internal use (pod specs)
+        cluster_ref = f"{REGISTRY_INTERNAL}/{image_name}"
+        # Local docker build tag
+        build_tag = f"localhost/agentstack/{image_name}"
 
-    console.success(
-        f"Agent built successfully, add it to the platform using: [green]agentstack add {build.destination}[/green]"
-    )
+        # Build the image
+        await run_command(
+            ["docker", "build", context, *dockerfile_args, "-t", build_tag, "--load"],
+            "Building agent image",
+        )
+        console.success(f"Built image: [bold]{build_tag}[/bold]")
+
+        # Push to the in-cluster registry via NodePort (localhost:30500)
+        from agentstack_cli.commands.platform import detect_export_import_paths, detect_vm_status, run_in_vm
+
+        if (await detect_vm_status(vm_name)) != "running":
+            console.error("Agent Stack platform is not running.")
+            raise typer.Exit(1)
+
+        host_path, guest_path = detect_export_import_paths()
+        try:
+            await run_command(
+                ["docker", "image", "save", "-o", host_path, build_tag],
+                f"Exporting image {build_tag} from Docker",
+            )
+            await run_in_vm(
+                vm_name,
+                [
+                    "skopeo", "copy",
+                    f"docker-archive:{guest_path}",
+                    f"docker://localhost:{REGISTRY_NODEPORT}/{image_name}",
+                    "--dest-tls-verify=false",
+                ],
+                "Pushing image to platform registry",
+            )
+        finally:
+            await anyio.Path(host_path).unlink(missing_ok=True)
+
+        console.success(
+            f"Image pushed to platform registry.\n"
+            f"Add it using: [green]agentstack add {cluster_ref}[/green]"
+        )

@@ -15,7 +15,6 @@ spec:
     metadata:
       annotations:
         checksum/providers: {{ include (print $.Template.BasePath "/config/providers.yaml") . | sha256sum }}
-        checksum/templates: {{ include (print $.Template.BasePath "/config/provider_templates.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/config/secret.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -199,25 +198,6 @@ spec:
               value: {{ .Values.contextResourcesExpireAfterDays | quote }}
             - name: TEXT_EXTRACTION__ENABLED
               value: {{ .Values.docling.enabled | quote }}
-            - name: AGENT_REGISTRY__SYNC_PERIOD_CRON
-              value: {{ .Values.agentRegistrySyncPeriodCron | quote }}
-            {{- include "agentstack.registryEnvVars" . | nindent 12 }}
-            - name: FEATURES__PROVIDER_BUILDS
-              value: {{ .Values.providerBuilds.enabled | quote }}
-            {{- if .Values.providerBuilds.enabled }}
-            - name: PROVIDER_BUILD__OCI_BUILD_REGISTRY_PREFIX
-              value: {{ .Values.providerBuilds.buildRegistry.registryPrefix | quote }}
-            - name: PROVIDER_BUILD__IMAGE_FORMAT
-              value: {{ .Values.providerBuilds.buildRegistry.imageFormat | quote }}
-            {{- if .Values.providerBuilds.externalClusterExecutor.namespace }}
-            - name: PROVIDER_BUILD__K8S_NAMESPACE
-              value: {{ .Values.providerBuilds.externalClusterExecutor.namespace | quote }}
-            {{- end }}
-            {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
-            - name: PROVIDER_BUILD__K8S_KUBECONFIG
-              value: /app/external_build_kubeconfig
-            {{- end }}
-            {{- end }}
             {{- if .Values.github.auths }}
             - name: GITHUB_REGISTRY_CONFIG_JSON
               valueFrom:
@@ -225,8 +205,6 @@ spec:
                   name: agentstack-secret
                   key: .githubconfigjson
             {{- end }}
-            - name: AGENT_REGISTRY__LOCATIONS__FILE
-              value: file:///app/config/providers_registry.yaml
             - name: MODEL_PROVIDER_REGISTRY__LOCATIONS__FILE
               value: file:///app/config/model_providers_registry.yaml
             {{- if .Values.defaultLLMModel }}
@@ -236,10 +214,6 @@ spec:
             {{- if .Values.defaultEmbeddingModel }}
             - name: MODEL_PROVIDER__DEFAULT_EMBEDDING_MODEL
               value: {{ .Values.defaultEmbeddingModel | quote }}
-            {{- end }}
-            {{- range $name, $location := .Values.externalRegistries }}
-            - name: AGENT_REGISTRY__LOCATIONS__{{ $name | upper }}
-              value: {{ $location }}
             {{- end }}
             - name: PERSISTENCE__ENCRYPTION_KEY
               valueFrom:
@@ -299,9 +273,26 @@ spec:
             - name: AUTH__DISABLE_AUTH
               value: "true"
             {{- end }}
-            {{- if .Values.disableProviderDownscaling }}
-            - name: PROVIDER__DISABLE_DOWNSCALING
+            # Kagenti Configuration
+            {{- if .Values.kagenti.enabled }}
+            - name: KAGENTI__ENABLED
               value: "true"
+            - name: KAGENTI__API_URL
+              value: {{ .Values.kagenti.apiUrl | quote }}
+            - name: KAGENTI__AUTH_TOKEN_URL
+              value: {{ include "agentstack.oidc.internalIssuerUrl" . | trimSuffix "/" }}/protocol/openid-connect/token
+            - name: KAGENTI__CLIENT_ID
+              value: {{ include "agentstack.oidc.serverClientId" . | quote }}
+            - name: KAGENTI__CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: {{ include "agentstack.oidc.serverClientSecretKey" . }}
+                  name: {{ include "agentstack.oidc.serverClientSecretName" . }}
+            - name: KAGENTI__NAMESPACES
+              value: {{ .Values.kagenti.namespaces | toJson | quote }}
+            {{- else }}
+            - name: KAGENTI__ENABLED
+              value: "false"
             {{- end }}
             - name: GENERATE_CONVERSATION_TITLE__ENABLED
               value: {{ .Values.generateConversationTitle.enabled | quote }}
@@ -309,8 +300,6 @@ spec:
               value: {{ .Values.generateConversationTitle.model | quote }}
             - name: GENERATE_CONVERSATION_TITLE__PROMPT
               value: {{ .Values.generateConversationTitle.prompt | quote }}
-            - name: PROVIDER__MANIFEST_TEMPLATE_DIR
-              value: /app/templates
             # Object Storage Configuration
             - name: OBJECT_STORAGE__ENDPOINT_URL
               value: {{ include "agentstack.s3.endpoint" . | quote }}
@@ -367,23 +356,12 @@ spec:
                   name: agentstack-connectors-secret
             - name: UVICORN_TIMEOUT_KEEP_ALIVE
               value: {{ .Values.uvicornTimeoutKeepAlive | quote }}
-            {{- if include "agentstack.phoenix.enabled" . }}
+            - name: TELEMETRY__COLLECTOR_URL
+              value: "http://otel-collector.kagenti-system:8335"
             - name: TELEMETRY__PHOENIX_URL
-              value: {{ include "agentstack.phoenix.url" . | quote }}
-            {{- $phoenixApiKey := include "agentstack.phoenix.apiKey" . }}
-            {{- if $phoenixApiKey }}
-            - name: TELEMETRY__PHOENIX_API_KEY
-              value: {{ $phoenixApiKey | quote }}
-            {{- end }}
-            {{- end }}
+              value: "http://phoenix.kagenti-system:6006"
 
           volumeMounts:
-            {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
-            - name: provider-build-external-kubeconfig
-              mountPath: /app/external_build_kubeconfig
-              subPath: providerBuildExternalClusterKubeconfig
-              readOnly: true
-            {{- end }}
             {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
             - name: db-ssl-cert
               mountPath: /app/db.crt
@@ -393,18 +371,10 @@ spec:
             - name: agentstack-providers
               mountPath: /app/config
               readOnly: true
-            - name: agentstack-manifest-templates
-              mountPath: /app/templates
-              readOnly: true
             {{- with .Values.volumeMounts }}
               {{- toYaml . | nindent 12 }}
             {{- end }}
       volumes:
-        {{- if .Values.providerBuilds.externalClusterExecutor.kubeconfig }}
-        - name: provider-build-external-kubeconfig
-          secret:
-            secretName: agentstack-secret
-        {{- end }}
         {{- if and (include "agentstack.databaseSslEnabled" .) .Values.externalDatabase.sslRootCert }}
         - name: db-ssl-cert
           secret:
@@ -413,9 +383,6 @@ spec:
         - name: agentstack-providers
           secret:
             secretName: agentstack-providers-secret
-        - name: agentstack-manifest-templates
-          configMap:
-            name: agentstack-manifest-templates-cm
         {{- with .Values.volumes }}
           {{- toYaml . | nindent 8 }}
         {{- end }}

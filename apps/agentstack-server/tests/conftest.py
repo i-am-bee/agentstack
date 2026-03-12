@@ -4,14 +4,12 @@
 from __future__ import annotations
 
 import os
-import re
 from contextlib import contextmanager
 from pathlib import Path
 from pprint import pprint
 from typing import Any
 
 import async_lru
-import kr8s
 import pytest
 from agentstack_sdk.platform import ModelProviderType
 from kink import di
@@ -33,9 +31,8 @@ class Configuration(BaseSettings):
     llm_model: str = "ollama:gpt-oss:20b"
     embedding_model: str = "ollama:nomic-embed-text:latest"
     llm_api_key: Secret[str] = Secret("dummy")
-    test_agent_image: str = "agentstack-registry-svc.default:5001/chat-test:latest"
-    test_agent_build_repo: str = "https://github.com/i-am-bee/agentstack-starter"
-    server_url: str = "http://localhost:8333"
+    test_agent_image: str = "registry.cr-system.svc.cluster.local:5000/chat-test:latest"
+    server_url: str = "http://agentstack-api.localtest.me:8080"
     db_url: str = "postgresql+asyncpg://agentstack-user:password@postgresql:5432/agentstack"
     keycloak_url: str = "http://localhost:8336"
 
@@ -66,24 +63,6 @@ def pytest_configure(config):
         print()
 
 
-async def _get_kr8s_client():
-    api = await kr8s.asyncio.api()
-    kubeconfig = api.auth.kubeconfig
-    kubeconfig_regex = r".*/.agentstack/lima/(agentstack-local-dev|e2e-test-run|e2e-examples-test-run|integration-test-run)/copied-from-guest/kubeconfig.yaml$"
-    if not re.match(kubeconfig_regex, str(kubeconfig.path)):
-        raise ValueError(
-            f"Preventing kubeconfig operations with invalid kubeconfig path.\n"
-            f"actual: {kubeconfig.path}\n"
-            f"expected: {kubeconfig_regex}"
-        )
-    return api
-
-
-@pytest.fixture()
-async def kr8s_client():
-    return await _get_kr8s_client()
-
-
 @pytest.fixture()
 async def db_transaction(test_configuration):
     """Auto-rollback connection"""
@@ -98,7 +77,6 @@ async def db_transaction(test_configuration):
 @pytest.fixture(scope="session")
 def clean_up_fn(test_configuration):
     async def _fn():
-        kr8s_client = await _get_kr8s_client()
         engine = create_async_engine(test_configuration.db_url)
         # Clean all tables
         async with engine.connect() as connection:
@@ -112,10 +90,6 @@ def clean_up_fn(test_configuration):
                 await connection.execute(text(f"DROP TABLE vector_db.{row.tablename} CASCADE"))
 
             await connection.commit()
-        # Clean all deployments
-        async for deployment in kr8s_client.get(kind="deploy"):
-            if "app" in deployment.labels and deployment.labels.app.startswith("agentstack-provider-"):
-                await deployment.delete()
         print("Cleaned up")
 
     return _fn
