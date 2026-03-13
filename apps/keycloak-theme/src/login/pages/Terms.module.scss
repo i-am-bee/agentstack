@@ -13,7 +13,7 @@
 .termsText {
   @include scrollbar();
   max-block-size: rem(400px);
-  overflow-y: auto;
+  overflow-block: auto;
   margin-block-end: $spacing-05;
 }
 

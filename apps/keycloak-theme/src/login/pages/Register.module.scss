@@ -40,7 +40,7 @@
   font-size: rem(14px);
   color: $text-secondary;
   max-block-size: rem(200px);
-  overflow-y: auto;
+  overflow-block: auto;
 }
 
 .loginLink {
