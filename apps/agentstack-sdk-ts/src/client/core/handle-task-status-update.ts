@@ -21,7 +21,7 @@ const approvalExtensionExtractor = extractUiExtensionData(approvalExtension);
 export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatusUpdateResult[] => {
   const results: TaskStatusUpdateResult[] = [];
 
-  if (event.status.state === 'auth-required') {
+  if (event.status.state === 'TASK_STATE_AUTH_REQUIRED') {
     const secretRequired = secretsRequestExtensionExtractor(event.status.message?.metadata);
     const oauthRequired = oauthRequestExtensionExtractor(event.status.message?.metadata);
 
@@ -38,7 +38,7 @@ export const handleTaskStatusUpdate = (event: TaskStatusUpdateEvent): TaskStatus
         demands: secretRequired,
       });
     }
-  } else if (event.status.state === 'input-required') {
+  } else if (event.status.state === 'TASK_STATE_INPUT_REQUIRED') {
     const formRequired = formRequestExtensionExtractor(event.status.message?.metadata);
     const approvalRequired = approvalExtensionExtractor(event.status.message?.metadata);
 

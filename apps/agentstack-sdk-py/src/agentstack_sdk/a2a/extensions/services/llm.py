@@ -29,6 +29,16 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "LLMDemand",
+    "LLMFulfillment",
+    "LLMServiceExtensionClient",
+    "LLMServiceExtensionMetadata",
+    "LLMServiceExtensionParams",
+    "LLMServiceExtensionServer",
+    "LLMServiceExtensionSpec",
+]
+
 
 class LLMFulfillment(SecureBaseModel):
     identifier: str | None = None

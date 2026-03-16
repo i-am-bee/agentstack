@@ -5,8 +5,8 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from typing import Any
 
-from a2a.types import AgentCard
 from pydantic import BaseModel, Field
 
 from agentstack_server.domain.constants import DEFAULT_AUTO_STOP_TIMEOUT
@@ -15,7 +15,7 @@ from agentstack_server.domain.models.provider import ProviderLocation
 
 class CreateProviderRequest(BaseModel):
     location: ProviderLocation
-    agent_card: AgentCard | None = None
+    agent_card: dict[str, Any] | None = None
     variables: dict[str, str] | None = None
     origin: str | None = Field(
         default=None,
@@ -41,7 +41,7 @@ class CreateProviderRequest(BaseModel):
 
 class PatchProviderRequest(BaseModel):
     location: ProviderLocation | None = None
-    agent_card: AgentCard | None = None
+    agent_card: dict[str, Any] | None = None
     variables: dict[str, str] | None = None
     origin: str | None = Field(
         default=None,

@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import Literal
 
 import pydantic
-from a2a.types import FilePart, FileWithUri
+from a2a.types import Part
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 from agentstack_sdk.platform.common import PaginatedResult
@@ -257,8 +257,8 @@ class File(pydantic.BaseModel):
                 )
             ).raise_for_status()
 
-    def to_file_part(self: "File") -> FilePart:
-        return FilePart(file=FileWithUri(name=self.filename, uri=f"agentstack://{self.id}"))
+    def to_part(self: File) -> Part:
+        return Part(filename=self.filename, url=f"agentstack://{self.id}")
 
     @staticmethod
     async def list(

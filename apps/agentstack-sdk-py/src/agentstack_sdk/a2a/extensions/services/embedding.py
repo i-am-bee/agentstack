@@ -29,6 +29,16 @@ __all__ = [
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
 
+__all__ = [
+    "EmbeddingDemand",
+    "EmbeddingFulfillment",
+    "EmbeddingServiceExtensionClient",
+    "EmbeddingServiceExtensionMetadata",
+    "EmbeddingServiceExtensionParams",
+    "EmbeddingServiceExtensionServer",
+    "EmbeddingServiceExtensionSpec",
+]
+
 
 class EmbeddingFulfillment(SecureBaseModel):
     identifier: str | None = None

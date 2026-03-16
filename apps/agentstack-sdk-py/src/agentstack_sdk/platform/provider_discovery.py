@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Any, Self
 from uuid import UUID
 
 import pydantic
 from a2a.types import AgentCard
+from google.protobuf.json_format import ParseDict
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 
@@ -19,7 +21,7 @@ class DiscoveryState(StrEnum):
     FAILED = "failed"
 
 
-class ProviderDiscovery(pydantic.BaseModel):
+class ProviderDiscovery(pydantic.BaseModel, arbitrary_types_allowed=True):
     id: UUID
     created_at: pydantic.AwareDatetime
     status: DiscoveryState
@@ -27,6 +29,13 @@ class ProviderDiscovery(pydantic.BaseModel):
     created_by: UUID
     agent_card: AgentCard | None = None
     error_message: str | None = None
+
+    @pydantic.field_validator("agent_card", mode="before")
+    @classmethod
+    def parse_card(cls: Self, value: dict[str, Any] | None) -> AgentCard | None:
+        if value is not None:
+            return ParseDict(value, AgentCard())
+        return None
 
     @staticmethod
     async def create(

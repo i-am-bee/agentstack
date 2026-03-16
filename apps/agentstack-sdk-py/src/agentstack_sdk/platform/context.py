@@ -6,11 +6,12 @@ from __future__ import annotations
 
 import builtins
 from collections.abc import AsyncIterator
-from typing import Literal
+from typing import Any, Literal, Self
 from uuid import UUID, uuid4
 
 import pydantic
 from a2a.types import Artifact, Message
+from google.protobuf.json_format import MessageToDict, ParseDict
 from pydantic import AwareDatetime, BaseModel, Field, SerializeAsAny, computed_field
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
@@ -20,7 +21,7 @@ from agentstack_sdk.platform.types import Metadata, MetadataPatch
 from agentstack_sdk.util.utils import filter_dict, utc_now
 
 
-class ContextHistoryItem(BaseModel):
+class ContextHistoryItem(BaseModel, arbitrary_types_allowed=True):
     id: UUID = Field(default_factory=uuid4)
     data: Artifact | Message
     created_at: AwareDatetime = Field(default_factory=utc_now)
@@ -30,6 +31,11 @@ class ContextHistoryItem(BaseModel):
     @property
     def kind(self) -> Literal["message", "artifact"]:
         return getattr(self.data, "kind", "artifact")
+
+    @pydantic.field_validator("data", mode="before")
+    @classmethod
+    def parse_data(cls: Self, value: dict[str, Any]) -> Artifact | Message:
+        return ParseDict(value, Artifact() if "artifact_id" in value else Message())
 
 
 class ContextToken(pydantic.BaseModel):
@@ -237,7 +243,7 @@ class Context(pydantic.BaseModel):
         async with client or get_platform_client() as platform_client:
             _ = (
                 await platform_client.post(
-                    url=f"/api/v1/contexts/{target_context_id}/history", json=data.model_dump(mode="json")
+                    url=f"/api/v1/contexts/{target_context_id}/history", json=MessageToDict(data)
                 )
             ).raise_for_status()
 

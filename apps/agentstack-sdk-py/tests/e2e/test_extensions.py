@@ -11,7 +11,8 @@ from typing import Annotated
 import pytest
 from a2a.client import Client, ClientEvent
 from a2a.client.helpers import create_text_message_object
-from a2a.types import Message, Task
+from a2a.types import Message, SendMessageRequest, Task
+from google.protobuf.json_format import MessageToDict
 
 from agentstack_sdk.a2a.extensions import (
     ErrorExtensionParams,
@@ -33,7 +34,7 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
     final_task = None
     async for event in stream:
         match event:
-            case (task, _):
+            case (_, task):
                 final_task = task
     return final_task
 
@@ -55,8 +56,7 @@ async def llm_extension_agent(create_server_with_agent) -> AsyncGenerator[tuple[
 
 async def test_extension_is_not_reused(llm_extension_agent):
     _, client = llm_extension_agent
-    card = await client.get_card()
-    llm_spec = LLMServiceExtensionSpec.from_agent_card(card)
+    llm_spec = LLMServiceExtensionSpec.from_agent_card(client._card)
     # pyrefly: ignore [bad-argument-type]
     extension_client = LLMServiceExtensionClient(llm_spec)
 
@@ -67,12 +67,12 @@ async def test_extension_is_not_reused(llm_extension_agent):
         message.metadata = extension_client.fulfillment_metadata(
             llm_fulfillments={"default": LLMFulfillment(api_key=str(i), api_model="model", api_base="base")}
         )
-        tasks.append(asyncio.create_task(get_final_task_from_stream(client.send_message(message))))
+        tasks.append(asyncio.create_task(get_final_task_from_stream(client.send_message(SendMessageRequest(message=message)))))
 
     results = await asyncio.gather(*tasks)
     for i, task in enumerate(results):
         # pyrefly: ignore [missing-attribute, unsupported-operation]
-        assert task.history[-1].parts[0].root.text == str(i)
+        assert task.history[-1].parts[0].text == str(i)
 
 
 @pytest.fixture
@@ -104,11 +104,10 @@ async def exception_group_agent_with_stacktrace(create_server_with_agent) -> Asy
 async def test_error_extension_without_stacktrace(error_agent_without_stacktrace):
     """Test that errors are properly handled without stack trace."""
     _, client = error_agent_without_stacktrace
-    card = await client.get_card()
-    error_spec = ErrorExtensionSpec.from_agent_card(card)
+    error_spec = ErrorExtensionSpec.from_agent_card(client._card)
 
     message = create_text_message_object()
-    task = await get_final_task_from_stream(client.send_message(message))
+    task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=message)))
 
     # Find the error message in history
     error_message = None
@@ -122,7 +121,7 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
 
     # Validate error metadata
     # pyrefly: ignore [missing-attribute, unsupported-operation]
-    error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
+    error_metadata = ErrorMetadata.model_validate(MessageToDict(error_message.metadata)[error_spec.URI])
 
     assert error_metadata.error.title == "ValueError"
     assert error_metadata.error.message == "Something went wrong!"
@@ -130,7 +129,7 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
 
     # Check message text
 
-    message_text = error_message.parts[0].root.text
+    message_text = error_message.parts[0].text
     assert "## ValueError" in message_text
     assert "Something went wrong!" in message_text
     assert "```" not in message_text  # No stack trace code block
@@ -139,11 +138,10 @@ async def test_error_extension_without_stacktrace(error_agent_without_stacktrace
 async def test_error_extension_exception_group_with_stacktrace(exception_group_agent_with_stacktrace):
     """Test that exception groups include single stack trace when configured."""
     _, client = exception_group_agent_with_stacktrace
-    card = await client.get_card()
-    error_spec = ErrorExtensionSpec.from_agent_card(card)
+    error_spec = ErrorExtensionSpec.from_agent_card(client._card)
 
     message = create_text_message_object()
-    task = await get_final_task_from_stream(client.send_message(message))
+    task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=message)))
 
     # Find the error message
     error_message = None
@@ -157,7 +155,7 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
 
     # Validate error metadata - should have 2 errors in the group
     # pyrefly: ignore [missing-attribute, unsupported-operation]
-    error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
+    error_metadata = ErrorMetadata.model_validate(MessageToDict(error_message.metadata)[error_spec.URI])
     assert error_metadata.error.message.startswith("Multiple failures")
 
     assert len(error_metadata.error.errors) == 2
@@ -178,7 +176,7 @@ async def test_error_extension_exception_group_with_stacktrace(exception_group_a
 
     # Check message text
 
-    message_text = error_message.parts[0].root.text
+    message_text = error_message.parts[0].text
     assert "## Multiple failures" in message_text
     assert "### ValueError" in message_text
     assert "First error" in message_text
@@ -199,8 +197,8 @@ async def context_isolation_agent(create_server_with_agent) -> AsyncGenerator[tu
         # Extract request_id from message text to set unique context
         text_content = ""
         for part in message.parts:
-            if hasattr(part.root, "text"):
-                text_content = part.root.text
+            if "text" in part:
+                text_content = part.text
                 break
 
         # Set context based on the request
@@ -222,8 +220,7 @@ async def context_isolation_agent(create_server_with_agent) -> AsyncGenerator[tu
 async def test_error_extension_context_isolation(context_isolation_agent):
     """Test that error context is isolated between parallel requests."""
     _, client = context_isolation_agent
-    card = await client.get_card()
-    error_spec = ErrorExtensionSpec.from_agent_card(card)
+    error_spec = ErrorExtensionSpec.from_agent_card(client._card)
 
     # Send 3 parallel requests with different identifiers
     request_ids = ["request-1", "request-2", "request-3"]
@@ -231,7 +228,7 @@ async def test_error_extension_context_isolation(context_isolation_agent):
     # Create tasks for parallel execution
     async def send_request(request_id: str) -> Task:
         message = create_text_message_object(content=request_id)
-        return await get_final_task_from_stream(client.send_message(message))
+        return await get_final_task_from_stream(client.send_message(SendMessageRequest(message=message)))
 
     # Execute all requests in parallel
     tasks = await asyncio.gather(*[send_request(rid) for rid in request_ids])
@@ -250,7 +247,7 @@ async def test_error_extension_context_isolation(context_isolation_agent):
 
         # Validate error metadata
         # pyrefly: ignore [missing-attribute, unsupported-operation]
-        error_metadata = ErrorMetadata.model_validate(error_message.metadata[error_spec.URI])
+        error_metadata = ErrorMetadata.model_validate(MessageToDict(error_message.metadata)[error_spec.URI])
 
         assert error_metadata.error.title == "ValueError"
         assert error_metadata.error.message == f"Error for request {expected_id}"

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import pytest
-from a2a.types import AgentSkill
+from a2a.types import AgentSkill, AgentInterface
 
 from agentstack_sdk.a2a.extensions.ui.agent_detail import AgentDetailExtensionSpec
 from agentstack_sdk.server.agent import agent
@@ -26,11 +26,9 @@ def test_agent_detail_population():
     def test_agent_fn():
         pass
 
-    def mock_modify_dependencies(deps):
-        pass
-
     # test_agent_fn is now the agent_factory
-    agent_instance = test_agent_fn(mock_modify_dependencies)
+    agent_instance = test_agent_fn
+    agent_instance.initialize(supported_interfaces=[AgentInterface()])
 
     extensions = agent_instance.card.capabilities.extensions
     assert extensions is not None
@@ -77,10 +75,8 @@ def test_agent_detail_population_override():
     def test_agent_fn():
         pass
 
-    def mock_modify_dependencies(deps):
-        pass
-
-    agent_instance = test_agent_fn(mock_modify_dependencies)
+    agent_instance = test_agent_fn
+    agent_instance.initialize(supported_interfaces=[AgentInterface()])
 
     extensions = agent_instance.card.capabilities.extensions
     assert extensions
@@ -123,10 +119,8 @@ def test_agent_detail_explicit_empty_values():
     def test_agent_fn():
         pass
 
-    def mock_modify_dependencies(deps):
-        pass
-
-    agent_instance = test_agent_fn(mock_modify_dependencies)
+    agent_instance = test_agent_fn
+    agent_instance.initialize(supported_interfaces=[AgentInterface()])
 
     extensions = agent_instance.card.capabilities.extensions
     detail_extension = next((ext for ext in extensions if ext.uri == AgentDetailExtensionSpec.URI), None)

@@ -92,14 +92,14 @@ export function buildAgent(provider: Provider): Agent {
 
 export function getAgentTags(agent: Agent) {
   return uniqWith(
-    agent.skills.flatMap(({ tags }) => tags),
+    (agent.skills ?? []).flatMap(({ tags }) => tags),
     (a, b) => a.toLocaleLowerCase() === b.toLocaleLowerCase(),
   );
 }
 
 export function getAgentPromptExamples(agent: Agent) {
   return uniqWith(
-    agent.skills.flatMap(({ examples }) => examples).filter(isNotNull),
+    (agent.skills ?? []).flatMap(({ examples }) => examples).filter(isNotNull),
     (a, b) => a.toLocaleLowerCase() === b.toLocaleLowerCase(),
   );
 }

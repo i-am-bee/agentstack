@@ -6,6 +6,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     HOME="/tmp" \
     AGENT_REGISTRY__LOCATIONS__FILE="file:///app/registry.yaml"
+RUN apk add bash git nodejs npm curl
 RUN --mount=type=cache,target=/tmp/.cache/uv \
     --mount=type=bind,source=dist/requirements.txt,target=/requirements.txt \
     --mount=type=bind,from=uv,source=/uv,target=/bin/uv \

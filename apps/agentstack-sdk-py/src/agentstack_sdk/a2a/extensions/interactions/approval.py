@@ -9,6 +9,7 @@ from types import NoneType
 from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 import a2a.types
+from google.protobuf.json_format import MessageToDict
 from mcp import Implementation, Tool
 from opentelemetry import trace
 from pydantic import BaseModel, Discriminator, Field, TypeAdapter
@@ -36,6 +37,20 @@ __all__ = [
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+__all__ = [
+    "ApprovalExtensionClient",
+    "ApprovalExtensionMetadata",
+    "ApprovalExtensionParams",
+    "ApprovalExtensionServer",
+    "ApprovalExtensionSpec",
+    "ApprovalRejectionError",
+    "ApprovalRequest",
+    "ApprovalResponse",
+    "GenericApprovalRequest",
+    "ToolCallApprovalRequest",
+    "ToolCallServer",
+]
 
 
 A2A_EXTENSION_APPROVAL_REQUESTED = "a2a_extension.approval.requested"
@@ -116,7 +131,7 @@ class ApprovalExtensionServer(BaseExtensionServer[ApprovalExtensionSpec, Approva
         )
 
     def parse_response(self, *, message: a2a.types.Message):
-        if not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not (data := MessageToDict(message.metadata).get(self.spec.URI)):
             raise ValueError("Approval response data is missing")
         return ApprovalResponse.model_validate(data)
 
@@ -147,14 +162,14 @@ class ApprovalExtensionClient(BaseExtensionClient[ApprovalExtensionSpec, NoneTyp
     def create_response_message(self, *, response: ApprovalResponse, task_id: str | None):
         return a2a.types.Message(
             message_id=str(uuid.uuid4()),
-            role=a2a.types.Role.user,
+            role=a2a.types.Role.ROLE_USER,
             parts=[],
             task_id=task_id,
             metadata={self.spec.URI: response.model_dump(mode="json", context={REVEAL_SECRETS: True})},
         )
 
     def parse_request(self, *, message: a2a.types.Message):
-        if not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not (data := MessageToDict(message.metadata).get(self.spec.URI)):
             raise ValueError("Approval request data is missing")
         return TypeAdapter(ApprovalRequest).validate_python(data)
 

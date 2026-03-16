@@ -8,7 +8,7 @@ from contextlib import suppress
 from typing import Iterable
 
 import pydantic
-from a2a.types import FilePart, FileWithUri, Message, Role
+from a2a.types import Message, Role
 from beeai_framework.backend import AnyMessage, AssistantMessage, UserMessage
 
 from agentstack_sdk.platform import File
@@ -17,14 +17,14 @@ from chat.tools.files.model import FileChatInfo
 
 
 def to_framework_message(message: Message, all_attachments: list[FileChatInfo]) -> AnyMessage:
-    message_text = "".join(part.root.text for part in message.parts if part.root.kind == "text")
+    message_text = "".join(part.text for part in message.parts if part.HasField("text"))
     if attachments := [file for file in all_attachments if file.message_id == message.message_id]:
         message_text += "\nAttached files:\n" + "\n".join([file.description for file in attachments])
 
     match message.role:
-        case Role.agent:
+        case Role.ROLE_AGENT:
             return AssistantMessage(message_text)
-        case Role.user:
+        case Role.ROLE_USER:
             return UserMessage(message_text)
         case _:
             raise ValueError(f"Invalid message role: {message.role}")
@@ -46,13 +46,12 @@ async def extract_files(history: list[Message]) -> list[FileChatInfo]:
 
     for item in history:
         for part in item.parts:
-            match part.root:
-                case FilePart(file=FileWithUri(uri=uri)):
-                    with suppress(ValueError):
-                        url = pydantic.type_adapter.TypeAdapter(PlatformFileUrl).validate_python(uri)
-                        if url.file_id not in seen:
-                            seen.add(url.file_id)
-                            files[url.file_id] = item
+            if part.HasField("url"):
+                with suppress(ValueError):
+                    url = pydantic.type_adapter.TypeAdapter(PlatformFileUrl).validate_python(part.url)
+                    if url.file_id not in seen:
+                        seen.add(url.file_id)
+                        files[url.file_id] = item
 
     # TODO: N+1 query issue, add bulk endpoint
     file_objects = await asyncio.gather(*(File.get(file_id) for file_id in files))

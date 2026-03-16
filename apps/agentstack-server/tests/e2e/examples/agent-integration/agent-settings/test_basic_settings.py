@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 from a2a.client.helpers import create_text_message_object
-from a2a.types import TaskState
+from a2a.types import SendMessageRequest, TaskState
 from agentstack_sdk.a2a.extensions import (
     FormServiceExtensionMetadata,
     FormServiceExtensionSpec,
@@ -41,10 +41,12 @@ async def test_basic_settings_example(subtests, get_final_task_from_stream, a2a_
 
             message.metadata = {spec.URI: metadata}
             message.context_id = running_example.context.id
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
             # Verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "Thinking is enabled" in task.history[-1].parts[0].root.text
             assert "Memory is disabled" in task.history[-1].parts[0].root.text
             assert "Response style: humorous" in task.history[-1].parts[0].root.text

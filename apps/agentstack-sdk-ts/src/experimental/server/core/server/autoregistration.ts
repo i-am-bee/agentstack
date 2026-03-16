@@ -84,6 +84,7 @@ export function createAutoregisterToAgentstack(options: AutoregistrationOptions)
           if (existingResult.ok) {
             const patchResult = await api.patchProvider({
               id: existingResult.data.id,
+              // @ts-expect-error experimental server uses @a2a-js/sdk AgentCard which differs from v1 schema
               agent_card: agentCard,
             });
 
@@ -95,6 +96,7 @@ export function createAutoregisterToAgentstack(options: AutoregistrationOptions)
           } else if (existingResult.error.type === ApiErrorType.Http && existingResult.error.response.status === 404) {
             const createResult = await api.createProvider({
               location,
+              // @ts-expect-error experimental server uses @a2a-js/sdk AgentCard which differs from v1 schema
               agent_card: agentCard,
             });
 

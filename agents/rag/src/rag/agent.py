@@ -273,7 +273,7 @@ async def rag(
         if isinstance(event.output, FileCreatorToolOutput):
             result = event.output.result
             for file in result.files:
-                artifact = AgentArtifact(name=file.filename, parts=[file.to_file_part()])
+                artifact = AgentArtifact(name=file.filename, parts=[file.to_part()])
                 await context.yield_async(artifact)
 
     response = (

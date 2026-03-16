@@ -10,6 +10,7 @@ from a2a.client import Client, ClientEvent, create_text_message_object
 from a2a.types import (
     Message,
     Role,
+    SendMessageRequest,
     Task,
 )
 
@@ -25,7 +26,7 @@ async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message
     final_task = None
     async for event in stream:
         match event:
-            case (task, _):
+            case (_, task):
                 final_task = task
     return final_task
 
@@ -36,9 +37,9 @@ async def send_message_get_response(
     message = create_text_message_object(content=content)
     if context_id is not None:
         message.context_id = context_id
-    final_task = await get_final_task_from_stream(client.send_message(message))
+    final_task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=message)))
 
-    agent_messages = [msg.parts[0].root.text for msg in final_task.history or []]
+    agent_messages = [msg.parts[0].text for msg in final_task.history or []]
     return agent_messages, final_task.context_id
 
 
@@ -50,7 +51,7 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
     async def history_agent(input: Message, context: RunContext) -> AsyncGenerator[RunYield, None]:
         await context.store(input)
         async for message in context.load_history():
-            message.role = Role.agent
+            message.role = Role.ROLE_AGENT
             yield message
             await context.store(message)
 
@@ -76,7 +77,7 @@ async def history_deleting_agent(create_server_with_agent) -> AsyncGenerator[tup
                 break
 
         async for message in context.load_history():
-            message.role = Role.agent
+            message.role = Role.ROLE_AGENT
             yield message
 
     async with create_server_with_agent(history_agent, context_store=context_store) as (server, client):

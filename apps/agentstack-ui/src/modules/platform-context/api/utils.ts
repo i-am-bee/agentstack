@@ -6,5 +6,5 @@
 import type { HistoryItem, HistoryMessage } from './types';
 
 export function isHistoryMessage(item: HistoryItem): item is HistoryMessage {
-  return 'kind' in item && item.kind === 'message';
+  return 'messageId' in item;
 }

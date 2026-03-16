@@ -44,4 +44,4 @@ export type PatchContextMetadataRequest = z.infer<typeof patchContextMetadataReq
 //
 
 export type HistoryItem = ContextHistory['data'];
-export type HistoryMessage = Extract<HistoryItem, { kind: 'message' }>;
+export type HistoryMessage = Extract<HistoryItem, { messageId: string }>;

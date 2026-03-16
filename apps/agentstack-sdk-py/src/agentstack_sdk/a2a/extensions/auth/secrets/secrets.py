@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Self
 import pydantic
 from a2a.server.agent_execution.context import RequestContext
 from a2a.types import Message as A2AMessage
+from google.protobuf.json_format import MessageToDict
 from opentelemetry import trace
 from typing_extensions import override
 
@@ -31,6 +32,16 @@ __all__ = [
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+__all__ = [
+    "SecretDemand",
+    "SecretFulfillment",
+    "SecretsExtensionClient",
+    "SecretsExtensionServer",
+    "SecretsExtensionSpec",
+    "SecretsServiceExtensionMetadata",
+    "SecretsServiceExtensionParams",
+]
 
 A2A_EXTENSION_SECRETS_REQUESTED = "a2a_extension.secrets.requested"
 A2A_EXTENSION_SECRETS_RESOLVED = "a2a_extension.secrets.resolved"
@@ -74,7 +85,7 @@ class SecretsExtensionServer(BaseExtensionServer[SecretsExtensionSpec, SecretsSe
         self.context = run_context
 
     def parse_secret_response(self, message: A2AMessage) -> SecretsServiceExtensionMetadata:
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not (data := MessageToDict(message.metadata).get(self.spec.URI)):
             raise ValueError("Secrets has not been provided in response.")
 
         return SecretsServiceExtensionMetadata.model_validate(data)

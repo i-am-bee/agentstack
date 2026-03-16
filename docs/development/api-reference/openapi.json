@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Agentstack server",
-    "version": "0.6.3"
+    "version": "0.7.1"
   },
   "paths": {
     "/api/v1/user": {
@@ -98,7 +98,9 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AgentCard-Output"
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Agent Card Api V1 A2A  Provider Id   Well Known Agent Card Json Get"
                 }
               }
             }
@@ -215,236 +217,12 @@
       }
     },
     "/api/v1/a2a/{provider_id}/http/{path}": {
-      "options": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
       "patch": {
         "tags": [
           "a2a"
         ],
         "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "head": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
         "security": [
           {
             "HTTPBasic": []
@@ -500,7 +278,119 @@
           "a2a"
         ],
         "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
         "security": [
           {
             "HTTPBasic": []
@@ -556,7 +446,119 @@
           "a2a"
         ],
         "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__options",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http__path__patch",
         "security": [
           {
             "HTTPBasic": []
@@ -609,240 +611,12 @@
       }
     },
     "/api/v1/a2a/{provider_id}/http": {
-      "options": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
       "patch": {
         "tags": [
           "a2a"
         ],
         "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "head": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
-        "security": [
-          {
-            "HTTPBasic": []
-          },
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "provider_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Provider Id"
-            }
-          },
-          {
-            "name": "path",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "default": "",
-              "title": "Path"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "a2a"
-        ],
-        "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
         "security": [
           {
             "HTTPBasic": []
@@ -899,7 +673,121 @@
           "a2a"
         ],
         "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
         "security": [
           {
             "HTTPBasic": []
@@ -956,7 +844,121 @@
           "a2a"
         ],
         "summary": "A2A Proxy Http Transport",
-        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_options",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
+        "security": [
+          {
+            "HTTPBasic": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "provider_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Provider Id"
+            }
+          },
+          {
+            "name": "path",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "a2a"
+        ],
+        "summary": "A2A Proxy Http Transport",
+        "operationId": "a2a_proxy_http_transport_api_v1_a2a__provider_id__http_patch",
         "security": [
           {
             "HTTPBasic": []
@@ -4901,41 +4903,6 @@
   },
   "components": {
     "schemas": {
-      "APIKeySecurityScheme": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "in": {
-            "$ref": "#/components/schemas/In"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "type": {
-            "type": "string",
-            "const": "apiKey",
-            "title": "Type",
-            "default": "apiKey"
-          }
-        },
-        "type": "object",
-        "required": [
-          "in",
-          "name"
-        ],
-        "title": "APIKeySecurityScheme",
-        "description": "Defines a security scheme using an API key."
-      },
       "AddProvider": {
         "properties": {
           "type": {
@@ -4977,874 +4944,6 @@
         "title": "AddProvider",
         "description": "Will add a new provider or update an existing one with the same base docker image ID\n(docker registry + repository, excluding tag)"
       },
-      "AgentCapabilities": {
-        "properties": {
-          "extensions": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/AgentExtension"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extensions"
-          },
-          "pushNotifications": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Pushnotifications"
-          },
-          "stateTransitionHistory": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Statetransitionhistory"
-          },
-          "streaming": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Streaming"
-          }
-        },
-        "type": "object",
-        "title": "AgentCapabilities",
-        "description": "Defines optional capabilities supported by an agent."
-      },
-      "AgentCard-Input": {
-        "properties": {
-          "additionalInterfaces": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/AgentInterface"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Additionalinterfaces"
-          },
-          "capabilities": {
-            "$ref": "#/components/schemas/AgentCapabilities"
-          },
-          "defaultInputModes": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Defaultinputmodes"
-          },
-          "defaultOutputModes": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Defaultoutputmodes"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "examples": [
-              "Agent that helps users with recipes and cooking."
-            ]
-          },
-          "documentationUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Documentationurl"
-          },
-          "iconUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Iconurl"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "examples": [
-              "Recipe Agent"
-            ]
-          },
-          "preferredTransport": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Preferredtransport",
-            "default": "JSONRPC",
-            "examples": [
-              "JSONRPC",
-              "GRPC",
-              "HTTP+JSON"
-            ]
-          },
-          "protocolVersion": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Protocolversion",
-            "default": "0.3.0"
-          },
-          "provider": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentProvider"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "security": {
-            "anyOf": [
-              {
-                "items": {
-                  "additionalProperties": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Security",
-            "examples": [
-              [
-                {
-                  "oauth": [
-                    "read"
-                  ]
-                },
-                {
-                  "api-key": [],
-                  "mtls": []
-                }
-              ]
-            ]
-          },
-          "securitySchemes": {
-            "anyOf": [
-              {
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/SecurityScheme-Input"
-                },
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Securityschemes"
-          },
-          "signatures": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/AgentCardSignature"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signatures"
-          },
-          "skills": {
-            "items": {
-              "$ref": "#/components/schemas/AgentSkill"
-            },
-            "type": "array",
-            "title": "Skills"
-          },
-          "supportsAuthenticatedExtendedCard": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supportsauthenticatedextendedcard"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url",
-            "examples": [
-              "https://api.example.com/a2a/v1"
-            ]
-          },
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "examples": [
-              "1.0.0"
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "capabilities",
-          "defaultInputModes",
-          "defaultOutputModes",
-          "description",
-          "name",
-          "skills",
-          "url",
-          "version"
-        ],
-        "title": "AgentCard",
-        "description": "The AgentCard is a self-describing manifest for an agent. It provides essential\nmetadata including the agent's identity, capabilities, skills, supported\ncommunication methods, and security requirements."
-      },
-      "AgentCard-Output": {
-        "properties": {
-          "additionalInterfaces": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/AgentInterface"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Additionalinterfaces"
-          },
-          "capabilities": {
-            "$ref": "#/components/schemas/AgentCapabilities"
-          },
-          "defaultInputModes": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Defaultinputmodes"
-          },
-          "defaultOutputModes": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Defaultoutputmodes"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "examples": [
-              "Agent that helps users with recipes and cooking."
-            ]
-          },
-          "documentationUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Documentationurl"
-          },
-          "iconUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Iconurl"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name",
-            "examples": [
-              "Recipe Agent"
-            ]
-          },
-          "preferredTransport": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Preferredtransport",
-            "default": "JSONRPC",
-            "examples": [
-              "JSONRPC",
-              "GRPC",
-              "HTTP+JSON"
-            ]
-          },
-          "protocolVersion": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Protocolversion",
-            "default": "0.3.0"
-          },
-          "provider": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/AgentProvider"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "security": {
-            "anyOf": [
-              {
-                "items": {
-                  "additionalProperties": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Security",
-            "examples": [
-              [
-                {
-                  "oauth": [
-                    "read"
-                  ]
-                },
-                {
-                  "api-key": [],
-                  "mtls": []
-                }
-              ]
-            ]
-          },
-          "securitySchemes": {
-            "anyOf": [
-              {
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/SecurityScheme-Output"
-                },
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Securityschemes"
-          },
-          "signatures": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/AgentCardSignature"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Signatures"
-          },
-          "skills": {
-            "items": {
-              "$ref": "#/components/schemas/AgentSkill"
-            },
-            "type": "array",
-            "title": "Skills"
-          },
-          "supportsAuthenticatedExtendedCard": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supportsauthenticatedextendedcard"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url",
-            "examples": [
-              "https://api.example.com/a2a/v1"
-            ]
-          },
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "examples": [
-              "1.0.0"
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "capabilities",
-          "defaultInputModes",
-          "defaultOutputModes",
-          "description",
-          "name",
-          "skills",
-          "url",
-          "version"
-        ],
-        "title": "AgentCard",
-        "description": "The AgentCard is a self-describing manifest for an agent. It provides essential\nmetadata including the agent's identity, capabilities, skills, supported\ncommunication methods, and security requirements."
-      },
-      "AgentCardSignature": {
-        "properties": {
-          "header": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Header"
-          },
-          "protected": {
-            "type": "string",
-            "title": "Protected"
-          },
-          "signature": {
-            "type": "string",
-            "title": "Signature"
-          }
-        },
-        "type": "object",
-        "required": [
-          "protected",
-          "signature"
-        ],
-        "title": "AgentCardSignature",
-        "description": "AgentCardSignature represents a JWS signature of an AgentCard.\nThis follows the JSON format of an RFC 7515 JSON Web Signature (JWS)."
-      },
-      "AgentExtension": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "params": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Params"
-          },
-          "required": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Required"
-          },
-          "uri": {
-            "type": "string",
-            "title": "Uri"
-          }
-        },
-        "type": "object",
-        "required": [
-          "uri"
-        ],
-        "title": "AgentExtension",
-        "description": "A declaration of a protocol extension supported by an Agent."
-      },
-      "AgentInterface": {
-        "properties": {
-          "transport": {
-            "type": "string",
-            "title": "Transport",
-            "examples": [
-              "JSONRPC",
-              "GRPC",
-              "HTTP+JSON"
-            ]
-          },
-          "url": {
-            "type": "string",
-            "title": "Url",
-            "examples": [
-              "https://api.example.com/a2a/v1",
-              "https://grpc.example.com/a2a",
-              "https://rest.example.com/v1"
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "transport",
-          "url"
-        ],
-        "title": "AgentInterface",
-        "description": "Declares a combination of a target URL and a transport protocol for interacting with the agent.\nThis allows agents to expose the same functionality over multiple transport mechanisms."
-      },
-      "AgentProvider": {
-        "properties": {
-          "organization": {
-            "type": "string",
-            "title": "Organization"
-          },
-          "url": {
-            "type": "string",
-            "title": "Url"
-          }
-        },
-        "type": "object",
-        "required": [
-          "organization",
-          "url"
-        ],
-        "title": "AgentProvider",
-        "description": "Represents the service provider of an agent."
-      },
-      "AgentSkill": {
-        "properties": {
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "examples": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Examples",
-            "examples": [
-              [
-                "I need a recipe for bread"
-              ]
-            ]
-          },
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "inputModes": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Inputmodes"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "outputModes": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Outputmodes"
-          },
-          "security": {
-            "anyOf": [
-              {
-                "items": {
-                  "additionalProperties": {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  },
-                  "type": "object"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Security",
-            "examples": [
-              [
-                {
-                  "google": [
-                    "oidc"
-                  ]
-                }
-              ]
-            ]
-          },
-          "tags": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Tags",
-            "examples": [
-              [
-                "cooking",
-                "customer support",
-                "billing"
-              ]
-            ]
-          }
-        },
-        "type": "object",
-        "required": [
-          "description",
-          "id",
-          "name",
-          "tags"
-        ],
-        "title": "AgentSkill",
-        "description": "Represents a distinct capability or function that an agent can perform."
-      },
-      "Artifact-Input": {
-        "properties": {
-          "artifactId": {
-            "type": "string",
-            "title": "Artifactid"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "extensions": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extensions"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "parts": {
-            "items": {
-              "$ref": "#/components/schemas/Part-Input"
-            },
-            "type": "array",
-            "title": "Parts"
-          }
-        },
-        "type": "object",
-        "required": [
-          "artifactId",
-          "parts"
-        ],
-        "title": "Artifact",
-        "description": "Represents a file, data structure, or other resource generated by an agent during a task."
-      },
-      "Artifact-Output": {
-        "properties": {
-          "artifactId": {
-            "type": "string",
-            "title": "Artifactid"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "extensions": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extensions"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "parts": {
-            "items": {
-              "$ref": "#/components/schemas/Part-Output"
-            },
-            "type": "array",
-            "title": "Parts"
-          }
-        },
-        "type": "object",
-        "required": [
-          "artifactId",
-          "parts"
-        ],
-        "title": "Artifact",
-        "description": "Represents a file, data structure, or other resource generated by an agent during a task."
-      },
       "Audio": {
         "properties": {
           "id": {
@@ -5858,44 +4957,6 @@
         ],
         "title": "Audio",
         "description": "Data about a previous audio response from the model.\n[Learn more](https://platform.openai.com/docs/guides/audio)."
-      },
-      "AuthorizationCodeOAuthFlow": {
-        "properties": {
-          "authorizationUrl": {
-            "type": "string",
-            "title": "Authorizationurl"
-          },
-          "refreshUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Refreshurl"
-          },
-          "scopes": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Scopes"
-          },
-          "tokenUrl": {
-            "type": "string",
-            "title": "Tokenurl"
-          }
-        },
-        "type": "object",
-        "required": [
-          "authorizationUrl",
-          "scopes",
-          "tokenUrl"
-        ],
-        "title": "AuthorizationCodeOAuthFlow",
-        "description": "Defines configuration details for the OAuth 2.0 Authorization Code flow."
       },
       "AuthorizationCodeRequest": {
         "properties": {
@@ -7067,39 +6128,6 @@
         "title": "ChatCompletionUserMessageParam",
         "description": "Messages sent by an end user, containing prompts or additional context\ninformation."
       },
-      "ClientCredentialsOAuthFlow": {
-        "properties": {
-          "refreshUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Refreshurl"
-          },
-          "scopes": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Scopes"
-          },
-          "tokenUrl": {
-            "type": "string",
-            "title": "Tokenurl"
-          }
-        },
-        "type": "object",
-        "required": [
-          "scopes",
-          "tokenUrl"
-        ],
-        "title": "ClientCredentialsOAuthFlow",
-        "description": "Defines configuration details for the OAuth 2.0 Client Credentials flow."
-      },
       "ConnectorConnectRequest": {
         "properties": {
           "redirect_url": {
@@ -7425,7 +6453,9 @@
             "title": "Id"
           },
           "data": {
-            "$ref": "#/components/schemas/ContextHistoryItemData-Output"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
           },
           "created_at": {
             "type": "string",
@@ -7456,28 +6486,9 @@
         "title": "ContextHistoryItem"
       },
       "ContextHistoryItemCreateRequest": {
-        "$ref": "#/components/schemas/ContextHistoryItemData-Input",
+        "additionalProperties": true,
+        "type": "object",
         "title": "ContextHistoryItemCreateRequest"
-      },
-      "ContextHistoryItemData-Input": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/Artifact-Input"
-          },
-          {
-            "$ref": "#/components/schemas/Message-Input"
-          }
-        ]
-      },
-      "ContextHistoryItemData-Output": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/Artifact-Output"
-          },
-          {
-            "$ref": "#/components/schemas/Message-Output"
-          }
-        ]
       },
       "ContextPatchMetadataRequest": {
         "properties": {
@@ -7733,12 +6744,14 @@
           "agent_card": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/AgentCard-Input"
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Agent Card"
           },
           "variables": {
             "anyOf": [
@@ -7812,39 +6825,6 @@
         ],
         "title": "CreateVectorStoreRequest",
         "description": "Request to create a new vector store."
-      },
-      "DataPart": {
-        "properties": {
-          "data": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Data"
-          },
-          "kind": {
-            "type": "string",
-            "const": "data",
-            "title": "Kind",
-            "default": "data"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "title": "DataPart",
-        "description": "Represents a structured data segment (e.g., JSON) within a message or artifact."
       },
       "DiscoveryState": {
         "type": "string",
@@ -8187,45 +7167,6 @@
         "title": "FileListQuery",
         "description": "Query schema for listing files."
       },
-      "FilePart": {
-        "properties": {
-          "file": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/FileWithBytes"
-              },
-              {
-                "$ref": "#/components/schemas/FileWithUri"
-              }
-            ],
-            "title": "File"
-          },
-          "kind": {
-            "type": "string",
-            "const": "file",
-            "title": "Kind",
-            "default": "file"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          }
-        },
-        "type": "object",
-        "required": [
-          "file"
-        ],
-        "title": "FilePart",
-        "description": "Represents a file segment within a message or artifact. The file content can be\nprovided either directly as bytes or as a URI."
-      },
       "FileSystemModelProviderRegistryLocation": {
         "type": "string",
         "minLength": 1,
@@ -8245,78 +7186,6 @@
           "extracted_text"
         ],
         "title": "FileType"
-      },
-      "FileWithBytes": {
-        "properties": {
-          "bytes": {
-            "type": "string",
-            "title": "Bytes"
-          },
-          "mimeType": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mimetype"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          }
-        },
-        "type": "object",
-        "required": [
-          "bytes"
-        ],
-        "title": "FileWithBytes",
-        "description": "Represents a file with its content provided directly as a base64-encoded string."
-      },
-      "FileWithUri": {
-        "properties": {
-          "mimeType": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mimetype"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "uri": {
-            "type": "string",
-            "title": "Uri"
-          }
-        },
-        "type": "object",
-        "required": [
-          "uri"
-        ],
-        "title": "FileWithUri",
-        "description": "Represents a file with its content located at a specific URI."
       },
       "FunctionCall": {
         "properties": {
@@ -8547,48 +7416,6 @@
         "type": "object",
         "title": "GlobalPermissionGrant"
       },
-      "HTTPAuthSecurityScheme": {
-        "properties": {
-          "bearerFormat": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bearerformat"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "scheme": {
-            "type": "string",
-            "title": "Scheme"
-          },
-          "type": {
-            "type": "string",
-            "const": "http",
-            "title": "Type",
-            "default": "http"
-          }
-        },
-        "type": "object",
-        "required": [
-          "scheme"
-        ],
-        "title": "HTTPAuthSecurityScheme",
-        "description": "Defines a security scheme using HTTP authentication."
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -8623,49 +7450,6 @@
           "url"
         ],
         "title": "ImageURL"
-      },
-      "ImplicitOAuthFlow": {
-        "properties": {
-          "authorizationUrl": {
-            "type": "string",
-            "title": "Authorizationurl"
-          },
-          "refreshUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Refreshurl"
-          },
-          "scopes": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Scopes"
-          }
-        },
-        "type": "object",
-        "required": [
-          "authorizationUrl",
-          "scopes"
-        ],
-        "title": "ImplicitOAuthFlow",
-        "description": "Defines configuration details for the OAuth 2.0 Implicit flow."
-      },
-      "In": {
-        "type": "string",
-        "enum": [
-          "cookie",
-          "header",
-          "query"
-        ],
-        "title": "In",
-        "description": "The location of the API key."
       },
       "InputAudio": {
         "properties": {
@@ -8832,194 +7616,6 @@
           "capability"
         ],
         "title": "MatchModelsRequest"
-      },
-      "Message-Input": {
-        "properties": {
-          "contextId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Contextid"
-          },
-          "extensions": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extensions"
-          },
-          "kind": {
-            "type": "string",
-            "const": "message",
-            "title": "Kind",
-            "default": "message"
-          },
-          "messageId": {
-            "type": "string",
-            "title": "Messageid"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          },
-          "parts": {
-            "items": {
-              "$ref": "#/components/schemas/Part-Input"
-            },
-            "type": "array",
-            "title": "Parts"
-          },
-          "referenceTaskIds": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Referencetaskids"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          },
-          "taskId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Taskid"
-          }
-        },
-        "type": "object",
-        "required": [
-          "messageId",
-          "parts",
-          "role"
-        ],
-        "title": "Message",
-        "description": "Represents a single message in the conversation between a user and an agent."
-      },
-      "Message-Output": {
-        "properties": {
-          "contextId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Contextid"
-          },
-          "extensions": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extensions"
-          },
-          "kind": {
-            "type": "string",
-            "const": "message",
-            "title": "Kind",
-            "default": "message"
-          },
-          "messageId": {
-            "type": "string",
-            "title": "Messageid"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          },
-          "parts": {
-            "items": {
-              "$ref": "#/components/schemas/Part-Output"
-            },
-            "type": "array",
-            "title": "Parts"
-          },
-          "referenceTaskIds": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Referencetaskids"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          },
-          "taskId": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Taskid"
-          }
-        },
-        "type": "object",
-        "required": [
-          "messageId",
-          "parts",
-          "role"
-        ],
-        "title": "Message",
-        "description": "Represents a single message in the conversation between a user and an agent."
       },
       "Model": {
         "properties": {
@@ -9225,30 +7821,6 @@
         ],
         "title": "ModelWithScore"
       },
-      "MutualTLSSecurityScheme": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "type": {
-            "type": "string",
-            "const": "mutualTLS",
-            "title": "Type",
-            "default": "mutualTLS"
-          }
-        },
-        "type": "object",
-        "title": "MutualTLSSecurityScheme",
-        "description": "Defines a security scheme using mTLS authentication."
-      },
       "NetworkProviderLocation": {
         "type": "string",
         "maxLength": 2083,
@@ -9274,135 +7846,6 @@
         },
         "type": "object",
         "title": "NoAction"
-      },
-      "OAuth2SecurityScheme-Input": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "flows": {
-            "$ref": "#/components/schemas/OAuthFlows"
-          },
-          "oauth2MetadataUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Oauth2Metadataurl"
-          },
-          "type": {
-            "type": "string",
-            "const": "oauth2",
-            "title": "Type",
-            "default": "oauth2"
-          }
-        },
-        "type": "object",
-        "required": [
-          "flows"
-        ],
-        "title": "OAuth2SecurityScheme",
-        "description": "Defines a security scheme using OAuth 2.0."
-      },
-      "OAuth2SecurityScheme-Output": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "flows": {
-            "$ref": "#/components/schemas/OAuthFlows"
-          },
-          "oauth2MetadataUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Oauth2Metadataurl"
-          },
-          "type": {
-            "type": "string",
-            "const": "oauth2",
-            "title": "Type",
-            "default": "oauth2"
-          }
-        },
-        "type": "object",
-        "required": [
-          "flows"
-        ],
-        "title": "OAuth2SecurityScheme",
-        "description": "Defines a security scheme using OAuth 2.0."
-      },
-      "OAuthFlows": {
-        "properties": {
-          "authorizationCode": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/AuthorizationCodeOAuthFlow"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "clientCredentials": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ClientCredentialsOAuthFlow"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "implicit": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ImplicitOAuthFlow"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "password": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/PasswordOAuthFlow"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "OAuthFlows",
-        "description": "Defines the configuration for the supported OAuth 2.0 flows."
       },
       "OnCompleteAction": {
         "anyOf": [
@@ -9438,37 +7881,6 @@
           "data"
         ],
         "title": "OpenAIPage[Model]"
-      },
-      "OpenIdConnectSecurityScheme": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "openIdConnectUrl": {
-            "type": "string",
-            "title": "Openidconnecturl"
-          },
-          "type": {
-            "type": "string",
-            "const": "openIdConnect",
-            "title": "Type",
-            "default": "openIdConnect"
-          }
-        },
-        "type": "object",
-        "required": [
-          "openIdConnectUrl"
-        ],
-        "title": "OpenIdConnectSecurityScheme",
-        "description": "Defines a security scheme using OpenID Connect."
       },
       "PaginatedResult_ConnectorPresetResponse_": {
         "properties": {
@@ -9950,67 +8362,6 @@
         ],
         "title": "PaginatedResult[VectorStoreSearchResult]"
       },
-      "Part-Input": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/TextPart"
-          },
-          {
-            "$ref": "#/components/schemas/FilePart"
-          },
-          {
-            "$ref": "#/components/schemas/DataPart"
-          }
-        ],
-        "title": "Part"
-      },
-      "Part-Output": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/TextPart"
-          },
-          {
-            "$ref": "#/components/schemas/FilePart"
-          },
-          {
-            "$ref": "#/components/schemas/DataPart"
-          }
-        ],
-        "title": "Part"
-      },
-      "PasswordOAuthFlow": {
-        "properties": {
-          "refreshUrl": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Refreshurl"
-          },
-          "scopes": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Scopes"
-          },
-          "tokenUrl": {
-            "type": "string",
-            "title": "Tokenurl"
-          }
-        },
-        "type": "object",
-        "required": [
-          "scopes",
-          "tokenUrl"
-        ],
-        "title": "PasswordOAuthFlow",
-        "description": "Defines configuration details for the OAuth 2.0 Resource Owner Password flow."
-      },
       "PatchProviderRequest": {
         "properties": {
           "location": {
@@ -10030,12 +8381,14 @@
           "agent_card": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/AgentCard-Input"
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Agent Card"
           },
           "variables": {
             "anyOf": [
@@ -10201,12 +8554,14 @@
           "agent_card": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/AgentCard-Output"
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Agent Card"
           },
           "error_message": {
             "anyOf": [
@@ -10318,7 +8673,9 @@
             "title": "Last Active At"
           },
           "agent_card": {
-            "$ref": "#/components/schemas/AgentCard-Output"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Agent Card"
           },
           "state": {
             "anyOf": [
@@ -10510,15 +8867,6 @@
         "title": "ResponseFormatText",
         "description": "Default response format. Used to generate text responses."
       },
-      "Role": {
-        "type": "string",
-        "enum": [
-          "agent",
-          "user"
-        ],
-        "title": "Role",
-        "description": "Identifies the sender of the message. `user` for the client, `agent` for the service."
-      },
       "SearchRequest": {
         "properties": {
           "query_vector": {
@@ -10543,46 +8891,6 @@
         ],
         "title": "SearchRequest",
         "description": "Request to search a vector store."
-      },
-      "SecurityScheme-Input": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/APIKeySecurityScheme"
-          },
-          {
-            "$ref": "#/components/schemas/HTTPAuthSecurityScheme"
-          },
-          {
-            "$ref": "#/components/schemas/OAuth2SecurityScheme-Input"
-          },
-          {
-            "$ref": "#/components/schemas/OpenIdConnectSecurityScheme"
-          },
-          {
-            "$ref": "#/components/schemas/MutualTLSSecurityScheme"
-          }
-        ],
-        "title": "SecurityScheme"
-      },
-      "SecurityScheme-Output": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/APIKeySecurityScheme"
-          },
-          {
-            "$ref": "#/components/schemas/HTTPAuthSecurityScheme"
-          },
-          {
-            "$ref": "#/components/schemas/OAuth2SecurityScheme-Output"
-          },
-          {
-            "$ref": "#/components/schemas/OpenIdConnectSecurityScheme"
-          },
-          {
-            "$ref": "#/components/schemas/MutualTLSSecurityScheme"
-          }
-        ],
-        "title": "SecurityScheme"
       },
       "TextExtractionRequest": {
         "properties": {
@@ -10614,38 +8922,6 @@
         },
         "type": "object",
         "title": "TextExtractionSettings"
-      },
-      "TextPart": {
-        "properties": {
-          "kind": {
-            "type": "string",
-            "const": "text",
-            "title": "Kind",
-            "default": "text"
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadata"
-          },
-          "text": {
-            "type": "string",
-            "title": "Text"
-          }
-        },
-        "type": "object",
-        "required": [
-          "text"
-        ],
-        "title": "TextPart",
-        "description": "Represents a text segment within a message or artifact."
       },
       "UnmanagedState": {
         "type": "string",
@@ -11223,7 +9499,9 @@
             "title": "Last Active At"
           },
           "agent_card": {
-            "$ref": "#/components/schemas/AgentCard-Output"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Agent Card"
           },
           "state": {
             "anyOf": [
@@ -11937,7 +10215,9 @@
             "title": "Last Active At"
           },
           "agent_card": {
-            "$ref": "#/components/schemas/AgentCard-Output"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Agent Card"
           },
           "state": {
             "anyOf": [
@@ -12069,7 +10349,9 @@
             "title": "Last Active At"
           },
           "agent_card": {
-            "$ref": "#/components/schemas/AgentCard-Output"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Agent Card"
           },
           "state": {
             "anyOf": [

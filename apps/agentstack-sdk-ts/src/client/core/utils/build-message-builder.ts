@@ -20,8 +20,7 @@ export const buildMessageBuilder =
     return {
       ...originalMessage,
       contextId,
-      kind: 'message',
-      role: 'user',
+      role: 'ROLE_USER',
       metadata,
     } as const;
   };

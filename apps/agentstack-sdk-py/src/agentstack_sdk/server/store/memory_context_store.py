@@ -9,9 +9,9 @@ from uuid import UUID
 
 from a2a.types import Artifact, Message
 from cachetools import TTLCache
+from google.protobuf.json_format import MessageToDict
 
 from agentstack_sdk.platform.context import ContextHistoryItem
-from agentstack_sdk.server.dependencies import Dependency
 from agentstack_sdk.server.store.context_store import ContextStore, ContextStoreInstance
 
 
@@ -25,12 +25,12 @@ class MemoryContextStoreInstance(ContextStoreInstance):
     ) -> AsyncIterator[ContextHistoryItem | Message | Artifact]:
         for item in self._history.copy():
             if load_history_items:
-                yield item.model_copy(deep=True)
+                yield item
             else:
-                yield item.data.model_copy(deep=True)
+                yield item.data
 
     async def store(self, data: Message | Artifact) -> None:
-        self._history.append(ContextHistoryItem(data=data.model_copy(deep=True), context_id=self.context_id))
+        self._history.append(ContextHistoryItem(data=MessageToDict(data), context_id=self.context_id))
 
     async def delete_history_from_id(self, from_id: UUID) -> None:
         # Does not allow to delete from an artifact onwards
@@ -55,7 +55,7 @@ class InMemoryContextStore(ContextStore):
             maxsize=max_contexts, ttl=context_ttl.total_seconds()
         )
 
-    async def create(self, context_id: str, initialized_dependencies: list[Dependency]) -> ContextStoreInstance:
+    async def create(self, context_id: str) -> ContextStoreInstance:
         if context_id not in self._instances:
             self._instances[context_id] = MemoryContextStoreInstance(context_id)
         return self._instances[context_id]

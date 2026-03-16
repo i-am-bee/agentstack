@@ -19,9 +19,7 @@ from typing_extensions import Doc
 from agentstack_sdk.a2a.extensions.base import BaseExtensionServer, BaseExtensionSpec
 from agentstack_sdk.server.context import RunContext
 
-Dependency: TypeAlias = (
-    Callable[[Message, RunContext, RequestContext, dict[str, "Dependency"]], Any] | BaseExtensionServer[Any, Any]
-)
+Dependency: TypeAlias = Callable[[Message, RunContext, RequestContext], Any] | BaseExtensionServer[Any, Any]
 
 
 # Inspired by fastapi.Depends
@@ -45,9 +43,9 @@ class Depends:
             self.extension = dependency
 
     def __call__(
-        self, message: Message, context: RunContext, request_context: RequestContext, dependencies: dict[str, Any]
+        self, message: Message, context: RunContext, request_context: RequestContext
     ) -> AbstractAsyncContextManager[Dependency]:
-        instance = self._dependency_callable(message, context, request_context, dependencies)
+        instance = self._dependency_callable(message, context, request_context)
 
         @asynccontextmanager
         async def lifespan() -> AsyncIterator[Dependency]:
@@ -89,14 +87,14 @@ def extract_dependencies(fn: Callable[..., Any]) -> dict[str, Depends]:
         elif inspect.isclass(annotation):
             # message: Message
             if annotation == Message:
-                dependencies[name] = Depends(lambda message, _run_context, _request_context, _dependencies: message)
+                dependencies[name] = Depends(lambda message, _run_context, _request_context: message)
             # context: Context
             elif annotation == RunContext:
-                dependencies[name] = Depends(lambda _message, run_context, _request_context, _dependencies: run_context)
+                dependencies[name] = Depends(lambda _message, run_context, _request_context: run_context)
             # extension: BaseExtensionServer = BaseExtensionSpec()
             # TODO: this does not get past linters, should we enable it or somehow fix the typing?
-            # elif issubclass(param.annotation, BaseExtensionServer) and isinstance(param.default, BaseExtensionSpec):
-            #     dependencies[name] = Depends(param.annotation(param.default))
+            # elif issubclass(annotation, BaseExtensionServer) and isinstance(param.default, BaseExtensionSpec):
+            #     dependencies[name] = Depends(annotation(param.default))
         elif param.kind is inspect.Parameter.VAR_KEYWORD:
             origin = get_origin(annotation)
             if origin is Unpack:

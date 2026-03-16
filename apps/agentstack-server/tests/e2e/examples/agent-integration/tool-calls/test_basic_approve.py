@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 from a2a.client.helpers import create_text_message_object
-from a2a.types import Message, Role, TaskState
+from a2a.types import SendMessageRequest, Message, Role, TaskState
 from agentstack_sdk.a2a.extensions import (
     ApprovalExtensionClient,
     ApprovalExtensionSpec,
@@ -40,27 +40,29 @@ async def test_basic_approve_example(subtests, a2a_client_factory, test_configur
 
             # Get initial task - may go to input_required if tool is called
             task = None
-            async for event in running_example.client.send_message(message):
+            async for event in running_example.client.send_message(SendMessageRequest(message=message)):
                 if isinstance(event, tuple):
                     task, _ = event
 
             # If tool call needs approval, approve it
-            while task and task.status.state == TaskState.input_required:
+            while task and task.status.state == TaskState.TASK_STATE_INPUT_REQUIRED:
                 response = ApprovalResponse(decision="approve")
                 response_message = Message(
-                    role=Role.user,
+                    role=Role.ROLE_USER,
                     message_id=str(uuid4()),
                     task_id=task.id,
                     context_id=running_example.context.id,
                     parts=[],
                     metadata={spec.URI: response.model_dump(mode="json")},
                 )
-                async for event in running_example.client.send_message(response_message):
+                async for event in running_example.client.send_message(SendMessageRequest(message=response_message)):
                     if isinstance(event, tuple):
                         task, _ = event
 
             assert task is not None
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
 
         with subtests.test("tool call is rejected"):
             # Send message that should trigger the ThinkTool
@@ -70,7 +72,7 @@ async def test_basic_approve_example(subtests, a2a_client_factory, test_configur
 
             # Get initial task
             task = None
-            async for event in running_example.client.send_message(message):
+            async for event in running_example.client.send_message(SendMessageRequest(message=message)):
                 if isinstance(event, tuple):
                     task, _ = event
 
@@ -78,24 +80,26 @@ async def test_basic_approve_example(subtests, a2a_client_factory, test_configur
             # (agent may request approval for multiple tools after a rejection)
             max_rejections = 10
             rejection_count = 0
-            while task and task.status.state == TaskState.input_required and rejection_count < max_rejections:
+            while (
+                task and task.status.state == TaskState.TASK_STATE_INPUT_REQUIRED and rejection_count < max_rejections
+            ):
                 response = ApprovalResponse(decision="reject")
                 response_message = Message(
-                    role=Role.user,
+                    role=Role.ROLE_USER,
                     message_id=str(uuid4()),
                     task_id=task.id,
                     context_id=running_example.context.id,
                     parts=[],
                     metadata={spec.URI: response.model_dump(mode="json")},
                 )
-                async for event in running_example.client.send_message(response_message):
+                async for event in running_example.client.send_message(SendMessageRequest(message=response_message)):
                     if isinstance(event, tuple):
                         task, _ = event
                 rejection_count += 1
 
             assert task is not None
             # Task may fail or complete depending on how agent handles rejection
-            assert task.status.state in (TaskState.completed, TaskState.failed), (
+            assert task.status.state in (TaskState.TASK_STATE_COMPLETED, TaskState.TASK_STATE_FAILED), (
                 f"Task still in {task.status.state} after {rejection_count} rejections. "
                 f"Agent may be stuck in a loop requesting tool approvals."
             )

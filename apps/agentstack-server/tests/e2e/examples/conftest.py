@@ -14,10 +14,11 @@ from typing import Any, NamedTuple
 import httpx
 import pytest
 from a2a.client import Client, ClientEvent
-from a2a.types import AgentCard, Message, Task
+from a2a.types import AgentCard, Task
 from a2a.utils.constants import AGENT_CARD_WELL_KNOWN_PATH
 from agentstack_sdk.platform import Provider
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
+from google.protobuf.json_format import ParseDict
 from pydantic import Secret
 from tenacity import retry, stop_after_delay, wait_fixed
 
@@ -69,20 +70,17 @@ async def _get_agent_card(agent_url: str):
     async with httpx.AsyncClient(timeout=None) as httpx_client:
         card_resp = await httpx_client.get(f"{agent_url}{AGENT_CARD_WELL_KNOWN_PATH}")
         card_resp.raise_for_status()
-        card = AgentCard.model_validate(card_resp.json())
+        card = ParseDict(card_resp.json(), AgentCard(), ignore_unknown_fields=True)
         return card
 
 
 @pytest.fixture
-def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent | Message]], Awaitable[Task]]:
-    async def fn(stream: AsyncIterator[ClientEvent | Message]) -> Task:
-        """Helper to extract the final task from a client.send_message stream."""
+def get_final_task_from_stream() -> Callable[[AsyncIterator[ClientEvent]], Awaitable[Task | None]]:
+    async def fn(stream: AsyncIterator[ClientEvent]) -> Task | None:
         final_task = None
         async for event in stream:
             match event:
-                case (task, None):
-                    final_task = task
-                case (task, _):
+                case (_, task):
                     final_task = task
         return final_task
 

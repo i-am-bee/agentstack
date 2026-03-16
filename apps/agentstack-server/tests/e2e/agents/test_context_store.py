@@ -7,7 +7,7 @@ from collections.abc import AsyncGenerator, AsyncIterator
 
 import pytest
 from a2a.client import Client, ClientEvent, create_text_message_object
-from a2a.types import Message, Role, Task
+from a2a.types import SendMessageRequest, Message, Role, Task
 from agentstack_sdk.a2a.extensions import PlatformApiExtensionClient, PlatformApiExtensionSpec
 from agentstack_sdk.a2a.types import RunYield
 from agentstack_sdk.platform.context import Context, ContextPermissions, ContextToken, Permissions
@@ -18,11 +18,11 @@ from agentstack_sdk.server.store.platform_context_store import PlatformContextSt
 pytestmark = pytest.mark.e2e
 
 
-async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task:
+async def get_final_task_from_stream(stream: AsyncIterator[ClientEvent | Message]) -> Task | None:
     final_task = None
     async for event in stream:
         match event:
-            case (task, _):
+            case (_, task):
                 final_task = task
     return final_task
 
@@ -35,7 +35,7 @@ async def history_agent(create_server_with_agent) -> AsyncGenerator[tuple[Server
         input.metadata = {"test": "metadata"}
         await context.store(input)
         async for message in context.load_history():
-            message.role = Role.agent
+            message.role = Role.ROLE_AGENT
             assert message.metadata == {"test": "metadata"}
             yield message
             await context.store(message)
@@ -69,18 +69,18 @@ async def test_agent_history(history_agent, subtests):
             grant_global_permissions=Permissions(a2a_proxy={"*"}),
         )
 
-        final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
-        agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        final_task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=create_message(token, "first message"))))
+        agent_messages = [msg.parts[0].text for msg in final_task.history]
         assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == ["first message"]
 
-        final_task = await get_final_task_from_stream(client.send_message(create_message(token, "second message")))
-        agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        final_task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=create_message(token, "second message"))))
+        agent_messages = [msg.parts[0].text for msg in final_task.history]
         assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == ["first message", "first message", "second message"]
 
-        final_task = await get_final_task_from_stream(client.send_message(create_message(token, "third message")))
-        agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        final_task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=create_message(token, "third message"))))
+        agent_messages = [msg.parts[0].text for msg in final_task.history]
         assert all(msg.metadata == {"test": "metadata"} for msg in final_task.history)
         assert agent_messages == [
             # first run
@@ -104,8 +104,8 @@ async def test_agent_history(history_agent, subtests):
             grant_context_permissions=ContextPermissions(context_data={"*"}),
             grant_global_permissions=Permissions(a2a_proxy={"*"}),
         )
-        final_task = await get_final_task_from_stream(client.send_message(create_message(token, "first message")))
-        agent_messages = [msg.parts[0].root.text for msg in final_task.history]
+        final_task = await get_final_task_from_stream(client.send_message(SendMessageRequest(message=create_message(token, "first message"))))
+        agent_messages = [msg.parts[0].text for msg in final_task.history]
         assert agent_messages == ["first message"]
 
         context1_history = await Context.list_history(context1.id)

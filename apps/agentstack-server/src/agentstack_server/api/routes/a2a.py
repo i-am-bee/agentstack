@@ -3,17 +3,17 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 from urllib.parse import urljoin
 from uuid import UUID
 
 import fastapi
-import fastapi.responses
 from a2a.server.apps import A2AFastAPIApplication
 from a2a.server.apps.rest.rest_adapter import RESTAdapter
-from a2a.types import AgentCard, AgentInterface, HTTPAuthSecurityScheme, SecurityScheme, TransportProtocol
-from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
+from a2a.types import AgentCard, AgentInterface, HTTPAuthSecurityScheme, SecurityRequirement, SecurityScheme
+from a2a.utils.constants import AGENT_CARD_WELL_KNOWN_PATH
 from fastapi import Depends, HTTPException, Request, Response
+from google.protobuf.json_format import MessageToDict, ParseDict
 
 from agentstack_server.api.dependencies import (
     A2AProxyServiceDependency,
@@ -29,13 +29,12 @@ router = fastapi.APIRouter()
 
 
 def create_proxy_agent_card(
-    agent_card: AgentCard, *, provider_id: UUID, request: Request, configuration: Configuration
+    agent_card: dict[str, Any], *, provider_id: UUID, request: Request, configuration: Configuration
 ) -> AgentCard:
     proxy_base = str(request.url_for(a2a_proxy_jsonrpc_transport.__name__, provider_id=provider_id))
-    proxy_security = []
     proxy_security_schemes = {
         "platform_context_token": SecurityScheme(
-            HTTPAuthSecurityScheme(
+            http_auth_security_scheme=HTTPAuthSecurityScheme(
                 scheme="bearer",
                 bearer_format="JWT",
                 description="Platform context token, issued by the AgentStack server using POST /api/v1/context/{context_id}/token.",
@@ -43,28 +42,45 @@ def create_proxy_agent_card(
         )
     }
 
+    proxy_security = []
+
     if not configuration.auth.disable_auth:
         # Note that we're purposefully not using oAuth but a more generic http scheme.
         # This is because we don't want to declare the auth metadata but prefer discovery through related RFCs
         # The http scheme also covers internal jwt tokens
-        proxy_security.append({"bearer": []})
-        proxy_security_schemes["bearer"] = SecurityScheme(HTTPAuthSecurityScheme(scheme="bearer"))
+        req = SecurityRequirement()
+        req.schemes["bearer"].list.extend([])
+        proxy_security.append(req)
+        proxy_security_schemes["bearer"] = SecurityScheme(
+            http_auth_security_scheme=HTTPAuthSecurityScheme(scheme="bearer")
+        )
         if configuration.auth.basic.enabled:
-            proxy_security.append({"basic": []})
-            proxy_security_schemes["basic"] = SecurityScheme(HTTPAuthSecurityScheme(scheme="basic"))
+            req_basic = SecurityRequirement()
+            req_basic.schemes["basic"].list.extend([])
+            proxy_security.append(req_basic)
+            proxy_security_schemes["basic"] = SecurityScheme(
+                http_auth_security_scheme=HTTPAuthSecurityScheme(scheme="basic")
+            )
 
-    return agent_card.model_copy(
-        update={
-            "preferred_transport": TransportProtocol.jsonrpc,
-            "url": proxy_base,
-            "additional_interfaces": [
-                AgentInterface(transport=TransportProtocol.http_json, url=urljoin(proxy_base, "http")),
-                AgentInterface(transport=TransportProtocol.jsonrpc, url=proxy_base),
-            ],
-            "security": proxy_security,
-            "security_schemes": proxy_security_schemes,
-        }
+    card_copy = AgentCard()
+    card_copy = ParseDict(agent_card, card_copy, ignore_unknown_fields=True)
+
+    del card_copy.supported_interfaces[:]
+    card_copy.supported_interfaces.extend(
+        [
+            AgentInterface(protocol_binding="HTTP+JSON", url=urljoin(proxy_base, "http")),
+            AgentInterface(protocol_binding="JSONRPC", url=proxy_base),
+        ]
     )
+
+    del card_copy.security_requirements[:]
+    card_copy.security_requirements.extend(proxy_security)
+
+    card_copy.security_schemes.clear()
+    for k, v in proxy_security_schemes.items():
+        card_copy.security_schemes[k].CopyFrom(v)
+
+    return card_copy
 
 
 @router.get("/{provider_id}" + AGENT_CARD_WELL_KNOWN_PATH)
@@ -74,16 +90,17 @@ async def get_agent_card(
     provider_service: ProviderServiceDependency,
     configuration: ConfigurationDependency,
     user: Annotated[AuthorizedUser, Depends(authorized_user)],
-) -> AgentCard:
+) -> dict[str, Any]:
     try:
         user = RequiresPermissions(providers={"read"})(user)  # try provider read permissions
     except HTTPException:
         user = RequiresPermissions(a2a_proxy={provider_id})(user)  # try a2a proxy permissions
 
     provider = await provider_service.get_provider(provider_id=provider_id)
-    return create_proxy_agent_card(
+    card_copy = create_proxy_agent_card(
         provider.agent_card, provider_id=provider.id, request=request, configuration=configuration
     )
+    return MessageToDict(card_copy, preserving_proto_field_name=True)
 
 
 @router.post("/{provider_id}")

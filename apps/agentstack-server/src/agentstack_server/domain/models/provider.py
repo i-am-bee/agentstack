@@ -1,6 +1,5 @@
 # Copyright 2025 © BeeAI a Series of LF Projects, LLC
 # SPDX-License-Identifier: Apache-2.0
-
 from __future__ import annotations
 
 import base64
@@ -15,6 +14,7 @@ from uuid import UUID
 
 from a2a.types import AgentCard
 from a2a.utils import AGENT_CARD_WELL_KNOWN_PATH
+from google.protobuf.json_format import ParseDict
 from httpx import AsyncClient
 from kink import di
 from pydantic import (
@@ -80,14 +80,14 @@ class DockerImageProviderLocation(RootModel):
     async def get_version_info(self) -> VersionInfo:
         return VersionInfo(docker=await self.get_resolved_version())
 
-    async def load_agent_card(self) -> AgentCard:
-        from a2a.types import AgentCard
-
+    async def load_agent_card(self) -> dict[str, Any]:
         resolved_version = await self.get_resolved_version()
         labels = await resolved_version.get_labels()
         if DOCKER_MANIFEST_LABEL_NAME not in labels:
             raise MissingAgentCardLabelError(str(self.root))
-        return AgentCard.model_validate(json.loads(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME])))
+        data = json.loads(base64.b64decode(labels[DOCKER_MANIFEST_LABEL_NAME]))
+        ParseDict(data, AgentCard(), ignore_unknown_fields=True)  # try at least parsing card, TODO: validation of required fields
+        return data
 
 
 class NetworkProviderLocation(RootModel):
@@ -135,18 +135,18 @@ class NetworkProviderLocation(RootModel):
         location_digest = hashlib.sha256(str(self.root).encode()).digest()
         return UUID(bytes=location_digest[:16])
 
-    async def load_agent_card(self) -> AgentCard:
-        from a2a.types import AgentCard
-
+    async def load_agent_card(self) -> dict[str, Any]:
         async with AsyncClient() as client:
             try:
                 response = await client.get(urljoin(str(self.a2a_url), AGENT_CARD_WELL_KNOWN_PATH), timeout=1)
                 response.raise_for_status()
-                card = AgentCard.model_validate(response.json())
+                card = response.json()
                 if ext := get_extension(card, SELF_REGISTRATION_EXTENSION_URI):
-                    assert ext.params
-                    self_registration_id = ext.params["self_registration_id"]
-                    if quote(self.root.fragment or "", safe="") != quote(self_registration_id, safe=""):
+                    params = ext.get("params", {})
+                    self_registration_id = params.get("self_registration_id")
+                    if self_registration_id and quote(self.root.fragment or "", safe="") != quote(
+                        self_registration_id, safe=""
+                    ):
                         raise ValueError(
                             f"Self registration id does not match: {self.root.fragment} != {self_registration_id}"
                         )
@@ -185,7 +185,7 @@ class Provider(BaseModel):
     updated_at: AwareDatetime = Field(default_factory=utc_now)
     created_by: UUID
     last_active_at: AwareDatetime = Field(default_factory=utc_now)
-    agent_card: AgentCard
+    agent_card: dict[str, Any]
     unmanaged_state: UnmanagedState | None = Field(default=None, exclude=True)
 
     @computed_field
@@ -208,7 +208,7 @@ class Provider(BaseModel):
     @property
     def env(self) -> list[EnvVar]:
         if agent_detail := get_extension(self.agent_card, AGENT_DETAIL_EXTENSION_URI):
-            variables = agent_detail.model_dump()["params"].get("variables") or []
+            variables = agent_detail.get("params", {}).get("variables", []) or []
             return [EnvVar.model_validate(v) for v in variables]
         return []
 

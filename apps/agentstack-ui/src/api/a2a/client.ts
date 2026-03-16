@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Client } from '@a2a-js/sdk/client';
 import type { Task, TaskArtifactUpdateEvent, TaskStatusUpdateEvent } from 'agentstack-sdk';
 import { extractTextFromMessage, handleAgentCard, handleTaskStatusUpdate, resolveUserMetadata } from 'agentstack-sdk';
 import { defaultIfEmpty, filter, lastValueFrom, Subject } from 'rxjs';
-import { match } from 'ts-pattern';
+import { match, P } from 'ts-pattern';
 
 import { A2AExtensionError, TaskCanceledError } from '#api/errors.ts';
 import type { UITextPart } from '#modules/messages/types.ts';
@@ -16,6 +15,7 @@ import type { TaskId } from '#modules/tasks/api/types.ts';
 
 import { getAgentClient } from './agent-card';
 import { AGENT_ERROR_MESSAGE } from './constants';
+import type { A2AClient } from './jsonrpc-client';
 import { processArtifactMetadata, processMessageMetadata, processParts } from './part-processors';
 import type { ChatResult, TaskStatusUpdateResultWithTaskId } from './types';
 import { type ChatParams, type ChatRun, RunResultType } from './types';
@@ -28,7 +28,7 @@ function handleStatusUpdate<UIGenericPart = never>(
   const { message, state } = event.status;
   const extensionError = extractErrorExtension(message?.metadata);
 
-  if (state === 'failed' || state === 'rejected') {
+  if (state === 'TASK_STATE_FAILED' || state === 'TASK_STATE_REJECTED') {
     if (extensionError) {
       throw new A2AExtensionError(extensionError);
     }
@@ -86,7 +86,7 @@ function handleArtifactUpdate(event: TaskArtifactUpdateEvent): UIMessagePart[] {
   ];
 }
 
-async function handleEventError(error: unknown, client: Client, taskId: TaskId | undefined) {
+async function handleEventError(error: unknown, client: A2AClient, taskId: TaskId | undefined) {
   if (taskId) {
     let task: Task | null = null;
 
@@ -96,7 +96,7 @@ async function handleEventError(error: unknown, client: Client, taskId: TaskId |
       console.warn('Failed to check task status after stream error:', getTaskError);
     }
 
-    if (task?.status.state === 'canceled') {
+    if (task?.status.state === 'TASK_STATE_CANCELED') {
       throw new TaskCanceledError(taskId);
     }
   }
@@ -147,13 +147,13 @@ export const buildA2AClient = async <UIGenericPart = never>({
       try {
         for await (const event of stream) {
           match(event)
-            .with({ kind: 'task' }, (task) => {
+            .with({ task: P.nonNullable }, ({ task }) => {
               taskId = task.id;
             })
-            .with({ kind: 'status-update' }, (event) => {
-              taskId = event.taskId;
+            .with({ statusUpdate: P.nonNullable }, ({ statusUpdate }) => {
+              taskId = statusUpdate.taskId;
 
-              handleTaskStatusUpdate(event).forEach((result) => {
+              handleTaskStatusUpdate(statusUpdate).forEach((result) => {
                 if (!taskId) {
                   throw new Error(`Illegal State - taskId missing on status-update event`);
                 }
@@ -164,18 +164,18 @@ export const buildA2AClient = async <UIGenericPart = never>({
                 });
               });
 
-              const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(event, onStatusUpdate);
+              const parts: (UIMessagePart | UIGenericPart)[] = handleStatusUpdate(statusUpdate, onStatusUpdate);
 
               messageSubject.next({ type: RunResultType.Parts, parts, taskId });
             })
-            .with({ kind: 'artifact-update' }, (event) => {
-              taskId = event.taskId;
+            .with({ artifactUpdate: P.nonNullable }, ({ artifactUpdate }) => {
+              taskId = artifactUpdate.taskId;
 
-              const parts = handleArtifactUpdate(event);
+              const parts = handleArtifactUpdate(artifactUpdate);
 
               messageSubject.next({ type: RunResultType.Parts, parts, taskId });
             })
-            .with({ kind: 'message' }, (message) => {
+            .with({ message: P.nonNullable }, ({ message }) => {
               // For non-streaming agents, a task ID may not be available. In that case,
               // we fall back to using the message ID as a task identifier.
               const resolvedTaskId = message.taskId ?? taskId ?? message.messageId;

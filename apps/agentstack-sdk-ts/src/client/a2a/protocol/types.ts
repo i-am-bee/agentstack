@@ -20,9 +20,8 @@ import type {
   clientCredentialsOAuthFlowSchema,
   contentTypeNotSupportedErrorSchema,
   dataPartSchema,
+  deviceCodeOAuthFlowSchema,
   filePartSchema,
-  fileWithBytesSchema,
-  fileWithUriSchema,
   getTaskResponseSchema,
   getTaskSuccessResponseSchema,
   httpAuthSecuritySchemeSchema,
@@ -43,7 +42,9 @@ import type {
   partSchema,
   passwordOAuthFlowSchema,
   pushNotificationNotSupportedErrorSchema,
+  securityRequirementSchema,
   securitySchemeSchema,
+  streamResponseSchema,
   taskArtifactUpdateEventSchema,
   taskNotCancelableErrorSchema,
   taskNotFoundErrorSchema,
@@ -70,6 +71,7 @@ export type AuthorizationCodeOAuthFlow = z.infer<typeof authorizationCodeOAuthFl
 export type ClientCredentialsOAuthFlow = z.infer<typeof clientCredentialsOAuthFlowSchema>;
 export type ImplicitOAuthFlow = z.infer<typeof implicitOAuthFlowSchema>;
 export type PasswordOAuthFlow = z.infer<typeof passwordOAuthFlowSchema>;
+export type DeviceCodeOAuthFlow = z.infer<typeof deviceCodeOAuthFlowSchema>;
 
 export type OAuthFlows = z.infer<typeof oauthFlowsSchema>;
 
@@ -80,11 +82,9 @@ export type OpenIdConnectSecurityScheme = z.infer<typeof openIdConnectSecuritySc
 export type MutualTLSSecurityScheme = z.infer<typeof mutualTlsSecuritySchemeSchema>;
 
 export type SecurityScheme = z.infer<typeof securitySchemeSchema>;
+export type SecurityRequirement = z.infer<typeof securityRequirementSchema>;
 
 export type AgentCard = z.infer<typeof agentCardSchema>;
-
-export type FileWithBytes = z.infer<typeof fileWithBytesSchema>;
-export type FileWithUri = z.infer<typeof fileWithUriSchema>;
 
 export type TextPart = z.infer<typeof textPartSchema>;
 export type FilePart = z.infer<typeof filePartSchema>;
@@ -103,6 +103,8 @@ export type TaskStatusUpdateEvent = z.infer<typeof taskStatusUpdateEventSchema>;
 export type Task = z.infer<typeof taskSchema>;
 
 export type TaskArtifactUpdateEvent = z.infer<typeof taskArtifactUpdateEventSchema>;
+
+export type StreamResponse = z.infer<typeof streamResponseSchema>;
 
 export type JSONRPCError = z.infer<typeof jsonRpcErrorSchema>;
 export type JSONParseError = z.infer<typeof jsonParseErrorSchema>;

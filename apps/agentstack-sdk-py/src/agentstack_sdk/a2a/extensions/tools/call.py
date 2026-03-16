@@ -9,6 +9,7 @@ from types import NoneType
 from typing import TYPE_CHECKING, Any, Literal
 
 import a2a.types
+from google.protobuf.json_format import MessageToDict
 from mcp import Tool
 from mcp.types import Implementation
 from pydantic import BaseModel, Field
@@ -31,6 +32,17 @@ __all__ = [
 
 if TYPE_CHECKING:
     from agentstack_sdk.server.context import RunContext
+
+__all__ = [
+    "ToolCallExtensionClient",
+    "ToolCallExtensionMetadata",
+    "ToolCallExtensionParams",
+    "ToolCallExtensionServer",
+    "ToolCallExtensionSpec",
+    "ToolCallRequest",
+    "ToolCallResponse",
+    "ToolCallServer",
+]
 
 
 class ToolCallServer(BaseModel):
@@ -85,7 +97,7 @@ class ToolCallExtensionServer(BaseExtensionServer[ToolCallExtensionSpec, ToolCal
         )
 
     def parse_response(self, *, message: a2a.types.Message):
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not (data := MessageToDict(message.metadata).get(self.spec.URI)):
             raise RuntimeError("Invalid mcp response")
         return ToolCallResponse.model_validate(data)
 
@@ -113,14 +125,14 @@ class ToolCallExtensionClient(BaseExtensionClient[ToolCallExtensionSpec, NoneTyp
     def create_response_message(self, *, response: ToolCallResponse, task_id: str | None):
         return a2a.types.Message(
             message_id=str(uuid.uuid4()),
-            role=a2a.types.Role.user,
+            role=a2a.types.Role.ROLE_USER,
             parts=[],
             task_id=task_id,
             metadata={self.spec.URI: response.model_dump(mode="json", context={REVEAL_SECRETS: True})},
         )
 
     def parse_request(self, *, message: a2a.types.Message):
-        if not message or not message.metadata or not (data := message.metadata.get(self.spec.URI)):
+        if not (data := MessageToDict(message.metadata).get(self.spec.URI)):
             raise ValueError("Invalid tool call request")
         return ToolCallRequest.model_validate(data)
 

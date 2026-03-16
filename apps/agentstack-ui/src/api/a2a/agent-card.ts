@@ -3,31 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  ClientFactory,
-  ClientFactoryOptions,
-  DefaultAgentCardResolver,
-  JsonRpcTransportFactory,
-} from '@a2a-js/sdk/client';
 import { createAuthenticatedFetch, getAgentCardPath } from 'agentstack-sdk';
 
 import { UnauthenticatedError } from '#api/errors.ts';
 import { getBaseUrl } from '#utils/api/getBaseUrl.ts';
 
-export async function getAgentClient(providerId: string, token: string) {
+import { type A2AClient, createA2AClient, fetchAgentCard } from './jsonrpc-client';
+
+export async function getAgentClient(providerId: string, token: string): Promise<A2AClient> {
   const fetchImpl = createAuthenticatedFetch(token, clientFetch);
 
   const baseUrl = getBaseUrl();
-  const agentCardPath = getAgentCardPath(providerId);
-  const factory = new ClientFactory(
-    ClientFactoryOptions.createFrom(ClientFactoryOptions.default, {
-      transports: [new JsonRpcTransportFactory({ fetchImpl })],
-      cardResolver: new DefaultAgentCardResolver({ fetchImpl }),
-    }),
-  );
-  const client = await factory.createFromUrl(baseUrl, agentCardPath);
+  const agentCardUrl = `${baseUrl}/${getAgentCardPath(providerId)}`;
+  const endpointUrl = `${baseUrl}/api/v1/a2a/${providerId}/`;
 
-  return client;
+  const agentCard = await fetchAgentCard(agentCardUrl, fetchImpl);
+
+  return createA2AClient({ endpointUrl, agentCard, fetchImpl });
 }
 
 async function clientFetch(input: RequestInfo, init?: RequestInit) {

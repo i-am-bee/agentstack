@@ -4,7 +4,6 @@
  */
 
 import type { Artifact, FilePart, Message, Part, TextPart } from 'agentstack-sdk';
-import { match } from 'ts-pattern';
 import { v4 as uuid } from 'uuid';
 
 import type { UIFilePart, UIMessagePart, UISourcePart, UITextPart } from '#modules/messages/types.ts';
@@ -53,17 +52,16 @@ export function processTextPart({ text }: TextPart): UITextPart {
 }
 
 function processFilePart(part: FilePart): UIFilePart {
-  const { file } = part;
-  const { name, mimeType } = file;
+  const { filename, mediaType } = part;
   const id = uuid();
-  const url = getFileUrl(file);
+  const url = getFileUrl(part);
 
   const filePart: UIFilePart = {
     kind: UIMessagePartKind.File,
     url,
     id,
-    filename: name || id,
-    type: mimeType,
+    filename: filename || id,
+    type: mediaType,
   };
 
   return filePart;
@@ -72,16 +70,15 @@ function processFilePart(part: FilePart): UIFilePart {
 export function processParts(parts: Part[]) {
   const processedParts = parts
     .map((part) => {
-      const processedParts = match(part)
-        .with({ kind: 'text' }, processTextPart)
-        .with({ kind: 'file' }, processFilePart)
-        .otherwise((otherPart) => {
-          console.warn(`Unsupported part - ${otherPart.kind}`);
+      if ('text' in part && typeof part.text === 'string') {
+        return processTextPart(part as TextPart);
+      }
+      if ('url' in part || 'raw' in part) {
+        return processFilePart(part as FilePart);
+      }
 
-          return null;
-        });
-
-      return processedParts;
+      console.warn('Unsupported part type', part);
+      return null;
     })
     .filter(isNotNull);
 

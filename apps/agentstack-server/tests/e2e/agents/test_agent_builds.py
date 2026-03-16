@@ -5,10 +5,11 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 
 import pytest
 from a2a.client.helpers import create_text_message_object
-from a2a.types import TaskState
+from a2a.types import SendMessageRequest, TaskState
 from agentstack_sdk.platform import AddProvider, BuildState, Provider, ProviderBuild
 from agentstack_sdk.platform.context import Context
 
@@ -46,15 +47,17 @@ async def test_remote_agent_build_and_start(
         assert provider.source == build.destination
         assert provider.id == build.provider_id
         assert provider.agent_card
-        assert test_configuration.test_agent_build_repo in provider.origin
+        assert re.sub(r"@.*$", "", test_configuration.test_agent_build_repo) in provider.origin
 
         context = await Context.create()
         context_token = await context.generate_token(providers={provider.id})
 
         async with a2a_client_factory(provider.agent_card, context_token) as a2a_client:
             message = create_text_message_object(content="test of sirens")
-            task = await get_final_task_from_stream(a2a_client.send_message(message))
+            task = await get_final_task_from_stream(a2a_client.send_message(SendMessageRequest(message=message)))
 
             # Verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
-            assert "test of sirens" in task.history[-1].parts[0].root.text
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
+            assert "test of sirens" in task.history[-1].parts[0].text

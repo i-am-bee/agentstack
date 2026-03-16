@@ -160,7 +160,7 @@ async def content_builder_agent(
 
     updated_files = await agent_stack_backend.alist(order_by="created_at", order="asc", created_after=started_at)
     for updated_file in updated_files:
-        yield updated_file.to_file_part()
+        yield updated_file.to_part()
 
 
 def serve():

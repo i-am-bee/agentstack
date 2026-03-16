@@ -7,9 +7,9 @@ import logging
 from collections.abc import Sequence
 from contextlib import suppress
 from datetime import timedelta
+from typing import Any
 from uuid import UUID
 
-from a2a.types import Artifact, DataPart, FilePart, FileWithBytes, FileWithUri, Message, Role, TextPart
 from fastapi import status
 from kink import inject
 from pydantic import TypeAdapter
@@ -160,22 +160,22 @@ class ContextService:
             await uow.contexts.update_last_active(context_id=context_id)
             await uow.commit()
 
-    def _extract_content_for_title(
-        self, msg: Message | Artifact
-    ) -> tuple[str, str | None, Sequence[FileWithUri | FileWithBytes]]:
+    def _extract_content_for_title(self, msg: dict[str, Any]) -> tuple[str, str | None, Sequence[dict[str, Any]]]:
         title_hint: str | None = None
         text_parts: list[str] = []
-        files: list[FileWithUri | FileWithBytes] = []
-        for part in msg.parts:
-            match part.root:
-                case TextPart(text=text):
-                    text_parts.append(text)
-                case DataPart(data={"title_hint": str(hint)}) if hint and not title_hint:
-                    title_hint = hint
-                case FilePart(file=file):
-                    files.append(file)
-                case _:
-                    pass
+        files: list[dict[str, Any]] = []
+        for part in msg.get("parts", []):
+            if "text" in part:
+                text_parts.append(part["text"])
+            elif "data" in part:
+                data = part["data"]
+                if isinstance(data, dict):
+                    hint = data.get("title_hint")
+                    if isinstance(hint, str) and hint and not title_hint:
+                        title_hint = hint
+            elif "file" in part:
+                files.append(part["file"])
+
         return "".join(text_parts), title_hint, files
 
     async def add_history_item(self, *, context_id: UUID, data: ContextHistoryItemData, user: User) -> None:
@@ -186,7 +186,7 @@ class ContextService:
                 history_item=ContextHistoryItem(context_id=context_id, data=data),
             )
 
-            if getattr(data, "role", None) == Role.user and not (context.metadata or {}).get("title"):
+            if data.get("role") == "ROLE_USER" and not (context.metadata or {}).get("title"):
                 from agentstack_server.jobs.tasks.context import generate_conversation_title as task
 
                 # Use simple text extraction for the initial title placeholder
@@ -232,8 +232,8 @@ class ContextService:
             prompt = template.render(
                 text=text,
                 titleHint=title_hint,
-                files=[file.model_dump(include={"name", "mime_type"}) for file in files],
-                rawMessage=raw_message.model_dump(),
+                files=[{"name": f.get("name"), "mime_type": f.get("mime_type")} for f in files],
+                rawMessage=raw_message,
             )
             resp = await self._model_provider_service.create_chat_completion(
                 request=ChatCompletionRequest(

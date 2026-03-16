@@ -7,7 +7,7 @@ from __future__ import annotations
 from types import NoneType
 
 import pydantic
-from a2a.types import DataPart, FilePart, Part, TextPart
+from a2a.types import Message, Part
 
 from agentstack_sdk.a2a.extensions.base import (
     BaseExtensionClient,
@@ -65,10 +65,10 @@ class CitationExtensionServer(BaseExtensionServer[CitationExtensionSpec, NoneTyp
     def message(
         self,
         text: str | None = None,
-        parts: list[Part | TextPart | FilePart | DataPart] | None = None,
+        parts: list[Part] | None = None,
         *,
         citations: list[Citation],
-    ) -> AgentMessage:
+    ) -> Message:
         return AgentMessage(
             text=text,
             parts=parts or [],

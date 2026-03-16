@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, TypedDict
 
-from a2a.types import AgentCard
+from a2a.types import SecurityRequirement, SecurityScheme
 from starlette.authentication import AuthenticationBackend
 
 __all__ = [
@@ -27,6 +27,11 @@ else:
     JsonDict = TypeAliasType("JsonDict", "dict[str, JsonValue]")
 
 
+class A2ASecurity(TypedDict):
+    security_requirements: list[SecurityRequirement]
+    security_schemes: dict[str, SecurityScheme]
+
+
 class SdkAuthenticationBackend(AuthenticationBackend, abc.ABC):
     @abc.abstractmethod
-    def update_card_security_schemes(self, agent_card: AgentCard) -> None: ...
+    def get_card_security_schemes(self) -> A2ASecurity: ...

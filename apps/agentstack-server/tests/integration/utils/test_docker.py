@@ -29,13 +29,14 @@ def configuration():
 @pytest.mark.parametrize(
     "image",
     [
-        DockerImageID(root="ghcr.io/i-am-bee/agentstack/agents/chat:0.4.0-rc1"),
-        DockerImageID(root="redis:latest"),
-        DockerImageID(root="icr.io/ibm-messaging/mq:latest"),
-        DockerImageID(root="registry.goharbor.io/nightly/goharbor/harbor-log:v1.10.0"),
+        "ghcr.io/i-am-bee/agentstack/agents/chat:0.4.0-rc1",
+        "redis:latest",
+        "icr.io/ibm-messaging/mq:latest",
+        "registry.goharbor.io/nightly/goharbor/harbor-log:v1.10.0",
     ],
 )
+@pytest.mark.asyncio(loop_scope="session")
 async def test_get_image_labels(image, configuration):
-    resolved_image = await image.resolve_version()
+    resolved_image = await DockerImageID(root=image).resolve_version()
     assert resolved_image.digest
     await resolved_image.get_labels()

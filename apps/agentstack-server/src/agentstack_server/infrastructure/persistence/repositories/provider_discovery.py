@@ -90,7 +90,7 @@ class SqlAlchemyProviderDiscoveryRepository(IProviderDiscoveryRepository):
             "status": discovery.status,
             "docker_image": discovery.docker_image,
             "created_by": discovery.created_by,
-            "agent_card": discovery.agent_card.model_dump(mode="json") if discovery.agent_card else None,
+            "agent_card": discovery.agent_card,
             "error_message": discovery.error_message,
         }
 

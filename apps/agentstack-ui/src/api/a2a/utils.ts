@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { FilePart, FileWithUri, Message, Part, TextPart } from 'agentstack-sdk';
+import type { FilePart, Message, Part, TextPart } from 'agentstack-sdk';
 import {
   type Citation,
   citationExtension,
@@ -41,19 +41,15 @@ export function convertMessageParts(uiParts: UIMessagePart[]): Part[] {
           const { text } = part;
 
           return {
-            kind: 'text',
             text,
           } as TextPart;
         case UIMessagePartKind.File:
           const { id, filename, type } = part;
 
           return {
-            kind: 'file',
-            file: {
-              uri: getFilePlatformUrl(id),
-              name: filename,
-              mimeType: type,
-            },
+            url: getFilePlatformUrl(id),
+            filename,
+            mediaType: type,
           } as FilePart;
         case UIMessagePartKind.Data:
           return part;
@@ -76,8 +72,7 @@ export function createUserMessage({
   metadata?: Record<string, unknown>;
 }): Message {
   return {
-    kind: 'message',
-    role: 'user',
+    role: 'ROLE_USER',
     messageId: message.id,
     contextId,
     taskId,
@@ -86,15 +81,13 @@ export function createUserMessage({
   };
 }
 
-export function isFileWithUri(file: FilePart['file']): file is FileWithUri {
-  return 'uri' in file;
+export function isFilePartWithUrl(part: FilePart): boolean {
+  return !!part.url;
 }
 
-export function getFileUrl(file: FilePart['file']): string {
-  const isUriFile = isFileWithUri(file);
-
-  if (isUriFile) {
-    const url = file.uri;
+export function getFileUrl(part: FilePart): string {
+  if (part.url) {
+    const url = part.url;
     if (url.startsWith(PLATFORM_FILE_CONTENT_URL_BASE)) {
       const fileId = url.replace(PLATFORM_FILE_CONTENT_URL_BASE, '');
       return getFileContentUrl(fileId);
@@ -102,9 +95,9 @@ export function getFileUrl(file: FilePart['file']): string {
     return url;
   }
 
-  const { mimeType = 'text/plain', bytes } = file;
+  const { mediaType = 'text/plain', raw = '' } = part;
 
-  return `data:${mimeType};base64,${bytes}`;
+  return `data:${mediaType};base64,${raw}`;
 }
 
 export function createSourcePart(citation: Citation, taskId: string | undefined | null): UISourcePart | null {

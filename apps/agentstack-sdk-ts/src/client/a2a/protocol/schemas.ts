@@ -7,10 +7,14 @@ import z from 'zod';
 
 import { a2aSchema } from './utils';
 
+// --- Agent Card ---
+
 export const agentInterfaceSchema = a2aSchema(
   z.object({
-    transport: z.string(),
     url: z.string(),
+    protocolBinding: z.string().optional(),
+    tenant: z.string().optional(),
+    protocolVersion: z.string().optional(),
   }),
 );
 
@@ -25,10 +29,10 @@ export const agentExtensionSchema = a2aSchema(
 
 export const agentCapabilitiesSchema = a2aSchema(
   z.object({
-    extensions: z.array(agentExtensionSchema).optional(),
-    pushNotifications: z.boolean().optional(),
-    stateTransitionHistory: z.boolean().optional(),
     streaming: z.boolean().optional(),
+    pushNotifications: z.boolean().optional(),
+    extensions: z.array(agentExtensionSchema).optional(),
+    extendedAgentCard: z.boolean().optional(),
   }),
 );
 
@@ -41,8 +45,8 @@ export const agentProviderSchema = a2aSchema(
 
 export const agentCardSignatureSchema = a2aSchema(
   z.object({
-    signature: z.string(),
     protected: z.string(),
+    signature: z.string(),
     header: z.record(z.string(), z.unknown()).optional(),
   }),
 );
@@ -53,43 +57,55 @@ export const agentSkillSchema = a2aSchema(
     name: z.string(),
     description: z.string(),
     tags: z.array(z.string()),
+    examples: z.array(z.string()).optional(),
     inputModes: z.array(z.string()).optional(),
     outputModes: z.array(z.string()).optional(),
-    examples: z.array(z.string()).optional(),
-    security: z.array(z.record(z.string(), z.array(z.string()))).optional(),
+    securityRequirements: z.array(z.record(z.string(), z.unknown())).optional(),
   }),
 );
+
+// --- Security Schemes ---
 
 export const authorizationCodeOAuthFlowSchema = a2aSchema(
   z.object({
     authorizationUrl: z.string(),
     tokenUrl: z.string(),
-    scopes: z.record(z.string(), z.string()),
     refreshUrl: z.string().optional(),
+    scopes: z.record(z.string(), z.string()),
+    pkceRequired: z.boolean().optional(),
   }),
 );
 
 export const clientCredentialsOAuthFlowSchema = a2aSchema(
   z.object({
     tokenUrl: z.string(),
-    scopes: z.record(z.string(), z.string()),
     refreshUrl: z.string().optional(),
+    scopes: z.record(z.string(), z.string()),
   }),
 );
 
 export const implicitOAuthFlowSchema = a2aSchema(
   z.object({
     authorizationUrl: z.string(),
-    scopes: z.record(z.string(), z.string()),
     refreshUrl: z.string().optional(),
+    scopes: z.record(z.string(), z.string()),
   }),
 );
 
 export const passwordOAuthFlowSchema = a2aSchema(
   z.object({
     tokenUrl: z.string(),
-    scopes: z.record(z.string(), z.string()),
     refreshUrl: z.string().optional(),
+    scopes: z.record(z.string(), z.string()),
+  }),
+);
+
+export const deviceCodeOAuthFlowSchema = a2aSchema(
+  z.object({
+    deviceAuthorizationUrl: z.string(),
+    tokenUrl: z.string(),
+    refreshUrl: z.string().optional(),
+    scopes: z.record(z.string(), z.string()),
   }),
 );
 
@@ -99,183 +115,177 @@ export const oauthFlowsSchema = a2aSchema(
     clientCredentials: clientCredentialsOAuthFlowSchema.optional(),
     implicit: implicitOAuthFlowSchema.optional(),
     password: passwordOAuthFlowSchema.optional(),
+    deviceCode: deviceCodeOAuthFlowSchema.optional(),
   }),
 );
 
 export const apiKeySecuritySchemeSchema = a2aSchema(
   z.object({
-    type: z.literal('apiKey'),
-    name: z.string(),
-    in: z.literal(['cookie', 'header', 'query']),
     description: z.string().optional(),
+    location: z.string(),
+    name: z.string(),
   }),
 );
 
 export const httpAuthSecuritySchemeSchema = a2aSchema(
   z.object({
-    type: z.literal('http'),
-    scheme: z.string(),
     description: z.string().optional(),
+    scheme: z.string(),
     bearerFormat: z.string().optional(),
   }),
 );
 
 export const oauth2SecuritySchemeSchema = a2aSchema(
   z.object({
-    type: z.literal('oauth2'),
-    flows: oauthFlowsSchema,
     description: z.string().optional(),
+    flows: oauthFlowsSchema,
     oauth2MetadataUrl: z.string().optional(),
   }),
 );
 
 export const openIdConnectSecuritySchemeSchema = a2aSchema(
   z.object({
-    type: z.literal('openIdConnect'),
-    openIdConnectUrl: z.string(),
     description: z.string().optional(),
+    openIdConnectUrl: z.string(),
   }),
 );
 
 export const mutualTlsSecuritySchemeSchema = a2aSchema(
   z.object({
-    type: z.literal('mutualTLS'),
     description: z.string().optional(),
   }),
 );
 
+// SecurityScheme uses protobuf oneof — exactly one key is present
 export const securitySchemeSchema = a2aSchema(
-  z.union([
-    apiKeySecuritySchemeSchema,
-    httpAuthSecuritySchemeSchema,
-    oauth2SecuritySchemeSchema,
-    openIdConnectSecuritySchemeSchema,
-    mutualTlsSecuritySchemeSchema,
-  ]),
+  z.object({
+    apiKeySecurityScheme: apiKeySecuritySchemeSchema.optional(),
+    httpAuthSecurityScheme: httpAuthSecuritySchemeSchema.optional(),
+    oauth2SecurityScheme: oauth2SecuritySchemeSchema.optional(),
+    openIdConnectSecurityScheme: openIdConnectSecuritySchemeSchema.optional(),
+    mtlsSecurityScheme: mutualTlsSecuritySchemeSchema.optional(),
+  }),
+);
+
+export const securityRequirementSchema = a2aSchema(
+  z.object({
+    schemes: z.record(z.string(), z.object({ list: z.array(z.string()).optional() })).optional(),
+  }),
 );
 
 export const agentCardSchema = a2aSchema(
   z.object({
-    url: z.string(),
     name: z.string(),
     description: z.string(),
-    version: z.string(),
-    protocolVersion: z.string(),
-    capabilities: agentCapabilitiesSchema,
-    defaultInputModes: z.array(z.string()),
-    defaultOutputModes: z.array(z.string()),
-    skills: z.array(agentSkillSchema),
-    iconUrl: z.string().optional(),
-    documentationUrl: z.string().optional(),
-    preferredTransport: z.string().optional(),
-    supportsAuthenticatedExtendedCard: z.boolean().optional(),
-    additionalInterfaces: z.array(agentInterfaceSchema).optional(),
+    supportedInterfaces: z.array(agentInterfaceSchema).optional(),
     provider: agentProviderSchema.optional(),
-    signatures: z.array(agentCardSignatureSchema).optional(),
-    security: z.array(z.record(z.string(), z.array(z.string()))).optional(),
+    version: z.string(),
+    documentationUrl: z.string().optional(),
+    capabilities: agentCapabilitiesSchema,
     securitySchemes: z.record(z.string(), securitySchemeSchema).optional(),
+    securityRequirements: z.array(securityRequirementSchema).optional(),
+    defaultInputModes: z.array(z.string()).optional(),
+    defaultOutputModes: z.array(z.string()).optional(),
+    skills: z.array(agentSkillSchema).optional(),
+    signatures: z.array(agentCardSignatureSchema).optional(),
+    iconUrl: z.string().optional(),
   }),
 );
 
-export const fileWithBytesSchema = a2aSchema(
-  z.object({
-    bytes: z.string(),
-    mimeType: z.string().optional(),
-    name: z.string().optional(),
-  }),
-);
-
-export const fileWithUriSchema = a2aSchema(
-  z.object({
-    uri: z.string(),
-    mimeType: z.string().optional(),
-    name: z.string().optional(),
-  }),
-);
+// --- Parts ---
 
 export const textPartSchema = a2aSchema(
   z.object({
-    kind: z.literal('text'),
     text: z.string(),
     metadata: z.record(z.string(), z.unknown()).optional(),
+    filename: z.string().optional(),
+    mediaType: z.string().optional(),
   }),
 );
 
 export const filePartSchema = a2aSchema(
   z.object({
-    kind: z.literal('file'),
-    file: z.union([fileWithBytesSchema, fileWithUriSchema]),
+    url: z.string().optional(),
+    raw: z.string().optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
+    filename: z.string().optional(),
+    mediaType: z.string().optional(),
   }),
 );
 
 export const dataPartSchema = a2aSchema(
   z.object({
-    kind: z.literal('data'),
-    data: z.record(z.string(), z.unknown()),
+    data: z.unknown(),
     metadata: z.record(z.string(), z.unknown()).optional(),
+    filename: z.string().optional(),
+    mediaType: z.string().optional(),
   }),
 );
 
+// Part is a union — discriminated by presence of `text`, `url`/`raw`, or `data`
 export const partSchema = a2aSchema(z.union([textPartSchema, filePartSchema, dataPartSchema]));
+
+// --- Artifacts ---
 
 export const artifactSchema = a2aSchema(
   z.object({
     artifactId: z.string(),
-    parts: z.array(partSchema),
-    description: z.string().optional(),
-    extensions: z.array(z.string()).optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
     name: z.string().optional(),
+    description: z.string().optional(),
+    parts: z.array(partSchema).default([]),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+    extensions: z.array(z.string()).optional(),
   }),
 );
+
+// --- Messages ---
 
 export const messageSchema = a2aSchema(
   z.object({
-    kind: z.literal('message'),
     messageId: z.string(),
-    parts: z.array(partSchema),
-    role: z.literal(['agent', 'user']),
     contextId: z.string().optional(),
-    extensions: z.array(z.string()).optional(),
-    metadata: z.record(z.string(), z.unknown()).optional(),
-    referenceTaskIds: z.array(z.string()).optional(),
     taskId: z.string().optional(),
+    role: z.enum(['ROLE_USER', 'ROLE_AGENT', 'ROLE_UNSPECIFIED']),
+    parts: z.array(partSchema).default([]),
+    metadata: z.record(z.string(), z.unknown()).optional(),
+    extensions: z.array(z.string()).optional(),
+    referenceTaskIds: z.array(z.string()).optional(),
   }),
 );
 
+// --- Task Status ---
+
 export const taskStatusSchema = a2aSchema(
   z.object({
-    state: z.literal([
-      'submitted',
-      'working',
-      'input-required',
-      'completed',
-      'canceled',
-      'failed',
-      'rejected',
-      'auth-required',
-      'unknown',
+    state: z.enum([
+      'TASK_STATE_UNSPECIFIED',
+      'TASK_STATE_SUBMITTED',
+      'TASK_STATE_WORKING',
+      'TASK_STATE_COMPLETED',
+      'TASK_STATE_FAILED',
+      'TASK_STATE_CANCELED',
+      'TASK_STATE_INPUT_REQUIRED',
+      'TASK_STATE_REJECTED',
+      'TASK_STATE_AUTH_REQUIRED',
     ]),
     message: messageSchema.optional(),
     timestamp: z.string().optional(),
   }),
 );
 
+// --- Events ---
+
 export const taskStatusUpdateEventSchema = a2aSchema(
   z.object({
-    kind: z.literal('status-update'),
     taskId: z.string(),
     contextId: z.string(),
     status: taskStatusSchema,
-    final: z.boolean(),
     metadata: z.record(z.string(), z.unknown()).optional(),
   }),
 );
 
 export const taskSchema = a2aSchema(
   z.object({
-    kind: z.literal('task'),
     id: z.string(),
     contextId: z.string(),
     status: taskStatusSchema,
@@ -287,7 +297,6 @@ export const taskSchema = a2aSchema(
 
 export const taskArtifactUpdateEventSchema = a2aSchema(
   z.object({
-    kind: z.literal('artifact-update'),
     taskId: z.string(),
     contextId: z.string(),
     artifact: artifactSchema,
@@ -296,6 +305,19 @@ export const taskArtifactUpdateEventSchema = a2aSchema(
     metadata: z.record(z.string(), z.unknown()).optional(),
   }),
 );
+
+// --- Stream Response (oneof wrapper for streaming events) ---
+
+export const streamResponseSchema = a2aSchema(
+  z.union([
+    z.object({ task: taskSchema }),
+    z.object({ statusUpdate: taskStatusUpdateEventSchema }),
+    z.object({ artifactUpdate: taskArtifactUpdateEventSchema }),
+    z.object({ message: messageSchema }),
+  ]),
+);
+
+// --- JSONRPC Errors ---
 
 const errorBaseSchema = z.object({
   message: z.string(),

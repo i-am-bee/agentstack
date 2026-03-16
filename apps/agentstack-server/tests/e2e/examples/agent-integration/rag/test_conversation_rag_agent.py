@@ -7,7 +7,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from a2a.types import Message, Part, Role, TaskState, TextPart
+from a2a.types import SendMessageRequest, Message, Part, Role, TaskState
 from agentstack_sdk.a2a.extensions import (
     EmbeddingFulfillment,
     EmbeddingServiceExtensionClient,
@@ -83,36 +83,36 @@ async def test_conversation_rag_agent_example(
         with subtests.test("agent processes file without query"):
             # Send only a file (no text query) - should process and store in vector store
             message = Message(
-                role=Role.user,
-                parts=[
-                    Part(root=file.to_file_part()),
-                ],
+                role=Role.ROLE_USER,
+                parts=[file.to_part()],
                 context_id=running_example.context.id,
                 message_id=str(uuid4()),
                 metadata=metadata,
             )
 
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             result_text = task.history[-1].parts[0].root.text
             assert "1 file(s) processed" in result_text
 
         with subtests.test("agent answers query using previously processed file"):
             # Send only a query (no file) - should search the existing vector store
             message = Message(
-                role=Role.user,
-                parts=[
-                    Part(root=TextPart(text="How much power does the Zorblax engine need?")),
-                ],
+                role=Role.ROLE_USER,
+                parts=[Part(text="How much power does the Zorblax engine need?")],
                 context_id=running_example.context.id,
                 message_id=str(uuid4()),
                 metadata=metadata,
             )
 
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             result_text = task.history[-1].parts[0].root.text
             assert "Results" in result_text
             assert "42 gigawatts" in result_text

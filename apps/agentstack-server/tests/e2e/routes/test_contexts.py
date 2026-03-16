@@ -191,7 +191,7 @@ async def test_context_update_and_patch(subtests):
 @pytest.mark.usefixtures("clean_up", "setup_platform_client")
 async def test_context_provider_filtering(subtests):
     """Test creating contexts with provider_id and filtering by provider_id."""
-    from a2a.types import AgentCapabilities, AgentCard
+    from a2a.types import AgentCard
     from agentstack_sdk.platform import Provider
 
     provider1 = None
@@ -202,30 +202,12 @@ async def test_context_provider_filtering(subtests):
 
     with subtests.test("create dummy providers"):
         # Create first dummy provider with network URL
-        agent_card1 = AgentCard(
-            name="Test Provider 1",
-            description="First test provider",
-            url="http://localhost:9001/",
-            version="1.0.0",
-            default_input_modes=["text"],
-            default_output_modes=["text"],
-            capabilities=AgentCapabilities(),
-            skills=[],
-        )
+        agent_card1 = AgentCard(name="Test Provider 1", description="First test provider")
         provider1 = await Provider.create(location="http://localhost:9001", agent_card=agent_card1)
         assert provider1.id is not None
 
         # Create second dummy provider with network URL
-        agent_card2 = AgentCard(
-            name="Test Provider 2",
-            description="Second test provider",
-            url="http://localhost:9002/",
-            version="1.0.0",
-            default_input_modes=["text"],
-            default_output_modes=["text"],
-            capabilities=AgentCapabilities(),
-            skills=[],
-        )
+        agent_card2 = AgentCard(name="Test Provider 2", description="Second test provider")
         provider2 = await Provider.create(location="http://localhost:9002", agent_card=agent_card2)
         assert provider2.id is not None
         assert provider1.id != provider2.id

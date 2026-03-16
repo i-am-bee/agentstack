@@ -46,8 +46,8 @@ async def run_server(
                         raise ConnectionError("Server hasn't started yet")
                     providers = [p for p in await Provider.list() if f":{port}" in p.source]
                     assert len(providers) == 1, "Provider not registered"
-                    async with a2a_client_factory(providers[0].agent_card, context_token=context_token) as client:
-                        yield server, client
+            async with a2a_client_factory(providers[0].agent_card, context_token=context_token) as client:
+                yield server, client
         finally:
             server.should_exit = True
 

@@ -27,6 +27,5 @@
     "stylelint": "^17.0.0",
     "typescript": "5.9.3",
     "vite": "^7.3.1"
-  },
-  "version": "0.7.1"
+  }
 }

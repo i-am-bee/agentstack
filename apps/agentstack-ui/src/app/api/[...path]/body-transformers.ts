@@ -3,21 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { AgentCard } from 'agentstack-sdk';
-
 import { createProxyUrl } from '#utils/api/getProxyUrl.ts';
 
 export async function transformAgentManifestBody(response: Response) {
   try {
-    const body: AgentCard = await response.json();
+    const body = await response.json();
 
     const modifiedBody = {
       ...body,
-      additionalInterfaces: body.additionalInterfaces?.map((item) => ({
-        ...item,
-        url: createProxyUrl(item.url),
-      })),
-      url: createProxyUrl(body.url),
+      ...(body.supportedInterfaces && {
+        supportedInterfaces: body.supportedInterfaces.map((item: { url: string }) => ({
+          ...item,
+          url: createProxyUrl(item.url),
+        })),
+      }),
     };
 
     return JSON.stringify(modifiedBody);

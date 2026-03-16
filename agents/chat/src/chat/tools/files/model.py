@@ -17,12 +17,12 @@ class OriginType(StrEnum):
 
 
 ORIGIN_TYPE_BY_ROLE = {
-    Role.user: OriginType.UPLOADED,
-    Role.agent: OriginType.GENERATED,
+    Role.ROLE_USER: OriginType.UPLOADED,
+    Role.ROLE_AGENT: OriginType.GENERATED,
 }
 
 
-class FileChatInfo(BaseModel):
+class FileChatInfo(BaseModel, arbitrary_types_allowed=True):
     file: File
     display_filename: str  # A sanitized version of the filename used for display, in case of naming conflicts.
     role: Role

@@ -63,7 +63,7 @@ async def file_processing_example(
                     content_type=mime_type,
                     content=content,
                 )
-                yield new_file.to_file_part()
+                yield new_file.to_part()
 
     yield "File processing complete"
 
@@ -91,7 +91,7 @@ Iterate through message parts to find `FilePart` objects and load their content 
 </Step>
 
 <Step title="Generate new files">
-Use the `File.create()` method to generate new files and yield them as `FilePart` objects with `to_file_part()`.
+Use the `File.create()` method to generate new files and yield them as `Part` objects with `to_part()`.
 </Step>
 </Steps>
 
@@ -111,7 +111,7 @@ Here's what you need to know to add file processing capabilities to your agent:
 
 **Create new files**: Use `File.create()` to generate new files with custom names, content types, and content.
 
-**Yield file outputs**: The `File` object created by the SDK can be easily converted to a `FilePart` using the `to_file_part()` method and then yielded as agent outputs.
+**Yield file outputs**: The `File` object created by the SDK can be easily converted to a `Part` using the `to_part()` method and then yielded as agent outputs.
 
 ## File Upload Configuration
 

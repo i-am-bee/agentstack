@@ -186,7 +186,7 @@ class SqlAlchemyContextRepository(IContextRepository):
             id=uuid4(),
             context_id=history_item.context_id,
             created_at=history_item.created_at,
-            data=history_item.data.model_dump(),
+            data=history_item.data,
         )
         await self._connection.execute(query)
 

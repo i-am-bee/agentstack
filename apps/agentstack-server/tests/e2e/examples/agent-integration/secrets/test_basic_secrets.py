@@ -7,7 +7,7 @@ from uuid import uuid4
 
 import pytest
 from a2a.client.helpers import create_text_message_object
-from a2a.types import Message, Role, TaskState
+from a2a.types import SendMessageRequest, Message, Role, TaskState
 from agentstack_sdk.a2a.extensions import SecretsExtensionSpec
 
 from tests.e2e.examples.conftest import run_example
@@ -28,30 +28,32 @@ async def test_basic_secrets_example(subtests, get_final_task_from_stream, a2a_c
             message.metadata = {
                 secrets_uri: {"secret_fulfillments": {"SLACK_API_KEY": {"secret": "test-slack-api-key-12345"}}}
             }
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "Slack API key: test-slack-api-key-12345" in task.history[-1].parts[0].root.text
 
         with subtests.test("agent handles missing secret"):
             # Send message without secret - agent will request it
             message = create_text_message_object(content="Hello")
             message.context_id = running_example.context.id
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
-            assert task.status.state == TaskState.auth_required
+            assert task.status.state == TaskState.TASK_STATE_AUTH_REQUIRED
 
             # Respond without providing the secret
             response_message = Message(
-                role=Role.user,
+                role=Role.ROLE_USER,
                 message_id=str(uuid4()),
                 task_id=task.id,
                 context_id=running_example.context.id,
                 parts=[],
             )
-            final_task = await get_final_task_from_stream(running_example.client.send_message(response_message))
+            final_task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=response_message)))
 
-            assert final_task.status.state == TaskState.completed, (
+            assert final_task.status.state == TaskState.TASK_STATE_COMPLETED, (
                 f"Fail: {final_task.status.message.parts[0].root.text}"
             )
             assert "No Slack API key provided" in final_task.history[-1].parts[0].root.text

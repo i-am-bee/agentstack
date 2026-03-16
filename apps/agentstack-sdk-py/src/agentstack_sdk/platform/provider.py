@@ -9,11 +9,13 @@ import typing
 import urllib.parse
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from typing import Any, Self
 from uuid import UUID
 
 import pydantic
 from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
+from google.protobuf.json_format import MessageToDict, ParseDict
 
 from agentstack_sdk.platform.client import PlatformClient, get_platform_client
 from agentstack_sdk.platform.common import ResolvedDockerImageID, ResolvedGithubUrl
@@ -35,7 +37,7 @@ class VersionInfo(pydantic.BaseModel):
     github: ResolvedGithubUrl | None = None
 
 
-class Provider(pydantic.BaseModel):
+class Provider(pydantic.BaseModel, arbitrary_types_allowed=True):
     id: str
     auto_stop_timeout: timedelta
     source: str
@@ -51,6 +53,11 @@ class Provider(pydantic.BaseModel):
     last_error: ProviderErrorMessage | None = None
     created_by: UUID
     missing_configuration: builtins.list[EnvVar] = pydantic.Field(default_factory=list)
+
+    @pydantic.field_validator("agent_card", mode="before")
+    @classmethod
+    def parse_card(cls: Self, value: dict[str, Any]) -> AgentCard:
+        return ParseDict(value, AgentCard(), ignore_unknown_fields=True)
 
     @staticmethod
     async def create(
@@ -72,7 +79,7 @@ class Provider(pydantic.BaseModel):
                         json=filter_dict(
                             {
                                 "location": location,
-                                "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                                "agent_card": MessageToDict(agent_card) if agent_card else None,
                                 "origin": origin,
                                 "variables": variables,
                                 "auto_stop_timeout_sec": auto_stop_timeout_sec,
@@ -100,7 +107,7 @@ class Provider(pydantic.BaseModel):
         payload = filter_dict(
             {
                 "location": location,
-                "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                "agent_card": MessageToDict(agent_card) if agent_card else None,
                 "variables": variables,
                 "auto_stop_timeout_sec": None if auto_stop_timeout is None else auto_stop_timeout.total_seconds(),
                 "origin": origin,
@@ -133,7 +140,7 @@ class Provider(pydantic.BaseModel):
                         url="/api/v1/providers/preview",
                         json={
                             "location": location,
-                            "agent_card": agent_card.model_dump(mode="json") if agent_card else None,
+                            "agent_card": MessageToDict(agent_card) if agent_card else None,
                         },
                     )
                 )

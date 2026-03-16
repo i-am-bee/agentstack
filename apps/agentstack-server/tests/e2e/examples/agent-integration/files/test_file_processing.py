@@ -6,7 +6,7 @@ from __future__ import annotations
 from uuid import uuid4
 
 import pytest
-from a2a.types import Message, Role, TaskState
+from a2a.types import SendMessageRequest, Message, Role, TaskState
 from agentstack_sdk.a2a.extensions import PlatformApiExtensionClient, PlatformApiExtensionSpec
 from agentstack_sdk.platform import File
 from agentstack_sdk.platform.context import ContextPermissions, Permissions
@@ -41,18 +41,20 @@ async def test_file_processing_example(subtests, get_final_task_from_stream, a2a
             )
 
             message = Message(
-                role=Role.user,
-                parts=[file.to_file_part()],
+                role=Role.ROLE_USER,
+                parts=[file.to_part()],
                 context_id=running_example.context.id,
                 message_id=str(uuid4()),
                 metadata=api_extension_client.api_auth_metadata(auth_token=token.token, expires_at=token.expires_at),
             )
 
             # send message
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
             # verify response
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
 
             # check that first message is the content of the first_file
 

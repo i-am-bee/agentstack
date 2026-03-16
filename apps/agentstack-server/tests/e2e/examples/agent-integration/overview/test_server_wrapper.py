@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 from a2a.client.helpers import create_text_message_object
-from a2a.types import TaskState
+from a2a.types import SendMessageRequest, TaskState
 
 from tests.e2e.examples.conftest import run_example
 
@@ -20,7 +20,9 @@ async def test_server_wrapper_example(subtests, get_final_task_from_stream, a2a_
         with subtests.test("agent responds with greeting"):
             message = create_text_message_object(content="Hi")
             message.context_id = running_example.context.id
-            task = await get_final_task_from_stream(running_example.client.send_message(message))
+            task = await get_final_task_from_stream(running_example.client.send_message(SendMessageRequest(message=message)))
 
-            assert task.status.state == TaskState.completed, f"Fail: {task.status.message.parts[0].root.text}"
+            assert task.status.state == TaskState.TASK_STATE_COMPLETED, (
+                f"Fail: {task.status.message.parts[0].root.text}"
+            )
             assert "Hello from my agent!" in task.history[-1].parts[0].root.text

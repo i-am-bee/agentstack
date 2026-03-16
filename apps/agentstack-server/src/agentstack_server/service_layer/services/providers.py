@@ -10,10 +10,12 @@ import logging
 import uuid
 from collections.abc import AsyncIterator, Callable
 from datetime import timedelta
+from typing import Any
 from uuid import UUID
 
-from a2a.types import AgentCard, AgentExtension
+from a2a.types import AgentExtension
 from fastapi import HTTPException
+from google.protobuf.json_format import MessageToDict
 from kink import inject
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_422_UNPROCESSABLE_CONTENT
 
@@ -56,7 +58,7 @@ class ProviderService:
         origin: str | ResolvedGithubUrl | None = None,
         auto_stop_timeout: timedelta,
         registry: RegistryLocation | None = None,
-        agent_card: AgentCard | None = None,
+        agent_card: dict[str, Any] | None = None,
         variables: dict[str, str] | None = None,
     ) -> ProviderWithState:
         try:
@@ -100,18 +102,20 @@ class ProviderService:
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
 
-    def _inject_default_agent_detail_extension(self, agent_card: AgentCard) -> AgentCard:
+    def _inject_default_agent_detail_extension(self, agent_card: dict[str, Any]) -> dict[str, Any]:
         if get_extension(agent_card, AGENT_DETAIL_EXTENSION_URI):
             return agent_card
 
-        default_extension = AgentExtension(
-            uri=AGENT_DETAIL_EXTENSION_URI,
-            params={"interaction_mode": "multi-turn"},
+        default_extension = MessageToDict(
+            AgentExtension(
+                uri=AGENT_DETAIL_EXTENSION_URI,
+                params={"interaction_mode": "multi-turn"},
+            )
         )
 
-        extensions = list(agent_card.capabilities.extensions or [])
+        extensions = list(agent_card.get("capabilities", {}).get("extensions", []) or [])
         extensions.append(default_extension)
-        agent_card.capabilities.extensions = extensions
+        agent_card.setdefault("capabilities", {})["extensions"] = extensions
         return agent_card
 
     async def patch_provider(
@@ -122,7 +126,7 @@ class ProviderService:
         location: ProviderLocation | None = None,
         auto_stop_timeout: timedelta | None = None,
         origin: str | ResolvedGithubUrl | None = None,
-        agent_card: AgentCard | None = None,
+        agent_card: dict[str, Any] | None = None,
         variables: dict[str, str] | None = None,
         allow_registry_update: bool = False,
         force: bool = False,
@@ -211,7 +215,7 @@ class ProviderService:
         return provider_response
 
     async def preview_provider(
-        self, location: ProviderLocation, agent_card: AgentCard | None = None
+        self, location: ProviderLocation, agent_card: dict[str, Any] | None = None
     ) -> ProviderWithState:
         try:
             if not agent_card:

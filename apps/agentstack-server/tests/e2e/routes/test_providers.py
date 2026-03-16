@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 import pytest
-from a2a.types import AgentCapabilities, AgentCard
+from a2a.types import AgentCard
 from agentstack_sdk.platform import Provider
 from httpx import HTTPError
 
@@ -23,16 +23,7 @@ async def test_provider_crud(subtests, test_configuration):
 
     with subtests.test("patch provider"):
         new_source = test_configuration.test_agent_image
-        new_agent_card = AgentCard(
-            name="test",
-            description="test",
-            url="http://localhost:8000/",
-            version="1.0.0",
-            default_input_modes=["text"],
-            default_output_modes=["text"],
-            capabilities=AgentCapabilities(),
-            skills=[],
-        )
+        new_agent_card = AgentCard(name="test", description="test")
         provider = await provider.patch(location=new_source, agent_card=new_agent_card)
         assert provider.agent_card.name == new_agent_card.name
         assert provider.source == new_source
