@@ -7,6 +7,8 @@
 
 > **Build and test AI agents locally — fast, without wiring LLMs, tools, or UI.**
 
+Local development platform (server, SDK, CLI, UI) for prototyping and validating AI agents before integration into your app.
+
 - **Prototype** — focus on agent logic, not setup overhead
 - **Integrate** — validate locally, then embed via SDK
 - **Wrap** — convert existing agents using [`agentstack-wrapper`](https://skills.sh/i-am-bee/agentstack/agentstack-wrapper)
@@ -38,6 +40,21 @@ agentstack ui
 | **CLI**          | Run and inspect agents        |
 | **LLM**          | Preconfigured providers       |
 | **Integrations** | MCP connectors                |
+
+---
+
+## 🎯 When to use Agent Stack
+
+Use it when you need to:
+
+- prototype and test agents locally (UI, CLI, LLMs included)
+- wrap existing agents without rewriting them
+- integrate MCP tools without transport/auth wiring
+- make agents discoverable via A2A
+
+Not for: production hosting/runtime.
+
+See details and comparison in **[Why Agent Stack](docs/WHY-AGENT-STACK.md)**.
 
 ---
 
