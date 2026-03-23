@@ -101,9 +101,9 @@ async def check_registry(
                 auto_stop_timeout=provider_record.auto_stop_timeout,
                 variables=provider_record.variables,
             )
-            logger.info(f"Added provider {provider_record}")
+            logger.info(f"Added provider {provider_record.location}")
         except Exception as ex:
-            errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
+            errors.append(RuntimeError(f"[{provider_record.location}]: Failed to add provider: {ex}"))
 
     for provider_origin in existing_providers:
         provider_record = desired_providers[provider_origin]
@@ -119,9 +119,9 @@ async def check_registry(
                 allow_registry_update=True,
             )
             if managed_providers[provider_origin].source.root != result.source.root:
-                logger.info(f"Updated provider {provider_record}")
+                logger.info(f"Updated provider {provider_record.location}")
         except Exception as ex:
-            errors.append(RuntimeError(f"[{provider_record}]: Failed to add provider: {ex}"))
+            errors.append(RuntimeError(f"[{provider_record.location}]: Failed to add provider: {ex}"))
 
     if errors:
         raise ExceptionGroup("Exceptions occurred when reloading providers", errors)
