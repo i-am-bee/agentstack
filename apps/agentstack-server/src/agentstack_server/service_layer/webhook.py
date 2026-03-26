@@ -6,7 +6,6 @@ from __future__ import annotations
 import asyncio
 import fnmatch
 import logging
-import weakref
 from uuid import UUID
 
 import httpx
@@ -17,8 +16,9 @@ from agentstack_server.utils.utils import utc_now
 
 logger = logging.getLogger(__name__)
 
-# prevent fire-and-forget tasks from being garbage collected
-_background_tasks: weakref.WeakSet[asyncio.Task] = weakref.WeakSet()
+# Strong references keep fire-and-forget tasks alive until completion.
+# See: https://docs.python.org/3/library/asyncio-task.html#creating-tasks
+_background_tasks: set[asyncio.Task] = set()
 
 
 def _matches_event(patterns: list[str], event_type: str) -> bool:
@@ -56,7 +56,7 @@ async def _deliver(
                     "X-Webhook-Event": event_type,
                 },
             )
-    except Exception:
+    except BaseException:
         logger.warning("Failed to deliver webhook to %s for event %s", endpoint.url, event_type, exc_info=True)
 
 
@@ -90,3 +90,4 @@ def dispatch_webhook_event(
                 )
             )
             _background_tasks.add(task)
+            task.add_done_callback(_background_tasks.discard)
