@@ -34,6 +34,7 @@ from agentstack_server.exceptions import (
 )
 from agentstack_server.service_layer.build_manager import IProviderBuildManager
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 from agentstack_server.utils.docker import DockerImageID
 from agentstack_server.utils.github import GithubUrl, ResolvedGithubUrl
 from agentstack_server.utils.logs_container import LogsContainer, ProcessLogMessage
@@ -122,12 +123,25 @@ class ProviderBuildService:
             await uow.provider_builds.create(provider_build=build)
             await task.configure(queueing_lock=str(build.id)).defer_async(provider_build_id=str(build.id))
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider_build.created",
+            resource_type="provider_build",
+            resource_id=build.id,
+            resource_url=f"/api/v1/provider_builds/{build.id}",
+            user_id=user.id,
+        )
         return build
 
     async def update_build(self, *, provider_build: ProviderBuild):
         async with self._uow() as uow:
             await uow.provider_builds.update(provider_build=provider_build)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider_build.updated",
+            resource_type="provider_build",
+            resource_id=provider_build.id,
+            resource_url=f"/api/v1/provider_builds/{provider_build.id}",
+        )
 
     async def get_build(self, provider_build_id: UUID) -> ProviderBuild:
         async with self._uow() as uow:
@@ -203,6 +217,13 @@ class ProviderBuildService:
                     await self._build_manager.cancel_job(provider_build_id=provider_build_id)
             await uow.provider_builds.delete(provider_build_id=provider_build_id, user_id=user_id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider_build.deleted",
+            resource_type="provider_build",
+            resource_id=provider_build_id,
+            resource_url=f"/api/v1/provider_builds/{provider_build_id}",
+            user_id=user.id,
+        )
 
     async def stream_logs(
         self,

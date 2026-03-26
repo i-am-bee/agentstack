@@ -15,6 +15,7 @@ from agentstack_server.domain.models.user import User, UserRole
 from agentstack_server.domain.models.user_feedback import UserFeedback
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,13 @@ class UserFeedbackService:
             )
             await uow.user_feedback.create(user_feedback=user_feedback)
             await uow.commit()
+            dispatch_webhook_event(
+                event_type="user_feedback.created",
+                resource_type="user_feedback",
+                resource_id=user_feedback.id,
+                resource_url=f"/api/v1/user_feedback/{user_feedback.id}",
+                user_id=user.id,
+            )
             background_tasks.add_task(self._try_send_to_phoenix, user_feedback=user_feedback)
             return user_feedback
 

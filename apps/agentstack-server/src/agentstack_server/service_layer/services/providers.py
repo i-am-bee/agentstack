@@ -36,6 +36,7 @@ from agentstack_server.service_layer.deployment_manager import (
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.utils.a2a import get_extension
 from agentstack_server.utils.github import ResolvedGithubUrl
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 from agentstack_server.utils.logs_container import LogsContainer
 from agentstack_server.utils.utils import cancel_task, utc_now
 
@@ -97,6 +98,13 @@ class ProviderService:
                     parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider.id, variables=variables
                 )
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider.created",
+            resource_type="provider",
+            resource_id=provider.id,
+            resource_url=f"/api/v1/providers/{provider.id}",
+            user_id=user.id,
+        )
         [provider_response] = await self._get_providers_with_state(providers=[provider])
         return provider_response
 
@@ -204,6 +212,13 @@ class ProviderService:
                     parent_entity=EnvStoreEntity.PROVIDER, parent_entity_id=provider_id, variables=variables
                 )
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider.updated",
+            resource_type="provider",
+            resource_id=provider_id,
+            resource_url=f"/api/v1/providers/{provider_id}",
+            user_id=user.id,
+        )
 
         await self._rotate_provider(provider=updated_provider, env=variables)
 
@@ -264,6 +279,13 @@ class ProviderService:
             if provider.managed:
                 await self._deployment_manager.delete(provider_id=provider_id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider.deleted",
+            resource_type="provider",
+            resource_id=provider_id,
+            resource_url=f"/api/v1/providers/{provider_id}",
+            user_id=user.id,
+        )
 
     async def scale_down_providers(self):
         active_providers = [

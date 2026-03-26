@@ -365,6 +365,11 @@ spec:
                 secretKeyRef:
                   key: presets.json
                   name: agentstack-connectors-secret
+            - name: WEBHOOK__ENDPOINTS
+              valueFrom:
+                secretKeyRef:
+                  key: endpoints.json
+                  name: agentstack-webhooks-secret
             - name: UVICORN_TIMEOUT_KEEP_ALIVE
               value: {{ .Values.uvicornTimeoutKeepAlive | quote }}
             {{- if include "agentstack.phoenix.enabled" . }}

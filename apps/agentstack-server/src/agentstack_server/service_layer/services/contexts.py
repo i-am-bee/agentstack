@@ -29,6 +29,7 @@ from agentstack_server.domain.repositories.file import IObjectStorageRepository
 from agentstack_server.exceptions import EntityNotFoundError, PlatformError
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 from agentstack_server.utils.utils import filter_dict, utc_now
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,14 @@ class ContextService:
         async with self._uow() as uow:
             await uow.contexts.create(context=context)
             await uow.commit()
-            return context
+        dispatch_webhook_event(
+            event_type="context.created",
+            resource_type="context",
+            resource_id=context.id,
+            resource_url=f"/api/v1/contexts/{context.id}",
+            user_id=user.id,
+        )
+        return context
 
     async def get(self, *, context_id: UUID, user: User) -> Context:
         async with self._uow() as uow:
@@ -81,6 +89,13 @@ class ContextService:
             context.updated_at = utc_now()
             await uow.contexts.update(context=context)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="context.updated",
+            resource_type="context",
+            resource_id=context_id,
+            resource_url=f"/api/v1/contexts/{context_id}",
+            user_id=user.id,
+        )
         return context
 
     async def patch_metadata(self, *, context_id: UUID, metadata_patch: MetadataPatch, user: User) -> Context:
@@ -99,6 +114,13 @@ class ContextService:
             context.updated_at = utc_now()
             await uow.contexts.update(context=context)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="context.updated",
+            resource_type="context",
+            resource_id=context_id,
+            resource_url=f"/api/v1/contexts/{context_id}",
+            user_id=user.id,
+        )
         return context
 
     async def delete(self, *, context_id: UUID, user: User) -> None:
@@ -115,6 +137,13 @@ class ContextService:
 
             await uow.contexts.delete(context_id=context_id, user_id=user.id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="context.deleted",
+            resource_type="context",
+            resource_id=context_id,
+            resource_url=f"/api/v1/contexts/{context_id}",
+            user_id=user.id,
+        )
 
         # TODO: a cronjob should sweep the files if the deletion fails here
         await self._object_storage.delete_files(file_ids=file_ids)

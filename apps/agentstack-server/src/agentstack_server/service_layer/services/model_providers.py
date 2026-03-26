@@ -32,6 +32,7 @@ from agentstack_server.exceptions import EntityNotFoundError, InvalidProviderCal
 from agentstack_server.infrastructure.cache.serializers import PydanticSerializer
 from agentstack_server.service_layer.cache import ICache, ICacheFactory
 from agentstack_server.service_layer.unit_of_work import IUnitOfWork, IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,12 @@ class ModelProviderService:
                 variables={MODEL_API_KEY_SECRET_NAME: api_key},
             )
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="model_provider.created",
+            resource_type="model_provider",
+            resource_id=model_provider.id,
+            resource_url=f"/api/v1/model_providers/{model_provider.id}",
+        )
         await self._cache.set(str(model_provider.id), Models(models=models))
         return model_provider
 
@@ -130,6 +137,12 @@ class ModelProviderService:
 
             await uow.model_providers.delete(model_provider_id=model_provider_id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="model_provider.deleted",
+            resource_type="model_provider",
+            resource_id=model_provider_id,
+            resource_url=f"/api/v1/model_providers/{model_provider_id}",
+        )
 
         await self._cache.delete(str(model_provider_id))
 
@@ -185,6 +198,12 @@ class ModelProviderService:
                     )
 
                 await uow.commit()
+            dispatch_webhook_event(
+                event_type="model_provider.updated",
+                resource_type="model_provider",
+                resource_id=model_provider_id,
+                resource_url=f"/api/v1/model_providers/{model_provider_id}",
+            )
 
             await self._cache.set(str(model_provider_id), Models(models=models))
 

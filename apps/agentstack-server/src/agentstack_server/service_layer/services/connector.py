@@ -32,6 +32,7 @@ from agentstack_server.exceptions import PlatformError
 from agentstack_server.service_layer.services.external_mcp_service import ExternalMcpService
 from agentstack_server.service_layer.services.managed_mcp_service import ManagedMcpService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,13 @@ class ConnectorService:
         async with self._uow() as uow:
             await uow.connectors.create(connector=connector)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="connector.created",
+            resource_type="connector",
+            resource_id=connector.id,
+            resource_url=f"/api/v1/connectors/{connector.id}",
+            user_id=user.id,
+        )
         return connector
 
     async def read_connector(self, *, connector_id: UUID, user: User | None = None) -> Connector:
@@ -106,6 +114,13 @@ class ConnectorService:
             await self._external_mcp.revoke_token(connector=connector)
             await uow.connectors.delete(connector_id=connector_id, user_id=user.id if user else None)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="connector.deleted",
+            resource_type="connector",
+            resource_id=connector_id,
+            resource_url=f"/api/v1/connectors/{connector_id}",
+            user_id=user.id if user else None,
+        )
 
     async def list_connectors(self, *, user: User | None = None) -> list[Connector]:
         async with self._uow() as uow:
@@ -174,6 +189,13 @@ class ConnectorService:
         async with self._uow() as uow:
             await uow.connectors.update(connector=connector)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="connector.updated",
+            resource_type="connector",
+            resource_id=connector_id,
+            resource_url=f"/api/v1/connectors/{connector_id}",
+            user_id=user.id if user else None,
+        )
         return connector
 
     async def disconnect_connector(self, *, connector_id: UUID, user: User | None = None) -> Connector:
@@ -200,6 +222,13 @@ class ConnectorService:
         async with self._uow() as uow:
             await uow.connectors.update(connector=connector)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="connector.updated",
+            resource_type="connector",
+            resource_id=connector_id,
+            resource_url=f"/api/v1/connectors/{connector_id}",
+            user_id=user.id if user else None,
+        )
         return connector
 
     async def refresh_connector(self, *, connector_id: UUID, user: User | None = None) -> None:

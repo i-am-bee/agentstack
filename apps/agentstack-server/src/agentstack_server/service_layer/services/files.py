@@ -31,6 +31,7 @@ from agentstack_server.domain.repositories.file import IObjectStorageRepository,
 from agentstack_server.exceptions import EntityNotFoundError, StorageCapacityExceededError
 from agentstack_server.service_layer.services.users import UserService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +162,13 @@ class FileService:
             async with self._uow() as uow:
                 await uow.files.update(file=db_file)
                 await uow.commit()
+            dispatch_webhook_event(
+                event_type="file.created",
+                resource_type="file",
+                resource_id=db_file.id,
+                resource_url=f"/api/v1/files/{db_file.id}",
+                user_id=user.id,
+            )
 
             return db_file
         except Exception:
@@ -216,6 +224,13 @@ class FileService:
             await uow.commit()
 
         if deleted:
+            dispatch_webhook_event(
+                event_type="file.deleted",
+                resource_type="file",
+                resource_id=file_id,
+                resource_url=f"/api/v1/files/{file_id}",
+                user_id=user.id,
+            )
             await self._object_storage.delete_files(file_ids=file_ids_to_delete)
 
     async def _cleanup_extracted_files(self, file_ids: list[UUID]) -> None:

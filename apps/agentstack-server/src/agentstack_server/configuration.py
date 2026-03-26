@@ -312,6 +312,16 @@ class ConnectorConfiguration(BaseModel):
     presets: list[ConnectorPreset] = Field(default_factory=list)
 
 
+class WebhookEndpoint(BaseModel):
+    url: HttpUrl
+    secret: Secret[str]  # Sent as Authorization: Bearer <secret>
+    events: list[str] = Field(default_factory=lambda: ["*"])  # e.g. ["provider.*", "context.created"] or ["*"]
+
+
+class WebhookConfiguration(BaseModel):
+    endpoints: list[WebhookEndpoint] = Field(default_factory=list)
+
+
 class DoclingExtractionConfiguration(BaseModel):
     backend: Literal["docling"] = "docling"
     enabled: bool = False
@@ -490,6 +500,7 @@ class Configuration(BaseSettings):
     context: ContextConfiguration = Field(default_factory=ContextConfiguration)
     a2a_proxy: A2AProxyConfiguration = Field(default_factory=A2AProxyConfiguration)
     connector: ConnectorConfiguration = Field(default_factory=ConnectorConfiguration)
+    webhook: WebhookConfiguration = Field(default_factory=WebhookConfiguration)
     k8s_namespace: str | None = None
     k8s_kubeconfig: Path | None = None
     uvicorn_timeout_keep_alive: int = 5

@@ -13,6 +13,7 @@ from agentstack_server.domain.models.user import User
 from agentstack_server.domain.repositories.env import EnvStoreEntity
 from agentstack_server.exceptions import UsageLimitExceededError
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,14 @@ class UserService:
             user = User(email=email)
             await uow.users.create(user=user)
             await uow.commit()
-            return user
+        dispatch_webhook_event(
+            event_type="user.created",
+            resource_type="user",
+            resource_id=user.id,
+            resource_url=f"/api/v1/users/{user.id}",
+            user_id=user.id,
+        )
+        return user
 
     async def get_user(self, user_id: UUID) -> User:
         async with self._uow() as uow:
