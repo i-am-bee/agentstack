@@ -48,7 +48,7 @@ async def _deliver(
     }
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(
+            response = await client.post(
                 str(endpoint.url),
                 json=payload,
                 headers={
@@ -56,7 +56,8 @@ async def _deliver(
                     "X-Webhook-Event": event_type,
                 },
             )
-    except BaseException:
+            response.raise_for_status()
+    except Exception:
         logger.warning("Failed to deliver webhook to %s for event %s", endpoint.url, event_type, exc_info=True)
 
 
