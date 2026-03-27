@@ -311,3 +311,10 @@ class ContextService:
             # Delete history items from the specified ID onwards
             await uow.contexts.delete_history_from_id(context_id=context_id, from_id=from_id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="context.updated",
+            resource_type="context",
+            resource_id=context_id,
+            resource_url=f"/api/v1/contexts/{context_id}",
+            user_id=user.id,
+        )

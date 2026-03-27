@@ -293,6 +293,13 @@ class FileService:
                 await extract_text.configure(queueing_lock=str(file_id)).defer_async(file_id=str(file_id))
 
             await uow.commit()
+            dispatch_webhook_event(
+                event_type="file_extraction.created",
+                resource_type="file_extraction",
+                resource_id=extraction.id,
+                resource_url=f"/api/v1/files/{file_id}/extraction",
+                user_id=user.id,
+            )
             return extraction
 
     async def delete_extraction(self, *, file_id: UUID, user: User, context_id: UUID | None = None) -> None:
@@ -311,6 +318,13 @@ class FileService:
 
             await uow.files.delete_extraction(extraction_id=extraction.id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="file_extraction.deleted",
+            resource_type="file_extraction",
+            resource_id=extraction.id,
+            resource_url=f"/api/v1/files/{file_id}/extraction",
+            user_id=user.id,
+        )
 
     async def list_files(
         self, query: FileListQuery, user: User, context_id: UUID | None = None

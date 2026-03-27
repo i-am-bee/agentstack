@@ -100,6 +100,13 @@ class VectorStoreService:
             await uow.vector_stores.remove_documents(vector_store_id=vector_store_id, document_ids=document_ids)
             # Records in vector_database are deleted automatically by CASCADE operations in postgres
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="vector_store.updated",
+            resource_type="vector_store",
+            resource_id=vector_store_id,
+            resource_url=f"/api/v1/vector_stores/{vector_store_id}",
+            user_id=user.id,
+        )
 
     async def add_items(
         self,
@@ -146,6 +153,13 @@ class VectorStoreService:
             )
             await uow.vector_database.add_items(collection_id=vector_store_id, items=items)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="vector_store.updated",
+            resource_type="vector_store",
+            resource_id=vector_store_id,
+            resource_url=f"/api/v1/vector_stores/{vector_store_id}",
+            user_id=user.id,
+        )
 
     async def search(
         self,

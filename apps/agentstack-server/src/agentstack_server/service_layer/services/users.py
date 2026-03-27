@@ -50,6 +50,13 @@ class UserService:
         async with self._uow() as uow:
             await uow.users.delete(user_id=user_id)
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="user.deleted",
+            resource_type="user",
+            resource_id=user_id,
+            resource_url=f"/api/v1/users/{user_id}",
+            user_id=user_id,
+        )
 
     async def update_user_env(self, *, user: User, env: dict[str, str | None]):
         async with self._uow() as uow:
@@ -63,6 +70,13 @@ class UserService:
                 raise UsageLimitExceededError("Maximum number of variables per user exceeded.")
 
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="user.updated",
+            resource_type="user",
+            resource_id=user.id,
+            resource_url=f"/api/v1/users/{user.id}",
+            user_id=user.id,
+        )
 
     async def list_user_env(self, *, user: User) -> dict[str, str]:
         async with self._uow() as uow:

@@ -263,6 +263,13 @@ class ConnectorService:
             async with self._uow() as uow:
                 await uow.connectors.update(connector=connector)
                 await uow.commit()
+            dispatch_webhook_event(
+                event_type="connector.updated",
+                resource_type="connector",
+                resource_id=connector.id,
+                resource_url=f"/api/v1/connectors/{connector.id}",
+                user_id=user.id if user else None,
+            )
 
     async def list_presets(self) -> list[ConnectorPreset]:
         return self._configuration.connector.presets

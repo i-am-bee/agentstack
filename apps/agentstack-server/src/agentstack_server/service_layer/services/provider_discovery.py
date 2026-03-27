@@ -21,6 +21,7 @@ from agentstack_server.domain.models.provider_discovery import DiscoveryState, P
 from agentstack_server.domain.models.user import User
 from agentstack_server.service_layer.deployment_manager import IProviderDeploymentManager
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 from agentstack_server.utils.a2a import get_extension
 from agentstack_server.utils.docker import DockerImageID
 from agentstack_server.utils.utils import utc_now
@@ -49,6 +50,13 @@ class ProviderDiscoveryService:
             await uow.provider_discoveries.create(discovery=discovery)
             await task.configure(queueing_lock=str(discovery.id)).defer_async(provider_discovery_id=str(discovery.id))
             await uow.commit()
+        dispatch_webhook_event(
+            event_type="provider_discovery.created",
+            resource_type="provider_discovery",
+            resource_id=discovery.id,
+            resource_url=f"/api/v1/provider_discoveries/{discovery.id}",
+            user_id=user.id,
+        )
         return discovery
 
     async def get_discovery(self, *, discovery_id: UUID, user: User | None = None) -> ProviderDiscovery:

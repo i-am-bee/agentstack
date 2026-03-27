@@ -34,9 +34,9 @@ from agentstack_server.service_layer.deployment_manager import (
     IProviderDeploymentManager,
 )
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
+from agentstack_server.service_layer.webhook import dispatch_webhook_event
 from agentstack_server.utils.a2a import get_extension
 from agentstack_server.utils.github import ResolvedGithubUrl
-from agentstack_server.service_layer.webhook import dispatch_webhook_event
 from agentstack_server.utils.logs_container import LogsContainer
 from agentstack_server.utils.utils import cancel_task, utc_now
 
@@ -397,6 +397,13 @@ class ProviderService:
                 new_env = new_env[provider_id]
                 await uow.commit()
             await self._rotate_provider(provider=provider, env=new_env)
+            dispatch_webhook_event(
+                event_type="provider.updated",
+                resource_type="provider",
+                resource_id=provider_id,
+                resource_url=f"/api/v1/providers/{provider_id}",
+                user_id=user.id,
+            )
         except Exception as ex:
             if not provider:
                 return
