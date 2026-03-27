@@ -141,6 +141,7 @@ class ProviderBuildService:
             resource_type="provider_build",
             resource_id=provider_build.id,
             resource_url=f"/api/v1/provider_builds/{provider_build.id}",
+            user_id=provider_build.created_by,
         )
 
     async def get_build(self, provider_build_id: UUID) -> ProviderBuild:
