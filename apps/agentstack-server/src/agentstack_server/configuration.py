@@ -314,7 +314,7 @@ class ConnectorConfiguration(BaseModel):
 
 class WebhookEndpoint(BaseModel):
     url: HttpUrl
-    secret: Secret[str]  # Sent as Authorization: Bearer <secret>
+    headers: dict[str, Secret[str]] = Field(default_factory=dict)
     events: list[str] = Field(default_factory=lambda: ["*"])  # e.g. ["provider.*", "context.created"] or ["*"]
 
 

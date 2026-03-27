@@ -458,7 +458,8 @@ rateLimit:
 webhook:
   endpoints: []
   # - url: "https://example.com/webhook"
-  #   secret: "bearer-token-for-auth"
+  #   headers:
+  #     Authorization: "Bearer my-secret-token"
   #   events: ["*"]
 
 connector:

@@ -51,10 +51,7 @@ async def _deliver(
             response = await client.post(
                 str(endpoint.url),
                 json=payload,
-                headers={
-                    "Authorization": f"Bearer {endpoint.secret.get_secret_value()}",
-                    "X-Webhook-Event": event_type,
-                },
+                headers={k: v.get_secret_value() for k, v in endpoint.headers.items()},
             )
             response.raise_for_status()
     except httpx.TimeoutException:
