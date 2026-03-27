@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from uuid import UUID
 
 import httpx
-from kink import di
+from kink import inject
 
 from agentstack_server.configuration import Configuration, WebhookEndpoint
 from agentstack_server.utils.utils import utc_now
@@ -81,6 +81,7 @@ async def _deliver(
         logger.warning("Failed to deliver webhook to %s for event %s", endpoint.url, event_type, exc_info=True)
 
 
+@inject
 def dispatch_webhook_event(
     *,
     event_type: str,
@@ -88,9 +89,9 @@ def dispatch_webhook_event(
     resource_id: UUID,
     resource_url: str,
     user_id: UUID | None = None,
+    configuration: Configuration,
 ) -> None:
     """Fire-and-forget webhook notifications to all matching configured endpoints."""
-    configuration = di[Configuration]
     endpoints = configuration.webhook.endpoints
     if not endpoints:
         return
