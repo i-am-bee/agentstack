@@ -12,7 +12,6 @@ from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
-from agentstack_server.service_layer.webhook import dispatch_webhook_event
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +52,5 @@ class ConfigurationService:
         async with self._uow() as uow:
             await uow.configuration.create_or_update_system_configuration(configuration=configuration)
             await uow.commit()
-        dispatch_webhook_event(
-            event_type="configuration.updated",
-            resource_type="configuration",
-            resource_id=user.id,
-            resource_url="/api/v1/configurations",
-            user_id=user.id,
-        )
 
         return configuration
