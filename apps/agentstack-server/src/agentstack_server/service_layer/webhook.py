@@ -57,6 +57,14 @@ async def _deliver(
                 },
             )
             response.raise_for_status()
+    except httpx.TimeoutException:
+        logger.warning("Webhook delivery to %s timed out for event %s", endpoint.url, event_type)
+    except httpx.HTTPStatusError as exc:
+        logger.warning(
+            "Webhook delivery to %s failed for event %s: HTTP %s", endpoint.url, event_type, exc.response.status_code
+        )
+    except httpx.ConnectError:
+        logger.warning("Webhook delivery to %s failed for event %s: connection refused", endpoint.url, event_type)
     except Exception:
         logger.warning("Failed to deliver webhook to %s for event %s", endpoint.url, event_type, exc_info=True)
 
