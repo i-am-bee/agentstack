@@ -6,6 +6,8 @@ from __future__ import annotations
 import asyncio
 import fnmatch
 import logging
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from uuid import UUID
 
 import httpx
@@ -19,6 +21,19 @@ logger = logging.getLogger(__name__)
 # Strong references keep fire-and-forget tasks alive until completion.
 # See: https://docs.python.org/3/library/asyncio-task.html#creating-tasks
 _background_tasks: set[asyncio.Task] = set()
+
+_client: httpx.AsyncClient | None = None
+
+
+@asynccontextmanager
+async def webhook_client_lifespan() -> AsyncGenerator[None]:
+    global _client
+    async with httpx.AsyncClient(timeout=10) as client:
+        _client = client
+        try:
+            yield
+        finally:
+            _client = None
 
 
 def _matches_event(patterns: list[str], event_type: str) -> bool:
@@ -47,13 +62,13 @@ async def _deliver(
         "timestamp": utc_now().isoformat(),
     }
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(
-                str(endpoint.url),
-                json=payload,
-                headers={k: v.get_secret_value() for k, v in endpoint.headers.items()},
-            )
-            response.raise_for_status()
+        assert _client is not None, "webhook_client_lifespan not active"
+        response = await _client.post(
+            str(endpoint.url),
+            json=payload,
+            headers={k: v.get_secret_value() for k, v in endpoint.headers.items()},
+        )
+        response.raise_for_status()
     except httpx.TimeoutException:
         logger.warning("Webhook delivery to %s timed out for event %s", endpoint.url, event_type)
     except httpx.HTTPStatusError as exc:
