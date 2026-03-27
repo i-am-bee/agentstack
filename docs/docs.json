@@ -157,6 +157,7 @@
             "group": "Deploy Agent Stack",
             "pages": [
               "development/deploy-agent-stack/deployment-guide",
+              "development/deploy-agent-stack/webhooks",
               "development/deploy-agent-stack/authenticate-cli-to-server"
             ]
           },

@@ -1,0 +1,98 @@
+---
+title: "Webhooks"
+description: "Receive real-time notifications when resources change"
+---
+
+Agent Stack can send outgoing webhook notifications when resources are created, updated, or deleted. This allows external systems to react to changes without polling the API.
+
+Webhooks are configured statically via Helm chart values. Each endpoint receives a JSON payload via HTTP POST for matching events. Delivery is fire-and-forget — the server does not retry failed deliveries or block on slow endpoints.
+
+## Configuration
+
+Add webhook endpoints to your `config.yaml`:
+
+```yaml
+webhook:
+  endpoints:
+    - url: "https://example.com/webhook"
+      headers:
+        Authorization: "Bearer my-secret-token"
+      events: ["*"]
+```
+
+| Field | Description |
+|-------|-------------|
+| `url` | The endpoint URL to receive POST requests. |
+| `headers` | HTTP headers sent with each request. Use this for authentication (e.g. `Authorization: Bearer ...`). |
+| `events` | List of event patterns to subscribe to. Defaults to `["*"]` (all events). |
+
+## Event filtering
+
+Each endpoint can subscribe to specific events using pattern matching:
+
+| Pattern | Matches |
+|---------|---------|
+| `*` | All events |
+| `provider.*` | All provider events (`provider.created`, `provider.updated`, `provider.deleted`) |
+| `provider.created` | Only provider creation events |
+
+## Payload
+
+Every webhook POST delivers a JSON body with the following structure:
+
+```json
+{
+  "event": "provider.created",
+  "resource_type": "provider",
+  "resource_id": "550e8400-e29b-41d4-a716-446655440000",
+  "resource_url": "/api/v1/providers/550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "660e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2026-03-26T12:00:00+00:00"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `event` | The event type (e.g. `provider.created`). |
+| `resource_type` | The type of resource that changed. |
+| `resource_id` | UUID of the affected resource. |
+| `resource_url` | API path to fetch the resource. |
+| `user_id` | UUID of the user who triggered the change, if available. |
+| `timestamp` | ISO 8601 timestamp of when the event was dispatched. |
+
+<Warning>
+  Payloads intentionally do not include the resource data itself. Use the `resource_url` to fetch the current state of the resource from the API.
+</Warning>
+
+## Available events
+
+| Resource | Events |
+|----------|--------|
+| `context` | `created`, `updated`, `deleted` |
+| `connector` | `created`, `updated`, `deleted` |
+| `configuration` | `updated` |
+| `file` | `created`, `deleted` |
+| `file_extraction` | `created`, `deleted` |
+| `model_provider` | `created`, `updated`, `deleted` |
+| `provider` | `created`, `updated`, `deleted` |
+| `provider_build` | `created`, `updated`, `deleted` |
+| `provider_discovery` | `created` |
+| `user` | `created`, `updated`, `deleted` |
+| `user_feedback` | `created` |
+| `vector_store` | `created`, `updated`, `deleted` |
+
+## Example: multiple endpoints with filtered events
+
+```yaml
+webhook:
+  endpoints:
+    - url: "https://ci.example.com/hooks/agentstack"
+      headers:
+        Authorization: "Bearer ci-token"
+      events: ["provider_build.*"]
+
+    - url: "https://monitoring.example.com/ingest"
+      headers:
+        X-API-Key: "monitoring-key"
+      events: ["*"]
+```
