@@ -1,7 +1,7 @@
 {
   "name": "agentstack-sdk",
   "author": "IBM Corp.",
-  "version": "0.7.1-rc1",
+  "version": "0.7.1-rc2",
   "type": "module",
   "scripts": {
     "build": "tsup",

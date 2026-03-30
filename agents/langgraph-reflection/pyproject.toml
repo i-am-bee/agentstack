@@ -1,6 +1,6 @@
 [project]
 name = "langgraph-reflection"
-version = "0.7.1-rc1"
+version = "0.7.1-rc2"
 description = "Reflection agent that writes essays and reflects on them using LangGraph"
 authors = [
     { name = "IBM Corp." },
