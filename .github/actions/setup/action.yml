@@ -62,57 +62,57 @@ runs:
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ~/.local/share/mise/installs
-        key: mise-installs-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('mise.lock') }}
-        restore-keys: mise-installs-v1-${{ runner.os }}-{{ runner.arch }}-
+        key: mise-installs-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.lock') }}
+        restore-keys: mise-installs-v1-${{ runner.os }}-${{ runner.arch }}-
     - if: inputs.save_cache != 'true'
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ~/.local/share/mise/installs
-        key: mise-installs-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('mise.lock') }}
-        restore-keys: mise-installs-v1-${{ runner.os }}-{{ runner.arch }}-
+        key: mise-installs-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('mise.lock') }}
+        restore-keys: mise-installs-v1-${{ runner.os }}-${{ runner.arch }}-
 
     - if: inputs.save_cache == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: /tmp/.uv-cache
-        key: uv-cache-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('**/uv.lock') }}
-        restore-keys: uv-cache-v1-${{ runner.os }}-{{ runner.arch }}-
+        key: uv-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/uv.lock') }}
+        restore-keys: uv-cache-v1-${{ runner.os }}-${{ runner.arch }}-
     - if: inputs.save_cache != 'true'
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: /tmp/.uv-cache
-        key: uv-cache-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('**/uv.lock') }}
-        restore-keys: uv-cache-v1-${{ runner.os }}-{{ runner.arch }}-
+        key: uv-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/uv.lock') }}
+        restore-keys: uv-cache-v1-${{ runner.os }}-${{ runner.arch }}-
 
     - if: inputs.save_cache == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ~/.local/share/pnpm/store
-        key: pnpm-store-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
-        restore-keys: pnpm-store-v1-${{ runner.os }}-{{ runner.arch }}-
+        key: pnpm-store-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: pnpm-store-v1-${{ runner.os }}-${{ runner.arch }}-
     - if: inputs.save_cache != 'true'
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: ~/.local/share/pnpm/store
-        key: pnpm-store-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
-        restore-keys: pnpm-store-v1-${{ runner.os }}-{{ runner.arch }}-
+        key: pnpm-store-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: pnpm-store-v1-${{ runner.os }}-${{ runner.arch }}-
 
     - if: inputs.save_cache == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: "./apps/*/.next/cache"
-        key: nextjs-cache-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('./apps/*/*.js', './apps/*/src/**/*.js', './apps/*/src/**/*.jsx', './apps/*/src/**/*.ts', './apps/*/src/**/*.tsx') }}
+        key: nextjs-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('./apps/*/*.js', './apps/*/src/**/*.js', './apps/*/src/**/*.jsx', './apps/*/src/**/*.ts', './apps/*/src/**/*.tsx') }}
         restore-keys: |
-          nextjs-cache-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-
-          nextjs-cache-v1-${{ runner.os }}-{{ runner.arch }}-
+          nextjs-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-
+          nextjs-cache-v1-${{ runner.os }}-${{ runner.arch }}-
     - if: inputs.save_cache != 'true'
       uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: "./apps/*/.next/cache"
-        key: nextjs-cache-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('./apps/*/*.js', './apps/*/src/**/*.js', './apps/*/src/**/*.jsx', './apps/*/src/**/*.ts', './apps/*/src/**/*.tsx') }}
+        key: nextjs-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('./apps/*/*.js', './apps/*/src/**/*.js', './apps/*/src/**/*.jsx', './apps/*/src/**/*.ts', './apps/*/src/**/*.tsx') }}
         restore-keys: |
-          nextjs-cache-v1-${{ runner.os }}-{{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-
-          nextjs-cache-v1-${{ runner.os }}-{{ runner.arch }}-
+          nextjs-cache-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}-
+          nextjs-cache-v1-${{ runner.os }}-${{ runner.arch }}-
 
     - if: inputs.save_cache == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
