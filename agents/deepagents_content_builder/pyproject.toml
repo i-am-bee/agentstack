@@ -1,6 +1,6 @@
 [project]
 name = "content-builder"
-version = "0.7.1-rc3"
+version = "0.7.1"
 description = "A content writer agent configured entirely through files on disk"
 authors = [
     { name = "IBM Corp." },

@@ -24,7 +24,7 @@ wheels = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.7.1rc3"
+version = "0.7.1"
 source = { editable = "../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -381,7 +381,7 @@ wheels = [
 
 [[package]]
 name = "content-builder"
-version = "0.7.1rc3"
+version = "0.7.1"
 source = { editable = "." }
 dependencies = [
     { name = "agentstack-sdk" },
