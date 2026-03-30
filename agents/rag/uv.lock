@@ -36,7 +36,7 @@ telemetry = [
 
 [[package]]
 name = "agentstack-sdk"
-version = "0.7.1rc2"
+version = "0.7.1rc3"
 source = { editable = "../../apps/agentstack-sdk-py" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -1843,7 +1843,7 @@ wheels = [
 
 [[package]]
 name = "rag"
-version = "0.7.1rc2"
+version = "0.7.1rc3"
 source = { editable = "." }
 dependencies = [
     { name = "agentstack-sdk" },
