@@ -211,6 +211,7 @@ class ConnectorService:
 
         if connector.auth:
             connector.auth.flow = None
+            connector.auth.headers = None
         connector.transition(
             state=ConnectorState.disconnected, disconnect_reason="Client request", disconnect_permanent=True
         )
