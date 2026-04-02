@@ -1,0 +1,12 @@
+---
+title: "Changelog"
+description: "Breaking changes and notable updates to the Agent Stack API"
+---
+
+All notable breaking changes to the Agent Stack API are documented here. This changelog follows the [Keep a Changelog](https://keepachangelog.com) conventions.
+
+## Unreleased
+
+### Breaking
+
+- **Connectors API**: `POST /api/v1/connectors/{id}/connect` — Replaced the `access_token` field with a `headers` field (a dictionary of arbitrary headers to forward to the MCP server). Certain dangerous headers are blocked. To migrate, change `{"access_token": "<token>"}` to `{"headers": {"Authorization": "Bearer <token>"}}`.

@@ -48,6 +48,7 @@ class Authorization(BaseModel):
     flow: AuthFlow | None = None
     token: Token | None = None
     token_endpoint: AnyUrl | None = None
+    headers: dict[str, str] | None = None
 
 
 class ConnectorState(StrEnum):

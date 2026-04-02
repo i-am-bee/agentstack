@@ -25,7 +25,6 @@ from agentstack_server.domain.models.connector import (
     Authorization,
     Connector,
     ConnectorState,
-    Token,
 )
 from agentstack_server.domain.models.user import User
 from agentstack_server.exceptions import PlatformError
@@ -168,14 +167,14 @@ class ConnectorService:
         callback_uri: str,
         redirect_url: AnyUrl | None = None,
         user: User | None = None,
-        access_token: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> Connector:
         async with self._uow() as uow:
             connector = await uow.connectors.get(connector_id=connector_id, user_id=user.id if user else None)
-        if access_token:
+        if headers:
             if not connector.auth:
                 connector.auth = Authorization()
-            connector.auth.token = Token(access_token=access_token, token_type="bearer")
+            connector.auth.headers = headers
 
         if self._managed_mcp.is_managed(connector=connector) and (preset := self._find_preset(url=connector.url)):
             await self._managed_mcp.deploy(connector=connector, preset=preset)
@@ -328,14 +327,12 @@ class ConnectorService:
     async def mcp_proxy(self, *, connector_id: UUID, request: Request, user: User | None = None):
         connector = await self.read_connector(connector_id=connector_id, user=user)
 
-        auth_headers = {}
-        if (
-            connector.auth
-            and connector.state == ConnectorState.connected
-            and connector.auth.token
-            and connector.auth.token.token_type == "bearer"
-        ):
-            auth_headers["authorization"] = f"Bearer {connector.auth.token.access_token}"
+        auth_headers: dict[str, str] = {}
+        if connector.auth and connector.state == ConnectorState.connected:
+            if connector.auth.headers:
+                auth_headers.update(connector.auth.headers)
+            if connector.auth.token and connector.auth.token.token_type == "bearer":
+                auth_headers["authorization"] = f"Bearer {connector.auth.token.access_token}"
 
         exit_stack = AsyncExitStack()
         try:

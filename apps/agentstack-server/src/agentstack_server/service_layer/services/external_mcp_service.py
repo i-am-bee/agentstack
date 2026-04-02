@@ -94,14 +94,15 @@ class ExternalMcpService:
     def create_http_client(
         self, *, connector: Connector, headers: dict[str, str] | None = None, timeout: int | None = None
     ) -> httpx.AsyncClient:
+        merged_headers = {**(connector.auth.headers or {}), **(headers or {})} if connector.auth else headers
         if not connector.auth or not connector.auth.token:
             return httpx.AsyncClient(
-                headers=headers,
+                headers=merged_headers,
                 timeout=timeout or 30,
                 base_url=str(connector.url),
             )
         else:
-            return self._create_client(connector=connector, headers=headers, timeout=timeout)
+            return self._create_client(connector=connector, headers=merged_headers, timeout=timeout)
 
     def _create_client(
         self, *, connector: Connector, headers: dict[str, str] | None = None, timeout: int | None = None

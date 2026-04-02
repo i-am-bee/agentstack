@@ -153,6 +153,7 @@
             "group": "Reference",
             "pages": [
               "development/reference/cli-reference",
+              "development/reference/changelog",
               {
                 "group": "API Reference",
                 "openapi": "development/api-reference/openapi.json"

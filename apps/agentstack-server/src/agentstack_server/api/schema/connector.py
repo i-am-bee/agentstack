@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import AnyUrl, AwareDatetime, BaseModel, Field
+from pydantic import AnyUrl, AwareDatetime, BaseModel, Field, field_validator
 
 from agentstack_server.domain.models.common import Metadata
 from agentstack_server.domain.models.connector import ConnectorState
@@ -43,9 +43,40 @@ class ConnectorResponse(BaseModel):
     created_by: UUID
 
 
+_BLOCKED_HEADERS = frozenset({
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "upgrade",
+    "forwarded",
+    "x-forwarded-for",
+    "x-forwarded-host",
+    "x-forwarded-proto",
+    "x-forwarded-port",
+    "via",
+    "host",
+    "cookie",
+    "set-cookie",
+})
+
+
 class ConnectorConnectRequest(BaseModel):
     redirect_url: AnyUrl | None = None
-    access_token: str | None = None
+    headers: dict[str, str] | None = None
+
+    @field_validator("headers")
+    @classmethod
+    def validate_headers(cls, v: dict[str, str] | None) -> dict[str, str] | None:
+        if v is None:
+            return None
+        blocked = {k for k in v if k.lower() in _BLOCKED_HEADERS}
+        if blocked:
+            raise ValueError(f"Blocked header(s): {', '.join(sorted(blocked))}")
+        return v
 
 
 class ConnectorPresetResponse(BaseModel):

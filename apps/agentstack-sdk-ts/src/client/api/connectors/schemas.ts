@@ -55,6 +55,7 @@ export const deleteConnectorResponseSchema = z.null();
 export const connectConnectorRequestSchema = z.object({
   connector_id: z.string(),
   redirect_url: z.string().nullish(),
+  headers: z.record(z.string(), z.string()).nullish(),
 });
 
 export const connectConnectorResponseSchema = connectorSchema;

@@ -52,7 +52,7 @@ from agentstack_sdk.platform import Connector, ConnectorState
 
 async def main():
     connector = await Connector.create(url="https://api.githubcopilot.com/mcp")
-    connector = await connector.connect(access_token="<your github personal access token goes here>")
+    connector = await connector.connect(headers={"Authorization": "Bearer <your github personal access token goes here>"})
     connector = await connector.wait_for_state(state=ConnectorState.connected)
 
 if __name__ == "__main__":

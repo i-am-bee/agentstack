@@ -53,9 +53,9 @@ Usual flow works as follows:
 1. **Create**: Client creates a connector by calling `POST /api/v1/connectors` with MCP server URL.
 2. **Connect**: Client initiates connection by calling `POST /api/v1/connectors/{id}/connect`.
    - For OAuth-enabled servers: The response will contain an authorization URL for the user to complete authentication
-   - For token-based authentication: Provide an `access_token` in the connect request body (see [Authentication](#authentication))
+   - For token-based or custom authentication: Provide custom `headers` in the connect request body (see [Authentication](#authentication))
 3. **Authorize** (OAuth only): User visits the authorization URL, authenticates and grants access. Authorization server redirects the user back to the platform with an authorization code.
-4. **Complete**: Platform exchanges the authorization code for access and refresh tokens (OAuth) or stores the provided access token. Once completed, the connector is in `connected` state and ready to be used.
+4. **Complete**: Platform exchanges the authorization code for access and refresh tokens (OAuth) or stores the provided headers. Once completed, the connector is in `connected` state and ready to be used.
 
 ## Authentication
 
@@ -65,20 +65,21 @@ Connectors support two authentication methods:
 
 For MCP servers that support OAuth, the platform handles the full authorization code flow. No additional configuration is needed in the connect request.
 
-### Token-based Authentication
+### Header-based Authentication
 
-For MCP servers that use simple token-based authentication, provide the token when connecting:
+For MCP servers that use token-based or custom authentication, provide headers when connecting:
 
 ```json
 POST /api/v1/connectors/{id}/connect
 {
-  "access_token": "YOUR_API_TOKEN"
+  "headers": {
+    "Authorization": "Bearer YOUR_API_TOKEN",
+    "X-Custom-Header": "value"
+  }
 }
 ```
 
-The authentication token is used differently depending on the connector type:
-- **External HTTP/HTTPS MCP servers**: Token is sent as a Bearer token in the `Authorization` header for all requests
-- **Managed stdio MCP servers**: Token is injected as an environment variable in the container (requires `access_token_env_name` in preset configuration)
+The provided headers are forwarded with all requests to the MCP server. Certain headers are blocked for security reasons, including hop-by-hop headers (`Connection`, `Transfer-Encoding`, etc.), forwarding headers (`Forwarded`, `X-Forwarded-*`, `Via`), `Host`, and cookie headers (`Cookie`, `Set-Cookie`).
 
 ## Error handling
 
@@ -275,12 +276,12 @@ connector = await connector.wait_for_state(
 )
 ```
 
-#### Token-Based Authentication
+#### Header-Based Authentication
 
-For services that use access tokens instead of OAuth:
+For services that use tokens or custom headers instead of OAuth:
 ```python
 connector = await Connector.create(url="https://api.example.com/mcp")
-connector = await connector.connect(access_token="your_api_token")
+connector = await connector.connect(headers={"Authorization": "Bearer your_api_token"})
 connector = await connector.wait_for_state(state=ConnectorState.connected)
 ```
 

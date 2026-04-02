@@ -220,7 +220,7 @@ class Connector(pydantic.BaseModel):
         self: "Connector" | UuidStr,
         *,
         redirect_url: AnyUrl | str | None = None,
-        access_token: str | None = None,
+        headers: dict[str, str] | None = None,
         client: PlatformClient | None = None,
     ) -> "Connector":
         """
@@ -231,7 +231,7 @@ class Connector(pydantic.BaseModel):
 
         Args:
             redirect_url: OAuth redirect URL (optional)
-            access_token: OAuth access token (optional)
+            headers: Custom headers to forward to the MCP server (optional)
             client: Optional PlatformClient instance
 
         Returns:
@@ -243,7 +243,7 @@ class Connector(pydantic.BaseModel):
                 url=f"/api/v1/connectors/{connector_id}/connect",
                 json={
                     "redirect_url": str(redirect_url) if redirect_url else None,
-                    "access_token": access_token,
+                    "headers": headers,
                 },
             )
             response.raise_for_status()

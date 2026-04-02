@@ -272,6 +272,12 @@ for pkg in $(fd -t f -g package.json apps agents); do
 done
 yq -i ".providers[].location |= sub(\":(.*)\$\"; \":\" + \"$usage_version\")" agent-registry.yaml
 
+changelog="docs/development/reference/changelog.mdx"
+if [[ -f "$changelog" ]] && grep -q "^## Unreleased" "$changelog"; then
+  today=$(date +%Y-%m-%d)
+  perl -pi -e "s/^## Unreleased\$/## $usage_version ($today)/" "$changelog"
+fi
+
 git add .
 git commit --signoff --no-verify -m "bump: v$usage_version"
 set +x
