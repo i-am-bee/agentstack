@@ -221,8 +221,21 @@ async def get_connector(
 @app.command("connect")
 async def connect(
     search_path: typing.Annotated[str, typer.Argument(help="Short ID or connector url, supports partial matching")],
+    header: typing.Annotated[
+        list[str] | None,
+        typer.Option("--header", "-H", help="Header to forward to the MCP server (format: 'Name: Value'). Can be repeated."),
+    ] = None,
 ) -> None:
     """Connect a connector (e.g., start OAuth flow)."""
+    headers = None
+    if header:
+        headers = {}
+        for h in header:
+            name, _, value = h.partition(":")
+            if not value:
+                raise typer.BadParameter(f"Invalid header format '{h}', expected 'Name: Value'")
+            headers[name.strip()] = value.strip()
+
     async with configuration.use_platform_client():
         selected_connector = await select_connector(search_path)
         if not selected_connector:
@@ -230,7 +243,7 @@ async def connect(
 
         try:
             with console.status("Connecting connector...", spinner="dots"):
-                connector = await selected_connector.connect()
+                connector = await selected_connector.connect(headers=headers)
                 connector = await connector.wait_for_state(state=ConnectorState.connected)
 
             console.success(
