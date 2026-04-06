@@ -33,6 +33,7 @@ def configuration():
         DockerImageID(root="redis:latest"),
         DockerImageID(root="icr.io/ibm-messaging/mq:latest"),
         DockerImageID(root="registry.goharbor.io/nightly/goharbor/harbor-log:v1.10.0"),
+        DockerImageID(root="public.ecr.aws/docker/library/redis:latest"),
     ],
 )
 async def test_get_image_labels(image, configuration):
