@@ -37,8 +37,9 @@ from agentstack_sdk.platform.client import PlatformClient
 from agentstack_sdk.platform.provider import Provider
 from agentstack_sdk.server.agent import Agent, AgentFactory
 from agentstack_sdk.server.agent import agent as agent_decorator
+from agentstack_sdk.server.middleware.platform_auth_backend import PlatformAuthBackend
 from agentstack_sdk.server.store.context_store import ContextStore
-from agentstack_sdk.server.store.memory_context_store import InMemoryContextStore
+from agentstack_sdk.server.store.platform_context_store import PlatformContextStore
 from agentstack_sdk.server.telemetry import configure_telemetry as configure_telemetry_func
 from agentstack_sdk.server.utils import cancel_task
 from agentstack_sdk.types import SdkAuthenticationBackend
@@ -72,7 +73,7 @@ class Server:
         self,
         *,
         configure_logger: bool = True,
-        configure_telemetry: bool = False,
+        configure_telemetry: bool = True,
         self_registration: bool = True,
         self_registration_id: str | None = None,
         task_store: TaskStore | None = None,
@@ -140,7 +141,8 @@ class Server:
         if not self._agent_factory:
             raise ValueError("Agent is not registered")
 
-        context_store = context_store or InMemoryContextStore()
+        context_store = context_store or PlatformContextStore()
+        auth_backend = auth_backend or PlatformAuthBackend()
         self._agent = self._agent_factory(context_store.modify_dependencies)
         card_url = url and url.strip()
         self._agent.card.url = card_url.rstrip("/") if card_url else f"http://{host}:{port}"
