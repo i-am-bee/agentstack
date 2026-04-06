@@ -150,6 +150,12 @@
             ]
           },
           {
+            "group": "Example Integrations",
+            "pages": [
+              "development/example-integrations/langgraph-agent"
+            ]
+          },
+          {
             "group": "Reference",
             "pages": [
               "development/reference/cli-reference",
