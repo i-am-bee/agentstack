@@ -37,6 +37,7 @@ async def run_workers(app: procrastinate.App):
         ),
         WorkerOptions(name="text_extraction_worker", queues=[str(Queues.TEXT_EXTRACTION)], concurrency=5),
         WorkerOptions(name="build_provider_worker", queues=[str(Queues.BUILD_PROVIDER)], concurrency=5),
+        WorkerOptions(name="heartbeat_worker", queues=[str(Queues.HEARTBEAT)], concurrency=10),
     ]
 
     worker_tasks = []

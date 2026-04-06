@@ -10,22 +10,26 @@ from uuid import UUID, uuid4
 from kink import inject
 from pydantic import TypeAdapter
 from sqlalchemy import (
+    Boolean,
     JSON,
     Column,
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     Row,
     Table,
+    Text,
     delete,
     select,
     update,
 )
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy import UUID as SQL_UUID
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from agentstack_server.domain.models.common import Metadata, PaginatedResult
-from agentstack_server.domain.models.context import Context, ContextHistoryItem, TitleGenerationState
+from agentstack_server.domain.models.context import Context, ContextHeartbeat, ContextHistoryItem, TitleGenerationState
 from agentstack_server.domain.repositories.context import IContextRepository
 from agentstack_server.exceptions import EntityNotFoundError
 from agentstack_server.infrastructure.persistence.repositories.db_metadata import metadata
@@ -52,6 +56,18 @@ context_history_table = Table(
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("data", JSON, nullable=False),
     Index("idx_context_history_context_id", "context_id"),
+)
+
+context_heartbeats_table = Table(
+    "context_heartbeats",
+    metadata,
+    Column("context_id", SQL_UUID, ForeignKey("contexts.id", ondelete="CASCADE"), primary_key=True),
+    Column("created_by", SQL_UUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+    Column("provider_id", SQL_UUID, ForeignKey("providers.id", ondelete="CASCADE"), nullable=False),
+    Column("message", Text, nullable=False),
+    Column("interval_seconds", Integer, nullable=False),
+    Column("active", Boolean, nullable=False, server_default="true"),
+    Column("created_at", DateTime(timezone=True), nullable=False),
 )
 
 
@@ -244,6 +260,54 @@ class SqlAlchemyContextRepository(IContextRepository):
             context_id=row.context_id,
             created_at=row.created_at,
         )
+
+    async def upsert_heartbeat(self, *, heartbeat: ContextHeartbeat) -> None:
+        stmt = pg_insert(context_heartbeats_table).values(
+            context_id=heartbeat.context_id,
+            created_by=heartbeat.created_by,
+            provider_id=heartbeat.provider_id,
+            message=heartbeat.message,
+            interval_seconds=heartbeat.interval_seconds,
+            active=heartbeat.active,
+            created_at=heartbeat.created_at,
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["context_id"],
+            set_={
+                "message": stmt.excluded.message,
+                "interval_seconds": stmt.excluded.interval_seconds,
+                "active": stmt.excluded.active,
+                "provider_id": stmt.excluded.provider_id,
+            },
+        )
+        await self._connection.execute(stmt)
+
+    async def get_heartbeat(self, *, context_id: UUID) -> ContextHeartbeat | None:
+        query = select(context_heartbeats_table).where(
+            context_heartbeats_table.c.context_id == context_id,
+            context_heartbeats_table.c.active.is_(True),
+        )
+        result = await self._connection.execute(query)
+        row = result.fetchone()
+        if row is None:
+            return None
+        return ContextHeartbeat(
+            context_id=row.context_id,
+            created_by=row.created_by,
+            provider_id=row.provider_id,
+            message=row.message,
+            interval_seconds=row.interval_seconds,
+            active=row.active,
+            created_at=row.created_at,
+        )
+
+    async def deactivate_heartbeat(self, *, context_id: UUID) -> None:
+        query = (
+            update(context_heartbeats_table)
+            .where(context_heartbeats_table.c.context_id == context_id)
+            .values(active=False)
+        )
+        await self._connection.execute(query)
 
     def _row_to_context(self, row: Row) -> Context:
         return Context(

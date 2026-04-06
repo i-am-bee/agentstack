@@ -20,6 +20,7 @@ from agentstack_server.configuration import Configuration
 from agentstack_server.domain.models.common import Metadata, MetadataPatch, PaginatedResult
 from agentstack_server.domain.models.context import (
     Context,
+    ContextHeartbeat,
     ContextHistoryItem,
     ContextHistoryItemData,
     TitleGenerationState,
@@ -27,6 +28,7 @@ from agentstack_server.domain.models.context import (
 from agentstack_server.domain.models.user import User
 from agentstack_server.domain.repositories.file import IObjectStorageRepository
 from agentstack_server.exceptions import EntityNotFoundError, PlatformError
+from procrastinate.exceptions import AlreadyEnqueued
 from agentstack_server.service_layer.services.model_providers import ModelProviderService
 from agentstack_server.service_layer.unit_of_work import IUnitOfWorkFactory
 from agentstack_server.service_layer.webhook import dispatch_webhook_event
@@ -302,6 +304,38 @@ class ContextService:
                 order=pagination.order,
                 order_by=pagination.order_by,
             )
+
+    async def start_heartbeat(
+        self, *, context_id: UUID, user: User, message: str, interval_seconds: int
+    ) -> None:
+        async with self._uow() as uow:
+            context = await uow.contexts.get(context_id=context_id, user_id=user.id)
+            if not context.provider_id:
+                raise PlatformError("Context must have a provider_id to start a heartbeat", status_code=status.HTTP_400_BAD_REQUEST)
+
+            heartbeat = ContextHeartbeat(
+                context_id=context_id,
+                created_by=user.id,
+                provider_id=context.provider_id,
+                message=message,
+                interval_seconds=interval_seconds,
+            )
+            await uow.contexts.upsert_heartbeat(heartbeat=heartbeat)
+            await uow.commit()
+
+        from agentstack_server.jobs.tasks.heartbeat import send_heartbeat
+
+        with suppress(AlreadyEnqueued):
+            await send_heartbeat.configure(
+                queueing_lock=f"heartbeat:{context_id}",
+                schedule_in={"seconds": interval_seconds},
+            ).defer_async(context_id=str(context_id))
+
+    async def stop_heartbeat(self, *, context_id: UUID, user: User) -> None:
+        async with self._uow() as uow:
+            await uow.contexts.get(context_id=context_id, user_id=user.id)
+            await uow.contexts.deactivate_heartbeat(context_id=context_id)
+            await uow.commit()
 
     async def delete_history_from_id(self, *, context_id: UUID, from_id: UUID, user: User) -> None:
         """Delete all history items from a specific item onwards (inclusive)"""

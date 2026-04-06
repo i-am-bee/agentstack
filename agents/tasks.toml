@@ -30,6 +30,15 @@ depends = ["agents:deepagents_content_builder:check:*"]
 extends = "docker:check:hadolint"
 dir = "{{config_root}}/agents/deepagents_content_builder"
 
+# stack-claw
+
+["agents:stack-claw:check"]
+depends = ["agents:stack-claw:check:*"]
+
+["agents:stack-claw:check:hadolint"]
+extends = "docker:check:hadolint"
+dir = "{{config_root}}/agents/stack-claw"
+
 # form
 
 ["agents:form:check"]

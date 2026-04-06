@@ -281,6 +281,31 @@ class Context(pydantic.BaseModel):
                 .json()
             )
 
+    async def start_heartbeat(
+        self: "Context" | str,
+        *,
+        message: str,
+        interval_seconds: int,
+        client: PlatformClient | None = None,
+    ) -> None:
+        context_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as platform_client:
+            (
+                await platform_client.post(
+                    url=f"/api/v1/contexts/{context_id}/heartbeat",
+                    json={"message": message, "interval_seconds": interval_seconds},
+                )
+            ).raise_for_status()
+
+    async def stop_heartbeat(
+        self: "Context" | str,
+        *,
+        client: PlatformClient | None = None,
+    ) -> None:
+        context_id = self if isinstance(self, str) else self.id
+        async with client or get_platform_client() as platform_client:
+            (await platform_client.delete(url=f"/api/v1/contexts/{context_id}/heartbeat")).raise_for_status()
+
     async def list_all_history(
         self: "Context" | str, client: PlatformClient | None = None
     ) -> AsyncIterator[ContextHistoryItem]:

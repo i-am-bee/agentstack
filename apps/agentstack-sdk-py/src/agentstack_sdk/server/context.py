@@ -53,6 +53,16 @@ class RunContext(BaseModel, arbitrary_types_allowed=True):
             raise RuntimeError("Context store is not initialized")
         await self._store.delete_history_from_id(from_id)
 
+    async def start_heartbeat(self, message: str, interval_seconds: int) -> None:
+        from agentstack_sdk.platform.context import Context as PlatformContext
+
+        await PlatformContext.start_heartbeat(self.context_id, message=message, interval_seconds=interval_seconds)
+
+    async def stop_heartbeat(self) -> None:
+        from agentstack_sdk.platform.context import Context as PlatformContext
+
+        await PlatformContext.stop_heartbeat(self.context_id)
+
     def yield_sync(self, value: RunYield) -> RunYieldResume:
         self._yield_queue.sync_q.put(value)
         return self._yield_resume_queue.sync_q.get()

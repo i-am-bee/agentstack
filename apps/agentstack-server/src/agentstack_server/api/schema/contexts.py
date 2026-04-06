@@ -93,3 +93,8 @@ class ContextTokenResponse(BaseModel):
 
 class ContextHistoryItemCreateRequest(RootModel[ContextHistoryItemData]):
     root: ContextHistoryItemData
+
+
+class HeartbeatStartRequest(BaseModel):
+    message: str
+    interval_seconds: int = Field(ge=10, le=3600)

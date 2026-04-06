@@ -1,0 +1,20 @@
+[project]
+name = "stack-claw"
+version = "1.0.0"
+description = "Pi-powered coding agent (Python, via RPC)"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+    "agentstack-sdk",
+    "python-dotenv>=1.0.0",
+    "uvicorn>=0.37.0,<0.38.0",
+]
+
+[tool.uv.sources]
+agentstack-sdk = { path = "../../apps/agentstack-sdk-py", editable = true }
+
+[project.scripts]
+server = "stack_claw.agent:serve"
+
+[build-system]
+requires = ["uv_build>=0.10.0,<0.11.0"]
+build-backend = "uv_build"

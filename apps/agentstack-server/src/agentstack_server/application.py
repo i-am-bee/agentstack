@@ -217,6 +217,15 @@ def app(*, dependency_overrides: Container | None = None, enable_workers: bool =
                 user_feedback,
                 run_workers(app=procrastinate_app) if enable_workers else nullcontext(),
             ):
+                async with procrastinate_app.connector.pool.connection() as conn:
+                    schema = configuration.persistence.procrastinate_schema
+                    await conn.execute(
+                        f"DELETE FROM {schema}.procrastinate_jobs WHERE status IN ('todo', 'doing') AND task_name = 'heartbeat_tasks:send_heartbeat'"
+                    )
+                    await conn.execute(
+                        "UPDATE public.context_heartbeats SET active = false"
+                    )
+                    logger.info("Purged stale heartbeat jobs on startup")
                 # Force initial synchronization job
                 with suppress(AlreadyEnqueued):
                     await check_registry.defer_async(timestamp=int(time.time()))

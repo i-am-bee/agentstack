@@ -43,3 +43,13 @@ class TitleGenerationState(StrEnum):
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
+
+
+class ContextHeartbeat(BaseModel):
+    context_id: UUID
+    created_by: UUID
+    provider_id: UUID
+    message: str
+    interval_seconds: int
+    active: bool = True
+    created_at: AwareDatetime = Field(default_factory=utc_now)

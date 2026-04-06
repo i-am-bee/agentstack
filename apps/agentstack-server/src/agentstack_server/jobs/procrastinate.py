@@ -16,6 +16,7 @@ from agentstack_server.jobs.crons.provider import blueprint as provider_crons
 from agentstack_server.jobs.tasks.context import blueprint as context_tasks
 from agentstack_server.jobs.tasks.file import blueprint as file_tasks
 from agentstack_server.jobs.tasks.provider_build import blueprint as provider_build_tasks
+from agentstack_server.jobs.tasks.heartbeat import blueprint as heartbeat_tasks
 from agentstack_server.jobs.tasks.provider_discovery import blueprint as provider_discovery_tasks
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ def create_app(configuration: Configuration) -> procrastinate.App:
     app.add_tasks_from(blueprint=provider_crons, namespace="cron_provider")
     app.add_tasks_from(blueprint=model_provider_crons, namespace="cron_model_provider")
     app.add_tasks_from(blueprint=cleanup_crons, namespace="cron_cleanup")
+    app.add_tasks_from(blueprint=heartbeat_tasks, namespace="heartbeat_tasks")
     app.add_tasks_from(blueprint=connector_crons, namespace="cron_connector")
     _app_created = True
     return app

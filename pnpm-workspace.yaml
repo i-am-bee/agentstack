@@ -59,6 +59,7 @@ packages:
   - apps/agentstack-sdk-ts
   - apps/agentstack-sdk-ts/examples/chat-ui
   - apps/keycloak-theme
+  - agents/stack-claw
   - docs
 
 catalog:

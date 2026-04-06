@@ -18,6 +18,7 @@ class Queues(StrEnum):
     TOOLKIT_DELETION = "toolkit_deletion"
     BUILD_PROVIDER = "build_provider"
     PROVIDER_DISCOVERY = "provider_discovery"
+    HEARTBEAT = "heartbeat"
 
     @staticmethod
     def all() -> set[str]:

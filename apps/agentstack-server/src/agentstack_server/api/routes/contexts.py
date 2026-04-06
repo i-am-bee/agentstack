@@ -26,6 +26,7 @@ from agentstack_server.api.schema.contexts import (
     ContextTokenCreateRequest,
     ContextTokenResponse,
     ContextUpdateRequest,
+    HeartbeatStartRequest,
 )
 from agentstack_server.domain.models.common import PaginatedResult
 from agentstack_server.domain.models.context import Context, ContextHistoryItem
@@ -166,3 +167,27 @@ async def delete_context_history_from_id(
     user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"read", "write"}))],
 ) -> None:
     await context_service.delete_history_from_id(context_id=context_id, from_id=from_id, user=user.user)
+
+
+@router.post("/{context_id}/heartbeat", status_code=status.HTTP_201_CREATED)
+async def start_heartbeat(
+    context_id: UUID,
+    request: HeartbeatStartRequest,
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"write"}))],
+) -> None:
+    await context_service.start_heartbeat(
+        context_id=context_id,
+        user=user.user,
+        message=request.message,
+        interval_seconds=request.interval_seconds,
+    )
+
+
+@router.delete("/{context_id}/heartbeat", status_code=status.HTTP_204_NO_CONTENT)
+async def stop_heartbeat(
+    context_id: UUID,
+    context_service: ContextServiceDependency,
+    user: Annotated[AuthorizedUser, Depends(RequiresContextPermissionsPath(context_data={"write"}))],
+) -> None:
+    await context_service.stop_heartbeat(context_id=context_id, user=user.user)
