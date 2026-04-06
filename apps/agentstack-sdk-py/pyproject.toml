@@ -30,6 +30,11 @@ dependencies = [
     "opentelemetry-instrumentation-openai>=0.52.3",
 ]
 
+[project.optional-dependencies]
+s3 = [
+    "aioboto3>=14.0.0",
+]
+
 [dependency-groups]
 dev = [
     "beeai-framework[duckduckgo,wikipedia]>=0.1.76",
