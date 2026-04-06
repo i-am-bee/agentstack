@@ -1,0 +1,62 @@
+# Agent Stack Documentation
+
+> Agent Stack is open infrastructure for turning AI agents into running services.
+
+This document provides a machine-readable index for the Agent Stack platform. AI agents and developers should utilize these links to discover how to make your agents Agent Stack ready, how to work with agent stack services, how to deploy your agent to a local or hosted version of Agent Stack, and how to self-host Agent Stack itself.
+
+
+## Core Resources
+
+- [Welcome](https://agentstack.beeai.dev/stable/introduction/welcome): Explore the core components of Agent Stack, the core problem it solves, and understand what it is and isn't.
+- [Quickstart](https://agentstack.beeai.dev/stable/introduction/quickstart): Install Agent Stack using the one-line installer, configure your LLM provider, and run your first pre-built agent from the terminal.
+- [CLI Reference](https://agentstack.beeai.dev/stable/reference/cli-reference): The complete command-line manual for managing agents, configuring model providers, and platform lifecycle.
+- [Server SDK (Python)](https://agentstack.beeai.dev/stable/agent-integration/overview): The primary library for wrapping any agent logic and integrating it with platform extensions.
+
+## Deploying Agents to Agent Stack
+
+- [Build New Agents](https://agentstack.beeai.dev/stable/deploy-agents/building-agents): Create a new agent using the official starter template, implement custom logic with the Agent Stack SDK, and register it with the platform for local execution.
+- [Wrap Existing Agents](https://agentstack.beeai.dev/stable/deploy-agents/wrap-existing-agents): Deploy agents built with any framework to Agent Stack by adding a server wrapper to gain instant access to the UI, observability, and deployment infrastructure.
+- [Deploy Your Agents](https://agentstack.beeai.dev/stable/deploy-agents/deploy-your-agents): Containerize and deploy your agent to the platform as a managed service by connecting your GitHub repository, building Docker images, and verifying execution via the CLI or UI.
+- [Connect A2A Agents](https://agentstack.beeai.dev/stable/deploy-agents/a2a-agents): Integrate existing A2A agents into Agent Stack by connecting Docker images or external URLs, and understand the requirements for agent card metadata and lifecycle management.
+- [Agent Detail](https://agentstack.beeai.dev/stable/agent-integration/agent-details): Configure agent metadata, interaction modes, and visual details using the AgentDetail object to control how agents appear and greet users in the GUI.
+
+## Agent Stack Services & Extensions
+
+- [Messages](https://agentstack.beeai.dev/stable/agent-integration/messages): Structure agent communications by yielding simple strings, dictionaries, or convenience wrappers like AgentMessage and AgentArtifact to handle A2A protocol requirements.
+- [LLM Proxy Service](https://agentstack.beeai.dev/stable/agent-integration/llm-proxy-service): Implement model-agnostic LLM inference by adding service extensions to your agent, configuring model demands, and utilizing OpenAI-compatible credentials for seamless provider integration.
+- [Build RAG Pipelines](https://agentstack.beeai.dev/stable/agent-integration/rag): Construct end-to-end Retrieval Augmented Generation workflows by enabling Docling-powered text extraction, implementing vector store management, and utilizing embedding service extensions for semantic search.
+- [Working with Files](https://agentstack.beeai.dev/stable/agent-integration/files): Read, process, and generate files within your agents by configuring MIME-type input/output modes and using the Platform API extension to handle text and binary data.
+- [Manage Runtime Secrets](https://agentstack.beeai.dev/stable/agent-integration/secrets): Securely request sensitive data like API keys from users by implementing pre-configured secret demands or dynamic runtime requests using the Secrets Extension.
+- [Multi-Turn Conversations](https://agentstack.beeai.dev/stable/agent-integration/multi-turn): Build context-aware agents by managing conversation state using RunContext, enabling persistent storage with PlatformContextStore, and explicitly storing user and agent messages to maintain interaction history.
+- [Monitoring & Observability](https://agentstack.beeai.dev/stable/agent-integration/observability): Instrument your agents with OpenTelemetry to track traces, logs, and metrics, and configure visualization through built-in Arize Phoenix or external backends like Langfuse.
+- [Approve Tool Calls](https://agentstack.beeai.dev/stable/agent-integration/tool-calls): Implement "Human-in-the-loop" safety by requiring user approval for high-impact tool actions.
+- [MCP Integration](https://agentstack.beeai.dev/stable/agent-integration/mcp): Leverage the MCP Service Extension to proxy requests and handle authentication for third-party services, enabling agents to securely access user-scoped data from platforms like GitHub and Slack.
+- [MCP Connectors](https://agentstack.beeai.dev/stable/experimental/connectors): Register and manage remote MCP servers as data connections, handle OAuth or token-based authentication, and utilize pre-configured presets for services like Stripe and GitHub.
+- [Environment Variables](https://agentstack.beeai.dev/stable/agent-integration/env-variables): Declare and manage runtime configurations by defining environment variable requirements in AgentDetail and configuring them via the agentstack env CLI.
+- [Error Handling](https://agentstack.beeai.dev/stable/agent-integration/error): Report formatted errors to the UI using the Error extension, including support for stack traces, custom metadata context, and ExceptionGroup for multiple failure reporting.
+
+## Out of the box (Native) UI Extensions
+- [Agent Settings](https://agentstack.beeai.dev/stable/agent-integration/agent-settings): Define interactive UI components like checkboxes and dropdowns using the Settings Extension to allow users to toggle agent behaviors and response styles.
+- [Agent Trajectories](https://agentstack.beeai.dev/stable/agent-integration/trajectory): Implement the Trajectory extension to show step-by-step reasoning in the UI, use Markdown for rich content, and manage live status updates using group IDs.
+- [Collect Input with Forms](https://agentstack.beeai.dev/stable/agent-integration/forms): Request structured data from users using initial or dynamic form rendering, define custom field types like selects and file uploads, and parse responses directly into Pydantic models.
+- [Add Citations](https://agentstack.beeai.dev/stable/agent-integration/citations): Include source references in agent responses using clickable links and hover tooltips, and map citations to specific text segments via start and end indices.
+- [Work with Canvas](https://agentstack.beeai.dev/stable/agent-integration/canvas): Handle artifact edit requests by parsing selection indices and user descriptions, allowing agents to perform targeted modifications to existing code or documents.
+
+## Custom UI Development
+- [Getting Started](https://agentstack.beeai.dev/stable/custom-ui/getting-started): Install the Agent Stack TypeScript SDK, initialize the platform API client, and implement the A2A client to stream messages and handle agent-to-user interactions.
+- [A2A Client Integration](https://agentstack.beeai.dev/stable/custom-ui/a2a-client): Implement advanced A2A flows to resolve agent demands, handle real-time task status updates for streaming UI elements, and manage multi-turn interactions using task-scoped metadata.
+- [Agent Requirements](https://agentstack.beeai.dev/stable/custom-ui/agent-requirements): Configure service extensions like LLMs and MCP, fulfill agent dependency demands via dependency injection, and utilize SDK helpers to render UI extensions such as forms, approvals, and citations in your own custom UI code.
+- [Platform API Client](https://agentstack.beeai.dev/stable/custom-ui/platform-api-client): Initialize the type-safe platform client to manage contexts, upload files, and configure agent providers using the complete endpoint reference and built-in error handling guards.
+- [Permissions and Tokens](https://agentstack.beeai.dev/stable/custom-ui/permissions-and-tokens): Secure your application by managing the lifecycle of User Tokens and Context Tokens, defining global versus local permission scopes, and programmatically generating restricted access for agents.
+- [Agent Responses](https://agentstack.beeai.dev/stable/custom-ui/agent-responses): Extract and render structured message content, including text parts, trajectory traces, and inline citations, while resolving file URLs from platform URIs or base64 bytes.
+- [User Messages](https://agentstack.beeai.dev/stable/custom-ui/user-messages): Compose structured user messages by merging agent service fulfillments with user response metadata from forms, approvals, and canvas interactions.
+- [Error Handling](https://agentstack.beeai.dev/stable/custom-ui/error-handling): Implement robust error management by using guard helpers to catch platform API exceptions and extracting A2A extension payloads to display user-facing agent task failures.
+
+## Self-Hosting Agent Stack
+
+- [Deployment Guide](https://agentstack.beeai.dev/stable/deploy-agent-stack/deployment-guide): Install and configure Agent Stack on Kubernetes using Helm, set up authentication via OIDC or Keycloak, and manage external storage and database integrations.
+- [Connect CLI to Remote Server](https://agentstack.beeai.dev/stable/deploy-agent-stack/authenticate-cli-to-server): Connect the Agent Stack CLI to a remote server, manage multiple server environments, and handle authentication for remote agent management.
+
+## Community
+
+- [Contribute](https://agentstack.beeai.dev/stable/community/contribute): Support the Agent Stack open-source ecosystem by reporting bugs, improving documentation, and participating in the community-led Linux Foundation project.
