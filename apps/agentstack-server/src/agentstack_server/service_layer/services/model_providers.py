@@ -175,10 +175,10 @@ class ModelProviderService:
         updated_provider.description = description if description is not None else provider.description
         updated_provider.type = type or updated_provider.type
         updated_provider.base_url = base_url or updated_provider.base_url
-        updated_provider.watsonx_project_id = watsonx_project_id or updated_provider.watsonx_project_id
-        updated_provider.watsonx_space_id = watsonx_space_id or updated_provider.watsonx_space_id
+        updated_provider.watsonx_project_id = watsonx_project_id if watsonx_project_id is not None else updated_provider.watsonx_project_id
+        updated_provider.watsonx_space_id = watsonx_space_id if watsonx_space_id is not None else updated_provider.watsonx_space_id
 
-        updated_api_key = api_key or old_api_key
+        updated_api_key = api_key if api_key is not None else old_api_key
 
         should_update = provider != updated_provider or (updated_api_key != old_api_key)
 

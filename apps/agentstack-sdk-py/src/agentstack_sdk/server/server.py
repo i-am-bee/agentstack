@@ -55,7 +55,7 @@ class Server:
         self._self_registration_client: PlatformClient | None = None
         self._self_registration_id: str | None = None
         self._provider_id: str | None = None
-        self._all_configured_variables: set[str] = set()
+        self._all_configured_variables: dict[str, str] = {}
 
     @functools.wraps(agent_decorator)
     def agent(self, *args, **kwargs) -> Callable:
@@ -312,14 +312,14 @@ class Server:
             return
 
         variables = await Provider.list_variables(self._provider_id, client=self._self_registration_client)
-        old_variables = self._all_configured_variables.copy()
+        old_variables = dict(self._all_configured_variables)
 
-        for variable in list(self._all_configured_variables - variables.keys()):  # reset removed variables
+        for variable in list(self._all_configured_variables.keys() - variables.keys()):  # reset removed variables
             os.environ.pop(variable, None)
-            self._all_configured_variables.remove(variable)
+            del self._all_configured_variables[variable]
 
         os.environ.update(variables)
-        self._all_configured_variables.update(variables.keys())
+        self._all_configured_variables.update(variables)
 
         if dirty := old_variables != self._all_configured_variables:
             logger.info(f"Environment variables reloaded dynamically: {self._all_configured_variables}")
