@@ -15,7 +15,7 @@ dependencies = [
     "openinference-instrumentation-beeai>=0.1.14",
     "pydantic-settings>=2.9.0",
     "tenacity>=9.1.2",
-    "langchain-text-splitters>=0.3.0",
+    "langchain-text-splitters>=1.1.2",
     "uvicorn>=0.37.0,<0.38.0",
 ]
 
