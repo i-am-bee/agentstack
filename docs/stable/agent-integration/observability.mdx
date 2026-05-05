@@ -192,10 +192,58 @@ Check your Langfuse project dashboard for incoming traces and metrics.
 
 </Steps>
 
+### Enable Future AGI Observability
+
+[Future AGI](https://futureagi.com) is an open-source e2e agent engineering and optimization platform that helps you ship self-improving AI agents. Its tracer endpoint accepts OpenTelemetry OTLP/HTTP, so you can route Agent Stack traces to it through the same collector config used for Langfuse.
+
+<Steps>
+
+<Step title="Get Future AGI credentials">
+1. Sign up at [app.futureagi.com](https://app.futureagi.com)
+2. From your dashboard, copy your `FI_API_KEY` and `FI_SECRET_KEY`
+</Step>
+
+<Step title="Create a configuration file (config.yaml):">
+```yaml
+collector:
+  exporters:
+    otlphttp/futureagi:
+      endpoint: "https://api.futureagi.com/tracer/v1/traces"
+      headers:
+        x-api-key: "${FI_API_KEY}"
+        x-secret-key: "${FI_SECRET_KEY}"
+  pipelines:
+    traces:
+      receivers: [ otlp ]
+      processors: [ memory_limiter, batch ]
+      exporters: [ otlphttp/futureagi ]
+```
+</Step>
+
+<Step title="Start the platform with the configuration">
+```bash
+FI_API_KEY=your_api_key \
+FI_SECRET_KEY=your_secret_key \
+agentstack platform start -f config.yaml
+```
+</Step>
+
+<Step title="Run and View">
+
+Execute an agent to generate data:
+```sh
+agentstack run chat "Hello"
+```
+Open your project in the [Future AGI dashboard](https://app.futureagi.com) to inspect traces, prompts, completions, and tool execution details.
+</Step>
+
+</Steps>
+
 ## Additional Resources
 
 - **OpenTelemetry Docs**: https://opentelemetry.io/docs/
 - **Langfuse Docs**: https://langfuse.com/docs
 - **Phoenix Docs**: https://docs.arize.com/phoenix
+- **Future AGI Docs**: https://docs.futureagi.com
 - **Prometheus Docs**: https://prometheus.io/docs/
 - **Grafana Docs**: https://grafana.com/docs/
