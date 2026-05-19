@@ -18,6 +18,7 @@ graph LR
     %% Destinations
     Phoenix[Phoenix<br/>:6006<br/>✓ Built-in]
     Langfuse[Langfuse<br/>Cloud<br/>⚙ Config Required]
+    FutureAGI[Future AGI<br/>Cloud<br/>⚙ Config Required]
     Custom[Custom<br/>Backend<br/>⚙ Config Required]
     
     %% Data flows
@@ -26,18 +27,23 @@ graph LR
     
     OTLP --> Phoenix
     OTLP --> Langfuse
+    OTLP --> FutureAGI
     OTLP --> Custom
     
     %% Simple styling
     classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px,color:#000
     classDef collector fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
     classDef builtin fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000
-    classDef optional fill:#fff3e0,stroke:#f57c00,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+    classDef langfuse fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+    classDef futureagi fill:#fce4ec,stroke:#c2185b,stroke-width:2px,stroke-dasharray: 5 5,color:#000
+    classDef custom fill:#eeeeee,stroke:#212121,stroke-width:2px,stroke-dasharray: 5 5,color:#000
 
     
     class OTLP collector
     class Phoenix builtin
-    class Langfuse,Custom optional
+    class Langfuse langfuse
+    class FutureAGI futureagi
+    class Custom custom
 ```
 
 For telemetry to flow successfully, it must be enabled at three levels:
@@ -166,7 +172,7 @@ collector:
     otlphttp/langfuse:
       endpoint: "https://cloud.langfuse.com/api/public/otel" # EU data region
       headers:
-        Authorization: "Basic <auth-string>"
+        Authorization: "Basic <YOUR_AUTH_STRING>"
   pipelines:
     traces:
       receivers: [ otlp ]
@@ -192,10 +198,56 @@ Check your Langfuse project dashboard for incoming traces and metrics.
 
 </Steps>
 
+### Enable Future AGI Observability
+
+[Future AGI](https://futureagi.com) is an open-source e2e agent engineering and optimization platform that helps you ship self-improving AI agents. Its tracer endpoint accepts OpenTelemetry OTLP/HTTP, so you can route Agent Stack traces to it through the same collector config used for Langfuse.
+
+<Steps>
+
+<Step title="Get Future AGI credentials">
+1. Sign up at [app.futureagi.com](https://app.futureagi.com)
+2. From your dashboard, copy your `FI_API_KEY` and `FI_SECRET_KEY`
+</Step>
+
+<Step title="Create a configuration file (config.yaml):">
+```yaml
+collector:
+  exporters:
+    otlphttp/futureagi:
+      endpoint: "https://api.futureagi.com/tracer/v1/traces"
+      headers:
+        X-API-KEY: "<YOUR_FI_API_KEY>"
+        X-SECRET-KEY: "<YOUR_FI_SECRET_KEY>"
+  pipelines:
+    traces:
+      receivers: [ otlp ]
+      processors: [ memory_limiter, filter/phoenix, batch ]
+      exporters: [ otlphttp/futureagi ]
+```
+</Step>
+
+<Step title="Start the platform with the configuration">
+```bash
+agentstack platform start -f config.yaml
+```
+</Step>
+
+<Step title="Run and View">
+
+Execute an agent to generate data:
+```sh
+agentstack run chat "Hello"
+```
+Open your project in the [Future AGI dashboard](https://app.futureagi.com) to inspect traces, prompts, completions, and tool execution details.
+</Step>
+
+</Steps>
+
 ## Additional Resources
 
 - **OpenTelemetry Docs**: https://opentelemetry.io/docs/
 - **Langfuse Docs**: https://langfuse.com/docs
 - **Phoenix Docs**: https://docs.arize.com/phoenix
+- **Future AGI Docs**: https://docs.futureagi.com
 - **Prometheus Docs**: https://prometheus.io/docs/
 - **Grafana Docs**: https://grafana.com/docs/
