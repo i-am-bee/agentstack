@@ -200,7 +200,7 @@ Check your Langfuse project dashboard for incoming traces and metrics.
 
 ### Enable Future AGI Observability
 
-[Future AGI](https://futureagi.com) is an open-source e2e agent engineering and optimization platform that helps you ship self-improving AI agents. Its tracer endpoint accepts OpenTelemetry OTLP/HTTP, so you can route Agent Stack traces to it through the same collector config used for Langfuse.
+[Future AGI](https://futureagi.com) is an open-source e2e agent engineering and optimization platform that helps you ship self-improving AI agents. Its tracer endpoint accepts OpenTelemetry OTLP/HTTP, so you can route Agent Stack traces to it by adding an `otlphttp` exporter to the collector config.
 
 <Steps>
 
@@ -209,7 +209,7 @@ Check your Langfuse project dashboard for incoming traces and metrics.
 2. From your dashboard, copy your `FI_API_KEY` and `FI_SECRET_KEY`
 </Step>
 
-<Step title="Create a configuration file (config.yaml):">
+<Step title="Create a configuration file (config.yaml)">
 ```yaml
 collector:
   exporters:
