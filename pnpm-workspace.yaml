@@ -12,7 +12,7 @@ overrides:
   "zod@<3.22.3": "3.22.3"
   # Fix CVE-2025-64718 / GHSA-mh29-5h37-fv8m: js-yaml Prototype Pollution via merge
   # Transitive via @mintlify/cli and @mintlify/common
-  "js-yaml@>=4.0.0 <4.1.1": "4.1.1"
+  "js-yaml@>=4.0.0 <4.1.1": "4.3.1"
   # Fix CVE-2025-15284 / GHSA-6rw7-vpxm-498p: qs arrayLimit bypass in bracket notation
   # Fix CVE-2026-2391 / GHSA-w7fw-mjwx-w883: qs arrayLimit bypass in comma parsing
   # Transitive via express -> body-parser
