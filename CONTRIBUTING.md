@@ -1,100 +1,87 @@
-# Contributing
+**Katkıda Bulunma Kılavuzu**
 
-## Development setup
+## Geliştirme Kurulumu
 
-### Installation
+### Kurulum
 
-This project uses [Mise-en-place](https://mise.jdx.dev/) as a manager of tool versions (`python`, `uv`, `nodejs`, `pnpm`
-etc.), as well as a task runner and environment manager. Mise will download all the needed tools automatically -- you
-don't need to install them yourself.
+Bu proje, araç sürümlerinin (`python`, `uv`, `nodejs`, `pnpm` vb.) yöneticisi olarak [Mise-en-place](https://mise.jdx.dev/) kullanır. Mise, gerekli tüm araçları otomatik olarak indirir; kendiniz kurmanıza gerek yoktur.
 
-Clone this project, then run these setup steps:
+Bu projeyi klonlayın ve ardından şu kurulum adımlarını izleyin:
 
 ```sh
-brew install mise # more ways to install: https://mise.jdx.dev/installing-mise.html
+brew install mise # Daha fazla kurulum yöntemi: https://mise.jdx.dev/installing-mise.html
 mise trust
 mise install
-brew install qemu # if not using Brew: install QEMU through some other package manager
+brew install qemu # Brew kullanmıyorsanız: QEMU'yu başka bir paket yöneticisi aracılığıyla kurun
 ```
 
-After setup, you can use:
+Kurulumdan sonra şunları kullanabilirsiniz:
 
-* `mise run` to list tasks and select one interactively to run
+* `mise run` ile görevleri listeleyip etkileşimli olarak birini seçebilirsiniz.
+* `mise <görev-adı>` ile bir görevi çalıştırabilirsiniz.
+* `mise x -- <komut>` ile bir proje aracını çalıştırabilirsiniz — örneğin `mise x -- uv add <paket>`.
 
-* `mise <task-name>` to run a task
+Eğer `mise x --` ön ekini kullanmadan araçları doğrudan çalıştırmak istiyorsanız, bir shell hook'u etkinleştirmeniz gerekir:
 
-* `mise x -- <command>` to run a project tool -- for example `mise x -- uv add <package>`
+* Bash: `eval "$(mise activate bash)"` (kalıcı hale getirmek için `~/.bashrc` dosyasına ekleyin)
+* Zsh: `eval "$(mise activate zsh)"` (kalıcı hale getirmek için `~/.zshrc` dosyasına ekleyin)
+* Fish: `mise activate fish | source` (kalıcı hale getirmek için `~/.config/fish/config.fish` dosyasına ekleyin)
+* Diğer shell'ler: [belgelere](https://mise.jdx.dev/installing-mise.html#shells) bakın.
 
-If you want to run tools directly without the `mise x --` prefix, you need to activate a shell hook:
+### Konfigürasyon
 
-* Bash: `eval "$(mise activate bash)"` (add to `~/.bashrc` to make permanent)
+Proje kökündeki `mise.local.toml` dosyasındaki `[env]` bölümünü düzenleyin ([belgeler](https://mise.jdx.dev/environments/)). Dosyayı görmüyorsanız `mise setup` komutunu çalıştırın.
 
-* Zsh: `eval "$(mise activate zsh)"` (add to `~/.zshrc` to make permanent)
+### Platformu Kaynaktan Çalıştırma
 
-* Fish: `mise activate fish | source` (add to `~/.config/fish/config.fish` to make permanent)
+CLI kullanarak platformu başlatmak (`agentstack platform start`, hatta `mise agentstack-cli:run -- platform start`) varsayılan olarak **yayınlanmış görüntüleri** kullanır. Yerel görüntüleri kullanmak için bunları oluşturup platforma aktarmanız gerekir.
 
-* Other shells: [documentation](https://mise.jdx.dev/installing-mise.html#shells)
-
-### Configuration
-
-Edit `[env]` in `mise.local.toml` in the project root ([documentation](https://mise.jdx.dev/environments/)). Run
-`mise setup` if you don't see the file.
-
-### Running the platform from source
-
-Starting up the platform using the CLI (`agentstack platform start`, even `mise agentstack-cli:run -- platform start`)
-will use
-**published images** by default. To use local images, you need to build them and import them into the platform.
-
-Instead, use:
+Bunun yerine şunu kullanın:
 
 ```shell
 mise agentstack:start
 ```
 
-This will build the images (`agentstack-server` and `agentstack-ui`) and import them to the cluster. You can add other
-CLI arguments as you normally would when using `agentstack` CLI, for example:
+Bu, `agentstack-server` ve `agentstack-ui` görüntülerini oluşturacak ve bunları kümeye aktaracaktır. Normalde `agentstack` CLI'sini kullanırken olduğu gibi diğer CLI argümanlarını ekleyebilirsiniz:
 
 ```shell
 mise agentstack:start --set docling.enabled=true --set oidc.enabled=true 
 ```
 
-To stop or delete the platform use
+Platformu durdurmak veya silmek için şunları kullanın:
 
 ```shell
 mise agentstack:stop
 mise agentstack:delete
 ```
 
-For debugging and direct access to kubernetes, setup `KUBECONFIG` and other environment variables using:
+Debugging ve Kubernetes'e doğrudan erişim için `KUBECONFIG` ve diğer ortam değişkenlerini ayarlamak için:
 
 ```shell
-# Activate environment
+# Ortamı etkinleştir
 eval "$(mise run agentstack:shell)"
 
-# Deactivate environment
+# Ortamı devre dışı bırak
 deactivate
 ```
 
-### OAuth/OIDC authentication for local testing
+### OAuth/OIDC Kimlik Doğrulaması için Yerel Test
 
-By default, authentication and authorization are disabled.
+Varsayılan olarak, kimlik doğrulama ve yetkilendirme devre dışıdır.
 
-Starting the platform with OIDC enabled:
+OIDC etkin olarak platformu başlatmak için:
 
 ```bash
 mise agentstack:start --set auth.enabled=true
 ```
 
-This will setup keycloak (with no platform users out of the box).
+Bu, Keycloak'ı kurar (kutuda platform kullanıcıları yoktur).
 
-You can add users at <http://localhost:8336>, by loggin in with the admin user (admin:admin in dev)
-and going to "Manage realms" -> "Users".
+Kullanıcıları <http://localhost:8336> adresinde, admin kullanıcısı (admin:admin dev ortamında) ile oturum açarak ekleyebilirsiniz ve "Yönetim alanları" -> "Kullanıcılar" kısmına gidebilirsiniz.
 
-You can promote users by assigning `agentstack-admin` or `agentstack-developer` roles to them. Make sure to add a
-password in the "Credentials" tab and set their email to verified.
+Kullanıcıları `agentstack-admin` veya `agentstack-developer` rollerini atayarak terfi ettirebilirsiniz. "Kimlik Bilgileri" sekmesinde bir şifre eklemeyi ve e-posta adreslerini doğrulanmış olarak ayarlamayı unutmayın.
 
-You can also automate this by creating a file `config.yaml`:
+Bunu otomatik hale getirmek için `config.yaml` adlı bir dosya oluşturabilirsiniz:
 
 ```yaml
 auth:
@@ -111,107 +98,101 @@ keycloak:
         enabled: true
 ```
 
-Then run `mise run agentstack:start -f config.yaml`
+Ardından `mise run agentstack:start -f config.yaml` komutunu çalıştırın.
 
-**Available endpoints:**
+**Mevcut uç noktalar:**
 
-| Service              | HTTP                                |
+| Servis              | HTTP                                |
 |----------------------|-------------------------------------|
 | Keycloak             | `http://localhost:8336`             |
 | Agent Stack UI       | `http://localhost:8334`             |
 | Agent Stack API Docs | `http://localhost:8333/api/v1/docs` |
 
-**OIDC configuration:**
+**OIDC yapılandırması:**
 
-* UI: follow `template.env` in `apps/agentstack-ui` directory (copy to `apps/agentstack-ui/.env`).
-* Server: follow `template.env` in `apps/agentstack-server` directory (copy to `apps/agentstack-server/.env`).
+* UI: `apps/agentstack-ui` dizinindeki `template.env` dosyasını takip edin (kopyalayın ve `apps/agentstack-ui/.env` dosyasına yapıştırın).
+* Sunucu: `apps/agentstack-server` dizinindeki `template.env` dosyasını takip edin (kopyalayın ve `apps/agentstack-server/.env` dosyasına yapıştırın).
 
-### Running and debugging individual components
+### Bireysel Bileşenleri Çalıştırma ve Hata Ayıklama
 
-It's desirable to run and debug (i.e. in an IDE) individual components against the full stack (PostgreSQL,
-OpenTelemetry, Arize Phoenix, ...). For this, we include [Telepresence](https://telepresence.io/) which allows rewiring
-a Kubernetes container to your local machine. (Note that `sshfs` is not needed, since we don't use it in this setup.)
+Bireysel bileşenleri tam yığın (PostgreSQL, OpenTelemetry, Arize Phoenix vb.) karşısında çalıştırmak ve hata ayıklamak istenir. Bunun için, Kubernetes konteynerini yerel makinenize yeniden yönlendiren [Telepresence](https://telepresence.io/) dahil edilmiştir. (Not: `sshfs` gerekli değildir, çünkü bu kurulumda kullanılmamaktadır.)
 
 ```sh
 mise run agentstack-server:dev:start
 ```
 
-This will do the following:
+Bu, aşağıdakileri yapacaktır:
 
-1. Create .env file if it doesn't exist yet (you can add your configuration here)
-2. Stop default platform VM ("agentstack") if it exists
-3. Start a new VM named "agentstack-local-dev" separate from the "agentstack" VM used by default
-4. Install telepresence into the cluster
-   > Note that this will require **root access** on your machine, due to setting up a networking stack.
-5. Replace agentstack in the cluster and forward any incoming traffic to localhost
+1. Henüz yoksa `.env` dosyasını oluşturur (burada yapılandırmanızı ekleyebilirsiniz).
+2. Varsayılan platform VM'sini ("agentstack") durdurur.
+3. Varsayılan olarak kullanılan "agentstack" VM'sinden ayrı bir "agentstack-local-dev" adlı yeni bir VM başlatır.
+4. Küme içinde telepresence kurulumunu gerçekleştirir.
+   > Not: Bu, bir ağ yığını kurmak için **root erişimi** gerektirecektir.
+5. Kümedeki agentstack'ı değiştirir ve gelen tüm trafiği localhost'a yönlendirir.
 
-After the command succeeds, you can:
+Komut başarılı olduktan sonra:
 
-* send requests as if your machine was running inside the cluster. For example:
+* Makineniz, kümede çalışıyormuş gibi istekte bulunabilir. Örneğin:
   `curl http://<service-name>:<service-port>`.
-* connect to postgresql using the default credentials `postgresql://agentstack-user:password@postgresql:5432/agentstack`
-* now you can start your server from your IDE or using `mise run agentstack-server:run` on port **18333**
-* run agentstack-cli using `mise agentstack-cli:run -- <command>` or HTTP requests to localhost:8333 or localhost:18333
-  * localhost:8333 is port-forwarded from the cluster, so any requests will pass through the cluster networking to the
-      agentstack pod, which is replaced by telepresence and forwarded back to your local machine to port 18333
-  * localhost:18333 is where your local platform should be running
+* PostgreSQL'e varsayılan kimlik bilgileri `postgresql://agentstack-user:password@postgresql:5432/agentstack` ile bağlanabilirsiniz.
+* Şimdi sunucunuzu IDE'nizden veya `mise run agentstack-server:run` komutunu kullanarak **18333** portunda başlatabilirsiniz.
+* Agentstack-cli'yi `mise agentstack-cli:run -- <komut>` veya localhost:8333 veya localhost:18333'e HTTP istekleri ile çalıştırabilirsiniz.
+  * localhost:8333, kümeden port yönlendirilmiştir, bu nedenle herhangi bir istek, küme ağından geçerek agentstack pod'una ulaşacak ve bu pod, telepresence ile değiştirilerek tekrar yerel makinenize yönlendirilecektir.
+  * localhost:18333, yerel platformunuzun çalışması gereken yerdir.
 
-To inspect cluster using `kubectl` or `k9s` and lima using `limactl`, activate the dev environment using:
+Küme içeriğini `kubectl` veya `k9s` ve lima kullanarak incelemek için geliştirme ortamını etkinleştirin:
 
 ```shell
-# Activate dev environment
+# Geliştirme ortamını etkinleştir
 eval "$(mise run agentstack-server:dev:shell)"
 
-# Deactivate dev environment
+# Geliştirme ortamını devre dışı bırak
 deactivate
 ```
 
-When you're done you can stop the development cluster and networking using
+İşiniz bittiğinde, geliştirme kümesini ve ağı durdurmak için şunları kullanabilirsiniz:
 
 ```shell
 mise run agentstack-server:dev:stop
 ```
 
-Or delete the cluster entirely using
+Veya küme tamamen silmek için:
 
 ```shell
 mise run agentstack-server:dev:delete
 ```
 
-> TIP: If you run into connection issues after sleep or longer period of inactivity
-> try `mise run agentstack-server:dev:reconnect` first. You may not need to clean and restart
-> the entire VM
+> İPUCU: Eğer uyku sonrası veya uzun bir süre hareketsiz kaldıktan sonra bağlantı sorunlarıyla karşılaşırsanız, önce `mise run agentstack-server:dev:reconnect` komutunu deneyin. Tüm VM'yi temizleyip yeniden başlatmanız gerekebilir.
 
-#### Developing tests
+#### Test Geliştirme
 
-To run and develop agentstack-server tests locally use `mise run agentstack-server:dev:start --set auth.enabled=true` from above.
+Yerel olarak agentstack-server testlerini çalıştırmak ve geliştirmek için yukarıdaki `mise run agentstack-server:dev:start --set auth.enabled=true` komutunu kullanın.
 
-> Note:
+> Not:
 >
-> * Some tests require additional settings (e.g. enabling authentication), see section for tests in `template.env` for more details.
-> * Tests will drop your database - you may need to add agents again or reconfigure model
+> * Bazı testler ek ayarlar gerektirir (örneğin, kimlik doğrulamayı etkinleştirmek), daha fazla bilgi için `template.env` dosyasındaki testler bölümüne bakın.
+> * Testler veritabanınızı sıfırlayabilir - ajanları yeniden eklemeniz veya modeli yeniden yapılandırmanız gerekebilir.
 
-Locally, the default model for tests is configured in `apps/agentstack-server/tests/conftest.py` (`llama3.1:8b` from ollama).
-Make sure to have this model running locally.
+Yerel olarak, testler için varsayılan model `apps/agentstack-server/tests/conftest.py` dosyasında yapılandırılmıştır (`llama3.1:8b` ollama'dan). Bu modelin yerel olarak çalıştığından emin olun.
 
 <details>
-<summary> Lower-level networking using telepresence directly</summary>
+<summary> Daha Düşük Seviyeli Ağ Kullanımı ile Telepresence Doğrudan Kullanma </summary>
 
 ```shell
-# Activate environment
+# Ortamı etkinleştir
 eval "$(mise run agentstack-server:dev:shell)"
 
-# Start platform
-mise agentstack-cli:run -- platform start --vm-name=agentstack-local-dev # optional --tag [tag] --import-images
+# Platformu başlat
+mise agentstack-cli:run -- platform start --vm-name=agentstack-local-dev # isteğe bağlı --tag [etiket] --import-images
 mise x -- telepresence helm install
 mise x -- telepresence connect
 
-# Receive traffic to a pod by replacing it in the cluster
-mise x -- telepresence replace <pod-name>
+# Bir pod'a trafiği almak için onu kümede değiştirin
+mise x -- telepresence replace <pod-adı>
 
-# More information about how replace/intercept/ingress works: https://telepresence.io/docs/howtos/engage
+# Değiştirme/engelleme/girişin nasıl çalıştığı hakkında daha fazla bilgi: https://telepresence.io/docs/howtos/engage
 
-# Once done, quit Telepresence using:
+# İşiniz bittiğinde Telepresence'i kapatmak için:
 mise x -- telepresence quit
 ```
 
@@ -219,73 +200,69 @@ mise x -- telepresence quit
 
 #### Ollama
 
-If you want to run this local setup against Ollama you must use a special option when setting up the LLM:
+Bu yerel kurulumu Ollama ile çalıştırmak istiyorsanız, LLM'yi kurarken özel bir seçenek kullanmalısınız:
 
 ```
 agentstack model setup --use-true-localhost
 ```
 
-### Examples
+### Örnekler
 
-Examples in the `examples/` directory serve as standalone agents, documentation code samples, and e2e tests. See [`examples/README.md`](examples/README.md) for full details.
+`examples/` dizinindeki örnekler, bağımsız ajanlar, belge kod örnekleri ve e2e testleri olarak hizmet eder. Tam detaylar için [`examples/README.md`](examples/README.md) dosyasına bakın.
 
-The `examples/` folder structure mirrors the docs structure. For instance, examples used in `docs/development/agent-integration/forms.mdx` live under `examples/agent-integration/forms/`. Each doc section heading maps to an example name (e.g. "Initial Form Rendering" -> `initial-form-rendering`).
+`examples/` klasör yapısı, belgelerin yapısını yansıtır. Örneğin, `docs/development/agent-integration/forms.mdx` dosyasında kullanılan örnekler `examples/agent-integration/forms/` altında bulunur. Her belge bölüm başlığı, bir örnek adını eşler (örneğin "İlk Formun Render Edilmesi" -> `initial-form-rendering`).
 
-**Modifying an existing example:**
+**Mevcut bir örneği değiştirme:**
 
-1. Edit the agent code in `examples/<path>/src/<name>/agent.py`
-2. Run the related e2e test: `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`
-3. Update docs to sync embedded code: `mise run docs:fix`
+1. Ajan kodunu `examples/<path>/src/<name>/agent.py` dosyasında düzenleyin.
+2. İlgili e2e testini çalıştırın: `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`.
+3. Entegre edilmiş kodu senkronize etmek için belgeleri güncelleyin: `mise run docs:fix`.
 
-**Creating a new example:**
+**Yeni bir örnek oluşturma:**
 
 ```bash
 mise run example:create <path> <description>
 ```
 
-This scaffolds the example agent and its e2e test. After scaffolding:
+Bu, örnek ajanı ve e2e testini oluşturur. Oluşturma işleminden sonra:
 
-1. Implement the agent logic in `examples/<path>/src/<name>/agent.py`
-2. Implement the e2e test in `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py`
-3. Embed the example in docs using embedme tags:
+1. Ajan mantığını `examples/<path>/src/<name>/agent.py` dosyasında uygulayın.
+2. E2e testini `apps/agentstack-server/tests/e2e/examples/<path>/test_<name>.py` dosyasında uygulayın.
+3. Örneği belgelerde embedme etiketleri kullanarak gömün:
    ```mdx
    {/* <!-- embedme examples/<path>/src/<name>/agent.py --> */}
    ```
-4. Run `mise run docs:fix` to sync the embedded code into docs
+4. Belgelerde gömülü kodu senkronize etmek için `mise run docs:fix` komutunu çalıştırın.
 
-> **Naming convention:** The template names the agent function as `<snake_case_name>_example` (e.g. `initial_form_rendering_example`). The example name is derived from the doc section heading where it's used (e.g. "Initial Form Rendering" -> `initial-form-rendering`).
+> **İsimlendirme kuralı:** Şablon, ajan işlevini `<snake_case_name>_example` olarak adlandırır (örneğin, `initial_form_rendering_example`). Örnek adı, kullanıldığı belge bölüm başlığından türetilir (örneğin "İlk Formun Render Edilmesi" -> `initial-form-rendering`).
 
-**Running e2e example tests:**
+**E2e örnek testlerini çalıştırma:**
 
-| Command | What it runs |
+| Komut | Ne çalıştırır |
 |---|---|
-| `mise run agentstack-server:test:e2e` | Core e2e tests only (excludes examples) |
-| `mise run agentstack-server:test:e2e-examples` | Example e2e tests only |
+| `mise run agentstack-server:test:e2e` | Ana e2e testleri (örnekler hariç) |
+| `mise run agentstack-server:test:e2e-examples` | Örnek e2e testleri yalnızca |
 
-E2e example tests are **not** part of the core e2e suite and don't run on every commit. They run automatically when merged to `main`, or on PRs when you add the `e2e-examples` label.
+E2e örnek testleri **ana e2e setinin** bir parçası değildir ve her taahhütte çalışmaz. `main` dalına birleştirildiğinde veya `e2e-examples` etiketini eklediğinizde PR'larda otomatik olarak çalıştırılır.
 
-### Working with migrations
+### Göçlerle Çalışma
 
-The following commands can be used to create or run migrations in the dev environment above:
+Aşağıdaki komutlar geliştirme ortamında göç oluşturmak veya çalıştırmak için kullanılabilir:
 
-* Run migrations: `mise run agentstack-server:migrations:run`
-* Generate migrations: `mise run agentstack-server:migrations:generate`
-* Use Alembic command directly: `mise run agentstack-server:migrations:alembic`
+* Göçleri çalıştır: `mise run agentstack-server:migrations:run`
+* Göçleri oluştur: `mise run agentstack-server:migrations:generate`
+* Alembic komutunu doğrudan kullan: `mise run agentstack-server:migrations:alembic`
 
-> NOTE: The dev setup will run the locally built image including its migrations before replacing it with your local
-> instance. If new migrations you just implemented are not working, the dev setup will not start properly and you need
-> to fix migrations first. You can activate the shell using `eval "$(mise run agentstack-server:dev:shell)"` and use
-> your favorite kubernetes IDE (e.g., k9s or kubectl) to see the migration logs.
+> NOT: Geliştirme kurulumu, yerel olarak oluşturulan görüntüyü çalıştıracak ve onu yerel örneğinizle değiştirmeden önce göçlerini çalıştıracaktır. Yeni uyguladığınız göçler çalışmıyorsa, geliştirme kurulumu düzgün başlamayacak ve önce göçleri düzeltmeniz gerekecektir. Shell'i etkinleştirmek için `eval "$(mise run agentstack-server:dev:shell)"` komutunu kullanabilir ve en sevdiğiniz Kubernetes IDE'sini (örneğin, k9s veya kubectl) kullanarak göç günlüklerini görebilirsiniz.
 
-### Running individual components
+### Bireysel Bileşenleri Çalıştırma
 
-To run Agent Stack components in development mode (ensuring proper rebuilding), use the following commands.
+Agent Stack bileşenlerini geliştirme modunda (doğru yeniden inşa sağlamak için) çalıştırmak için aşağıdaki komutları kullanın.
 
-#### Server
+#### Sunucu
 
-Build and run server using setup described in [Running the platform from source](#running-the-platform-from-source)
-Or use development setup described
-in [Running and debugging individual components](#running-and-debugging-individual-components)
+Sunucuyu [Kaynaktan Platformu Çalıştırma](#running-the-platform-from-source) bölümünde açıklanan kurulumla oluşturun ve çalıştırın.
+Ya da [Bireysel Bileşenleri Çalıştırma ve Hata Ayıklama](#running-and-debugging-individual-components) bölümünde açıklanan geliştirme kurulumunu kullanın.
 
 #### CLI
 
@@ -297,64 +274,51 @@ mise agentstack-cli:run -- agent run website_summarizer "summarize beeai.dev"
 #### UI
 
 ```sh
-# run the UI development server:
+# UI geliştirme sunucusunu çalıştır:
 mise agentstack-ui:run
 
-# UI is also available from agentstack-server (in static mode):
+# UI ayrıca agentstack-server'dan (statik modda) da kullanılabilir:
 mise agentstack-server:run
 ```
 
-## Releasing
+## Yayınlama
 
-Agent Stack is using `main` branch for next version development (integration branch) and `release-v*` branches for stable releases.
+Agent Stack, bir sonraki sürüm geliştirmesi için `main` dalını ve kararlı sürümler için `release-v*` dallarını kullanmaktadır.
 
-The release process consists of three steps:
+Yayın süreci üç adımdan oluşur:
 
-### Step 1: Cut the release
+### Adım 1: Yayını Kesin
 
-Ensure that the currently set version in `main` branch is the desired release version. If not, first run `mise run release:set-version <new-version>`.
+`main` dalında ayarlanmış mevcut sürümün istenen yayın sürümü olduğundan emin olun. Değilse, önce `mise run release:set-version <new-version>` komutunu çalıştırın.
 
-Run the `release:new` task from the `main` branch:
+`main` dalından `release:new` görevini çalıştırın:
 
 ```shell
 mise run release:new
 ```
 
-This will prepare a new branch `release-vX.Y` (with the version number from `main`), and bump up the version in `main` to the next patch version (e.g., `1.2.3` -> `1.2.4`).
+Bu, yeni bir `release-vX.Y` dalı oluşturacak (main'deki sürüm numarası ile) ve `main` dalındaki sürümü bir sonraki yamanın sürümüne (örneğin, `1.2.3` -> `1.2.4`) yükseltecektir.
 
-### Step 2: QA & Polish the release on release branch
+### Adım 2: Yayın Dalında QA ve Yayını Polonya
 
-You can then iteratively polish the release in `release-v*` branch. Do not forget to apply relevant fixes to both the release branch and `main`, e.g. by `git cherrypick`.
+Yayın dalında yayını iteratif olarak parlatabilirsiniz. Hem yayın dalında hem de `main` dalında ilgili düzeltmeleri uygulamayı unutmayın, örneğin `git cherrypick` ile.
 
-To publish a release candidate from the release branch, run `mise run release:publish-rc`. This will publish `X.Y.Z-rcN` version, where `N` is incremented on each RC publish.
+Yayın dalından bir yayın adayını yayınlamak için `mise run release:publish-rc` komutunu çalıştırın. Bu, `X.Y.Z-rcN` sürümünü yayınlayacaktır; burada `N`, her RC yayınında artırılır.
 
-Creating new RC will trigger GH action to deploy pre-release version of the package for testing.
+Yeni bir RC oluşturmak, test için paketinin ön sürümünü dağıtmak üzere GH eylemini tetikleyecektir.
 
-### Step 3: Publish
+### Adım 3: Yayınla
 
-Once the RC makes the QA rounds, publish the final release from the release branch:
+RC QA turlarını tamamladıktan sonra, yayın dalından nihai yayını yayınlayın:
 
 ```shell
 mise run release:publish-stable
 ```
 
-In addition to publishing the stable version, this action also ensures that the docs in `main` branch are updated to reflect the new version by moving the `docs/development` folder from the release branch to `docs/stable` on `main`.
+Bu işlem, kararlı sürümü yayınlamanın yanı sıra, `main` dalındaki belgelerin yeni sürümü yansıtacak şekilde güncellenmesini de sağlar; bu, yayın dalındaki `docs/development` klasörünü `main` dalındaki `docs/stable`'a taşımakla gerçekleşir.
 
-## Documentation
+## Belgeler
 
-There are two documentation folders: `docs/stable` and `docs/development`. Due to the nature of Mintlify, docs are deployed from the `main` branch, so we keep `docs/stable` frozen to correspond to the latest stable release. **Only make manual changes in `docs/stable` in order to fix issues with the docs, feature PRs should only edit `docs/development`.**
+İki belge klasörü vardır: `docs/stable` ve `docs/development`. Mintlify'nin doğası gereği, belgeler `main` dalından dağıtılır, bu nedenle `docs/stable`'ı en son kararlı sürümü temsil edecek şekilde donduruyoruz. **Sadece belgelerdeki sorunları düzeltmek için `docs/stable` içinde manuel değişiklikler yapın, özellik PR'ları yalnızca `docs/development`'ı düzenlemelidir.**
 
-All PRs **must** either include corresponding documentation in `docs/development`, or include `[x] No Docs Needed` in the PR description. This is checked by GitHub Actions.
-
-Special care needs to be taken with the `docs/development/reference/cli-reference.mdx` file, which is automatically generated. Use `mise run agentstack-cli:docs` to regenerate this file when modifying the CLI interface.
-
-Try to follow this structure:
-
-- **Elevator pitch:** What value this feature brings to the user.
-- **Pre-requisites:** Extra dependencies required on top of Agent Stack -- non-default agents, Docker runtime, 3rd party libraries, environment variables like API keys, etc. (Note that `uv` is part of the Agent Stack install.)
-- **Step-by-step instructions**
-- **Troubleshooting:** Common errors and solutions.
-
-Make sure to preview docs locally using: `mise docs:run`. This runs a development server which refreshes as you make changes to the `.mdx` files.
-
-Some code samples in docs are embedded from the `examples/` directory using [embedme](https://github.com/zakhenry/embedme) tags. For these, edit the example agent (not the `.mdx` file directly) and run `mise run docs:fix` to sync. See [Examples](#examples) for the full workflow.
+Tüm PR'ler **ya** `docs/development` içinde ilgili belgeleri iç
