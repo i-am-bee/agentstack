@@ -16,7 +16,7 @@ overrides:
   # Fix CVE-2025-15284 / GHSA-6rw7-vpxm-498p: qs arrayLimit bypass in bracket notation
   # Fix CVE-2026-2391 / GHSA-w7fw-mjwx-w883: qs arrayLimit bypass in comma parsing
   # Transitive via express -> body-parser
-  "qs@<6.14.2": "6.14.2"
+  "qs@<6.14.2": "6.16.0"
   # Fix CVE-2024-43799 / GHSA-m6fv-jmcg-4jfg: send template injection leading to XSS
   # Transitive via express -> serve-static
   "send@>=0.0.0 <0.19.0": "0.19.0"
