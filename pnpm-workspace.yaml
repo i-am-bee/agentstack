@@ -38,7 +38,7 @@ overrides:
   # Fix CVE-2026-25639 / GHSA-43fc-jf86-j433: axios DoS via __proto__ in mergeConfig
   # Fix CVE-2025-58754 / GHSA-4hjh-wcwx-xvwj: axios DoS vulnerability via data: URI
   # Transitive via mintlify -> @mintlify/models
-  "axios@<1.13.5": "1.13.5"
+  "axios@<1.13.5": "1.18.0"
   # Fix CVE-2026-29074 / GHSA-xpqw-6gx7-v673: SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)
   # Transitive via @svgr/webpack -> @svgr/plugin-svgo -> svgo
   "svgo@>=3.0.0 <3.3.3": "3.3.3"
