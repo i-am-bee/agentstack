@@ -108,11 +108,16 @@ Connector presets provide pre-configured settings for common MCP servers, simpli
 
 The platform comes with several built-in presets:
 
-| MCP Server | URL                                 | Description                                                             |
-| ---------- | ----------------------------------- | ----------------------------------------------------------------------- |
-| Stripe     | `https://mcp.stripe.com`            | Payment processing and financial infrastructure tools                   |
-| Box        | `https://mcp.box.com`               | Search, access and get insights on your Box content                     |
-| GitHub     | `https://api.githubcopilot.com/mcp` | Access and interact with your GitHub repositories and code intelligence |
+| MCP Server | URL                                    | Description                                                             |
+| ---------- | -------------------------------------- | ----------------------------------------------------------------------- |
+| Stripe     | `https://mcp.stripe.com`               | Payment processing and financial infrastructure tools                   |
+| Box        | `https://mcp.box.com`                  | Search, access and get insights on your Box content                     |
+| GitHub     | `https://api.githubcopilot.com/mcp`    | Access and interact with your GitHub repositories and code intelligence |
+| You.com    | `https://api.you.com/mcp?profile=free` | Live web search for agents, no API key required                         |
+
+The You.com preset points at the keyless free profile, so it connects without credentials. For the full search and
+content-extraction toolset, create a connector to `https://api.you.com/mcp` instead and pass an API key using
+[header-based authentication](#header-based-authentication).
 
 ### Using Presets
 
