@@ -3,7 +3,7 @@ overrides:
   # Transitive via @mintlify/common
   "lodash@<4.17.23": "4.17.23"
   # Fix CVE-2026-0540 / GHSA-v2wj-7wpq-c8vv: DOMPurify XSS via missing rawtext elements
-  "dompurify@<3.3.2": "3.3.2"
+  "dompurify@<3.3.2": "3.4.13"
   # Fix CVE-2024-29041 / GHSA-rv95-896h-c2vc: Express open redirect in malformed URLs
   # Fix CVE-2024-43796 / GHSA-qw6h-vgh9-j6wx: Express XSS via response.redirect()
   # Transitive via mintlify -> @mintlify/previewing
