@@ -480,6 +480,10 @@ connector:
       metadata:
         name: "GitHub"
         description: "Access and interact with your GitHub repositories and code intelligence"
+    - url: "https://api.you.com/mcp?profile=free"
+      metadata:
+        name: "You.com"
+        description: "Live web search for agents, no API key required"
 ui:
   replicaCount: 1
   enabled: true
