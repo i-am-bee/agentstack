@@ -44,7 +44,7 @@ overrides:
   "svgo@>=3.0.0 <3.3.3": "3.3.3"
   # Fix CVE-2024-45590 / GHSA-qwcr-r2fm-qrc7: body-parser DoS vulnerability
   # Transitive via express@4.18.2
-  "body-parser@<1.20.3": "1.20.3"
+  "body-parser@<1.20.3": "1.20.6"
   # Fix CVE-2026-23745, CVE-2026-23950, CVE-2026-24842, CVE-2026-26960, CVE-2026-29786: various tar path traversal/hardlink vulnerabilities
   # Fix CVE-2024-28863 / GHSA-f5x3-32g6-xq36: tar DoS via excessive nested folder depth
   "tar@<7.5.10": "7.5.10"
