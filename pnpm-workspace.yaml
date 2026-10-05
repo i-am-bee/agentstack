@@ -47,7 +47,7 @@ overrides:
   "body-parser@<1.20.3": "1.20.3"
   # Fix CVE-2026-23745, CVE-2026-23950, CVE-2026-24842, CVE-2026-26960, CVE-2026-29786: various tar path traversal/hardlink vulnerabilities
   # Fix CVE-2024-28863 / GHSA-f5x3-32g6-xq36: tar DoS via excessive nested folder depth
-  "tar@<7.5.10": "7.5.10"
+  "tar@<7.5.10": "7.5.21"
   # @mintlify/previewing uses `import tar from 'tar'` (ESM default import) which only works with tar@6.x
   # Dev-only tool; no exploitation risk
   "@mintlify/previewing>tar": "6.2.1"
