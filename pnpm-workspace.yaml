@@ -50,7 +50,7 @@ overrides:
   "tar@<7.5.10": "7.5.10"
   # @mintlify/previewing uses `import tar from 'tar'` (ESM default import) which only works with tar@6.x
   # Dev-only tool; no exploitation risk
-  "@mintlify/previewing>tar": "6.2.1"
+  "@mintlify/previewing>tar": "7.5.21"
 
 packages:
   - apps/agentstack-ui
