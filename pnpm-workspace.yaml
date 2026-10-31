@@ -34,7 +34,7 @@ overrides:
   "immutable@>=5.0.0 <5.1.5": "5.1.5"
   # Fix CVE-2026-26996 / GHSA-3ppc-4f35-3m26: minimatch ReDoS vulnerability
   # Transitive via @stoplight/spectral-core
-  "minimatch@<3.1.5": "3.1.5"
+  "minimatch@<3.1.5": "11.0.1"
   # Fix CVE-2026-25639 / GHSA-43fc-jf86-j433: axios DoS via __proto__ in mergeConfig
   # Fix CVE-2025-58754 / GHSA-4hjh-wcwx-xvwj: axios DoS vulnerability via data: URI
   # Transitive via mintlify -> @mintlify/models
