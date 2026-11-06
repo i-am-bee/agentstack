@@ -31,7 +31,7 @@ overrides:
   "path-to-regexp@<0.1.12": "0.1.12"
   # Fix CVE-2026-29063 / GHSA-wf6x-7x77-mvgw: immutable Prototype Pollution vulnerability
   # Transitive via sass and sass-embedded
-  "immutable@>=5.0.0 <5.1.5": "5.1.5"
+  "immutable@>=5.0.0 <5.1.5": "5.1.8"
   # Fix CVE-2026-26996 / GHSA-3ppc-4f35-3m26: minimatch ReDoS vulnerability
   # Transitive via @stoplight/spectral-core
   "minimatch@<3.1.5": "3.1.5"
